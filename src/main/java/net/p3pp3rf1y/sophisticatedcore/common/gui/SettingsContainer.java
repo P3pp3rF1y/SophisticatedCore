@@ -165,7 +165,7 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		}
 
 		if (synchronizer != null) {
-			synchronizer.sendInitialData(this, remoteSlots, remoteCarried, new int[0]);
+			synchronizer.sendInitialData(this, remoteGhostSlots, remoteCarried, new int[0]);
 		}
 	}
 
