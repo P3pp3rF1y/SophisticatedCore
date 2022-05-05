@@ -5,4 +5,5 @@ public class CompatModIds {
 
 	public static final String JEI = "jei";
 	public static final String CRAFTING_TWEAKS = "craftingtweaks";
+	public static final String INVENTORY_SORTER = "inventorysorter";
 }
