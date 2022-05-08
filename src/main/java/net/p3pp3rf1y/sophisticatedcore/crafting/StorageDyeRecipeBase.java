@@ -78,6 +78,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 		}
 
 		ItemStack coloredStorage = columnStorage.getB().copy();
+		coloredStorage.setCount(1);
 		int storageColumn = columnStorage.getA();
 
 		applyTintColors(columnDyes, coloredStorage, storageColumn);
