@@ -151,5 +151,6 @@
     "gui.sophisticatedcore.error.add.tank_capacity_high": "배낭이 이 탱크 강화에 따라갈 수 없습니다. 배낭을 강화하거나 쌓기 강화를 추가하여 적어도 %sx 이상의 용량을 얻으세요",
     "gui.sophisticatedcore.error.add.battery_energy_high": "배낭이 이 배터리 강화에 따라갈 수 없습니다. 배낭을 강화하거나 쌓기 강화를 추가하여 적어도 %sx 이상의 배터리 용량을 얻으세요",
     "gui.sophisticatedcore.error.add.battery_exists": "다른 강화 슬롯에 이미 배터리 강화가 있습니다",
-    "fluid.sophisticatedcore.xp_still": "경험치"
+    "fluid.sophisticatedcore.xp_still": "경험치",
+    "gui.sophisticatedcore.tooltip.stack_count": "개수: %s"
 }

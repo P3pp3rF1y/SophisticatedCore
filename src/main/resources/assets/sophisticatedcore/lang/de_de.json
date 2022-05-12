@@ -173,5 +173,6 @@
     "gui.sophisticatedcore.narrate.context_button": "Kontextumschalter eingestellt auf: %s",
     "gui.sophisticatedcore.narrate.context_button.usage": "Klicken, um den Kontext umzuschalten",
     "gui.sophisticatedcore.error.add.needs_occupied_inventory_slots": "Es gibt einen Gegenstand in mindestens einem der letzten %s-Slots, der für %s benötigt wird",
-    "fluid.sophisticatedcore.xp_still": "Erfahrung"
+    "fluid.sophisticatedcore.xp_still": "Erfahrung",
+    "gui.sophisticatedcore.tooltip.stack_count": "Anzahl: %s"
 }

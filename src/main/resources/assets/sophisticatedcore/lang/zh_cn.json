@@ -173,5 +173,6 @@
     "gui.sophisticatedcore.narrate.tab_button": "升级选项栏 开/关 按钮",
     "gui.sophisticatedcore.narrate.context_button": "上下文切换设置为：%s",
     "gui.sophisticatedcore.narrate.context_button.usage": "单击以切换上下文",
-    "fluid.sophisticatedcore.xp_still": "经验"
+    "fluid.sophisticatedcore.xp_still": "经验",
+    "gui.sophisticatedcore.tooltip.stack_count": "数量: %s"
 }
