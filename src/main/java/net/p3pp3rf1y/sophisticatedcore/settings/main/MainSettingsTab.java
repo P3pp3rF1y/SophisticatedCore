@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable;
+package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -24,7 +24,7 @@ import java.util.function.IntConsumer;
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions.createToggleButtonDefinition;
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.getButtonStateData;
 
-public class GlobalOverridableSettingsTab extends SettingsTab<GlobalOverridableSettingsContainer> {
+public class MainSettingsTab<T extends MainSettingsContainer> extends SettingsTab<T> {
 	private static final ButtonDefinition.Toggle<Boolean> SHIFT_CLICK_INTO_OPEN_TAB = createToggleButtonDefinition(
 			Map.of(
 					true, getButtonStateData(new UV(80, 32), Dimension.SQUARE_16, new Position(1, 1),
@@ -56,7 +56,7 @@ public class GlobalOverridableSettingsTab extends SettingsTab<GlobalOverridableS
 			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("context_player.tooltip_detail")).withStyle(ChatFormatting.GRAY)
 	);
 
-	public GlobalOverridableSettingsTab(GlobalOverridableSettingsContainer container, Position position, SettingsScreen screen, List<Component> storageContextTooltip, Component storageContextTitle, String tabLabelTranslKey, String tabTooltipTranslKey, Function<IntConsumer, ButtonBase> getTabButton) {
+	public MainSettingsTab(T container, Position position, SettingsScreen screen, List<Component> storageContextTooltip, Component storageContextTitle, String tabLabelTranslKey, String tabTooltipTranslKey, Function<IntConsumer, ButtonBase> getTabButton) {
 		super(container, position, screen, new TranslatableComponent(tabLabelTranslKey),
 				List.of(new TranslatableComponent(tabTooltipTranslKey)), Collections.emptyList(),
 				getTabButton);

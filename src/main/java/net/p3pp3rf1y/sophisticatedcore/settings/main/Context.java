@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable;
+package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 public enum Context {
 	PLAYER(0),
