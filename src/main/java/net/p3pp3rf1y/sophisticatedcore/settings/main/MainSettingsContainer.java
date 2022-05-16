@@ -1,17 +1,17 @@
-package net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable;
+package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
-import net.p3pp3rf1y.sophisticatedcore.settings.GlobalOverridableSetting;
+import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
 
-public class GlobalOverridableSettingsContainer extends SettingsContainerBase<GlobalOverridableSettingsCategory> {
+public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCategory> {
 	private static final String CONTEXT_TAG = "context";
 	private Context context = Context.PLAYER;
 
-	public GlobalOverridableSettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, GlobalOverridableSettingsCategory category) {
+	public MainSettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, MainSettingsCategory category) {
 		super(settingsContainer, categoryName, category);
 	}
 
@@ -35,7 +35,7 @@ public class GlobalOverridableSettingsContainer extends SettingsContainerBase<Gl
 		return context;
 	}
 
-	private Player getPlayer() {
+	protected Player getPlayer() {
 		return getSettingsContainer().getPlayer();
 	}
 
@@ -55,7 +55,7 @@ public class GlobalOverridableSettingsContainer extends SettingsContainerBase<Gl
 		return getSettingValue(SettingsManager.KEEP_TAB_OPEN);
 	}
 
-	private <T> T getSettingValue(GlobalOverridableSetting<T> setting) {
+	protected  <T> T getSettingValue(MainSetting<T> setting) {
 		if (context == Context.PLAYER) {
 			return SettingsManager.getPlayerSettingOrDefault(getPlayer(), getCategory().getPlayerSettingsTagName(), setting);
 		} else {
@@ -63,7 +63,7 @@ public class GlobalOverridableSettingsContainer extends SettingsContainerBase<Gl
 		}
 	}
 
-	private <T> void setSettingValue(Player player, GlobalOverridableSetting<T> setting, CompoundTag data) {
+	private <T> void setSettingValue(Player player, MainSetting<T> setting, CompoundTag data) {
 		setting.getValue(data).ifPresent(value -> {
 			if (context == Context.PLAYER) {
 				SettingsManager.setPlayerSetting(player, getCategory().getPlayerSettingsTagName(), setting, value);
@@ -73,7 +73,7 @@ public class GlobalOverridableSettingsContainer extends SettingsContainerBase<Gl
 		});
 	}
 
-	private void toggleBooleanSetting(Player player, GlobalOverridableSetting<Boolean> setting) {
+	protected void toggleBooleanSetting(Player player, MainSetting<Boolean> setting) {
 		if (context == Context.PLAYER) {
 			boolean value = !SettingsManager.getPlayerSettingOrDefault(player, getCategory().getPlayerSettingsTagName(), setting);
 			SettingsManager.setPlayerSetting(player, getCategory().getPlayerSettingsTagName(), setting, value);
@@ -84,7 +84,7 @@ public class GlobalOverridableSettingsContainer extends SettingsContainerBase<Gl
 		}
 	}
 
-	private void sendSettingValueToServer(GlobalOverridableSetting<Boolean> setting, boolean value) {
+	private void sendSettingValueToServer(MainSetting<Boolean> setting, boolean value) {
 		CompoundTag data = new CompoundTag();
 		setting.setValue(data, value);
 		sendDataToServer(() -> data);

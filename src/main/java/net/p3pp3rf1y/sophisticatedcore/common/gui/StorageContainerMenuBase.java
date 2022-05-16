@@ -33,7 +33,7 @@ import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
-import net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable.GlobalOverridableSettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
@@ -664,7 +664,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private boolean shouldShiftClickIntoOpenTabFirst() {
-		GlobalOverridableSettingsCategory category = storageWrapper.getSettingsHandler().getTypeCategory(GlobalOverridableSettingsCategory.class);
+		MainSettingsCategory category = storageWrapper.getSettingsHandler().getGlobalSettingsCategory();
 		return SettingsManager.getSettingValue(player, category.getPlayerSettingsTagName(), category, SettingsManager.SHIFT_CLICK_INTO_OPEN_TAB_FIRST);
 	}
 
@@ -728,7 +728,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected void removeOpenTabIfKeepOff() {
-		GlobalOverridableSettingsCategory category = storageWrapper.getSettingsHandler().getTypeCategory(GlobalOverridableSettingsCategory.class);
+		MainSettingsCategory category = storageWrapper.getSettingsHandler().getGlobalSettingsCategory();
 		if (Boolean.FALSE.equals(SettingsManager.getSettingValue(player, category.getPlayerSettingsTagName(), category, SettingsManager.KEEP_TAB_OPEN))) {
 			storageWrapper.removeOpenTabId();
 		}

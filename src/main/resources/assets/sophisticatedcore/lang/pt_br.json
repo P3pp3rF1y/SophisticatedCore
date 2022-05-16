@@ -170,5 +170,6 @@
     "gui.sophisticatedcore.error.add.tank_capacity_high": "Esta mochila não permite equipar o acessório de Tanque. Melhore a mochila ou adicione um multiplicador de pilhas para obter pelo menos %sx de capacidade máxima",
     "gui.sophisticatedcore.error.add.battery_energy_high": "Esta mochila não permite equipar o acessório de Basteria Portátil. Melhore a mochila ou adicione um multiplicador de pilhas para obter pelo menos %sx de energia máxima",
     "gui.sophisticatedcore.error.add.battery_exists": "Já existe um acessório de Bateria Portátil equipado",
-    "fluid.sophisticatedcore.xp_still": "Experiência"
+    "fluid.sophisticatedcore.xp_still": "Experiência",
+    "gui.sophisticatedcore.tooltip.stack_count": "Contagem: %s"
 }

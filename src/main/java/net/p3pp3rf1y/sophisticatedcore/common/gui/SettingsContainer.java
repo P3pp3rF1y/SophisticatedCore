@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import com.google.common.base.Suppliers;
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -21,8 +20,8 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
-import net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable.GlobalOverridableSettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable.GlobalOverridableSettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
@@ -31,6 +30,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsContainer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,15 +39,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public abstract class SettingsContainer<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer {
-	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES;
+	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
 
 	static {
-		ImmutableMap.Builder<String, ISettingsContainerFactory<?, ?>> builder = new ImmutableMap.Builder<>();
-		addFactory(builder, GlobalOverridableSettingsCategory.NAME, GlobalOverridableSettingsContainer::new);
-		addFactory(builder, NoSortSettingsCategory.NAME, NoSortSettingsContainer::new);
-		addFactory(builder, MemorySettingsCategory.NAME, MemorySettingsContainer::new);
-		addFactory(builder, ItemDisplaySettingsCategory.NAME, ItemDisplaySettingsContainer::new);
-		SETTINGS_CONTAINER_FACTORIES = builder.build();
+		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
+		addFactory(NoSortSettingsCategory.NAME, NoSortSettingsContainer::new);
+		addFactory(MemorySettingsCategory.NAME, MemorySettingsContainer::new);
+		addFactory(ItemDisplaySettingsCategory.NAME, ItemDisplaySettingsContainer::new);
 	}
 
 	protected final Player player;
@@ -252,9 +250,8 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		return storageWrapper.getNumberOfSlotRows();
 	}
 
-	private static <C extends ISettingsCategory, T extends SettingsContainerBase<C>> void addFactory(
-			ImmutableMap.Builder<String, ISettingsContainerFactory<?, ?>> builder, String categoryName, ISettingsContainerFactory<C, T> factory) {
-		builder.put(categoryName, factory);
+	protected static <C extends ISettingsCategory, T extends SettingsContainerBase<C>> void addFactory(String categoryName, ISettingsContainerFactory<C, T> factory) {
+		SETTINGS_CONTAINER_FACTORIES.put(categoryName, factory);
 	}
 
 	public interface ISettingsContainerFactory<C extends ISettingsCategory, T extends SettingsContainerBase<C>> {

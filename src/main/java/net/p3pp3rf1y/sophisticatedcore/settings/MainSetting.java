@@ -6,13 +6,13 @@ import org.apache.logging.log4j.util.TriConsumer;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-public class GlobalOverridableSetting<T> {
+public class MainSetting<T> {
 	private final String tagName;
 	private final BiFunction<CompoundTag, String, Optional<T>> getValue;
 	private final TriConsumer<CompoundTag, String, T> setValue;
 	private final T defaultValue;
 
-	public GlobalOverridableSetting(String tagName, BiFunction<CompoundTag, String, Optional<T>> getValue, TriConsumer<CompoundTag, String, T> setValue, T defaultValue) {
+	public MainSetting(String tagName, BiFunction<CompoundTag, String, Optional<T>> getValue, TriConsumer<CompoundTag, String, T> setValue, T defaultValue) {
 		this.tagName = tagName;
 		this.getValue = getValue;
 		this.setValue = setValue;

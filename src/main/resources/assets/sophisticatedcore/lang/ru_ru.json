@@ -170,5 +170,6 @@
     "gui.sophisticatedcore.error.add.tank_capacity_high": "Рюкзак не поддерживает данное улучшение «Бак». Расширьте сам рюкзак или увеличьте множитель стака его слотов хотя бы в %s раза",
     "gui.sophisticatedcore.error.add.battery_energy_high": "Рюкзак не поддерживает данное улучшение «Аккумулятор». Расширьте сам рюкзак или увеличьте множитель стака его слотов хотя бы в %s раза",
     "gui.sophisticatedcore.error.add.battery_exists": "В другом слоте рюкзака уже установлено улучшение «Аккумулятор»",
-    "fluid.sophisticatedcore.xp_still": "Опыт"
+    "fluid.sophisticatedcore.xp_still": "Опыт",
+    "gui.sophisticatedcore.tooltip.stack_count": "Кол-во: %s"
 }

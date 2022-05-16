@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings;
 import net.minecraft.nbt.CompoundTag;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
-import net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable.GlobalOverridableSettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
@@ -24,22 +24,28 @@ public abstract class SettingsHandler {
 	private final Map<Class<?>, List<?>> interfaceCategories = new HashMap<>();
 	private final Map<Class<? extends ISettingsCategory>, ISettingsCategory> typeCategories = new HashMap<>();
 
-	public SettingsHandler(CompoundTag contentsNbt, Runnable markContentsDirty, String playerSettingsTagName, Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier) {
+	public SettingsHandler(CompoundTag contentsNbt, Runnable markContentsDirty, Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier) {
 		this.contentsNbt = contentsNbt;
 		this.markContentsDirty = markContentsDirty;
-		addSettingsCategories(inventoryHandlerSupplier, renderInfoSupplier, getSettingsNbtFromContentsNbt(contentsNbt), playerSettingsTagName);
+		addSettingsCategories(inventoryHandlerSupplier, renderInfoSupplier, getSettingsNbtFromContentsNbt(contentsNbt));
 	}
 
 	protected abstract CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt);
 
-	private void addSettingsCategories(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt, String playerSettingsTagName) {
-		addSettingsCategory(settingsNbt, GlobalOverridableSettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) -> new GlobalOverridableSettingsCategory(categoryNbt, saveNbt, playerSettingsTagName));
+	private void addSettingsCategories(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
+		addGlobalSettingsCategory(settingsNbt);
 		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
 		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
 		addSettingsCategory(settingsNbt, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) -> new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderInfoSupplier, categoryNbt, saveNbt));
 	}
 
-	private void addSettingsCategory(CompoundTag settingsNbt, String categoryName, Runnable markContentsDirty, BiFunction<CompoundTag, Consumer<CompoundTag>, ISettingsCategory> instantiateCategory) {
+	protected abstract void addGlobalSettingsCategory(CompoundTag settingsNbt);
+
+	public MainSettingsCategory getGlobalSettingsCategory() {
+		return getTypeCategory(MainSettingsCategory.class);
+	}
+
+	protected void addSettingsCategory(CompoundTag settingsNbt, String categoryName, Runnable markContentsDirty, BiFunction<CompoundTag, Consumer<CompoundTag>, ISettingsCategory> instantiateCategory) {
 		ISettingsCategory category = instantiateCategory.apply(settingsNbt.getCompound(categoryName), tag -> {
 			saveCategoryNbt(settingsNbt, categoryName, tag);
 			markContentsDirty.run();

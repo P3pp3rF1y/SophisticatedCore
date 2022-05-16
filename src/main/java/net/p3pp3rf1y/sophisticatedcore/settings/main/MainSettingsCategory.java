@@ -1,20 +1,20 @@
-package net.p3pp3rf1y.sophisticatedcore.settings.globaloverridable;
+package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.nbt.CompoundTag;
-import net.p3pp3rf1y.sophisticatedcore.settings.GlobalOverridableSetting;
+import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class GlobalOverridableSettingsCategory implements ISettingsCategory {
+public class MainSettingsCategory implements ISettingsCategory {
 	public static final String NAME = "global";
 	private CompoundTag categoryNbt;
 	private final Consumer<CompoundTag> saveNbt;
 
 	private final String playerSettingsTagName;
 
-	public GlobalOverridableSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, String playerSettingsTagName) {
+	public MainSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, String playerSettingsTagName) {
 		this.categoryNbt = categoryNbt;
 		this.saveNbt = saveNbt;
 		this.playerSettingsTagName = playerSettingsTagName;
@@ -24,16 +24,16 @@ public class GlobalOverridableSettingsCategory implements ISettingsCategory {
 		return playerSettingsTagName;
 	}
 
-	public <T> Optional<T> getSettingValue(GlobalOverridableSetting<T> setting) {
+	public <T> Optional<T> getSettingValue(MainSetting<T> setting) {
 		return setting.getValue(categoryNbt);
 	}
 
-	public <T> void setSettingValue(GlobalOverridableSetting<T> setting, T value) {
+	public <T> void setSettingValue(MainSetting<T> setting, T value) {
 		setting.setValue(categoryNbt, value);
 		saveNbt.accept(categoryNbt);
 	}
 
-	public <T> void removeSetting(GlobalOverridableSetting<T> setting) {
+	public <T> void removeSetting(MainSetting<T> setting) {
 		setting.removeFrom(categoryNbt);
 		saveNbt.accept(categoryNbt);
 	}
