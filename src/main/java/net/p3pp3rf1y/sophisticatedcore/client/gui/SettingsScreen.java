@@ -2,6 +2,8 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
@@ -9,6 +11,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
@@ -18,21 +21,83 @@ import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainer<?>> {
+public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainer<?>> implements InventoryScrollPanel.IInventoryScreen {
+	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
 	private StorageSettingsTabControlBase settingsTabControl;
+	private InventoryScrollPanel inventoryScrollPanel = null;
+	private StorageBackgroundProperties storageBackgroundProperties;
 
 	public SettingsScreen(SettingsContainer screenContainer, Inventory inv, Component titleIn) {
 		super(screenContainer, inv, titleIn);
-		imageHeight = 114 + getMenu().getNumberOfRows() * 18;
-		imageWidth = getMenu().getStorageBackgroundProperties().getSlotsOnLine() * 18 + 14;
+		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
+	}
+
+	@Override
+	public void resize(Minecraft pMinecraft, int pWidth, int pHeight) {
+		updateDimensionsAndSlotPositions(pHeight);
+		super.resize(pMinecraft, pWidth, pHeight);
+	}
+
+	private void updateDimensionsAndSlotPositions(int pHeight) {
+		int displayableNumberOfRows = Math.min((pHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
+		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + displayableNumberOfRows * 18;
+		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
+
+		imageWidth = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
+		updateStorageSlotsPositions();
+		if (displayableNumberOfRows < getMenu().getNumberOfRows()) {
+			storageBackgroundProperties = storageBackgroundProperties == StorageBackgroundProperties.REGULAR_9_SLOT ? StorageBackgroundProperties.WIDER_9_SLOT : StorageBackgroundProperties.WIDER_12_SLOT;
+			imageWidth += 6;
+		}
+		imageHeight = newImageHeight;
 		inventoryLabelY = imageHeight - 94;
-		inventoryLabelX = 8 + getMenu().getStorageBackgroundProperties().getPlayerInventoryXOffset();
+		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
+	}
+
+	private void updateInventoryScrollPanel() {
+		if (inventoryScrollPanel != null) {
+			removeWidget(inventoryScrollPanel);
+		}
+
+		int numberOfVisibleRows = getNumberOfVisibleRows();
+		if (numberOfVisibleRows < getMenu().getNumberOfRows()) {
+			inventoryScrollPanel = new InventoryScrollPanel(Minecraft.getInstance(), this, 0, getMenu().getNumberOfStorageInventorySlots(), getSlotsOnLine(), numberOfVisibleRows * 18, getGuiTop() + 17, getGuiLeft() + 7);
+			addRenderableWidget(inventoryScrollPanel);
+			inventoryScrollPanel.updateSlotsYPosition();
+		} else {
+			inventoryScrollPanel = null;
+		}
+	}
+
+	private int getNumberOfVisibleRows() {
+		return Math.min((imageHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
+	}
+
+	private void updateStorageSlotsPositions() {
+		int yPosition = 18;
+
+		int slotIndex = 0;
+		while (slotIndex < getMenu().getNumberOfStorageInventorySlots()) {
+			Slot slot = getMenu().getSlot(slotIndex);
+			int lineIndex = slotIndex % getSlotsOnLine();
+			slot.x = 8 + lineIndex * 18;
+			slot.y = yPosition;
+
+			slotIndex++;
+			if (slotIndex % getSlotsOnLine() == 0) {
+				yPosition += 18;
+			}
+		}
+	}
+
+	public int getSlotsOnLine() {
+		return storageBackgroundProperties.getSlotsOnLine() - getMenu().getColumnsTaken();
 	}
 
 	@Override
 	protected void init() {
 		super.init();
-
+		updateInventoryScrollPanel();
 		settingsTabControl = initializeTabControl();
 		addWidget(settingsTabControl);
 	}
@@ -40,9 +105,21 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	protected abstract StorageSettingsTabControlBase initializeTabControl();
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, float partialTicks, int x, int y) {
-		StorageBackgroundProperties storageBackgroundProperties = getMenu().getStorageBackgroundProperties();
-		StorageGuiHelper.renderStorageBackground(new Position((width - imageWidth) / 2, (height - imageHeight) / 2), matrixStack, getMenu().getStorageInventorySlots().size(), getMenu().getSlotsOnLine(), storageBackgroundProperties.getTextureName(), imageWidth, menu.getNumberOfRows());
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+		int x = (width - imageWidth) / 2;
+		int y = (height - imageHeight) / 2;
+		StorageGuiHelper.renderStorageBackground(new Position(x, y), matrixStack, storageBackgroundProperties.getTextureName(), imageWidth, 18 * getNumberOfVisibleRows());
+		if (inventoryScrollPanel == null) {
+			drawSlotBg(matrixStack, x, y);
+		}
+	}
+
+	private void drawSlotBg(PoseStack matrixStack, int x, int y) {
+		int inventorySlots = getMenu().getStorageInventorySlots().size();
+		int slotsOnLine = getSlotsOnLine();
+		int slotRows = inventorySlots / slotsOnLine;
+		int remainingSlots = inventorySlots % slotsOnLine;
+		GuiHelper.renderSlotsBackground(matrixStack, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
 	}
 
 	@Override
@@ -59,13 +136,20 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@Override
 	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
 		super.renderLabels(matrixStack, mouseX, mouseY);
+		if (inventoryScrollPanel == null) {
+			renderInventorySlots(matrixStack, mouseX, mouseY, true);
+		}
+	}
+
+	@Override
+	public void renderInventorySlots(PoseStack matrixStack, int mouseX, int mouseY, boolean canShowHover) {
 		for (int slotId = 0; slotId < menu.ghostSlots.size(); ++slotId) {
 			Slot slot = menu.ghostSlots.get(slotId);
 			renderSlot(matrixStack, slot);
 
 			settingsTabControl.renderSlotOverlays(matrixStack, slot, this::renderSlotOverlay);
 
-			if (isHovering(slot, mouseX, mouseY) && slot.isActive()) {
+			if (canShowHover && isHovering(slot, mouseX, mouseY) && slot.isActive()) {
 				hoveredSlot = slot;
 				renderSlotOverlay(matrixStack, slot, getSlotColor(slotId));
 			}
@@ -122,7 +206,12 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		if (slot != null) {
 			settingsTabControl.handleSlotClick(slot, button);
 		}
-		return true;
+		for (GuiEventListener child : children()) {
+			if (child.isMouseOver(mouseX, mouseY) && child.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+				return true;
+			}
+		}
+		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 	}
 
 	@Nullable
@@ -172,5 +261,35 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	public StorageSettingsTabControlBase getSettingsTabControl() {
 		return settingsTabControl;
+	}
+
+	@Override
+	public boolean isMouseOverSlot(Slot pSlot, double pMouseX, double pMouseY) {
+		return isHovering(pSlot, pMouseX, pMouseY);
+	}
+
+	@Override
+	public void drawSlotBg(PoseStack matrixStack) {
+		drawSlotBg(matrixStack, (width - imageWidth) / 2, (height - imageHeight) / 2);
+	}
+
+	@Override
+	public int getTopY() {
+		return getGuiTop();
+	}
+
+	@Override
+	public int getLeftX() {
+		return getGuiLeft();
+	}
+
+	@Override
+	public void resetHoveredSlot() {
+		hoveredSlot = null;
+	}
+
+	@Override
+	public Slot getSlot(int slotIndex) {
+		return getMenu().getSlot(slotIndex);
 	}
 }
