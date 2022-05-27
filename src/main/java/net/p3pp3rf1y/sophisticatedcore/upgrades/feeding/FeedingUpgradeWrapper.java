@@ -42,13 +42,19 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 			return;
 		}
 
+		boolean hungryPlayer = false;
 		if (entity == null) {
-			world.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true).forEach(p -> feedPlayerAndGetHungry(p, world));
+			AtomicBoolean stillHungryPlayer = new AtomicBoolean(false);
+			world.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true).forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, world)));
+			hungryPlayer = stillHungryPlayer.get();
 		} else {
 			if (feedPlayerAndGetHungry((Player) entity, world)) {
-				setCooldown(world, STILL_HUNGRY_COOLDOWN);
-				return;
+				hungryPlayer = true;
 			}
+		}
+		if (hungryPlayer) {
+			setCooldown(world, STILL_HUNGRY_COOLDOWN);
+			return;
 		}
 
 		setCooldown(world, COOLDOWN);
