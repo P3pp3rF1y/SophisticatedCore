@@ -77,7 +77,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	protected final Player player;
 	protected final S storageWrapper;
 	protected final IStorageWrapper parentStorageWrapper;
-	private final StorageBackgroundProperties storageBackgroundProperties;
 	private final Map<Integer, ItemStack> slotStacksToUpdate = new HashMap<>();
 	private final int storageItemSlotIndex;
 	private final boolean shouldLockStorageItemSlot;
@@ -99,16 +98,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 		removeOpenTabIfKeepOff();
 		storageWrapper.fillWithLoot(player);
-		storageBackgroundProperties = (getNumberOfStorageInventorySlots() + storageWrapper.getColumnsTaken() * storageWrapper.getNumberOfSlotRows()) <= 81 ? StorageBackgroundProperties.REGULAR : StorageBackgroundProperties.WIDE;
 		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot);
 	}
 
 	public abstract Optional<BlockPos> getBlockPosition();
 
 	protected void initSlotsAndContainers(Player player, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
-		int yPosition = addStorageInventorySlots();
-		addPlayerInventorySlots(player.getInventory(), yPosition, storageItemSlotIndex, shouldLockStorageItemSlot);
-		addUpgradeSlots(yPosition);
+		addStorageInventorySlots();
+		addPlayerInventorySlots(player.getInventory(), storageItemSlotIndex, shouldLockStorageItemSlot);
+		addUpgradeSlots();
 		addUpgradeSettingsContainers(player);
 	}
 
@@ -129,7 +127,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		});
 	}
 
-	private void addUpgradeSlots(int lastInventoryRowY) {
+	private void addUpgradeSlots() {
 		UpgradeHandler upgradeHandler = storageWrapper.getUpgradeHandler();
 
 		int numberOfSlots = upgradeHandler.getSlots();
@@ -140,13 +138,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 		int slotIndex = 0;
 
-		int yPosition = lastInventoryRowY - 22 * numberOfSlots;
-
 		while (slotIndex < upgradeHandler.getSlots()) {
-			addUpgradeSlot(instantiateUpgradeSlot(upgradeHandler, slotIndex, yPosition));
+			addUpgradeSlot(instantiateUpgradeSlot(upgradeHandler, slotIndex));
 
 			slotIndex++;
-			yPosition += 22;
 		}
 	}
 
@@ -166,7 +161,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		//noop by default
 	}
 
-	protected abstract StorageUpgradeSlot instantiateUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex, int yPosition);
+	protected abstract StorageUpgradeSlot instantiateUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex);
 
 	protected void addUpgradeSlot(Slot slot) {
 		slot.index = getTotalSlotsNumber();
@@ -206,24 +201,18 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return storageWrapper.getUpgradeHandler().getSlots();
 	}
 
-	public StorageBackgroundProperties getStorageBackgroundProperties() {
-		return storageBackgroundProperties;
-	}
-
 	public Map<Integer, UpgradeContainerBase<?, ?>> getUpgradeContainers() {
 		return upgradeContainers;
 	}
 
-	protected int addStorageInventorySlots() {
+	protected void addStorageInventorySlots() {
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
 		int slotIndex = 0;
-		int yPosition = 18;
 
 		Set<Integer> noSortSlotIndexes = getNoSortSlotIndexes();
 		while (slotIndex < inventoryHandler.getSlots()) {
-			int lineIndex = slotIndex % getSlotsOnLine();
 			int finalSlotIndex = slotIndex;
-			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex, lineIndex, yPosition);
+			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex);
 			if (noSortSlotIndexes.contains(slotIndex)) {
 				addNoSortSlot(slot);
 			} else {
@@ -231,42 +220,28 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 
 			slotIndex++;
-			if (slotIndex % getSlotsOnLine() == 0) {
-				yPosition += 18;
-			}
 		}
-
-		return getNumberOfRows() * 18 + 18;
 	}
 
-	protected void addPlayerInventorySlots(Inventory playerInventory, int yPosition, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
-		int playerInventoryXOffset = storageBackgroundProperties.getPlayerInventoryXOffset();
-
-		yPosition += 14;
-
+	protected void addPlayerInventorySlots(Inventory playerInventory, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
 				int slotIndex = j + i * 9 + 9;
-				int xPosition = playerInventoryXOffset + 8 + j * 18;
-				Slot slot = addStorageItemSafeSlot(playerInventory, yPosition, slotIndex, xPosition, storageItemSlotIndex, shouldLockStorageItemSlot);
+				Slot slot = addStorageItemSafeSlot(playerInventory, slotIndex, storageItemSlotIndex, shouldLockStorageItemSlot);
 				addSlotAndUpdateStorageItemSlotNumber(storageItemSlotIndex, shouldLockStorageItemSlot, slotIndex, slot);
 			}
-			yPosition += 18;
 		}
 
-		yPosition += 4;
-
 		for (int slotIndex = 0; slotIndex < 9; ++slotIndex) {
-			int xPosition = playerInventoryXOffset + 8 + slotIndex * 18;
-			Slot slot = addStorageItemSafeSlot(playerInventory, yPosition, slotIndex, xPosition, storageItemSlotIndex, shouldLockStorageItemSlot);
+			Slot slot = addStorageItemSafeSlot(playerInventory, slotIndex, storageItemSlotIndex, shouldLockStorageItemSlot);
 			addSlotAndUpdateStorageItemSlotNumber(storageItemSlotIndex, shouldLockStorageItemSlot, slotIndex, slot);
 		}
 	}
 
-	private Slot addStorageItemSafeSlot(Inventory playerInventory, int yPosition, int slotIndex, int xPosition, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
+	private Slot addStorageItemSafeSlot(Inventory playerInventory, int slotIndex, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		Slot slot;
 		if (shouldLockStorageItemSlot && slotIndex == storageItemSlotIndex) {
-			slot = new Slot(playerInventory, slotIndex, xPosition, yPosition) {
+			slot = new Slot(playerInventory, slotIndex, 0, 0) {
 				@Override
 				public boolean mayPickup(Player playerIn) {
 					return false;
@@ -279,7 +254,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			};
 		} else {
-			slot = new Slot(playerInventory, slotIndex, xPosition, yPosition);
+			slot = new Slot(playerInventory, slotIndex, 0, 0);
 		}
 
 		return addSlot(slot);
@@ -303,10 +278,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public int getNumberOfRows() {
 		return storageWrapper.getNumberOfSlotRows();
-	}
-
-	public int getSlotsOnLine() {
-		return storageBackgroundProperties.getSlotsOnLine() - storageWrapper.getColumnsTaken();
 	}
 
 	public int getFirstUpgradeSlot() {
@@ -1238,6 +1209,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						}
 					} else {
 						if (isUpgradeSlot(i)) {
+							//noinspection unchecked - checked in condition
 							StorageUpgradeSlot upgradeSlot = (StorageUpgradeSlot) getSlot(i);
 							IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) sourceStack.getItem();
 							int newColumnsTaken = upgradeItem.getInventoryColumnsTaken();
@@ -1372,8 +1344,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		realInventorySlots.clear();
 		lastRealSlots.clear();
 		remoteRealSlots.clear();
-		int yPosition = addStorageInventorySlots();
-		addPlayerInventorySlots(player.getInventory(), yPosition, storageItemSlotIndex, shouldLockStorageItemSlot);
+		addStorageInventorySlots();
+		addPlayerInventorySlots(player.getInventory(), storageItemSlotIndex, shouldLockStorageItemSlot);
 	}
 
 	@Override
@@ -1404,8 +1376,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		private boolean wasEmpty = false;
 		private final int slotIndex;
 
-		public StorageUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex, int yPosition) {
-			super(upgradeHandler, slotIndex, -15, yPosition);
+		public StorageUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex) {
+			super(upgradeHandler, slotIndex, -15, 0);
 			this.slotIndex = slotIndex;
 		}
 

@@ -13,8 +13,8 @@ public class StorageInventorySlot extends SlotItemHandler {
 	private final InventoryHandler inventoryHandler;
 	private final int slotIndex;
 
-	public StorageInventorySlot(boolean isClientSide, IStorageWrapper storageWrapper, InventoryHandler inventoryHandler, int slotIndex, int lineIndex, int yPosition) {
-		super(inventoryHandler, slotIndex, 8 + lineIndex * 18, yPosition);
+	public StorageInventorySlot(boolean isClientSide, IStorageWrapper storageWrapper, InventoryHandler inventoryHandler, int slotIndex) {
+		super(inventoryHandler, slotIndex, 0, 0);
 		this.isClientSide = isClientSide;
 		this.storageWrapper = storageWrapper;
 		this.inventoryHandler = inventoryHandler;

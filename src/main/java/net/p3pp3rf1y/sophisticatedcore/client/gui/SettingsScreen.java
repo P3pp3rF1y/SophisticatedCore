@@ -40,9 +40,20 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	protected abstract StorageSettingsTabControlBase initializeTabControl();
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, float partialTicks, int x, int y) {
+	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
 		StorageBackgroundProperties storageBackgroundProperties = getMenu().getStorageBackgroundProperties();
-		StorageGuiHelper.renderStorageBackground(new Position((width - imageWidth) / 2, (height - imageHeight) / 2), matrixStack, getMenu().getStorageInventorySlots().size(), getMenu().getSlotsOnLine(), storageBackgroundProperties.getTextureName(), imageWidth, menu.getNumberOfRows());
+		int x = (width - imageWidth) / 2;
+		int y = (height - imageHeight) / 2;
+		StorageGuiHelper.renderStorageBackground(new Position(x, y), matrixStack, storageBackgroundProperties.getTextureName(), imageWidth, 18 * menu.getNumberOfRows());
+		drawSlotBg(matrixStack, x, y);
+	}
+
+	private void drawSlotBg(PoseStack matrixStack, int x, int y) {
+		int inventorySlots = getMenu().getStorageInventorySlots().size();
+		int slotsOnLine = getMenu().getSlotsOnLine();
+		int slotRows = inventorySlots / slotsOnLine;
+		int remainingSlots = inventorySlots % slotsOnLine;
+		GuiHelper.renderSlotsBackground(matrixStack, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
 	}
 
 	@Override

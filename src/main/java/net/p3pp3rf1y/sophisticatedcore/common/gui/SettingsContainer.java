@@ -20,10 +20,10 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
-import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
@@ -63,7 +63,7 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		super(menuType, windowId);
 		this.player = player;
 		this.storageWrapper = storageWrapper;
-		storageBackgroundProperties = getNumberOfSlots() + storageWrapper.getColumnsTaken() * storageWrapper.getNumberOfSlotRows() <= 81 ? StorageBackgroundProperties.REGULAR : StorageBackgroundProperties.WIDE;
+		storageBackgroundProperties = getNumberOfSlots() + storageWrapper.getColumnsTaken() * storageWrapper.getNumberOfSlotRows() <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		addStorageInventorySlots();
 		addSettingsContainers();
