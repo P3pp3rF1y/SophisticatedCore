@@ -52,7 +52,6 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 
 	protected final S storageWrapper;
 
-	private final StorageBackgroundProperties storageBackgroundProperties;
 	private final List<Slot> storageInventorySlots = new ArrayList<>();
 	public final NonNullList<ItemStack> lastGhostSlots = NonNullList.create();
 	public final NonNullList<ItemStack> remoteGhostSlots = NonNullList.create();
@@ -63,10 +62,13 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		super(menuType, windowId);
 		this.player = player;
 		this.storageWrapper = storageWrapper;
-		storageBackgroundProperties = getNumberOfSlots() + storageWrapper.getColumnsTaken() * storageWrapper.getNumberOfSlotRows() <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		addStorageInventorySlots();
 		addSettingsContainers();
+	}
+
+	public int getNumberOfStorageInventorySlots() {
+		return storageWrapper.getInventoryHandler().getSlots();
 	}
 
 	public S getStorageWrapper() {
@@ -82,18 +84,17 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
 
 		int slotIndex = 0;
-		int yPosition = 18;
 
 		while (slotIndex < inventoryHandler.getSlots()) {
-			int lineIndex = slotIndex % getSlotsOnLine();
 			int finalSlotIndex = slotIndex;
-			storageInventorySlots.add(addSlot(new ViewOnlyStorageInventorySlot(inventoryHandler, finalSlotIndex, lineIndex, yPosition)));
+			storageInventorySlots.add(addSlot(new ViewOnlyStorageInventorySlot(inventoryHandler, finalSlotIndex)));
 
 			slotIndex++;
-			if (slotIndex % getSlotsOnLine() == 0) {
-				yPosition += 18;
-			}
 		}
+	}
+
+	public int getColumnsTaken() {
+		return storageWrapper.getColumnsTaken();
 	}
 
 	@Override
@@ -156,6 +157,9 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		}
 	}
 
+	public int getNumberOfSlots() {
+		return storageWrapper.getInventoryHandler().getSlots();
+	}
 	@Override
 	public void sendAllDataToRemote() {
 		for (int slotIndex = 0; slotIndex < ghostSlots.size(); slotIndex++) {
@@ -187,14 +191,6 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterItem(slotId).map(ItemStack::new);
 	}
 
-	public int getSlotsOnLine() {
-		return storageBackgroundProperties.getSlotsOnLine() - storageWrapper.getColumnsTaken();
-	}
-
-	public int getNumberOfSlots() {
-		return storageWrapper.getInventoryHandler().getSlots();
-	}
-
 	@Override
 	public boolean stillValid(Player player) {
 		return true;
@@ -219,10 +215,6 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		//noop
 	}
 
-	public StorageBackgroundProperties getStorageBackgroundProperties() {
-		return storageBackgroundProperties;
-	}
-
 	public void forEachSettingsContainer(BiConsumer<String, ? super SettingsContainerBase<?>> consumer) {
 		settingsContainers.forEach(consumer);
 	}
@@ -236,8 +228,8 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	}
 
 	private static class ViewOnlyStorageInventorySlot extends SlotItemHandler {
-		public ViewOnlyStorageInventorySlot(IItemHandler inventoryHandler, int slotIndex, int lineIndex, int yPosition) {
-			super(inventoryHandler, slotIndex, 8 + lineIndex * 18, yPosition);
+		public ViewOnlyStorageInventorySlot(IItemHandler inventoryHandler, int slotIndex) {
+			super(inventoryHandler, slotIndex, 0, 0);
 		}
 
 		@Override
