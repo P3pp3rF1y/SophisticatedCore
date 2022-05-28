@@ -81,10 +81,13 @@ public class GuiHelper {
 	}
 
 	public static void renderSlotsBackground(PoseStack matrixStack, int x, int y, int slotWidth, int slotHeight) {
-		int key = getSlotsBackgroundKey(slotWidth, slotHeight);
-		blit(matrixStack, x, y, SLOTS_BACKGROUNDS.computeIfAbsent(key, k ->
-				new TextureBlitData(SLOTS_BACKGROUND, Dimension.SQUARE_256, new UV(0, 0), new Dimension(slotWidth * 18, slotHeight * 18))
-		));
+		for(int currentY = y, remainingSlotHeight = slotHeight; remainingSlotHeight > 0; currentY += 12 *18, remainingSlotHeight -= Math.min(slotHeight, 12)) {
+			int finalRemainingSlotHeight = remainingSlotHeight;
+			int key = getSlotsBackgroundKey(slotWidth, remainingSlotHeight);
+			blit(matrixStack, x, currentY, SLOTS_BACKGROUNDS.computeIfAbsent(key, k ->
+					new TextureBlitData(SLOTS_BACKGROUND, Dimension.SQUARE_256, new UV(0, 0), new Dimension(slotWidth * 18, finalRemainingSlotHeight * 18))
+			));
+		}
 	}
 
 	private static int getSlotsBackgroundKey(int slotWidth, int slotHeight) {

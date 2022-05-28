@@ -175,7 +175,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
-				int slotIndex = j + i * 9 + 9;
+				int slotIndex = j + i * 9;
 				int xPosition = playerInventoryXOffset + 8 + j * 18;
 				Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + slotIndex);
 				slot.x = xPosition;
@@ -188,7 +188,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		for (int slotIndex = 0; slotIndex < 9; ++slotIndex) {
 			int xPosition = playerInventoryXOffset + 8 + slotIndex * 18;
-			Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + slotIndex);
+			Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + 3 * 9 + slotIndex);
 			slot.x = xPosition;
 			slot.y = yPosition;
 		}
