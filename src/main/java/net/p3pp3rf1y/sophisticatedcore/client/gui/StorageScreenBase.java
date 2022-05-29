@@ -374,8 +374,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		hoveredSlot = null;
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-		for (int k = getMenu().getNumberOfStorageInventorySlots(); k < menu.slots.size(); ++k) {
-			Slot slot = menu.slots.get(k);
+		for (int k = 0; k < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS; ++k) {
+			Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + k);
 			if (slot.isActive()) {
 				RenderSystem.setShader(GameRenderer::getPositionTexShader);
 				renderSlot(pPoseStack, slot);
