@@ -362,6 +362,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.DrawBackground(this, pPoseStack, pMouseX, pMouseY));
 		RenderSystem.disableDepthTest();
 
+		hoveredSlot = null;
+
 		for (Widget widget : renderables) {
 			widget.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
 		}
@@ -371,7 +373,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		posestack.translate(i, j, 0.0D);
 		RenderSystem.applyModelViewMatrix();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		hoveredSlot = null;
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 		for (int k = 0; k < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS; ++k) {
@@ -959,11 +960,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public void drawSlotBg(PoseStack matrixStack) {
 		drawSlotBg(matrixStack, (width - imageWidth) / 2, (height - imageHeight) / 2);
-	}
-
-	@Override
-	public void resetHoveredSlot() {
-		hoveredSlot = null;
 	}
 
 	@Override

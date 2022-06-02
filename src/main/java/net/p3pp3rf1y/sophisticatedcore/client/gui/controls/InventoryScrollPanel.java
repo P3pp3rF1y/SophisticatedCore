@@ -47,7 +47,6 @@ public class InventoryScrollPanel extends ScrollPanel {
 		posestack.translate(screen.getLeftX(), screen.getTopY(), 0.0D);
 		RenderSystem.applyModelViewMatrix();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		screen.resetHoveredSlot();
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
 		screen.renderInventorySlots(poseStack, mouseX, mouseY, isMouseOver(mouseX, mouseY));
@@ -78,8 +77,6 @@ public class InventoryScrollPanel extends ScrollPanel {
 		int getTopY();
 
 		int getLeftX();
-
-		void resetHoveredSlot();
 
 		Slot getSlot(int slotIndex);
 	}

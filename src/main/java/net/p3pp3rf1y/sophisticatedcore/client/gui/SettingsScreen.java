@@ -284,11 +284,6 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	@Override
-	public void resetHoveredSlot() {
-		hoveredSlot = null;
-	}
-
-	@Override
 	public Slot getSlot(int slotIndex) {
 		return getMenu().getSlot(slotIndex);
 	}
