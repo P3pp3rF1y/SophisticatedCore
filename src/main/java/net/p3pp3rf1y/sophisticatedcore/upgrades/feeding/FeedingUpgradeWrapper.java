@@ -7,6 +7,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -73,7 +74,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		IItemHandlerModifiable inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		AtomicBoolean fedPlayer = new AtomicBoolean(false);
 		InventoryHelper.iterate(inventory, (slot, stack) -> {
-			if (stack.isEdible() && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
+			if (stack.isEdible() && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 				ItemStack mainHandItem = player.getMainHandItem();
 				player.getInventory().items.set(player.getInventory().selected, stack);
 				if (stack.use(world, player, InteractionHand.MAIN_HAND).getResult() == InteractionResult.CONSUME) {
@@ -95,14 +96,14 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		return fedPlayer.get();
 	}
 
-	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack) {
+	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack, Player player) {
 		HungerLevel feedAtHungerLevel = getFeedAtHungerLevel();
 		if (feedAtHungerLevel == HungerLevel.ANY) {
 			return true;
 		}
 
-		//noinspection ConstantConditions - isFood check makes sure that food isn't null
-		int nutrition = stack.getItem().getFoodProperties().getNutrition();
+		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
+		int nutrition = foodProperties == null ? 1 : foodProperties.getNutrition();
 		return (feedAtHungerLevel == HungerLevel.HALF ? (nutrition / 2) : nutrition) <= hungerLevel;
 	}
 
