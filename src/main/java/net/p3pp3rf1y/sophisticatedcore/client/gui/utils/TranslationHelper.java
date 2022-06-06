@@ -22,6 +22,7 @@ public class TranslationHelper {
 	private final String guiPrefix;
 	private final String guiUpgradePrefix;
 	private final String guiSettingsPrefix;
+	private final String guiStatusPrefix;
 	private final String buttonsPrefix;
 	private final String itemUpgradePrefix;
 	private final String upgradeButtonsPrefix;
@@ -34,11 +35,15 @@ public class TranslationHelper {
 		itemUpgradePrefix = "item." + modId + ".";
 		guiUpgradePrefix = guiPrefix + "upgrades.";
 		guiSettingsPrefix = guiPrefix + "settings.";
+		guiStatusPrefix = guiPrefix + "status.";
 		buttonsPrefix = guiPrefix + BUTTONS_SUFFIX;
 		upgradeButtonsPrefix = guiUpgradePrefix + BUTTONS_SUFFIX;
 		upgradeControlsPrefix = guiUpgradePrefix + CONTROLS_SUFFIX;
 	}
 
+	public Component translStatusMessage(String statusMessage, Object... params) {
+		return new TranslatableComponent(guiStatusPrefix + statusMessage, params);
+	}
 
 	public Component translUpgrade(String upgradeName) {
 		return new TranslatableComponent(translUpgradeKey(upgradeName));
