@@ -110,6 +110,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		addUpgradeSettingsContainers(player);
 	}
 
+	public S getStorageWrapper() {
+		return storageWrapper;
+	}
+
 	protected void addUpgradeSettingsContainers(Player player) {
 		UpgradeHandler upgradeHandler = storageWrapper.getUpgradeHandler();
 		upgradeHandler.getSlotWrappers().forEach((slot, wrapper) -> UpgradeContainerRegistry.instantiateContainer(player, slot, wrapper)

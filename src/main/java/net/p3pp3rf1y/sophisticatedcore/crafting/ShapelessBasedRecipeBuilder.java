@@ -34,6 +34,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 	private final int count;
 	private final List<Ingredient> ingredients = Lists.newArrayList();
 	private final Advancement.Builder advancement = Advancement.Builder.advancement();
+	private final List<ICondition> conditions = new ArrayList<>();
 	@Nullable
 	private String group;
 
@@ -53,6 +54,11 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 
 	public static ShapelessBasedRecipeBuilder shapeless(ItemStack stack) {
 		return new ShapelessBasedRecipeBuilder(stack.getItem(), 1, stack.getTag());
+	}
+
+	public ShapelessBasedRecipeBuilder condition(ICondition condition) {
+		conditions.add(condition);
+		return this;
 	}
 
 	public ShapelessBasedRecipeBuilder requires(TagKey<Item> tag) {
@@ -99,7 +105,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 
 	public void save(Consumer<FinishedRecipe> finishedRecipeConsumer, ResourceLocation recipeId) {
 		advancement.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId)).rewards(AdvancementRewards.Builder.recipe(recipeId)).requirements(RequirementsStrategy.OR);
-		finishedRecipeConsumer.accept(new ShapelessBasedRecipeBuilder.Result(recipeId, result, nbt, count, group == null ? "" : group, ingredients, advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + getGroup() + "/" + recipeId.getPath())));
+		finishedRecipeConsumer.accept(new ShapelessBasedRecipeBuilder.Result(recipeId, result, conditions, nbt, count, group == null ? "" : group, ingredients, advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + getGroup() + "/" + recipeId.getPath())));
 	}
 
 	private String getGroup() {
@@ -107,7 +113,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 	}
 
 	public static class Result implements FinishedRecipe {
-		private final List<ICondition> conditions = new ArrayList<>();
+		private final List<ICondition> conditions;
 		private final ResourceLocation id;
 		private final Item itemResult;
 		@Nullable
@@ -119,10 +125,11 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 		private final ResourceLocation advancementId;
 
 		@SuppressWarnings("java:S107") //the only way of reducing number of parameters here means adding pretty much unnecessary object parameter
-		public Result(ResourceLocation id, Item itemResult, @Nullable
-				CompoundTag nbt, int count, String group, List<Ingredient> ingredients, Advancement.Builder advancement, ResourceLocation advancementId) {
+		public Result(ResourceLocation id, Item itemResult, List<ICondition> conditions, @Nullable CompoundTag nbt,
+				int count, String group, List<Ingredient> ingredients, Advancement.Builder advancement, ResourceLocation advancementId) {
 			this.id = id;
 			this.itemResult = itemResult;
+			this.conditions = conditions;
 			this.nbt = nbt;
 			this.count = count;
 			this.group = group;

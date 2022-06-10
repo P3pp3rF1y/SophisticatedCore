@@ -101,6 +101,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		craftingUIPart = part;
 	}
 
+	private static final Set<IButtonFactory> buttonFactories = new HashSet<>();
+
+	public static void addButtonFactory(IButtonFactory buttonFactory) {
+		buttonFactories.add(buttonFactory);
+	}
+
 	protected StorageScreenBase(S pMenu, Inventory pPlayerInventory, Component pTitle) {
 		super(pMenu, pPlayerInventory, pTitle);
 		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
@@ -214,6 +220,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			addUpgradeSwitches();
 		});
 		addSortButtons();
+		addAdditionalButtons();
+	}
+
+	private void addAdditionalButtons() {
+		buttonFactories.forEach(factory -> addRenderableWidget(factory.instantiateButton(this)));
 	}
 
 	private void updateInventoryScrollPanel() {
@@ -965,5 +976,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public int getLeftX() {
 		return getGuiLeft();
+	}
+
+	public Position getRightTopAbovePlayersInventory() {
+		return new Position(storageBackgroundProperties.getPlayerInventoryXOffset() + 8 + 9 * 18, inventoryLabelY);
 	}
 }
