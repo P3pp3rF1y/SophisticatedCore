@@ -1361,7 +1361,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return list;
 	}
 
-	public abstract void detectSettingsChangeAndReload();
+	public abstract boolean detectSettingsChangeAndReload();
 
 	@SuppressWarnings("java:S1172") // slot parameter is used in overrides
 	protected boolean shouldSlotItemBeDroppedFromStorage(Slot slot) {

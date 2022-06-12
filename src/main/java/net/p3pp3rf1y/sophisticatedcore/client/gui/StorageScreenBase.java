@@ -349,7 +349,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		menu.detectSettingsChangeAndReload();
+		if (menu.detectSettingsChangeAndReload()) {
+			updateStorageSlotsPositions();
+			updatePlayerSlotsPositions();
+		}
 		renderBackground(matrixStack);
 		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
 		matrixStack.translate(0, 0, 200);
