@@ -40,7 +40,7 @@ public class RecipeHelper {
 			return getCompactingShapes(item);
 		}
 	});
-	private static final int MAX_FOLLOW_UP_COMPACTING_RECIPES = 10;
+	private static final int MAX_FOLLOW_UP_COMPACTING_RECIPES = 30;
 	private static WeakReference<Level> world;
 	private static final Map<CompactedItem, CompactingResult> COMPACTING_RESULTS = new HashMap<>();
 
