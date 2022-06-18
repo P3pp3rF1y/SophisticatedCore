@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -312,7 +313,7 @@ public class InventoryHelper {
 		return uniqueStacks;
 	}
 
-	public static List<Integer> getEmptySlotsRandomized(IItemHandler inventory, Random rand) {
+	public static List<Integer> getEmptySlotsRandomized(IItemHandler inventory) {
 		List<Integer> list = Lists.newArrayList();
 
 		for (int i = 0; i < inventory.getSlots(); ++i) {
@@ -321,11 +322,11 @@ public class InventoryHelper {
 			}
 		}
 
-		Collections.shuffle(list, rand);
+		Collections.shuffle(list, new Random());
 		return list;
 	}
 
-	public static void shuffleItems(List<ItemStack> stacks, int emptySlotsCount, Random rand) {
+	public static void shuffleItems(List<ItemStack> stacks, int emptySlotsCount, RandomSource rand) {
 		List<ItemStack> list = Lists.newArrayList();
 		Iterator<ItemStack> iterator = stacks.iterator();
 
@@ -357,7 +358,7 @@ public class InventoryHelper {
 		}
 
 		stacks.addAll(list);
-		Collections.shuffle(stacks, rand);
+		Collections.shuffle(stacks, new Random());
 	}
 
 	public static void dropItems(ItemStackHandler inventoryHandler, Level level, BlockPos pos) {

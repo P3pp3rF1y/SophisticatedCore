@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
-import net.minecraft.core.SerializableUUID;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -173,7 +173,7 @@ public class NBTHelper {
 	}
 
 	public static void setUniqueId(ItemStack stack, String key, UUID uuid) {
-		stack.getOrCreateTag().putIntArray(key, SerializableUUID.uuidToIntArray(uuid));
+		stack.getOrCreateTag().putIntArray(key, UUIDUtil.uuidToIntArray(uuid));
 	}
 
 	public static void removeTag(ItemStack stack, String key) {

@@ -20,8 +20,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -296,7 +294,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			if (button == 0) {
 				getMenu().sort();
 				//noinspection ConstantConditions - by this point player can't be null
-				Minecraft.getInstance().player.displayClientMessage(new TextComponent("Sorted"), true);
+				Minecraft.getInstance().player.displayClientMessage(Component.literal("Sorted"), true);
 			}
 		});
 		addWidget(sortButton);
@@ -647,8 +645,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public List<Component> getTooltipFromItem(ItemStack itemStack) {
 		List<Component> ret = super.getTooltipFromItem(itemStack);
 		if (itemStack.getCount() > 999) {
-			ret.add(new TranslatableComponent("gui.sophisticatedcore.tooltip.stack_count",
-					new TextComponent(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA))
+			ret.add(Component.translatable("gui.sophisticatedcore.tooltip.stack_count",
+					Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA))
 					.withStyle(ChatFormatting.GRAY)
 			);
 		}
@@ -901,6 +899,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			upgradeSlotChangeResult.getErrorUpgradeSlots().forEach(slotIndex -> renderSlotOverlay(matrixStack, menu.getSlot(menu.getFirstUpgradeSlot() + slotIndex), ERROR_SLOT_COLOR));
 			upgradeSlotChangeResult.getErrorInventorySlots().forEach(slotIndex -> {
 				Slot slot = menu.getSlot(slotIndex);
+				//noinspection ConstantConditions
 				if (slot != null) {
 					renderSlotOverlay(matrixStack, slot, ERROR_SLOT_COLOR);
 				}

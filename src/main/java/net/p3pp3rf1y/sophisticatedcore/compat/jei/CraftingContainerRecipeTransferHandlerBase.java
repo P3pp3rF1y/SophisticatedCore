@@ -1,15 +1,21 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.jei;
 
-import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.ingredient.IGuiIngredient;
-import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
+import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.gui.ingredient.IRecipeSlotView;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IStackHelper;
-import mezz.jei.api.ingredients.subtypes.UidContext;
+import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
-import net.minecraft.network.chat.TranslatableComponent;
+import mezz.jei.common.transfer.RecipeTransferOperationsResult;
+import mezz.jei.common.transfer.RecipeTransferUtil;
+import mezz.jei.common.transfer.TransferOperation;
+import mezz.jei.common.util.StringUtil;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -20,14 +26,14 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class CraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>> implements IRecipeTransferHandler<C, CraftingRecipe> {
 	private final IRecipeTransferHandlerHelper handlerHelper;
@@ -39,58 +45,65 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 	}
 
 	@Override
-	public Class<CraftingRecipe> getRecipeClass() {
-		return CraftingRecipe.class;
+	public Optional<MenuType<C>> getMenuType() {
+		return Optional.empty();
 	}
 
 	@Override
-	public IRecipeTransferError transferRecipe(C container, CraftingRecipe recipe, IRecipeLayout recipeLayout, Player player, boolean maxTransfer, boolean doTransfer) {
+	public RecipeType<CraftingRecipe> getRecipeType() {
+		return RecipeTypes.CRAFTING;
+	}
+
+	@Nullable
+	@Override
+	public IRecipeTransferError transferRecipe(C container, CraftingRecipe recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
 		Optional<? extends UpgradeContainerBase<?, ?>> potentialCraftingContainer = container.getOpenOrFirstCraftingContainer();
 		if (potentialCraftingContainer.isEmpty()) {
 			return handlerHelper.createInternalError();
 		}
 
-		Map<Integer, Slot> inventorySlots = getInventorySlots(container);
 		UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = potentialCraftingContainer.get();
-		Map<Integer, Slot> craftingSlots = getCraftingSlots((ICraftingContainer) openOrFirstCraftingContainer);
-		IGuiItemStackGroup itemStackGroup = recipeLayout.getItemStacks();
-		int inputCount = getInputCount(itemStackGroup);
 
-		if (inputCount > craftingSlots.size()) {
-			SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}", CraftingContainerRecipeTransferHandlerBase.class, container.getClass());
+		List<Slot> craftingSlots = Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
+		List<Slot> inventorySlots = Collections.unmodifiableList(container.realInventorySlots);
+		if (!validateTransferInfo(container, craftingSlots, inventorySlots)) {
+			return handlerHelper.createInternalError();
+		}
+		List<IRecipeSlotView> inputItemSlotViews = recipeSlots.getSlotViews(RecipeIngredientRole.INPUT);
+		if (!validateRecipeView(container, craftingSlots, inputItemSlotViews)) {
 			return handlerHelper.createInternalError();
 		}
 
-		Map<Integer, ItemStack> availableItemStacks = new HashMap<>();
-		int filledCraftSlotCount = 0;
-		for (Slot slot : craftingSlots.values()) {
-			ItemStack stack = slot.getItem();
-			if (!stack.isEmpty()) {
-				if (!slot.mayPickup(player)) {
-					SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. Player can't move item out of Crafting Slot number {}", CraftingContainerRecipeTransferHandlerBase.class, container.getClass(), slot.index);
-					return handlerHelper.createInternalError();
-				}
-
-				++filledCraftSlotCount;
-				availableItemStacks.put(slot.index, stack.copy());
-			}
+		InventoryState inventoryState = getInventoryState(craftingSlots, inventorySlots, player, container);
+		if (inventoryState == null) {
+			return handlerHelper.createInternalError();
 		}
 
-		int emptySlotCount = getEmptySlotCount(inventorySlots, availableItemStacks);
-
-		if (filledCraftSlotCount - inputCount > emptySlotCount) {
-			return handlerHelper.createUserErrorWithTooltip(new TranslatableComponent("jei.tooltip.error.recipe.transfer.inventory.full"));
+		// check if we have enough inventory space to shuffle items around to their final locations
+		int inputCount = inputItemSlotViews.size();
+		if (!inventoryState.hasRoom(inputCount)) {
+			Component message = Component.translatable("jei.tooltip.error.recipe.transfer.inventory.full");
+			return handlerHelper.createUserErrorWithTooltip(message);
 		}
 
-		MatchingItemsResult matchingItemsResult = getMatchingItems(stackHelper, availableItemStacks, itemStackGroup.getGuiIngredients());
-		if (!matchingItemsResult.missingItems.isEmpty()) {
-			return handlerHelper.createUserErrorForSlots(new TranslatableComponent("jei.tooltip.error.recipe.transfer.missing"), matchingItemsResult.missingItems);
+		RecipeTransferOperationsResult transferOperations = RecipeTransferUtil.getRecipeTransferOperations(
+				stackHelper,
+				inventoryState.availableItemStacks,
+				inputItemSlotViews,
+				craftingSlots
+		);
+
+		if (transferOperations.missingItems.size() > 0) {
+			Component message = Component.translatable("jei.tooltip.error.recipe.transfer.missing");
+			return handlerHelper.createUserErrorForMissingSlots(message, transferOperations.missingItems);
 		}
 
-		List<Integer> craftingSlotIndexes = new ArrayList<>(craftingSlots.keySet());
-		Collections.sort(craftingSlotIndexes);
-		List<Integer> inventorySlotIndexes = new ArrayList<>(inventorySlots.keySet());
-		Collections.sort(inventorySlotIndexes);
+		if (!RecipeTransferUtil.validateSlots(player, transferOperations.results, craftingSlots, inventorySlots)) {
+			return handlerHelper.createInternalError();
+		}
+
+		List<Integer> craftingSlotIndexes = craftingSlots.stream().map(s -> s.index).sorted().toList();
+		List<Integer> inventorySlotIndexes = inventorySlots.stream().map(s -> s.index).sorted().toList();
 
 		if (doTransfer) {
 			if (!openOrFirstCraftingContainer.isOpen()) {
@@ -101,11 +114,120 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 				openOrFirstCraftingContainer.setIsOpen(true);
 				container.setOpenTabId(openOrFirstCraftingContainer.getUpgradeContainerId());
 			}
-			TransferRecipeMessage message = new TransferRecipeMessage(matchingItemsResult.matchingItems, craftingSlotIndexes, inventorySlotIndexes, maxTransfer);
+			TransferRecipeMessage message = new TransferRecipeMessage(
+					toMap(transferOperations.results),
+					craftingSlotIndexes,
+					inventorySlotIndexes,
+					maxTransfer);
 			SophisticatedCore.PACKET_HANDLER.sendToServer(message);
 		}
 
 		return null;
+	}
+
+	private Map<Integer, Integer> toMap(List<TransferOperation> transferOperations) {
+		Map<Integer, Integer> ret = new HashMap<>();
+		transferOperations.forEach(to -> ret.put(to.craftingSlot().index, to.inventorySlot().index));
+		return ret;
+	}
+
+	private boolean validateTransferInfo(
+			C container,
+			List<Slot> craftingSlots,
+			List<Slot> inventorySlots
+	) {
+		Collection<Integer> craftingSlotIndexes = slotIndexes(craftingSlots);
+		Collection<Integer> inventorySlotIndexes = slotIndexes(inventorySlots);
+		ArrayList<Slot> allSlots = new ArrayList<>(container.realInventorySlots);
+		allSlots.addAll(container.upgradeSlots);
+		Collection<Integer> containerSlotIndexes = slotIndexes(allSlots);
+
+		if (!containerSlotIndexes.containsAll(craftingSlotIndexes)) {
+			SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. " +
+							"The Recipes Transfer Helper references crafting slot indexes [{}] that are not found in the inventory container slots [{}]",
+					getClass(), container.getClass(), StringUtil.intsToString(craftingSlotIndexes), StringUtil.intsToString(containerSlotIndexes)
+			);
+			return false;
+		}
+
+		if (!containerSlotIndexes.containsAll(inventorySlotIndexes)) {
+			SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. " +
+							"The Recipes Transfer Helper references inventory slot indexes [{}] that are not found in the inventory container slots [{}]",
+					getClass(), container.getClass(), StringUtil.intsToString(inventorySlotIndexes), StringUtil.intsToString(containerSlotIndexes)
+			);
+			return false;
+		}
+
+		return true;
+	}
+
+	private boolean validateRecipeView(
+			C container,
+			List<Slot> craftingSlots,
+			List<IRecipeSlotView> inputSlots
+	) {
+		if (inputSlots.size() > craftingSlots.size()) {
+			SophisticatedCore.LOGGER.error("Recipe View {} does not work for container {}. " +
+							"The Recipe View has more input slots ({}) than the number of inventory crafting slots ({})",
+					getClass(), container.getClass(), inputSlots.size(), craftingSlots.size()
+			);
+			return false;
+		}
+
+		return true;
+	}
+
+	@Nullable
+	private InventoryState getInventoryState(
+			Collection<Slot> craftingSlots,
+			Collection<Slot> inventorySlots,
+			Player player,
+			C container
+	) {
+		Map<Slot, ItemStack> availableItemStacks = new HashMap<>();
+		int filledCraftSlotCount = 0;
+		int emptySlotCount = 0;
+
+		for (Slot slot : craftingSlots) {
+			final ItemStack stack = slot.getItem();
+			if (!stack.isEmpty()) {
+				if (!slot.mayPickup(player)) {
+					SophisticatedCore.LOGGER.error(
+							"Recipe Transfer helper {} does not work for container {}. " +
+									"The Player is not able to move items out of Crafting Slot number {}",
+							getClass(), container.getClass(), slot.index
+					);
+					return null;
+				}
+				filledCraftSlotCount++;
+				availableItemStacks.put(slot, stack.copy());
+			}
+		}
+
+		for (Slot slot : inventorySlots) {
+			final ItemStack stack = slot.getItem();
+			if (!stack.isEmpty()) {
+				if (!slot.mayPickup(player)) {
+					SophisticatedCore.LOGGER.error(
+							"Recipe Transfer helper {} does not work for container {}. " +
+									"The Player is not able to move items out of Inventory Slot number {}",
+							getClass(), container.getClass(), slot.index
+					);
+					return null;
+				}
+				availableItemStacks.put(slot, stack.copy());
+			} else {
+				emptySlotCount++;
+			}
+		}
+
+		return new InventoryState(availableItemStacks, filledCraftSlotCount, emptySlotCount);
+	}
+
+	private Set<Integer> slotIndexes(Collection<Slot> slots) {
+		return slots.stream()
+				.map(s -> s.index)
+				.collect(Collectors.toSet());
 	}
 
 	private int getEmptySlotCount(Map<Integer, Slot> inventorySlots, Map<Integer, ItemStack> availableItemStacks) {
@@ -121,187 +243,17 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 		return emptySlotCount;
 	}
 
-	private int getInputCount(IGuiItemStackGroup itemStackGroup) {
-		int inputCount = 0;
-		for (IGuiIngredient<ItemStack> ingredient : itemStackGroup.getGuiIngredients().values()) {
-			if (ingredient.isInput() && !ingredient.getAllIngredients().isEmpty()) {
-				++inputCount;
-			}
-		}
-		return inputCount;
-	}
-
-	private Map<Integer, Slot> getCraftingSlots(ICraftingContainer openOrFirstCraftingContainer) {
-		Map<Integer, Slot> craftingSlots = new HashMap<>();
-		List<Slot> recipeSlots = openOrFirstCraftingContainer.getRecipeSlots();
-		for (Slot slot : recipeSlots) {
-			craftingSlots.put(slot.index, slot);
-		}
-		return craftingSlots;
-	}
-
-	private Map<Integer, Slot> getInventorySlots(StorageContainerMenuBase<?> container) {
-		Map<Integer, Slot> inventorySlots = new HashMap<>();
-		for (Slot slot : container.realInventorySlots) {
-			inventorySlots.put(slot.index, slot);
-		}
-		return inventorySlots;
-	}
-
-	private MatchingItemsResult getMatchingItems(IStackHelper stackhelper, Map<Integer, ItemStack> availableItemStacks, Map<Integer, ? extends IGuiIngredient<ItemStack>> ingredientsMap) {
-		MatchingItemsResult matchingItemResult = new MatchingItemsResult();
-		int recipeSlotNumber = -1;
-		SortedSet<Integer> ingredientSlots = new TreeSet<>(ingredientsMap.keySet());
-
-		for (int ingredientSlot : ingredientSlots) {
-			IGuiIngredient<ItemStack> ingredient = ingredientsMap.get(ingredientSlot);
-			if (ingredient.isInput()) {
-				++recipeSlotNumber;
-				List<ItemStack> requiredStacks = ingredient.getAllIngredients();
-				if (!requiredStacks.isEmpty()) {
-					tryToMatchStacks(stackhelper, availableItemStacks, matchingItemResult, recipeSlotNumber, ingredientSlot, requiredStacks);
-				}
-			}
-		}
-
-		return matchingItemResult;
-	}
-
-	private void tryToMatchStacks(IStackHelper stackhelper, Map<Integer, ItemStack> availableItemStacks, MatchingItemsResult matchingItemResult, int recipeSlotNumber, int ingredientSlot, List<ItemStack> requiredStacks) {
-		Integer matching = containsAnyStackIndexed(stackhelper, availableItemStacks, requiredStacks);
-		if (matching == null) {
-			matchingItemResult.missingItems.add(ingredientSlot);
-		} else {
-			ItemStack matchingStack = availableItemStacks.get(matching);
-			matchingStack.shrink(1);
-			if (matchingStack.getCount() == 0) {
-				availableItemStacks.remove(matching);
-			}
-
-			matchingItemResult.matchingItems.put(recipeSlotNumber, matching);
+	public record InventoryState(
+			Map<Slot, ItemStack> availableItemStacks,
+			int filledCraftSlotCount,
+			int emptySlotCount
+	) {
+		/**
+		 * check if we have enough inventory space to shuffle items around to their final locations
+		 */
+		public boolean hasRoom(int inputCount) {
+			return filledCraftSlotCount - inputCount <= emptySlotCount;
 		}
 	}
 
-	@Nullable
-	public static Integer containsAnyStackIndexed(IStackHelper stackhelper, Map<Integer, ItemStack> stacks, Iterable<ItemStack> contains) {
-		MatchingIndexed matchingStacks = new MatchingIndexed(stacks);
-		MatchingIterable matchingContains = new MatchingIterable(contains);
-		return containsStackMatchable(stackhelper, matchingStacks, matchingContains);
-	}
-
-	@Nullable
-	public static <R, T> R containsStackMatchable(IStackHelper stackhelper, Iterable<ItemStackMatchable<R>> stacks, Iterable<ItemStackMatchable<T>> contains) {
-		Iterator<ItemStackMatchable<T>> var3 = contains.iterator();
-
-		R matchingStack;
-		do {
-			if (!var3.hasNext()) {
-				return null;
-			}
-
-			ItemStackMatchable<T> containStack = var3.next();
-			matchingStack = containsStack(stackhelper, stacks, containStack);
-		} while (matchingStack == null);
-
-		return matchingStack;
-	}
-
-	@Nullable
-	public static <R> R containsStack(IStackHelper stackHelper, Iterable<ItemStackMatchable<R>> stacks, ItemStackMatchable<?> contains) {
-		Iterator<ItemStackMatchable<R>> var3 = stacks.iterator();
-
-		ItemStackMatchable<R> stack;
-		do {
-			if (!var3.hasNext()) {
-				return null;
-			}
-
-			stack = var3.next();
-		} while (!stackHelper.isEquivalent(contains.getStack(), stack.getStack(), UidContext.Recipe));
-
-		return stack.getResult();
-	}
-
-	private static class MatchingIndexed implements Iterable<ItemStackMatchable<Integer>> {
-		private final Map<Integer, ItemStack> map;
-
-		public MatchingIndexed(Map<Integer, ItemStack> map) {
-			this.map = map;
-		}
-
-		public Iterator<ItemStackMatchable<Integer>> iterator() {
-			return new MatchingIterable.DelegateIterator<>(map.entrySet().iterator()) {
-				public ItemStackMatchable<Integer> next() {
-					final Map.Entry<Integer, ItemStack> entry = delegate.next();
-					return new ItemStackMatchable<>() {
-						public ItemStack getStack() {
-							return entry.getValue();
-						}
-
-						public Integer getResult() {
-							return entry.getKey();
-						}
-					};
-				}
-			};
-		}
-	}
-
-	public static class MatchingIterable implements Iterable<ItemStackMatchable<ItemStack>> {
-		private final Iterable<ItemStack> list;
-
-		public MatchingIterable(Iterable<ItemStack> list) {
-			this.list = list;
-		}
-
-		public Iterator<ItemStackMatchable<ItemStack>> iterator() {
-			Iterator<ItemStack> stacks = list.iterator();
-			return new MatchingIterable.DelegateIterator<>(stacks) {
-				public ItemStackMatchable<ItemStack> next() {
-					final ItemStack stack = delegate.next();
-					return new ItemStackMatchable<>() {
-						@Nullable
-						public ItemStack getStack() {
-							return stack;
-						}
-
-						@Nullable
-						public ItemStack getResult() {
-							return stack;
-						}
-					};
-				}
-			};
-		}
-
-		public abstract static class DelegateIterator<T, R> implements Iterator<R> {
-			protected final Iterator<T> delegate;
-
-			protected DelegateIterator(Iterator<T> delegate) {
-				this.delegate = delegate;
-			}
-
-			public boolean hasNext() {
-				return delegate.hasNext();
-			}
-
-			@Override
-			public void remove() {
-				delegate.remove();
-			}
-		}
-	}
-
-	public interface ItemStackMatchable<R> {
-		@Nullable
-		ItemStack getStack();
-
-		@Nullable
-		R getResult();
-	}
-
-	public static class MatchingItemsResult {
-		public final Map<Integer, Integer> matchingItems = new HashMap<>();
-		public final List<Integer> missingItems = new ArrayList<>();
-	}
 }

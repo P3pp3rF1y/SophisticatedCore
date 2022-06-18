@@ -49,7 +49,7 @@ public interface IRenderedTankUpgrade {
 		}
 
 		public void setFluid(Fluid fluid) {
-			fluidRegistryName = fluid.getRegistryName();
+			fluidRegistryName = ForgeRegistries.FLUIDS.getKey(fluid);
 		}
 
 		public Optional<Fluid> getFluid() {

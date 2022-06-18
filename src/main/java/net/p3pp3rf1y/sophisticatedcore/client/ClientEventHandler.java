@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
@@ -79,7 +79,7 @@ public class ClientEventHandler {
 					int y = event.getMouseY();
 					poseStack.pushPose();
 					poseStack.translate(0, 0, containerGui instanceof StorageScreenBase ? -100 : 100);
-					containerGui.renderTooltip(poseStack, Collections.singletonList(new TranslatableComponent(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), stashStorageItem.getInventoryTooltip(stack), x, y, mc.font);
+					containerGui.renderTooltip(poseStack, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), stashStorageItem.getInventoryTooltip(stack), x, y, mc.font);
 					poseStack.popPose();
 				} else {
 					int x = containerGui.getGuiLeft() + s.x;

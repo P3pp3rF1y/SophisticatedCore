@@ -6,7 +6,6 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
@@ -56,8 +55,8 @@ public class Button extends ButtonBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		pNarrationElementOutput.add(NarratedElementType.TITLE, new TranslatableComponent("gui.narrate.button", getTooltip()));
-		pNarrationElementOutput.add(NarratedElementType.USAGE, new TranslatableComponent("narration.button.usage.focused"));
+		pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("gui.narrate.button", getTooltip()));
+		pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.focused"));
 	}
 
 	public void setTooltip(List<Component> tooltip) {

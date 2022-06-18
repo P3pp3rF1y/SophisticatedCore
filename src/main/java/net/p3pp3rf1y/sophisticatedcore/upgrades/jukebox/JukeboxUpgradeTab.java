@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
@@ -20,10 +20,10 @@ import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.*;
 public class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgradeContainer> {
 	private static final TextureBlitData PLAY_FOREGROUND = new TextureBlitData(ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(16, 64), Dimension.SQUARE_16);
 	private static final ButtonDefinition PLAY = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, PLAY_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("play")));
+			Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("play")));
 	private static final TextureBlitData STOP_FOREGROUND = new TextureBlitData(ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(0, 64), Dimension.SQUARE_16);
 	private static final ButtonDefinition STOP = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, STOP_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("stop")));
+			Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("stop")));
 
 	public JukeboxUpgradeTab(JukeboxUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen) {
 		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("jukebox"), TranslationHelper.INSTANCE.translUpgradeTooltip("jukebox"));

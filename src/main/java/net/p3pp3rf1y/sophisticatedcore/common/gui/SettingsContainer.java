@@ -215,6 +215,11 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 		//noop
 	}
 
+	@Override
+	public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+		return ItemStack.EMPTY;
+	}
+
 	public void forEachSettingsContainer(BiConsumer<String, ? super SettingsContainerBase<?>> consumer) {
 		settingsContainers.forEach(consumer);
 	}

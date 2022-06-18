@@ -6,7 +6,6 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -72,7 +71,7 @@ public class ContextButton extends ButtonBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		pNarrationElementOutput.add(NarratedElementType.TITLE, new TranslatableComponent("gui.sophisticatedcore.narrate.context_button", getTitle.get()));
-		pNarrationElementOutput.add(NarratedElementType.USAGE, new TranslatableComponent("gui.sophisticatedcore.narrate.context_button.usage"));
+		pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("gui.sophisticatedcore.narrate.context_button", getTitle.get()));
+		pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("gui.sophisticatedcore.narrate.context_button.usage"));
 	}
 }

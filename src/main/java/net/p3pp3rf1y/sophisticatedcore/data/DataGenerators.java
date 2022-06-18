@@ -8,7 +8,7 @@ public class DataGenerators {
 
 	public static void gatherData(GatherDataEvent evt) {
 		DataGenerator generator = evt.getGenerator();
-		generator.addProvider(new SCFluidTagsProvider(generator, evt.getExistingFileHelper()));
-		generator.addProvider(new SCRecipeProvider(generator));
+		generator.addProvider(evt.includeServer(), new SCFluidTagsProvider(generator, evt.getExistingFileHelper()));
+		generator.addProvider(evt.includeServer(), new SCRecipeProvider(generator));
 	}
 }

@@ -4,8 +4,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
@@ -42,15 +40,15 @@ public class TranslationHelper {
 	}
 
 	public Component translStatusMessage(String statusMessage, Object... params) {
-		return new TranslatableComponent(guiStatusPrefix + statusMessage, params);
+		return Component.translatable(guiStatusPrefix + statusMessage, params);
 	}
 
 	public Component translUpgrade(String upgradeName) {
-		return new TranslatableComponent(translUpgradeKey(upgradeName));
+		return Component.translatable(translUpgradeKey(upgradeName));
 	}
 
 	public Component translUpgradeSlotTooltip(String tooltipName) {
-		return new TranslatableComponent(guiUpgradePrefix + "slots." + tooltipName + TOOLTIP_SUFFIX);
+		return Component.translatable(guiUpgradePrefix + "slots." + tooltipName + TOOLTIP_SUFFIX);
 	}
 
 	public String translUpgradeKey(String upgradeName) {
@@ -66,7 +64,7 @@ public class TranslationHelper {
 	}
 
 	public Component translUpgradeTooltip(String upgradeName) {
-		return new TranslatableComponent(translUpgradeKey(upgradeName) + TOOLTIP_SUFFIX);
+		return Component.translatable(translUpgradeKey(upgradeName) + TOOLTIP_SUFFIX);
 	}
 
 	public String translSettingsTooltip(String categoryName) {
@@ -74,7 +72,7 @@ public class TranslationHelper {
 	}
 
 	public Component translColoredButton(String buttonName, ChatFormatting color) {
-		return new TranslatableComponent(translButton(buttonName)).withStyle(color);
+		return Component.translatable(translButton(buttonName)).withStyle(color);
 	}
 
 	public String translButton(String buttonName) {
@@ -82,7 +80,7 @@ public class TranslationHelper {
 	}
 
 	public Component translError(String key, Object... params) {
-		return new TranslatableComponent(guiPrefix + "error." + key, params);
+		return Component.translatable(guiPrefix + "error." + key, params);
 	}
 
 	public String translUpgradeButton(String buttonName) {
@@ -120,7 +118,7 @@ public class TranslationHelper {
 
 		List<Component> ret = new ArrayList<>();
 		for (String line : lines) {
-			ret.add(new TextComponent(line));
+			ret.add(Component.literal(line));
 		}
 
 		return ret;

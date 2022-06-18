@@ -5,13 +5,11 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
 import net.minecraft.world.level.Level;
+import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 
 public class UpgradeClearRecipe extends CustomRecipe {
-	public static final SimpleRecipeSerializer<UpgradeClearRecipe> SERIALIZER = new SimpleRecipeSerializer<>(UpgradeClearRecipe::new);
-
 	public UpgradeClearRecipe(ResourceLocation registryName) {
 		super(registryName);
 	}
@@ -52,6 +50,6 @@ public class UpgradeClearRecipe extends CustomRecipe {
 
 	@Override
 	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
+		return ModRecipes.UPGRADE_CLEAR_SERIALIZER.get();
 	}
 }

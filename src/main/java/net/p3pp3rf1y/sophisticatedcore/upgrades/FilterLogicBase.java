@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
@@ -48,7 +49,7 @@ public class FilterLogicBase {
 		PrimaryMatch primaryMatch = getPrimaryMatch();
 		if (primaryMatch == PrimaryMatch.MOD) {
 			//noinspection ConstantConditions
-			if (!stack.getItem().getRegistryName().getNamespace().equals(filter.getItem().getRegistryName().getNamespace())) {
+			if (!ForgeRegistries.ITEMS.getKey(stack.getItem()).getNamespace().equals(ForgeRegistries.ITEMS.getKey(filter.getItem()).getNamespace())) {
 				return false;
 			}
 		} else if (primaryMatch == PrimaryMatch.ITEM && !ItemStack.isSame(stack, filter)) {

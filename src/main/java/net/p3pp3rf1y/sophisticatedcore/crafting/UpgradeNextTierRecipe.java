@@ -5,6 +5,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 
 import java.util.LinkedHashMap;
@@ -12,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecipe<ShapedRecipe> {
-	public static final Serializer SERIALIZER = new Serializer();
 	public static final Map<ResourceLocation, ShapedRecipe> REGISTERED_RECIPES = new LinkedHashMap<>();
 	private final ShapedRecipe compose;
 
@@ -51,7 +51,7 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 
 	@Override
 	public RecipeSerializer<?> getSerializer() {
-		return SERIALIZER;
+		return ModRecipes.UPGRADE_NEXT_TIER_SERIALIZER.get();
 	}
 
 	public static class Serializer extends RecipeWrapperSerializer<ShapedRecipe, UpgradeNextTierRecipe> {

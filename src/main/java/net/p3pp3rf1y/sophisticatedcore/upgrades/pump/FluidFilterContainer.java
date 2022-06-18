@@ -6,8 +6,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidAttributes;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -41,7 +41,7 @@ public class FluidFilterContainer {
 		CompoundTag fluidNbt = new CompoundTag();
 		fluidNbt.putInt("index", index);
 		//noinspection ConstantConditions
-		fluidNbt.putString("fluid", fluid.getRegistryName().toString());
+		fluidNbt.putString("fluid", ForgeRegistries.FLUIDS.getKey(fluid).toString());
 		ret.put(DATA_FLUID, fluidNbt);
 		return ret;
 	}
@@ -70,7 +70,7 @@ public class FluidFilterContainer {
 		}
 
 		carried.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).ifPresent(itemFluidHandler -> {
-			FluidStack containedFluid = itemFluidHandler.drain(FluidAttributes.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
+			FluidStack containedFluid = itemFluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
 			if (!containedFluid.isEmpty()) {
 				setFluid(index, containedFluid.getRawFluid());
 			}

@@ -8,6 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraftforge.client.IFluidTypeRenderProperties;
+import net.minecraftforge.client.RenderProperties;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -33,9 +35,10 @@ public class FluidFilterControl extends WidgetBase {
 		for (int i = 0; i < container.getNumberOfFluidFilters(); i++) {
 			Fluid fluid = container.getFluid(i);
 			if (fluid != Fluids.EMPTY) {
-				ResourceLocation texture = fluid.getAttributes().getStillTexture();
+				IFluidTypeRenderProperties renderProperties = RenderProperties.get(fluid);
+				ResourceLocation texture = renderProperties.getStillTexture();
 				TextureAtlasSprite still = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-				GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, fluid.getAttributes().getColor(), x + i * 18 + 1, y + 1, 16);
+				GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, renderProperties.getColorTint(), x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}

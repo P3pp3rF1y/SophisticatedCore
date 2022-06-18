@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ImageButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -13,7 +13,7 @@ public class StorageSettingsTab extends Tab {
 	private final StorageScreenBase<?> screen;
 
 	public StorageSettingsTab(Position position, StorageScreenBase<?> screen, String tabTooltip) {
-		super(position, new TranslatableComponent(tabTooltip), onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
+		super(position, Component.translatable(tabTooltip), onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
 		this.screen = screen;
 	}
 

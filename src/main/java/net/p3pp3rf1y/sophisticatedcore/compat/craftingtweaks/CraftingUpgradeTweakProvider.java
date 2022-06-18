@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
@@ -196,7 +197,8 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 					int slotIndex = menu.getSlot(i).getContainerSlot();
 					ItemStack itemStack = craftMatrix.getItem(slotIndex);
 					if (!itemStack.isEmpty() && itemStack.getMaxStackSize() > 1) {
-						ResourceLocation registryName = itemStack.getItem().getRegistryName();
+						ResourceLocation registryName = ForgeRegistries.ITEMS.getKey(itemStack.getItem());
+
 						String key = Objects.toString(registryName);
 						itemMap.put(key, itemStack);
 						itemCount.add(key, itemStack.getCount());

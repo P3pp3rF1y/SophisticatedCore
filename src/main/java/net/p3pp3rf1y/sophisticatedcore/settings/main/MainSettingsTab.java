@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
@@ -29,39 +28,39 @@ public class MainSettingsTab<T extends MainSettingsContainer> extends SettingsTa
 			Map.of(
 					true, getButtonStateData(new UV(80, 32), Dimension.SQUARE_16, new Position(1, 1),
 							List.of(
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.on")),
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.on.tooltip")).withStyle(ChatFormatting.GRAY))
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.on")),
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.on.tooltip")).withStyle(ChatFormatting.GRAY))
 					),
 					false, getButtonStateData(new UV(64, 96), Dimension.SQUARE_16, new Position(1, 1),
 							List.of(
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.off")),
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.off.tooltip")).withStyle(ChatFormatting.GRAY))
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.off")),
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("shift_click_open_tab.off.tooltip")).withStyle(ChatFormatting.GRAY))
 					)
 			));
 	private static final ButtonDefinition.Toggle<Boolean> KEEP_TAB_OPEN = createToggleButtonDefinition(
 			Map.of(
 					true, getButtonStateData(new UV(80, 80), Dimension.SQUARE_16, new Position(1, 1),
 							List.of(
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.on")),
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.on.tooltip")).withStyle(ChatFormatting.GRAY))
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.on")),
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.on.tooltip")).withStyle(ChatFormatting.GRAY))
 					),
 					false, getButtonStateData(new UV(80, 96), Dimension.SQUARE_16, new Position(1, 1),
 							List.of(
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.off")),
-									new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.off.tooltip")).withStyle(ChatFormatting.GRAY))
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.off")),
+									Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("keep_tab_open.off.tooltip")).withStyle(ChatFormatting.GRAY))
 					)
 			));
 	private static final List<Component> PLAYER_CONTEXT_TOOLTIP = List.of(
-			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("context_player.tooltip")),
-			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("context_player.tooltip_detail")).withStyle(ChatFormatting.GRAY)
+			Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("context_player.tooltip")),
+			Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("context_player.tooltip_detail")).withStyle(ChatFormatting.GRAY)
 	);
 
 	public MainSettingsTab(T container, Position position, SettingsScreen screen, List<Component> storageContextTooltip, Component storageContextTitle, String tabLabelTranslKey, String tabTooltipTranslKey, Function<IntConsumer, ButtonBase> getTabButton) {
-		super(container, position, screen, new TranslatableComponent(tabLabelTranslKey),
-				List.of(new TranslatableComponent(tabTooltipTranslKey)), Collections.emptyList(),
+		super(container, position, screen, Component.translatable(tabLabelTranslKey),
+				List.of(Component.translatable(tabTooltipTranslKey)), Collections.emptyList(),
 				getTabButton);
 		addHideableChild(new ContextButton(new Position(x + 3, y + 24), button -> container.toggleContext(),
-				() -> container.getContext() == Context.PLAYER ? new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("context_player")) : storageContextTitle,
+				() -> container.getContext() == Context.PLAYER ? Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("context_player")) : storageContextTitle,
 				() -> container.getContext() == Context.PLAYER ? PLAYER_CONTEXT_TOOLTIP : storageContextTooltip));
 		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 46), SHIFT_CLICK_INTO_OPEN_TAB, button -> container.toggleShiftClickIntoOpenTab(), container::shouldShiftClickIntoOpenTab));
 		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 46), KEEP_TAB_OPEN, button -> container.toggleKeepTabOpen(), container::shouldKeepTabOpen));

@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.voiding;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
@@ -23,8 +22,8 @@ import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.getButt
 public class VoidUpgradeTab extends UpgradeSettingsTab<VoidUpgradeContainer> {
 	private static final ButtonDefinition.Toggle<Boolean> VOID_OVERFLOW = ButtonDefinitions.createToggleButtonDefinition(
 			Map.of(
-					true, getButtonStateData(new UV(224, 16), Dimension.SQUARE_16, new Position(1, 1), new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow"))
-							, new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow.detail")).withStyle(ChatFormatting.GRAY)),
+					true, getButtonStateData(new UV(224, 16), Dimension.SQUARE_16, new Position(1, 1), Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow"))
+							, Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow.detail")).withStyle(ChatFormatting.GRAY)),
 					false, getButtonStateData(new UV(208, 16), TranslationHelper.INSTANCE.translUpgradeButton("void_any"), Dimension.SQUARE_16, new Position(1, 1))
 			));
 

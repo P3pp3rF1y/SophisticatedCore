@@ -5,8 +5,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
@@ -181,60 +179,60 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 
 	private void updateTagListTooltip() {
 		tagListTooltip.clear();
-		tagListTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.title")).withStyle());
+		tagListTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.title")).withStyle());
 		Set<TagKey<Item>> tagNames = container.getTagNames();
 		if (tagNames.isEmpty()) {
-			tagListTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.empty")).withStyle(ChatFormatting.DARK_GRAY));
+			tagListTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.empty")).withStyle(ChatFormatting.DARK_GRAY));
 			return;
 		}
 
 		for (TagKey<Item> tagName : tagNames) {
-			tagListTooltip.add(new TextComponent("> " + tagName.location()).withStyle(ChatFormatting.GRAY));
+			tagListTooltip.add(Component.literal("> " + tagName.location()).withStyle(ChatFormatting.GRAY));
 		}
 	}
 
 	private void updateRemoveTooltip() {
 		removeTagTooltip.clear();
-		removeTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag")));
+		removeTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag")));
 		Set<TagKey<Item>> tagNames = container.getTagNames();
 		if (tagNames.isEmpty()) {
-			removeTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag.empty")).withStyle(ChatFormatting.RED));
+			removeTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag.empty")).withStyle(ChatFormatting.RED));
 			return;
 		}
 
 		int curIndex = 0;
 		for (TagKey<Item> tagName : tagNames) {
 			if (curIndex == container.getSelectedTagToRemove()) {
-				removeTagTooltip.add(new TextComponent("-> " + tagName.location()).withStyle(ChatFormatting.RED));
+				removeTagTooltip.add(Component.literal("-> " + tagName.location()).withStyle(ChatFormatting.RED));
 			} else {
-				removeTagTooltip.add(new TextComponent("> " + tagName.location()).withStyle(ChatFormatting.GRAY));
+				removeTagTooltip.add(Component.literal("> " + tagName.location()).withStyle(ChatFormatting.GRAY));
 			}
 			curIndex++;
 		}
-		removeTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+		removeTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
 	}
 
 	private void updateAddTooltip() {
 		addTagTooltip.clear();
-		addTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("add_tag")));
+		addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag")));
 		if (container.getTagSelectionSlot().getItem().isEmpty()) {
-			addTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_item")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_item")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
 			return;
 		}
 		Set<TagKey<Item>> tagsToAdd = container.getTagsToAdd();
 		int curIndex = 0;
 		for (TagKey<Item> tagName : tagsToAdd) {
 			if (curIndex == container.getSelectedTagToAdd()) {
-				addTagTooltip.add(new TextComponent("-> " + tagName.location()).withStyle(ChatFormatting.GREEN));
+				addTagTooltip.add(Component.literal("-> " + tagName.location()).withStyle(ChatFormatting.GREEN));
 			} else {
-				addTagTooltip.add(new TextComponent("> " + tagName.location()).withStyle(ChatFormatting.GRAY));
+				addTagTooltip.add(Component.literal("> " + tagName.location()).withStyle(ChatFormatting.GRAY));
 			}
 			curIndex++;
 		}
 		if (tagsToAdd.isEmpty()) {
-			addTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_additional_tags")).withStyle(ChatFormatting.ITALIC, ChatFormatting.YELLOW));
+			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_additional_tags")).withStyle(ChatFormatting.ITALIC, ChatFormatting.YELLOW));
 		} else {
-			addTagTooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
 		}
 	}
 
@@ -290,7 +288,7 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 		int maxTagNameLines = getTagListHeight() / 10;
 		for (TagKey<Item> tagName : tagNames) {
 			if (tagNames.size() > maxTagNameLines && count == maxTagNameLines - 1) {
-				font.draw(matrixStack, new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.tag_overflow"), String.valueOf(tagNames.size() - (maxTagNameLines - 1))), (float) x + 2, (float) y + 23 + count * 10, MORE_TAGS_FONT_COLOR);
+				font.draw(matrixStack, Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.tag_overflow"), String.valueOf(tagNames.size() - (maxTagNameLines - 1))), (float) x + 2, (float) y + 23 + count * 10, MORE_TAGS_FONT_COLOR);
 				break;
 			}
 			String name = tagName.location().toString();

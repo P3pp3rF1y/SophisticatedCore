@@ -19,6 +19,11 @@ public class CraftingItemHandler extends CraftingContainer {
 	public CraftingItemHandler(Supplier<IItemHandlerModifiable> supplyInventory, Consumer<Container> onCraftingMatrixChanged) {
 		super(new AbstractContainerMenu(null, -1) {
 			@Override
+			public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+				return ItemStack.EMPTY;
+			}
+
+			@Override
 			public boolean stillValid(Player playerIn) {
 				return false;
 			}

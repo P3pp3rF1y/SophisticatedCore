@@ -6,8 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
@@ -46,10 +44,10 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 			));
 	private static final TextureBlitData STORE_ALL_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(192, 16), Dimension.SQUARE_16);
 	public static final ButtonDefinition STORE_ALL = new ButtonDefinition(Dimension.SQUARE_18, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, STORE_ALL_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("store_all_experience")));
+			Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("store_all_experience")));
 	private static final TextureBlitData TAKE_ALL_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(144, 16), Dimension.SQUARE_16);
 	public static final ButtonDefinition TAKE_ALL = new ButtonDefinition(Dimension.SQUARE_18, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, TAKE_ALL_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("take_all_experience")));
+			Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("take_all_experience")));
 	private static final TextureBlitData TAKE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(160, 16), Dimension.SQUARE_16);
 	public static final ButtonDefinition TAKE = new ButtonDefinition(Dimension.SQUARE_18, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, TAKE_FOREGROUND);
 	private static final TextureBlitData STORE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(176, 16), Dimension.SQUARE_16);
@@ -99,15 +97,15 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 
 	private void setStoreTooltip() {
 		storeButton.setTooltip(List.of(
-				new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("store_levels"), new TextComponent(String.valueOf(getContainer().getLevelsToStore())).withStyle(ChatFormatting.RED)),
-				new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("store_levels.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY))
+				Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("store_levels"), Component.literal(String.valueOf(getContainer().getLevelsToStore())).withStyle(ChatFormatting.RED)),
+				Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("store_levels.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY))
 		);
 	}
 
 	private void setTakeTooltip() {
 		takeButton.setTooltip(List.of(
-				new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("take_levels"), new TextComponent(String.valueOf(getContainer().getLevelsToTake())).withStyle(ChatFormatting.GREEN)),
-				new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("take_levels.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY))
+				Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("take_levels"), Component.literal(String.valueOf(getContainer().getLevelsToTake())).withStyle(ChatFormatting.GREEN)),
+				Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("take_levels.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY))
 		);
 	}
 
@@ -121,8 +119,8 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 		private final DoubleConsumer onScroll;
 
 		private static final List<Component> TOOLTIP = List.of(
-				new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select.tooltip")),
-				new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select.tooltip.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+				Component.translatable(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select.tooltip")),
+				Component.translatable(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select.tooltip.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
 
 		protected LevelSelector(Position position, Supplier<String> getText, DoubleConsumer onScroll) {
 			super(position, new Dimension(54, 18));
@@ -138,7 +136,7 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 		@Override
 		protected void renderWidget(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 			String text = getText.get();
-			Component fullText = new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select"), new TextComponent(text).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY);
+			Component fullText = Component.translatable(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select"), Component.literal(text).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY);
 			int xOffset = (getWidth() - minecraft.font.width(fullText)) / 2;
 			int yOffset = (int) Math.ceil((getHeight() - minecraft.font.lineHeight) / 2d);
 			minecraft.font.draw(poseStack, fullText, (float) x + xOffset, (float) y + yOffset, DyeColor.BLACK.getTextColor());

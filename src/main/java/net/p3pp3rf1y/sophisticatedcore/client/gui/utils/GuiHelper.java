@@ -32,7 +32,6 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -42,6 +41,7 @@ import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 
@@ -146,8 +146,7 @@ public class GuiHelper {
 		bufferbuilder.vertex(matrix, xMax, yMax, 0).color(red, green, blue, alpha).uv(maxU, maxV).endVertex();
 		bufferbuilder.vertex(matrix, xMax, yMin, 0).color(red, green, blue, alpha).uv(maxU, minV).endVertex();
 		bufferbuilder.vertex(matrix, xMin, yMin, 0).color(red, green, blue, alpha).uv(minU, minV).endVertex();
-		bufferbuilder.end();
-		BufferUploader.end(bufferbuilder);
+		BufferUploader.drawWithShader(bufferbuilder.end());
 	}
 
 	public static void renderTooltipBackground(Matrix4f matrix4f, int tooltipWidth, int leftX, int topY, int tooltipHeight, int backgroundColor, int borderColorStart, int borderColorEnd) {
@@ -169,8 +168,7 @@ public class GuiHelper {
 		RenderSystem.disableTexture();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		bufferbuilder.end();
-		BufferUploader.end(bufferbuilder);
+		BufferUploader.drawWithShader(bufferbuilder.end());
 		RenderSystem.disableBlend();
 		RenderSystem.enableTexture();
 	}
@@ -215,7 +213,7 @@ public class GuiHelper {
 
 	public static ToggleButton.StateData getButtonStateData(UV uv, String tooltip, Dimension dimension, Position offset) {
 		return new ToggleButton.StateData(new TextureBlitData(ICONS, offset, Dimension.SQUARE_256, uv, dimension),
-				new TranslatableComponent(tooltip)
+				Component.translatable(tooltip)
 		);
 	}
 
@@ -261,8 +259,7 @@ public class GuiHelper {
 		} while (height > 0);
 
 		// finish drawing sprites
-		builder.end();
-		BufferUploader.end(builder);
+		BufferUploader.drawWithShader(builder.end());
 	}
 
 	public static void renderControlBackground(PoseStack matrixStack, int x, int y, int renderWidth, int renderHeight) {
@@ -281,31 +278,6 @@ public class GuiHelper {
 		GuiComponent.blit(matrixStack, x + halfWidth, y + halfHeight, (float) u + textureBgWidth - halfWidth, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 	}
 
-	public interface ITooltipRenderPart {
-		ITooltipRenderPart EMPTY = new ITooltipRenderPart() {
-			@Override
-			public int getWidth() {
-				return 0;
-			}
-
-			@Override
-			public int getHeight() {
-				return 0;
-			}
-
-			@Override
-			public void render(PoseStack matrixStack, int leftX, int topY, Font font) {
-				//noop
-			}
-		};
-
-		int getWidth();
-
-		int getHeight();
-
-		void render(PoseStack matrixStack, int leftX, int topY, Font font);
-	}
-
 	public static void tryRenderGuiItem(ItemRenderer itemRenderer, TextureManager textureManager,
 			@Nullable LivingEntity livingEntity, ItemStack stack, int x, int y, int rotation) {
 		if (!stack.isEmpty()) {
@@ -319,7 +291,7 @@ public class GuiHelper {
 				CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering item");
 				CrashReportCategory crashreportcategory = crashreport.addCategory("Item being rendered");
 				crashreportcategory.setDetail("Item Type", () -> String.valueOf(stack.getItem()));
-				crashreportcategory.setDetail("Registry Name", () -> String.valueOf(stack.getItem().getRegistryName()));
+				crashreportcategory.setDetail("Registry Name", () -> String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem())));
 				crashreportcategory.setDetail("Item Damage", () -> String.valueOf(stack.getDamageValue()));
 				crashreportcategory.setDetail("Item NBT", () -> String.valueOf(stack.getTag()));
 				crashreportcategory.setDetail("Item Foil", () -> String.valueOf(stack.hasFoil()));

@@ -3,7 +3,6 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Matrix4f;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -98,7 +97,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			int energyStored = container.getEnergyStored();
 			int maxEnergyStored = container.getMaxEnergyStored();
 			List<Component> tooltip = new ArrayList<>();
-			tooltip.add(new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeKey("battery.contents_tooltip"), String.format("%,d", energyStored), String.format("%,d", maxEnergyStored)));
+			tooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("battery.contents_tooltip"), String.format("%,d", energyStored), String.format("%,d", maxEnergyStored)));
 			screen.renderTooltip(poseStack, tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}

@@ -57,16 +57,16 @@ public class StorageSoundHandler {
 	}
 
 	public static void playStorageSound(SoundEvent soundEvent, UUID storageUuid, int entityId) {
-		ClientLevel world = Minecraft.getInstance().level;
-		if (world == null) {
+		ClientLevel level = Minecraft.getInstance().level;
+		if (level == null) {
 			return;
 		}
 
-		Entity entity = world.getEntity(entityId);
+		Entity entity = level.getEntity(entityId);
 		if (!(entity instanceof LivingEntity)) {
 			return;
 		}
-		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, 2, 1, entity));
+		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, 2, 1, entity, level.random.nextLong()));
 	}
 
 	@SuppressWarnings({"unused", "java:S1172"}) // needs to be here for addListener to recognize which event this method should be subscribed to

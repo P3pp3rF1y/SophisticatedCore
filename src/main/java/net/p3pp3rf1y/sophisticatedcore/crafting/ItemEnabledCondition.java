@@ -6,6 +6,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.crafting.conditions.ICondition;
 import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
@@ -15,7 +16,7 @@ public class ItemEnabledCondition implements ICondition {
 
 	public ItemEnabledCondition(Item item) {
 		//noinspection ConstantConditions - only called after actually registered
-		this(item.getRegistryName());
+		this(ForgeRegistries.ITEMS.getKey(item));
 	}
 
 	public ItemEnabledCondition(ResourceLocation itemRegistryName) {
@@ -28,7 +29,7 @@ public class ItemEnabledCondition implements ICondition {
 	}
 
 	@Override
-	public boolean test() {
+	public boolean test(IContext context) {
 		return Config.COMMON.enabledItems.isItemEnabled(itemRegistryName);
 	}
 

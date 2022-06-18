@@ -4,15 +4,15 @@ import com.mojang.math.Vector3f;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
 
-import java.util.Random;
 import java.util.function.UnaryOperator;
 
 public class CookingUpgradeRenderer implements IUpgradeRenderer<CookingUpgradeRenderData> {
 	@Override
-	public void render(Level level, Random rand, UnaryOperator<Vector3f> getPositionFromOffset, CookingUpgradeRenderData upgradeRenderData) {
+	public void render(Level level, RandomSource rand, UnaryOperator<Vector3f> getPositionFromOffset, CookingUpgradeRenderData upgradeRenderData) {
 		if (!upgradeRenderData.isBurning()) {
 			return;
 		}

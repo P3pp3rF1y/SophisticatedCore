@@ -158,6 +158,11 @@ public class RecipeHelper {
 
 	private static CraftingContainer getFilledCraftingInventory(Item item, int width, int height) {
 		CraftingContainer craftinginventory = new CraftingContainer(new AbstractContainerMenu(null, -1) {
+			@Override
+			public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+				return ItemStack.EMPTY;
+			}
+
 			public boolean stillValid(Player playerIn) {
 				return false;
 			}

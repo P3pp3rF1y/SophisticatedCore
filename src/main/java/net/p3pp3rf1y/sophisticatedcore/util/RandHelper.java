@@ -1,16 +1,17 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
+import net.minecraft.util.RandomSource;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 public class RandHelper {
 	private RandHelper() {}
 
 	@SuppressWarnings("squid:S1764") // this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
-	public static float getRandomMinusOneToOne(Random rand) {
+	public static float getRandomMinusOneToOne(RandomSource rand) {
 		return rand.nextFloat() - rand.nextFloat();
 	}
 
@@ -28,7 +29,7 @@ public class RandHelper {
 		return ret;
 	}
 
-	public static <T> Optional<T> getRandomWeightedElement(Random random, List<WeightedElement<T>> weightedElements) {
+	public static <T> Optional<T> getRandomWeightedElement(RandomSource random, List<WeightedElement<T>> weightedElements) {
 		int totalWeight = 0;
 		for (WeightedElement<T> weightedElement : weightedElements) {
 			int weight = weightedElement.getWeight();

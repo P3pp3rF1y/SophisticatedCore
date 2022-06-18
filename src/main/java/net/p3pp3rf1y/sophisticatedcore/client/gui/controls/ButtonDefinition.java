@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
 
@@ -20,7 +19,7 @@ public class ButtonDefinition {
 	private final List<Component> tooltip;
 
 	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture, @Nullable TextureBlitData hoveredBackgroundTexture) {
-		this(dimension, backgroundTexture, hoveredBackgroundTexture, null, new TextComponent(""));
+		this(dimension, backgroundTexture, hoveredBackgroundTexture, null, Component.literal(""));
 	}
 
 	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture,

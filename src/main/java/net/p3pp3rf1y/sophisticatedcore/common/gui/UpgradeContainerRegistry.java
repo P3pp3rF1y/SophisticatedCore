@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 
@@ -19,7 +20,7 @@ public class UpgradeContainerRegistry {
 	}
 
 	public static <W extends IUpgradeWrapper, C extends UpgradeContainerBase<W, C>> Optional<UpgradeContainerBase<W, C>> instantiateContainer(Player player, int containerId, W wrapper) {
-		ResourceLocation upgradeName = wrapper.getUpgradeStack().getItem().getRegistryName();
+		ResourceLocation upgradeName = ForgeRegistries.ITEMS.getKey(wrapper.getUpgradeStack().getItem());
 		if (!(wrapper.getUpgradeStack().getItem() instanceof IUpgradeItem<?>) || wrapper.hideSettingsTab() || !UPGRADE_CONTAINERS.containsKey(upgradeName)) {
 			return Optional.empty();
 		}

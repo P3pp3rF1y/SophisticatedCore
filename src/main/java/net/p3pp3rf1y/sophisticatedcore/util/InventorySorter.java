@@ -4,6 +4,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class InventorySorter {
 
 	private static String getRegistryName(ItemStackKey itemStackKey) {
 		//noinspection ConstantConditions - registryName is nonNull by the time it exists in itemstack form
-		return itemStackKey.getStack().getItem().getRegistryName().toString();
+		return ForgeRegistries.ITEMS.getKey(itemStackKey.getStack().getItem()).toString();
 	}
 
 	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {

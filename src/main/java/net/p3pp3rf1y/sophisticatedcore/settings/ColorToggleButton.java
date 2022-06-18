@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -28,7 +27,7 @@ import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.DEFAULT
 public class ColorToggleButton extends ButtonBase {
 	private static final DyeColor[] DYE_VALUES = DyeColor.values();
 	private static final List<Component> TOOLTIP = new ImmutableList.Builder<Component>()
-			.add(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("toggle_color")))
+			.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("toggle_color")))
 			.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("toggle_color_detail"), null, ChatFormatting.GRAY))
 			.build();
 

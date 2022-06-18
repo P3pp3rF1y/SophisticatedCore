@@ -82,15 +82,14 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		}
 
 		// put items into the crafting grid
-		putItemIntoGrid(craftingSlots, container, toTransfer, clearedCraftingItems, minSlotStackLimit);
+		putItemIntoGrid(container, toTransfer, clearedCraftingItems, minSlotStackLimit);
 		return clearedCraftingItems;
 	}
 
-	private static void putItemIntoGrid(List<Integer> craftingSlots, AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer, List<ItemStack> clearedCraftingItems, int minSlotStackLimit) {
+	private static void putItemIntoGrid(AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer, List<ItemStack> clearedCraftingItems, int minSlotStackLimit) {
 		for (Map.Entry<Integer, ItemStack> entry : toTransfer.entrySet()) {
-			Integer craftNumber = entry.getKey();
-			Integer slotNumber = craftingSlots.get(craftNumber);
-			Slot slot = container.getSlot(slotNumber);
+			Integer craftingSlotIndex = entry.getKey();
+			Slot slot = container.getSlot(craftingSlotIndex);
 
 			ItemStack stack = entry.getValue();
 			if (slot.mayPlace(stack)) {

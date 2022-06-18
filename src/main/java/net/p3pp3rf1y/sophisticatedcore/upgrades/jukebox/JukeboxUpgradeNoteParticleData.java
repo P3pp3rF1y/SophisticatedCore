@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 
 public class JukeboxUpgradeNoteParticleData extends ParticleType<JukeboxUpgradeNoteParticleData> implements ParticleOptions {
@@ -25,9 +26,10 @@ public class JukeboxUpgradeNoteParticleData extends ParticleType<JukeboxUpgradeN
 	@Override
 	public String writeToString() {
 		//noinspection ConstantConditions
-		return ModParticles.JUKEBOX_NOTE.get().getRegistryName().toString();
+		return ForgeRegistries.PARTICLE_TYPES.getKey(ModParticles.JUKEBOX_NOTE.get()).toString();
 	}
 
+	@SuppressWarnings("deprecation")
 	public static final Deserializer<JukeboxUpgradeNoteParticleData> DESERIALIZER = new Deserializer<>() {
 		@Override
 		public JukeboxUpgradeNoteParticleData fromCommand(ParticleType<JukeboxUpgradeNoteParticleData> pParticleType, StringReader pReader) {

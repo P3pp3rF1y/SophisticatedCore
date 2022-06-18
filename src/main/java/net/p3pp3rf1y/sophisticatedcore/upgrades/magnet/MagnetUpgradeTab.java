@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.magnet;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
@@ -27,7 +26,7 @@ public class MagnetUpgradeTab extends UpgradeSettingsTab<MagnetUpgradeContainer>
 
 	private static final ButtonDefinition.Toggle<Boolean> PICKUP_XP = createToggleButtonDefinition(
 			getBooleanStateData(
-					GuiHelper.getButtonStateData(new UV(96, 48), Dimension.SQUARE_16, new Position(1, 1), new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("pickup_xp")), new TranslatableComponent(TranslationHelper.INSTANCE.translUpgradeButton("pickup_xp.detail")).withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC)),
+					GuiHelper.getButtonStateData(new UV(96, 48), Dimension.SQUARE_16, new Position(1, 1), Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("pickup_xp")), Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("pickup_xp.detail")).withStyle(ChatFormatting.DARK_GRAY).withStyle(ChatFormatting.ITALIC)),
 					GuiHelper.getButtonStateData(new UV(112, 48), TranslationHelper.INSTANCE.translUpgradeButton("do_not_pickup_xp"), Dimension.SQUARE_16, new Position(1, 1))
 			));
 

@@ -3,7 +3,6 @@ package net.p3pp3rf1y.sophisticatedcore.settings.nosort;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
@@ -28,19 +27,19 @@ public class NoSortSettingsTab extends SettingsTab<NoSortSettingsContainer> {
 	private static final TextureBlitData ICON = new TextureBlitData(GuiHelper.ICONS, Dimension.SQUARE_256, new UV(32, 80), Dimension.SQUARE_16);
 	private static final TextureBlitData SELECT_ALL_SLOTS_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(16, 80), Dimension.SQUARE_16);
 	public static final ButtonDefinition SELECT_ALL_SLOTS = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, SELECT_ALL_SLOTS_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("select_all_slots")));
+			Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("select_all_slots")));
 	private static final TextureBlitData UNSELECT_ALL_SLOTS_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(48, 80), Dimension.SQUARE_16);
 	public static final ButtonDefinition UNSELECT_ALL_SLOTS = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, UNSELECT_ALL_SLOTS_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("unselect_all_slots")));
+			Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("unselect_all_slots")));
 
 	public NoSortSettingsTab(NoSortSettingsContainer container, Position position, SettingsScreen screen) {
-		super(container, position, screen, new TranslatableComponent(TranslationHelper.INSTANCE.translSettings(NoSortSettingsCategory.NAME)),
+		super(container, position, screen, Component.translatable(TranslationHelper.INSTANCE.translSettings(NoSortSettingsCategory.NAME)),
 				new ImmutableList.Builder<Component>()
-						.add(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsTooltip(NoSortSettingsCategory.NAME)))
+						.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsTooltip(NoSortSettingsCategory.NAME)))
 						.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsTooltip(NoSortSettingsCategory.NAME) + "_detail", null, ChatFormatting.GRAY))
 						.build(),
 				new ImmutableList.Builder<Component>()
-						.add(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsTooltip(NoSortSettingsCategory.NAME)))
+						.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsTooltip(NoSortSettingsCategory.NAME)))
 						.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsTooltip(NoSortSettingsCategory.NAME) + "_open_detail", null, ChatFormatting.GRAY))
 						.build(),
 				onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));

@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ItemButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -12,7 +11,7 @@ public abstract class UpgradeSettingsTab<C extends UpgradeContainerBase<?, ?>> e
 
 	protected UpgradeSettingsTab(C upgradeContainer, Position position, StorageScreenBase<?> screen, Component tabLabel, Component closedTooltip) {
 		super(position, screen, tabLabel, closedTooltip,
-				onTabIconClicked -> new ItemButton(new Position(position.x() + 1, position.y() + 4), onTabIconClicked, upgradeContainer.getUpgradeStack(), new TranslatableComponent("gui.sophisticatedcore.narrate.tab_button")));
+				onTabIconClicked -> new ItemButton(new Position(position.x() + 1, position.y() + 4), onTabIconClicked, upgradeContainer.getUpgradeStack(), Component.translatable("gui.sophisticatedcore.narrate.tab_button")));
 		this.upgradeContainer = upgradeContainer;
 		moveSlotsOutOfView();
 	}

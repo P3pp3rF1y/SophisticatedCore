@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.commons.lang3.Validate;
 
 import java.util.Optional;
@@ -17,7 +17,7 @@ public class RegistryHelper {
 		return itemKey;
 	}
 
-	public static Optional<ResourceLocation> getRegistryName(ForgeRegistryEntry<?> registryEntry) {
-		return Optional.ofNullable(registryEntry.getRegistryName());
+	public static <V> Optional<ResourceLocation> getRegistryName(IForgeRegistry<V> registry, V registryEntry) {
+		return Optional.ofNullable(registry.getKey(registryEntry));
 	}
 }
