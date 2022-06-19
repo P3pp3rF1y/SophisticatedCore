@@ -3,7 +3,9 @@ package net.p3pp3rf1y.sophisticatedcore;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -43,12 +45,18 @@ public class SophisticatedCore {
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);
 		modBus.addGenericListener(RecipeSerializer.class, this::registerRecipeSerializers);
+
+		MinecraftForge.EVENT_BUS.addListener(SophisticatedCore::onResourceReload);
 	}
 
 	private void registerRecipeSerializers(RegistryEvent.Register<RecipeSerializer<?>> evt) {
 		CraftingHelper.register(ItemEnabledCondition.Serializer.INSTANCE);
 		evt.getRegistry().register(UpgradeNextTierRecipe.SERIALIZER.setRegistryName(MOD_ID, "upgrade_next_tier"));
 		evt.getRegistry().register(UpgradeClearRecipe.SERIALIZER.setRegistryName(SophisticatedCore.MOD_ID, "upgrade_clear"));
+	}
+
+	private static void onResourceReload(AddReloadListenerEvent event) {
+		UpgradeNextTierRecipe.REGISTERED_RECIPES.clear();
 	}
 
 	private static void setup(FMLCommonSetupEvent event) {
