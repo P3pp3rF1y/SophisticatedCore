@@ -29,6 +29,8 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.event.ContainerScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
@@ -371,7 +373,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int i = leftPos;
 		int j = topPos;
 		renderBg(pPoseStack, pPartialTick, pMouseX, pMouseY);
-		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.DrawBackground(this, pPoseStack, pMouseX, pMouseY));
+		//noinspection UnstableApiUsage
+		MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.Render.Background(this, pPoseStack, pMouseX, pMouseY));
 		RenderSystem.disableDepthTest();
 
 		hoveredSlot = null;
@@ -403,7 +406,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 
 		renderLabels(pPoseStack, pMouseX, pMouseY);
-		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.DrawForeground(this, pPoseStack, pMouseX, pMouseY));
+		//noinspection UnstableApiUsage
+		MinecraftForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, pPoseStack, pMouseX, pMouseY));
 		ItemStack itemstack = draggingItem.isEmpty() ? menu.getCarried() : draggingItem;
 		if (!itemstack.isEmpty()) {
 			int i2 = draggingItem.isEmpty() ? 8 : 16;

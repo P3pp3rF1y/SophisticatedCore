@@ -9,8 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.client.IFluidTypeRenderProperties;
-import net.minecraftforge.client.RenderProperties;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -108,6 +107,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 	}
 
 	private MutableComponent getContentsTooltip(FluidStack contents, int capacity) {
+		//noinspection deprecation
 		if (contents.getFluid().is(ModFluids.EXPERIENCE_TAG)) {
 			double contentsLevels = XpHelper.getLevelsForExperience((int) XpHelper.liquidToExperience(contents.getAmount()));
 			double tankCapacityLevels = XpHelper.getLevelsForExperience((int) XpHelper.liquidToExperience(capacity));
@@ -127,10 +127,10 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		Fluid fluid = contents.getFluid();
 		int fill = contents.getAmount();
 		int displayLevel = (int) ((height - 2) * ((float) fill / capacity));
-		IFluidTypeRenderProperties renderProperties = RenderProperties.get(fluid);
+		IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
 		ResourceLocation texture = renderProperties.getStillTexture(contents);
 		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-		GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, renderProperties.getColorTint(), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, renderProperties.getTintColor(), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
 
 }
