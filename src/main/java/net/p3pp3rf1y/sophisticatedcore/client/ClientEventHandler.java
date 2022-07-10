@@ -56,7 +56,7 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void onDrawScreen(ScreenEvent.DrawScreenEvent.Post event) {
+	private static void onDrawScreen(ScreenEvent.Render.Post event) {
 		Minecraft mc = Minecraft.getInstance();
 		Screen gui = mc.screen;
 		if (!(gui instanceof AbstractContainerScreen<?> containerGui) || gui instanceof CreativeModeInventoryScreen || mc.player == null) {
@@ -95,7 +95,7 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void onRightClick(ScreenEvent.MouseReleasedEvent.Pre event) {
+	private static void onRightClick(ScreenEvent.MouseButtonReleased.Pre event) {
 		Minecraft mc = Minecraft.getInstance();
 		Screen screen = mc.screen;
 		if (screen instanceof AbstractContainerScreen<?> container && !(screen instanceof CreativeModeInventoryScreen) && event.getButton() == 1) {
@@ -113,7 +113,7 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void onPlayerJoinServer(ClientPlayerNetworkEvent.LoggedInEvent evt) {
+	private static void onPlayerJoinServer(ClientPlayerNetworkEvent.LoggingIn evt) {
 		//noinspection ConstantConditions - by the time player is joining the world is not null
 		RecipeHelper.setWorld(Minecraft.getInstance().level);
 	}

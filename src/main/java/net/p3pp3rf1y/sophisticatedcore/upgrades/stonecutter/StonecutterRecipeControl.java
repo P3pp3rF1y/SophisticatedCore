@@ -11,6 +11,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -140,7 +141,7 @@ public class StonecutterRecipeControl extends WidgetBase {
 	}
 
 	private void renderTooltip(PoseStack poseStack, ItemStack itemStack, int mouseX, int mouseY) {
-		Font font = net.minecraftforge.client.RenderProperties.get(itemStack).getFont(itemStack);
+		Font font = IClientItemExtensions.of(itemStack).getFont(itemStack, IClientItemExtensions.FontContext.TOOLTIP);
 		screen.renderComponentTooltip(poseStack, screen.getTooltipFromItem(itemStack), mouseX, mouseY, (font == null ? this.font : font));
 	}
 

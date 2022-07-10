@@ -1,7 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -14,6 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.CommonEventHandler;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,6 +41,16 @@ public class SophisticatedCore {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);
+
+		IEventBus eventBus = MinecraftForge.EVENT_BUS;
+		eventBus.addListener(SophisticatedCore::serverStarted);
+	}
+
+	private static void serverStarted(ServerStartedEvent event) {
+		ServerLevel world = event.getServer().getLevel(Level.OVERWORLD);
+		if (world != null) {
+			RecipeHelper.setWorld(world);
+		}
 	}
 
 	private static void setup(FMLCommonSetupEvent event) {
