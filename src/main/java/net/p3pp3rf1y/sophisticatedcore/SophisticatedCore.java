@@ -1,12 +1,15 @@
 package net.p3pp3rf1y.sophisticatedcore;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -22,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -46,7 +50,16 @@ public class SophisticatedCore {
 		modBus.addListener(DataGenerators::gatherData);
 		modBus.addGenericListener(RecipeSerializer.class, this::registerRecipeSerializers);
 
-		MinecraftForge.EVENT_BUS.addListener(SophisticatedCore::onResourceReload);
+		IEventBus eventBus = MinecraftForge.EVENT_BUS;
+		eventBus.addListener(SophisticatedCore::onResourceReload);
+		eventBus.addListener(SophisticatedCore::serverStarted);
+	}
+
+	private static void serverStarted(ServerStartedEvent event) {
+		ServerLevel world = event.getServer().getLevel(Level.OVERWORLD);
+		if (world != null) {
+			RecipeHelper.setWorld(world);
+		}
 	}
 
 	private void registerRecipeSerializers(RegistryEvent.Register<RecipeSerializer<?>> evt) {
