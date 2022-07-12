@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.data;
 
 import net.minecraft.data.DataGenerator;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
+import net.minecraftforge.data.event.GatherDataEvent;
 
 public class DataGenerators {
 	private DataGenerators() {}
