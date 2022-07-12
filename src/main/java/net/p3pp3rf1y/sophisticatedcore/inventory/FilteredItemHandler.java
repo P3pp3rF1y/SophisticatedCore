@@ -4,7 +4,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 
+import javax.annotation.Nonnull;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
 	protected final T inventoryHandler;
@@ -22,11 +26,13 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return inventoryHandler.getSlots();
 	}
 
+	@Nonnull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		return inventoryHandler.getStackInSlot(slot);
 	}
 
+	@Nonnull
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		if (inputFilters.isEmpty()) {
@@ -41,6 +47,7 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return stack;
 	}
 
+	@Nonnull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		if (outputFilters.isEmpty()) {
@@ -65,8 +72,8 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return inventoryHandler.isItemValid(slot, stack);
 	}
 
-	public static class Modifiable extends FilteredItemHandler<IItemHandlerSimpleInserter> implements IItemHandlerSimpleInserter {
-		public Modifiable(IItemHandlerSimpleInserter inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
+	public static class Modifiable extends FilteredItemHandler<ITrackedContentsItemHandler> implements ITrackedContentsItemHandler {
+		public Modifiable(ITrackedContentsItemHandler inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 			super(inventoryHandler, inputFilters, outputFilters);
 		}
 
@@ -87,6 +94,56 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 				}
 			}
 			return stack;
+		}
+
+		@Override
+		public Set<ItemStackKey> getTrackedStacks() {
+			Set<ItemStackKey> ret = new HashSet<>();
+
+			inventoryHandler.getTrackedStacks().forEach(ts -> {
+				if (inputFiltersMatchStack(ts.stack())) {
+					ret.add(ts);
+				}
+			});
+
+			return ret;
+		}
+
+		private boolean inputFiltersMatchStack(ItemStack stack) {
+			for (FilterLogic filter : inputFilters) {
+				if (filter.matchesFilter(stack)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		@Override
+		public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+			inventoryHandler.registerTrackingListeners(
+					isk -> {
+						if (inputFiltersMatchStack(isk.stack())) {
+							onAddStackKey.accept(isk);
+						}
+					},
+					isk -> {
+						if (inputFiltersMatchStack(isk.stack())) {
+							onRemoveStackKey.accept(isk);
+						}
+					},
+					onAddFirstEmptySlot,
+					onRemoveLastEmptySlot
+			);
+		}
+
+		@Override
+		public void unregisterStackKeyListeners() {
+			inventoryHandler.unregisterStackKeyListeners();
+		}
+
+		@Override
+		public boolean hasEmptySlots() {
+			return inventoryHandler.hasEmptySlots();
 		}
 	}
 }

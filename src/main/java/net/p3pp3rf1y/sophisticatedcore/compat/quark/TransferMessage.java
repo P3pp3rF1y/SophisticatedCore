@@ -10,6 +10,7 @@ import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +63,7 @@ public class TransferMessage {
 		}
 	}
 
-	private static class FilteredStorageItemHandler extends FilteredItemHandler<IItemHandlerSimpleInserter> implements IItemHandlerSimpleInserter {
+	private static class FilteredStorageItemHandler extends FilteredItemHandler<ITrackedContentsItemHandler> implements IItemHandlerSimpleInserter {
 		private final IStorageWrapper storageWrapper;
 
 		public FilteredStorageItemHandler(IStorageWrapper storageWrapper, boolean smart) {
