@@ -4,7 +4,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
@@ -21,11 +21,11 @@ public interface IStorageWrapper {
 		//noop
 	}
 
-	IItemHandlerSimpleInserter getInventoryForUpgradeProcessing();
+	ITrackedContentsItemHandler getInventoryForUpgradeProcessing();
 
 	InventoryHandler getInventoryHandler();
 
-	IItemHandlerSimpleInserter getInventoryForInputOutput();
+	ITrackedContentsItemHandler getInventoryForInputOutput();
 
 	SettingsHandler getSettingsHandler();
 

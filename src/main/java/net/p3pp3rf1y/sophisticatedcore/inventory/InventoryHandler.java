@@ -16,12 +16,15 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public abstract class InventoryHandler extends ItemStackHandler implements IItemHandlerSimpleInserter {
+public abstract class InventoryHandler extends ItemStackHandler implements ITrackedContentsItemHandler {
 	public static final String INVENTORY_TAG = "inventory";
 	private static final String REAL_COUNT_TAG = "realCount";
 	protected final IStorageWrapper storageWrapper;
@@ -314,5 +317,30 @@ public abstract class InventoryHandler extends ItemStackHandler implements IItem
 		}
 		initStackNbts();
 		saveInventory();
+		slotTracker.refreshSlotIndexesFrom(this);
+	}
+
+	@Override
+	public Set<ItemStackKey> getTrackedStacks() {
+		initSlotTracker();
+		HashSet<ItemStackKey> ret = new HashSet<>(slotTracker.getFullStacks());
+		ret.addAll(slotTracker.getPartialStacks());
+		return ret;
+	}
+
+	@Override
+	public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+		initSlotTracker();
+		slotTracker.registerListeners(onAddStackKey, onRemoveStackKey, onAddFirstEmptySlot, onRemoveLastEmptySlot);
+	}
+
+	@Override
+	public void unregisterStackKeyListeners() {
+		slotTracker.unregisterStackKeyListeners();
+	}
+
+	@Override
+	public boolean hasEmptySlots() {
+		return slotTracker.hasEmptySlots();
 	}
 }
