@@ -25,11 +25,11 @@ public class ServerStorageSoundHandler {
 		MinecraftForge.EVENT_BUS.addListener(ServerStorageSoundHandler::tick);
 	}
 
-	public static void tick(TickEvent.WorldTickEvent event) {
-		if (event.phase != TickEvent.Phase.END || event.world.isClientSide()) {
+	public static void tick(TickEvent.LevelTickEvent event) {
+		if (event.phase != TickEvent.Phase.END || event.level.isClientSide()) {
 			return;
 		}
-		ServerLevel world = (ServerLevel) event.world;
+		ServerLevel world = (ServerLevel) event.level;
 		ResourceKey<Level> dim = world.dimension();
 		if (lastWorldCheck.computeIfAbsent(dim, key -> world.getGameTime()) > world.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL || !worldStorageSoundKeepAlive.containsKey(dim)) {
 			return;

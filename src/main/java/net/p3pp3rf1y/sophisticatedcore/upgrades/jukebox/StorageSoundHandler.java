@@ -11,7 +11,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.Map;
@@ -39,9 +39,9 @@ public class StorageSoundHandler {
 		}
 	}
 
-	public static void tick(TickEvent.WorldTickEvent event) {
-		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.world.getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
-			lastPlaybackChecked = event.world.getGameTime();
+	public static void tick(TickEvent.LevelTickEvent event) {
+		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.level.getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
+			lastPlaybackChecked = event.level.getGameTime();
 			storageSounds.entrySet().removeIf(entry -> {
 				if (!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())) {
 					SophisticatedCore.PACKET_HANDLER.sendToServer(new SoundStopNotificationMessage(entry.getKey()));
@@ -70,7 +70,7 @@ public class StorageSoundHandler {
 	}
 
 	@SuppressWarnings({"unused", "java:S1172"}) // needs to be here for addListener to recognize which event this method should be subscribed to
-	public static void onWorldUnload(WorldEvent.Unload evt) {
+	public static void onWorldUnload(LevelEvent.Unload evt) {
 		storageSounds.clear();
 		lastPlaybackChecked = 0;
 	}
