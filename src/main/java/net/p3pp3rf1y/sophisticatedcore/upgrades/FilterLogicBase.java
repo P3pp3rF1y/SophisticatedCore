@@ -75,6 +75,7 @@ public class FilterLogicBase {
 		}
 		tagKeys.add(tagName);
 		serializeTags();
+		save();
 	}
 
 	private void serializeTags() {
@@ -90,6 +91,7 @@ public class FilterLogicBase {
 		}
 		tagKeys.remove(tagName);
 		serializeTags();
+		save();
 	}
 
 	protected void initTags() {
