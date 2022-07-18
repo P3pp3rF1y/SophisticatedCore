@@ -53,7 +53,11 @@ public interface IControllableStorage {
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getNormal());
 				WorldHelper.getBlockEntity(level, offsetPos, IControllableStorage.class).ifPresentOrElse(
-						s -> s.getControllerPos().ifPresent(controllerPos -> addToController(level, pos, controllerPos)),
+						s -> {
+							if (s.canConnectStorages()) {
+								s.getControllerPos().ifPresent(controllerPos -> addToController(level, pos, controllerPos));
+							}
+						},
 						() -> addToController(level, pos, offsetPos)
 				);
 				if (getControllerPos().isPresent()) {
@@ -79,15 +83,19 @@ public interface IControllableStorage {
 	}
 
 	private void registerListeners() {
+		registerInventoryStackListeners();
+		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).registerListeners(
+				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedItem(getStorageBlockPos(), i)),
+				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i))
+		);
+	}
+
+	default void registerInventoryStackListeners() {
 		getStorageWrapper().getInventoryForInputOutput().registerTrackingListeners(
 				isk -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageStack(getStorageBlockPos(), isk)),
 				isk -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageStack(getStorageBlockPos(), isk)),
 				() -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageWithEmptySlots(getStorageBlockPos())),
 				() -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageWithEmptySlots(getStorageBlockPos()))
-		);
-		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).registerListeners(
-				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedItem(getStorageBlockPos(), i)),
-				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i))
 		);
 	}
 

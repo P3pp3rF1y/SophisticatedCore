@@ -182,7 +182,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public void setColumnsTaken(int columnsTaken) {
+	public void setColumnsTaken(int columnsTaken, boolean hasChanged) {
 		//noop
 	}
 
