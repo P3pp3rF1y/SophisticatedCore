@@ -63,7 +63,7 @@ public interface IStorageWrapper {
 
 	RenderInfo getRenderInfo();
 
-	void setColumnsTaken(int columnsTaken);
+	void setColumnsTaken(int columnsTaken, boolean hasChanged);
 
 	int getColumnsTaken();
 

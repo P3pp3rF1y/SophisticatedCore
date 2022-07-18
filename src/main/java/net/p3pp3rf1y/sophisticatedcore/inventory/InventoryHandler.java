@@ -309,10 +309,10 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		return slotTracker.insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, stack, simulate);
 	}
 
-	public void increaseSize(int diff) {
+	public void changeSlots(int diff) {
 		NonNullList<ItemStack> previousStacks = stacks;
 		stacks = NonNullList.withSize(previousStacks.size() + diff, ItemStack.EMPTY);
-		for (int slot = 0; slot < previousStacks.size(); slot++) {
+		for (int slot = 0; slot < previousStacks.size() && slot < stacks.size(); slot++) {
 			stacks.set(slot, previousStacks.get(slot));
 		}
 		initStackNbts();
