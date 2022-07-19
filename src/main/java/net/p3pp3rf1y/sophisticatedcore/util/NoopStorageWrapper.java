@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
@@ -65,7 +65,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public IItemHandlerSimpleInserter getInventoryForUpgradeProcessing() {
+	public ITrackedContentsItemHandler getInventoryForUpgradeProcessing() {
 		return inventoryHandler;
 	}
 
@@ -75,7 +75,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public IItemHandlerSimpleInserter getInventoryForInputOutput() {
+	public ITrackedContentsItemHandler getInventoryForInputOutput() {
 		return inventoryHandler;
 	}
 
@@ -182,7 +182,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public void setColumnsTaken(int columnsTaken) {
+	public void setColumnsTaken(int columnsTaken, boolean hasChanged) {
 		//noop
 	}
 

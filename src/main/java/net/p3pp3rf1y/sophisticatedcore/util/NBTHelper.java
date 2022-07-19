@@ -67,8 +67,16 @@ public class NBTHelper {
 		return Optional.of(getValue.apply(tag, key));
 	}
 
-	public static <E, C extends Collection<E>> Optional<C> getCollection(ItemStack stack, String parentKey, String tagName, int listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+	public static <E, C extends Collection<E>> Optional<C> getCollection(ItemStack stack, String parentKey, String tagName, byte listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
 		return getTagValue(stack, parentKey, tagName, (c, n) -> c.getList(n, listType)).map(listNbt -> {
+			C ret = initCollection.get();
+			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
+			return ret;
+		});
+	}
+
+	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, byte listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+		return getTagValue(tag, key, (c, n) -> c.getList(n, listType)).map(listNbt -> {
 			C ret = initCollection.get();
 			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
 			return ret;
@@ -101,6 +109,10 @@ public class NBTHelper {
 
 	public static Optional<Long> getLong(ItemStack stack, String key) {
 		return getTagValue(stack, key, CompoundTag::getLong);
+	}
+
+	public static Optional<Long> getLong(CompoundTag tag, String key) {
+		return getTagValue(tag, key, CompoundTag::getLong);
 	}
 
 	public static Optional<UUID> getUniqueId(ItemStack stack, String key) {
@@ -199,16 +211,6 @@ public class NBTHelper {
 		return getTagValue(stack, key, CompoundTag::getFloat);
 	}
 
-	public static <K, V> Optional<Map<K, V>> getMap(ItemStack stack, String key, Function<String, K> getKey, BiFunction<String, Tag, V> getValue) {
-		Optional<CompoundTag> parentTag = getCompound(stack, key);
-
-		if (parentTag.isEmpty()) {
-			return Optional.empty();
-		}
-		CompoundTag tag = parentTag.get();
-		return getMap(tag, getKey, (k, v) -> Optional.of(getValue.apply(k, v)));
-	}
-
 	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue) {
 		Map<K, V> map = new HashMap<>();
 
@@ -227,14 +229,6 @@ public class NBTHelper {
 		tag.put(key, mapNbt);
 	}
 
-	public static <K, V> void setMap(ItemStack stack, String key, Map<K, V> map, Function<K, String> getStringKey, Function<V, Tag> getNbtValue) {
-		CompoundTag mapNbt = new CompoundTag();
-		for (Map.Entry<K, V> entry : map.entrySet()) {
-			mapNbt.put(getStringKey.apply(entry.getKey()), getNbtValue.apply(entry.getValue()));
-		}
-		stack.getOrCreateTag().put(key, mapNbt);
-	}
-
 	public static <T> void setList(ItemStack stack, String parentKey, String key, Collection<T> values, Function<T, Tag> getNbtValue) {
 		ListTag list = new ListTag();
 		values.forEach(v -> list.add(getNbtValue.apply(v)));
@@ -243,5 +237,11 @@ public class NBTHelper {
 		} else {
 			stack.getOrCreateTagElement(parentKey).put(key, list);
 		}
+	}
+
+	public static <T> void putList(CompoundTag tag, String key, Collection<T> values, Function<T, Tag> getNbtValue) {
+		ListTag list = new ListTag();
+		values.forEach(v -> list.add(getNbtValue.apply(v)));
+		tag.put(key, list);
 	}
 }

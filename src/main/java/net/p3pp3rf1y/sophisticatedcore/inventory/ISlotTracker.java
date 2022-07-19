@@ -4,6 +4,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public interface ISlotTracker {
@@ -21,6 +22,12 @@ public interface ISlotTracker {
 	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate);
 
 	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate);
+
+	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
+
+	void unregisterStackKeyListeners();
+
+	boolean hasEmptySlots();
 
 	interface IItemHandlerInserter {
 		ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
@@ -54,18 +61,27 @@ public interface ISlotTracker {
 
 		@Override
 		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate) {
-			ItemStack remainingStack = stack.copy();
-			int slots = itemHandler.getSlots();
-			for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
-				remainingStack = inserter.insertItem(slot, remainingStack, simulate);
-			}
-
-			return remainingStack;
+			return stack;
 		}
 
 		@Override
 		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate) {
 			return inserter.insertItem(slot, stack, simulate);
+		}
+
+		@Override
+		public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+			//noop
+		}
+
+		@Override
+		public void unregisterStackKeyListeners() {
+			//noop
+		}
+
+		@Override
+		public boolean hasEmptySlots() {
+			return false;
 		}
 	}
 }

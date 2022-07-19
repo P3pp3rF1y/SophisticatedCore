@@ -28,6 +28,9 @@ public class MemorySettingsCategory implements ISettingsCategory {
 	private final Map<Integer, Item> slotFilterItems = new TreeMap<>();
 	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
 
+	private Consumer<Item> onItemAdded = i -> {};
+	private Consumer<Item> onItemRemoved = i -> {};
+
 	public MemorySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.categoryNbt = categoryNbt;
@@ -60,6 +63,7 @@ public class MemorySettingsCategory implements ISettingsCategory {
 	}
 
 	public void unselectAllSlots() {
+		filterItemSlots.keySet().forEach(i -> onItemRemoved.accept(i));
 		slotFilterItems.clear();
 		filterItemSlots.clear();
 		serializeFilterItems();
@@ -92,7 +96,10 @@ public class MemorySettingsCategory implements ISettingsCategory {
 
 	private void addSlotItem(int slot, Item item) {
 		slotFilterItems.put(slot, item);
-		filterItemSlots.computeIfAbsent(item, k -> new TreeSet<>()).add(slot);
+		filterItemSlots.computeIfAbsent(item, k -> {
+			onItemAdded.accept(k);
+			return new TreeSet<>();
+		}).add(slot);
 	}
 
 	public void selectSlot(int slotNumber) {
@@ -105,6 +112,7 @@ public class MemorySettingsCategory implements ISettingsCategory {
 		itemSlots.remove(slotNumber);
 		if (itemSlots.isEmpty()) {
 			filterItemSlots.remove(item);
+			onItemRemoved.accept(item);
 		}
 		serializeFilterItems();
 	}
@@ -129,5 +137,15 @@ public class MemorySettingsCategory implements ISettingsCategory {
 
 	public Map<Item, Set<Integer>> getFilterItemSlots() {
 		return filterItemSlots;
+	}
+
+	public void registerListeners(Consumer<Item> onItemAdded, Consumer<Item> onItemRemoved) {
+		this.onItemAdded = onItemAdded;
+		this.onItemRemoved = onItemRemoved;
+	}
+
+	public void unregisterListeners() {
+		onItemAdded = i -> {};
+		onItemRemoved = i -> {};
 	}
 }

@@ -13,7 +13,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.*;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickAction;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerListener;
+import net.minecraft.world.inventory.ContainerSynchronizer;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.items.SlotItemHandler;
@@ -37,7 +45,16 @@ import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -420,7 +437,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	protected void updateColumnsTaken(int columnsToRemove) {
 		if (columnsToRemove != 0) {
-			storageWrapper.setColumnsTaken(Math.max(0, storageWrapper.getColumnsTaken() + columnsToRemove));
+			storageWrapper.setColumnsTaken(Math.max(0, storageWrapper.getColumnsTaken() + columnsToRemove), true);
 			storageWrapper.onContentsNbtUpdated();
 			refreshAllSlots();
 		}
@@ -650,8 +667,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return mergeItemStack(slotStack, getNumberOfStorageInventorySlots(), getInventorySlotsSize(), true, true);
 	}
 
-	public boolean isPlayersInventorySlot(int slotNumber) {
-		return slotNumber >= getNumberOfStorageInventorySlots() && slotNumber < getInventorySlotsSize();
+	public boolean isNotPlayersInventorySlot(int slotNumber) {
+		return slotNumber < getNumberOfStorageInventorySlots() || slotNumber >= getInventorySlotsSize();
 	}
 
 	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
