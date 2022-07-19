@@ -8,18 +8,18 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedHashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecipe<ShapedRecipe> {
-	public static final Map<ResourceLocation, ShapedRecipe> REGISTERED_RECIPES = new LinkedHashMap<>();
+	public static final Set<ResourceLocation> REGISTERED_RECIPES = new LinkedHashSet<>();
 	private final ShapedRecipe compose;
 
 	public UpgradeNextTierRecipe(ShapedRecipe compose) {
 		super(compose.getId(), compose.getGroup(), compose.getRecipeWidth(), compose.getRecipeHeight(), compose.getIngredients(), compose.getResultItem());
 		this.compose = compose;
-		REGISTERED_RECIPES.put(compose.getId(), this);
+		REGISTERED_RECIPES.add(compose.getId());
 	}
 
 	@Override
