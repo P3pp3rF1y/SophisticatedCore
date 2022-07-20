@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.voiding;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
@@ -20,10 +21,18 @@ import java.util.Map;
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.getButtonStateData;
 
 public class VoidUpgradeTab extends UpgradeSettingsTab<VoidUpgradeContainer> {
+	private static final MutableComponent VOID_OVERFLOW_TOOLTIP = Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow"));
+	private static final MutableComponent VOID_OVERFLOW_TOOLTIP_DETAIL = Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow.detail")).withStyle(ChatFormatting.GRAY);
+
+	private static final MutableComponent VOID_ANYTHING_DISABLED_TOOLTIP = Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_anything_disabled")).withStyle(ChatFormatting.RED);
 	private static final ButtonDefinition.Toggle<Boolean> VOID_OVERFLOW = ButtonDefinitions.createToggleButtonDefinition(
 			Map.of(
-					true, getButtonStateData(new UV(224, 16), Dimension.SQUARE_16, new Position(1, 1), Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow"))
-							, Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("void_overflow.detail")).withStyle(ChatFormatting.GRAY)),
+					true, getButtonStateData(new UV(224, 16), Dimension.SQUARE_16, new Position(1, 1), VOID_OVERFLOW_TOOLTIP, VOID_OVERFLOW_TOOLTIP_DETAIL),
+					false, getButtonStateData(new UV(208, 16), TranslationHelper.INSTANCE.translUpgradeButton("void_any"), Dimension.SQUARE_16, new Position(1, 1))
+			));
+	private static final ButtonDefinition.Toggle<Boolean> VOID_OVERFLOW_ONLY = ButtonDefinitions.createToggleButtonDefinition(
+			Map.of(
+					true, getButtonStateData(new UV(224, 16), Dimension.SQUARE_16, new Position(1, 1), VOID_OVERFLOW_TOOLTIP, VOID_OVERFLOW_TOOLTIP_DETAIL, VOID_ANYTHING_DISABLED_TOOLTIP),
 					false, getButtonStateData(new UV(208, 16), TranslationHelper.INSTANCE.translUpgradeButton("void_any"), Dimension.SQUARE_16, new Position(1, 1))
 			));
 
@@ -33,7 +42,7 @@ public class VoidUpgradeTab extends UpgradeSettingsTab<VoidUpgradeContainer> {
 		super(upgradeContainer, position, screen, tabLabel, closedTooltip);
 		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), ButtonDefinitions.WORK_IN_GUI, button -> getContainer().setShouldWorkdInGUI(!getContainer().shouldWorkInGUI()),
 				getContainer()::shouldWorkInGUI));
-		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), VOID_OVERFLOW, button -> getContainer().setShouldVoidOverflow(!getContainer().shouldVoidOverflow()),
+		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), getContainer().getUpgradeWrapper().isVoidAnythingEnabled() ? VOID_OVERFLOW : VOID_OVERFLOW_ONLY, button -> getContainer().setShouldVoidOverflow(!getContainer().shouldVoidOverflow()),
 				getContainer()::shouldVoidOverflow));
 	}
 
