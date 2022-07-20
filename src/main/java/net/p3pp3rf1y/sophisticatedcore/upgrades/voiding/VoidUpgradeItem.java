@@ -4,15 +4,13 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
-import java.util.function.IntSupplier;
-
 public class VoidUpgradeItem extends UpgradeItemBase<VoidUpgradeWrapper> {
 	public static final UpgradeType<VoidUpgradeWrapper> TYPE = new UpgradeType<>(VoidUpgradeWrapper::new);
-	private final IntSupplier filterSlotCount;
+	private final VoidUpgradeConfig voidUpgradeConfig;
 
-	public VoidUpgradeItem(IntSupplier filterSlotCount, CreativeModeTab itemGroup) {
+	public VoidUpgradeItem(VoidUpgradeConfig voidUpgradeConfig, CreativeModeTab itemGroup) {
 		super(itemGroup);
-		this.filterSlotCount = filterSlotCount;
+		this.voidUpgradeConfig = voidUpgradeConfig;
 	}
 
 	@Override
@@ -21,6 +19,10 @@ public class VoidUpgradeItem extends UpgradeItemBase<VoidUpgradeWrapper> {
 	}
 
 	public int getFilterSlotCount() {
-		return filterSlotCount.getAsInt();
+		return voidUpgradeConfig.filterSlots.get();
+	}
+
+	public boolean isVoidAnythingEnabled() {
+		return voidUpgradeConfig.voidAnythingEnabled.get();
 	}
 }

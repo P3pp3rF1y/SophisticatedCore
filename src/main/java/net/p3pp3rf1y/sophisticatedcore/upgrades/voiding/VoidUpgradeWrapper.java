@@ -13,7 +13,6 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IFilteredUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.PrimaryMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
@@ -25,7 +24,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
-		implements IPickupResponseUpgrade, IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
+		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
 	private boolean shouldVoidOverflow;
@@ -34,18 +33,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount());
 		filterLogic.setAllowByDefault();
-		shouldVoidOverflow = NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false);
-	}
-
-	@Override
-	public ItemStack pickup(Level world, ItemStack stack, boolean simulate) {
-		if (filterLogic.matchesFilter(stack)) {
-			if (shouldVoidOverflow && !simulate) {
-				storageWrapper.getInventoryForUpgradeProcessing().insertItem(stack, false);
-			}
-			return ItemStack.EMPTY;
-		}
-		return stack;
+		shouldVoidOverflow = !upgradeItem.isVoidAnythingEnabled() || NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false);
 	}
 
 	@Override
@@ -85,13 +73,17 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	}
 
 	public void setShouldVoidOverflow(boolean shouldVoidOverflow) {
+		if (!shouldVoidOverflow && !upgradeItem.isVoidAnythingEnabled()) {
+			return;
+		}
+
 		this.shouldVoidOverflow = shouldVoidOverflow;
 		NBTHelper.setBoolean(upgrade, "shouldVoidOverflow", shouldVoidOverflow);
 		save();
 	}
 
 	public boolean shouldVoidOverflow() {
-		return shouldVoidOverflow;
+		return !upgradeItem.isVoidAnythingEnabled() || shouldVoidOverflow;
 	}
 
 	@Override
@@ -133,5 +125,9 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public boolean stackMatchesFilter(ItemStack stack) {
 		return filterLogic.matchesFilter(stack);
+	}
+
+	public boolean isVoidAnythingEnabled() {
+		return upgradeItem.isVoidAnythingEnabled();
 	}
 }
