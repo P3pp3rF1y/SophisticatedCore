@@ -33,7 +33,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount());
 		filterLogic.setAllowByDefault();
-		shouldVoidOverflow = NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false);
+		shouldVoidOverflow = !upgradeItem.isVoidAnythingEnabled() || NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false);
 	}
 
 	@Override
@@ -73,13 +73,17 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	}
 
 	public void setShouldVoidOverflow(boolean shouldVoidOverflow) {
+		if (!shouldVoidOverflow && !upgradeItem.isVoidAnythingEnabled()) {
+			return;
+		}
+
 		this.shouldVoidOverflow = shouldVoidOverflow;
 		NBTHelper.setBoolean(upgrade, "shouldVoidOverflow", shouldVoidOverflow);
 		save();
 	}
 
 	public boolean shouldVoidOverflow() {
-		return shouldVoidOverflow;
+		return !upgradeItem.isVoidAnythingEnabled() || shouldVoidOverflow;
 	}
 
 	@Override
@@ -121,5 +125,9 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public boolean stackMatchesFilter(ItemStack stack) {
 		return filterLogic.matchesFilter(stack);
+	}
+
+	public boolean isVoidAnythingEnabled() {
+		return upgradeItem.isVoidAnythingEnabled();
 	}
 }
