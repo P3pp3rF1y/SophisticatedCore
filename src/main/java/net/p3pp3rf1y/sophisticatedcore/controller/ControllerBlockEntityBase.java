@@ -17,6 +17,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.EmptyHandler;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
@@ -341,15 +342,37 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	@NotNull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		slot = getSlotFromIndex(slot, index);
-		return handler.getStackInSlot(slot);
+		if (isSlotIndexInvalid(slot)) {
+			return ItemStack.EMPTY;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		slot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, slot)) {
+			return handler.getStackInSlot(slot);
+		}
+		return ItemStack.EMPTY;
+	}
+
+	private boolean isSlotIndexInvalid(int slot) {
+		return slot < 0 || slot >= totalSlots;
+	}
+
+	private boolean validateHandlerSlotIndex(IItemHandler handler, int handlerIndex, int slot) {
+		if (slot >= 0 && slot < handler.getSlots()) {
+			return true;
+		}
+		SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's getStackInSlot for storage at {}. If you see many of these messages try replacing controller at {}", slot, storagePositions.get(handlerIndex).toShortString(), getBlockPos().toShortString());
+		return false;
 	}
 
 	@NotNull
 	@Override
 	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+		if (isSlotIndexInvalid(slot)) {
+			return stack;
+		}
+
 		ItemStackKey stackKey = new ItemStackKey(stack);
 		ItemStack remaining = stack;
 
@@ -380,34 +403,59 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	@NotNull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		slot = getSlotFromIndex(slot, index);
-		return handler.extractItem(slot, amount, simulate);
+		if (isSlotIndexInvalid(slot)) {
+			return ItemStack.EMPTY;
+		}
+
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		slot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, slot)) {
+			return handler.extractItem(slot, amount, simulate);
+		}
+
+		return ItemStack.EMPTY;
 	}
 
 	@Override
 	public int getSlotLimit(int slot) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		int localSlot = getSlotFromIndex(slot, index);
-		return handler.getSlotLimit(localSlot);
+		if (isSlotIndexInvalid(slot)) {
+			return 0;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		int localSlot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, localSlot)) {
+			return handler.getSlotLimit(localSlot);
+		}
+		return 0;
 	}
 
 	@Override
 	public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		int localSlot = getSlotFromIndex(slot, index);
-		return handler.isItemValid(localSlot, stack);
+		if (isSlotIndexInvalid(slot)) {
+			return false;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		int localSlot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, localSlot)) {
+			return handler.isItemValid(localSlot, stack);
+		}
+		return false;
 	}
 
 	@Override
 	public void setStackInSlot(int slot, @NotNull ItemStack stack) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		slot = getSlotFromIndex(slot, index);
-		handler.setStackInSlot(slot, stack);
+		if (isSlotIndexInvalid(slot)) {
+			return;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		slot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, slot)) {
+			handler.setStackInSlot(slot, stack);
+		}
 	}
 
 	@Override
