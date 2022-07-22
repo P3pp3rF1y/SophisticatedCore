@@ -27,8 +27,18 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		super(position);
 		this.screen = screen;
 		addChild(instantiateReturnBackTab());
-		screen.getMenu().forEachSettingsContainer((categoryName, settingsContainer) -> settingsTabs.add(addSettingsTab(() -> {}, () -> {},
-				instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen))));
+		screen.getMenu().forEachSettingsContainer((categoryName, settingsContainer) -> {
+			if (isSettingsCategoryDisabled(categoryName)) {
+				return;
+			}
+			settingsTabs.add(addSettingsTab(() -> {}, () -> {},
+					instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen)));
+		});
+	}
+
+	@SuppressWarnings("unused") //categoryName used in the overrides
+	protected boolean isSettingsCategoryDisabled(String categoryName) {
+		return false;
 	}
 
 	protected abstract Tab instantiateReturnBackTab();
