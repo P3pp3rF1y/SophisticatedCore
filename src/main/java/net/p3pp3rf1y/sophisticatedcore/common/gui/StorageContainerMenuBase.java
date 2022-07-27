@@ -250,12 +250,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				public boolean mayPickup(Player playerIn) {
 					return false;
 				}
-
-				@Override
-				public void setChanged() {
-					super.setChanged();
-					closeScreenIfSomethingMessedWithStorageItemStack(getItem());
-				}
 			};
 		} else {
 			slot = new Slot(playerInventory, slotIndex, 0, 0);
@@ -264,8 +258,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return addSlot(slot);
 	}
 
-	public void closeScreenIfSomethingMessedWithStorageItemStack(ItemStack supposedToBeStorageItemStack) {
-		if (!isClientSide() && isNotCorrectStorageItem(supposedToBeStorageItemStack)) {
+	public void closeScreenIfSomethingMessedWithStorageItemStack() {
+		if (!isClientSide() && storageItemHasChanged()) {
 			player.closeContainer();
 		}
 	}
@@ -681,7 +675,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public abstract void openSettings();
 
-	protected abstract boolean isNotCorrectStorageItem(ItemStack supposedToBeStorageItemStack);
+	protected abstract boolean storageItemHasChanged();
 
 	@SuppressWarnings("unchecked") // both conditions of T are checked before casting it in the result
 	public <T extends UpgradeContainerBase<?, ?> & ICraftingContainer> Optional<T> getOpenOrFirstCraftingContainer() {
@@ -1261,7 +1255,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public void setSynchronizer(ContainerSynchronizer synchronizer) {
-		if (player instanceof ServerPlayer serverPlayer && storageWrapper.getInventoryHandler().getStackSizeMultiplier() > 1) {
+		if (player instanceof ServerPlayer serverPlayer) {
 			super.setSynchronizer(new HighStackCountSynchronizer(serverPlayer));
 			return;
 		}
@@ -1288,7 +1282,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public void broadcastChanges() {
-		getVisibleStorageItem().ifPresent(this::closeScreenIfSomethingMessedWithStorageItemStack);
+		closeScreenIfSomethingMessedWithStorageItemStack();
 
 		synchronizeCarriedToRemote();
 		broadcastChangesIn(lastUpgradeSlots, remoteUpgradeSlots, upgradeSlots, getFirstUpgradeSlot());
