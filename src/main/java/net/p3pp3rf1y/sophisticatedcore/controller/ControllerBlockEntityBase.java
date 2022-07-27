@@ -17,6 +17,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.EmptyHandler;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
@@ -84,8 +85,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private void updateBaseIndexesAndTotalSlots(BlockPos storagePos, int newSlots) {
 		int index = storagePositions.indexOf(storagePos);
-		int previousBaseIndex = index == 0 ? 0 : baseIndexes.get(index - 1);
-		int originalSlots = baseIndexes.get(index) - previousBaseIndex;
+		int originalSlots = getStorageSlots(index);
 
 		int diff = newSlots - originalSlots;
 
@@ -94,6 +94,11 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 
 		totalSlots += diff;
+	}
+
+	private int getStorageSlots(int index) {
+		int previousBaseIndex = index == 0 ? 0 : baseIndexes.get(index - 1);
+		return baseIndexes.get(index) - previousBaseIndex;
 	}
 
 	private void searchAndAddStorages(Set<BlockPos> positionsToCheck) {
@@ -129,6 +134,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	public void addStorage(BlockPos storagePos) {
+		if (storagePositions.contains(storagePos)) {
+			removeStorageInventoryData(storagePos);
+		}
+
 		if (isWithinRange(storagePos)) {
 			HashSet<BlockPos> positionsToCheck = new HashSet<>();
 			positionsToCheck.add(storagePos);
@@ -222,15 +231,20 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (!storagePositions.contains(storagePos)) {
 			return;
 		}
-		totalSlots -= getInventoryHandlerValueFromHolder(storagePos, IItemHandler::getSlots).orElse(0);
-		removeStorageStacks(storagePos);
-		removeStorageMemorizedItems(storagePos);
-		int idx = storagePositions.indexOf(storagePos);
-		storagePositions.remove(idx);
-		removeBaseIndexAt(idx);
+		removeStorageInventoryData(storagePos);
 		setChanged();
 
 		WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController);
+	}
+
+	private void removeStorageInventoryData(BlockPos storagePos) {
+		int idx = storagePositions.indexOf(storagePos);
+		totalSlots -= getStorageSlots(idx);
+		removeStorageStacks(storagePos);
+		removeStorageMemorizedItems(storagePos);
+		removeStorageWithEmptySlots(storagePos);
+		storagePositions.remove(idx);
+		removeBaseIndexAt(idx);
 	}
 
 	private void removeStorageMemorizedItems(BlockPos storagePos) {
@@ -269,10 +283,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			positionsChecked.add(posToCheck);
 			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllableStorage.class).ifPresent(h -> {
 				toVerify.remove(posToCheck);
-				for (Direction dir : Direction.values()) {
-					BlockPos pos = posToCheck.offset(dir.getNormal());
-					if (!positionsChecked.contains(pos) && toVerify.contains(pos)) {
-						positionsToCheck.add(pos);
+				if (h.canConnectStorages()) {
+					for (Direction dir : Direction.values()) {
+						BlockPos pos = posToCheck.offset(dir.getNormal());
+						if (!positionsChecked.contains(pos) && toVerify.contains(pos)) {
+							positionsToCheck.add(pos);
+						}
 					}
 				}
 			});
@@ -285,7 +301,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (idx >= baseIndexes.size()) {
 			return;
 		}
-		int slotsRemoved = idx == baseIndexes.size() - 1 ? 0 : baseIndexes.get(idx + 1) - baseIndexes.get(idx);
+		int slotsRemoved = getStorageSlots(idx);
 		baseIndexes.remove(idx);
 		for (int i = idx; i < baseIndexes.size(); i++) {
 			baseIndexes.set(i, baseIndexes.get(i) - slotsRemoved);
@@ -341,15 +357,42 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	@NotNull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		slot = getSlotFromIndex(slot, index);
-		return handler.getStackInSlot(slot);
+		if (isSlotIndexInvalid(slot)) {
+			return ItemStack.EMPTY;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		slot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, slot, "getStackInSlot")) {
+			return handler.getStackInSlot(slot);
+		}
+		return ItemStack.EMPTY;
+	}
+
+	private boolean isSlotIndexInvalid(int slot) {
+		return slot < 0 || slot >= totalSlots;
+	}
+
+	private boolean validateHandlerSlotIndex(IItemHandler handler, int handlerIndex, int slot, String methodName) {
+		if (slot >= 0 && slot < handler.getSlots()) {
+			return true;
+		}
+		if  (handlerIndex < 0 || handlerIndex >= storagePositions.size()) {
+			SophisticatedCore.LOGGER.debug("Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}", handlerIndex, methodName, getBlockPos().toShortString());
+		} else {
+			SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}", slot, methodName, storagePositions.get(handlerIndex).toShortString(), getBlockPos().toShortString());
+		}
+
+		return false;
 	}
 
 	@NotNull
 	@Override
 	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+		if (isSlotIndexInvalid(slot)) {
+			return stack;
+		}
+
 		ItemStackKey stackKey = new ItemStackKey(stack);
 		ItemStack remaining = stack;
 
@@ -380,34 +423,59 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	@NotNull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		slot = getSlotFromIndex(slot, index);
-		return handler.extractItem(slot, amount, simulate);
+		if (isSlotIndexInvalid(slot)) {
+			return ItemStack.EMPTY;
+		}
+
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		slot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, slot, "extractItem(int slot, int amount, boolean simulate)")) {
+			return handler.extractItem(slot, amount, simulate);
+		}
+
+		return ItemStack.EMPTY;
 	}
 
 	@Override
 	public int getSlotLimit(int slot) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		int localSlot = getSlotFromIndex(slot, index);
-		return handler.getSlotLimit(localSlot);
+		if (isSlotIndexInvalid(slot)) {
+			return 0;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		int localSlot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, localSlot, "getSlotLimit(int slot)")) {
+			return handler.getSlotLimit(localSlot);
+		}
+		return 0;
 	}
 
 	@Override
-	public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		int localSlot = getSlotFromIndex(slot, index);
-		return handler.isItemValid(localSlot, stack);
+	public boolean isItemValid(int slot, ItemStack stack) {
+		if (isSlotIndexInvalid(slot)) {
+			return false;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		int localSlot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, localSlot, "isItemValid(int slot, ItemStack stack)")) {
+			return handler.isItemValid(localSlot, stack);
+		}
+		return false;
 	}
 
 	@Override
-	public void setStackInSlot(int slot, @NotNull ItemStack stack) {
-		int index = getIndexForSlot(slot);
-		IItemHandlerModifiable handler = getHandlerFromIndex(index);
-		slot = getSlotFromIndex(slot, index);
-		handler.setStackInSlot(slot, stack);
+	public void setStackInSlot(int slot, ItemStack stack) {
+		if (isSlotIndexInvalid(slot)) {
+			return;
+		}
+		int handlerIndex = getIndexForSlot(slot);
+		IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+		slot = getSlotFromIndex(slot, handlerIndex);
+		if (validateHandlerSlotIndex(handler, handlerIndex, slot, "setStackInSlot(int slot, ItemStack stack)")) {
+			handler.setStackInSlot(slot, stack);
+		}
 	}
 
 	@Override

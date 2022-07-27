@@ -252,7 +252,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private ItemStack insertIntoSlotsThatMatchStack(IItemHandlerInserter inserter, ItemStack stack, boolean simulate, ItemStackKey stackKey) {
 		ItemStack remainingStack = stack;
 
-		int sizeBefore = partiallyFilledStackSlots.containsKey(stackKey) ? partiallyFilledStackSlots.get(stackKey).size() : 0;
+		Set<Integer> slots = partiallyFilledStackSlots.get(stackKey);
+		int sizeBefore = slots == null ? 0 : slots.size();
 		int i = 0;
 		// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to inserts
 		// and going into this logic as well and because of that causing collection to be updated outside of first level iterator. The increment is here just
