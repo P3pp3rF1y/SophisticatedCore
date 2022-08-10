@@ -61,19 +61,23 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		setCooldown(world, storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, world, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
 	}
 
-	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable LivingEntity entity, Level world, BlockPos pos) {
+	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable LivingEntity entity, Level level, BlockPos pos) {
 		if (entity == null) {
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, world, pos);
+			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
 			if (newCooldown.isPresent()) {
 				return newCooldown.get();
 			}
 		} else {
 			if (shouldInteractWithHand() && entity instanceof Player player && handleFluidContainerInHands(player, storageFluidHandler)) {
-				lastHandActionTime = world.getGameTime();
+				lastHandActionTime = level.getGameTime();
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
+			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
+			if (newCooldown.isPresent()) {
+				return newCooldown.get();
+			}
 		}
-		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > world.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
+		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
 	}
 
 	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, Level world, BlockPos pos) {

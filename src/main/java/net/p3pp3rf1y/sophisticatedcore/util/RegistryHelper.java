@@ -20,4 +20,13 @@ public class RegistryHelper {
 	public static <V> Optional<ResourceLocation> getRegistryName(IForgeRegistry<V> registry, V registryEntry) {
 		return Optional.ofNullable(registry.getKey(registryEntry));
 	}
+
+	public static Optional<Item> getItemFromName(String itemName) {
+		ResourceLocation key = new ResourceLocation(itemName);
+		if (ForgeRegistries.ITEMS.containsKey(key)) {
+			//noinspection ConstantConditions - checked above with containsKey
+			return Optional.of(ForgeRegistries.ITEMS.getValue(key));
+		}
+		return Optional.empty();
+	}
 }
