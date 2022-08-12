@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,6 +44,18 @@ import java.util.function.Supplier;
 
 public class InventoryHelper {
 	private InventoryHelper() {}
+
+	public static Optional<ItemStack> getItemFromEitherHand(Player player, Item item) {
+		ItemStack mainHandItem = player.getMainHandItem();
+		if (mainHandItem.getItem() == item) {
+			return Optional.of(mainHandItem);
+		}
+		ItemStack offhandItem = player.getOffhandItem();
+		if (offhandItem.getItem() == item) {
+			return Optional.of(offhandItem);
+		}
+		return Optional.empty();
+	}
 
 	public static boolean hasItem(IItemHandler inventory, Predicate<ItemStack> matches) {
 		AtomicBoolean result = new AtomicBoolean(false);
@@ -221,10 +234,14 @@ public class InventoryHelper {
 	}
 
 	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted) {
+		transfer(handlerA, handlerB, onInserted, s -> true);
+	}
+
+	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
 		int slotsA = handlerA.getSlots();
 		for (int slot = 0; slot < slotsA; slot++) {
 			ItemStack slotStack = handlerA.getStackInSlot(slot);
-			if (slotStack.isEmpty()) {
+			if (slotStack.isEmpty() || !canTransferStack.test(slotStack)) {
 				continue;
 			}
 
