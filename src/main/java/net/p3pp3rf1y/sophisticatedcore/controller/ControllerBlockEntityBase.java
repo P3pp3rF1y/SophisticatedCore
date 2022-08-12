@@ -269,6 +269,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		storageStacks.remove(storagePos);
 	}
 
+	protected boolean hasStack(ItemStack stack) {
+		return stackStorages.containsKey(new ItemStackKey(stack));
+	}
+
 	public void removeStorage(BlockPos storagePos) {
 		removeStorageInventoryDataAndUnregisterController(storagePos);
 		verifyStoragesConnected();

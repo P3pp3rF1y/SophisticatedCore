@@ -233,10 +233,14 @@ public class InventoryHelper {
 	}
 
 	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted) {
+		transfer(handlerA, handlerB, onInserted, s -> true);
+	}
+
+	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
 		int slotsA = handlerA.getSlots();
 		for (int slot = 0; slot < slotsA; slot++) {
 			ItemStack slotStack = handlerA.getStackInSlot(slot);
-			if (slotStack.isEmpty()) {
+			if (slotStack.isEmpty() || !canTransferStack.test(slotStack)) {
 				continue;
 			}
 
