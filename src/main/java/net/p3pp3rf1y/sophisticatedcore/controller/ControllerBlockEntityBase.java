@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -40,7 +41,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerModifiable {
-	private static final int SEARCH_RANGE = 15;
+	public static final int SEARCH_RANGE = 15;
 	private List<BlockPos> storagePositions = new ArrayList<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
 	private int totalSlots = 0;
@@ -50,6 +51,35 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
+	private Set<BlockPos> linkedBlocks = new LinkedHashSet<>();
+
+	public void addLinkedBlock(BlockPos linkedPos) {
+		if (level != null && !level.isClientSide() && !linkedBlocks.contains(linkedPos) && !storagePositions.contains(linkedPos)) {
+
+			linkedBlocks.add(linkedPos);
+			setChanged();
+
+			WorldHelper.getBlockEntity(level, linkedPos, ILinkable.class).ifPresent(l -> {
+				if (l.connectLinkedSelf()) {
+					Set<BlockPos> positionsToCheck = new LinkedHashSet<>();
+					positionsToCheck.add(linkedPos);
+					searchAndAddStorages(positionsToCheck, true);
+				}
+
+				searchAndAddStorages(new LinkedHashSet<>(l.getConnectablePositions()), false);
+			});
+		}
+
+		WorldHelper.notifyBlockUpdate(this);
+	}
+
+	public void removeLinkedBlock(BlockPos storageBlockPos) {
+		linkedBlocks.remove(storageBlockPos);
+		setChanged();
+		verifyStoragesConnected();
+
+		WorldHelper.notifyBlockUpdate(this);
+	}
 
 	@Override
 	public void onLoad() {
@@ -67,7 +97,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		for (Direction dir : Direction.values()) {
 			positionsToCheck.add(getBlockPos().offset(dir.getNormal()));
 		}
-		searchAndAddStorages(positionsToCheck);
+		searchAndAddStorages(positionsToCheck, false);
 	}
 
 	public void changeSlots(BlockPos storagePos, int newSlots, boolean hasEmptySlots) {
@@ -94,6 +124,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 
 		totalSlots += diff;
+		WorldHelper.notifyBlockUpdate(this);
 	}
 
 	private int getStorageSlots(int index) {
@@ -101,29 +132,44 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return baseIndexes.get(index) - previousBaseIndex;
 	}
 
-	private void searchAndAddStorages(Set<BlockPos> positionsToCheck) {
+	public int getSlots(int storageIndex) {
+		if (storageIndex < 0 || storageIndex >= baseIndexes.size()) {
+			return 0;
+		}
+		return getStorageSlots(storageIndex);
+	}
+
+	private void searchAndAddStorages(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf) {
 		Set<BlockPos> positionsChecked = new HashSet<>();
 
+		boolean first = true;
 		while (!positionsToCheck.isEmpty()) {
 			Iterator<BlockPos> it = positionsToCheck.iterator();
 			BlockPos posToCheck = it.next();
 			it.remove();
 
+			final boolean finalFirst = first;
 			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllableStorage.class).ifPresentOrElse(storage -> {
-				if (storage.canBeConnected()) {
-					addStorageData(posToCheck);
-				}
-				if (storage.canConnectStorages()) {
-					addUncheckedPositionsAround(positionsToCheck, positionsChecked, posToCheck);
+				if (storage.canBeConnected() || (addingLinkedSelf && finalFirst)) {
+					if (storage instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
+						linkedBlocks.remove(posToCheck);
+						linkable.setNotLinked();
+					} else {
+						addStorageData(posToCheck);
+					}
+					if (storage.canConnectStorages()) {
+						addUncheckedPositionsAround(positionsToCheck, positionsChecked, posToCheck);
+					}
 				}
 			}, () -> positionsChecked.add(posToCheck));
+			first = false;
 		}
 	}
 
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
 		for (Direction dir : Direction.values()) {
 			BlockPos pos = currentPos.offset(dir.getNormal());
-			if (!positionsChecked.contains(pos) && !storagePositions.contains(pos) && isWithinRange(pos)) {
+			if (!positionsChecked.contains(pos) && (!storagePositions.contains(pos) || linkedBlocks.contains(pos)) && isWithinRange(pos)) {
 				positionsToCheck.add(pos);
 			}
 		}
@@ -139,9 +185,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 
 		if (isWithinRange(storagePos)) {
-			HashSet<BlockPos> positionsToCheck = new HashSet<>();
+			HashSet<BlockPos> positionsToCheck = new LinkedHashSet<>();
 			positionsToCheck.add(storagePos);
-			searchAndAddStorages(positionsToCheck);
+			searchAndAddStorages(positionsToCheck, false);
 		}
 	}
 
@@ -149,9 +195,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		storagePositions.add(storagePos);
 		totalSlots += getInventoryHandlerValueFromHolder(storagePos, IItemHandler::getSlots).orElse(0);
 		baseIndexes.add(totalSlots);
-		setChanged();
-
 		addStorageStacksAndRegisterListeners(storagePos);
+
+		setChanged();
+		WorldHelper.notifyBlockUpdate(this);
 	}
 
 	public void addStorageStacksAndRegisterListeners(BlockPos storagePos) {
@@ -232,9 +279,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			return;
 		}
 		removeStorageInventoryData(storagePos);
-		setChanged();
+		linkedBlocks.remove(storagePos);
 
 		WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController);
+
+		setChanged();
+		WorldHelper.notifyBlockUpdate(this);
 	}
 
 	private void removeStorageInventoryData(BlockPos storagePos) {
@@ -275,6 +325,25 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 		Set<BlockPos> positionsChecked = new HashSet<>();
 
+		verifyDirectlyConnected(toVerify, positionsToCheck, positionsChecked);
+
+		linkedBlocks.forEach(linkedPosition -> WorldHelper.getBlockEntity(getLevel(), linkedPosition, ILinkable.class).ifPresent(l -> {
+			if (l.connectLinkedSelf() && toVerify.contains(linkedPosition)) {
+				positionsToCheck.add(linkedPosition);
+			}
+			l.getConnectablePositions().forEach(p -> {
+				if (toVerify.contains(p)) {
+					positionsToCheck.add(p);
+				}
+			});
+		}));
+
+		verifyDirectlyConnected(toVerify, positionsToCheck, positionsChecked);
+
+		toVerify.forEach(this::removeStorageInventoryDataAndUnregisterController);
+	}
+
+	private void verifyDirectlyConnected(HashSet<BlockPos> toVerify, Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked) {
 		while (!positionsToCheck.isEmpty()) {
 			Iterator<BlockPos> it = positionsToCheck.iterator();
 			BlockPos posToCheck = it.next();
@@ -293,8 +362,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 				}
 			});
 		}
-
-		toVerify.forEach(this::removeStorageInventoryDataAndUnregisterController);
 	}
 
 	private void removeBaseIndexAt(int idx) {
@@ -377,7 +444,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (slot >= 0 && slot < handler.getSlots()) {
 			return true;
 		}
-		if  (handlerIndex < 0 || handlerIndex >= storagePositions.size()) {
+		if (handlerIndex < 0 || handlerIndex >= storagePositions.size()) {
 			SophisticatedCore.LOGGER.debug("Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}", handlerIndex, methodName, getBlockPos().toShortString());
 		} else {
 			SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}", slot, methodName, storagePositions.get(handlerIndex).toShortString(), getBlockPos().toShortString());
@@ -481,29 +548,49 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	@Override
 	public void onChunkUnloaded() {
 		super.onChunkUnloaded();
-		detachFromStorages();
+		detachFromStoragesAndUnlinkBlocks();
 	}
 
-	public void detachFromStorages() {
+	public void detachFromStoragesAndUnlinkBlocks() {
 		storagePositions.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
+		linkedBlocks.forEach(linkedPos -> WorldHelper.getLoadedBlockEntity(level, linkedPos, ILinkable.class).ifPresent(ILinkable::unlinkFromController));
 	}
 
 	@Override
 	protected void saveAdditional(CompoundTag tag) {
 		super.saveAdditional(tag);
 
+		saveData(tag);
+	}
+
+	private CompoundTag saveData(CompoundTag tag) {
 		NBTHelper.putList(tag, "storagePositions", storagePositions, p -> LongTag.valueOf(p.asLong()));
+		NBTHelper.putList(tag, "linkedBlocks", linkedBlocks, p -> LongTag.valueOf(p.asLong()));
 		NBTHelper.putList(tag, "baseIndexes", baseIndexes, IntTag::valueOf);
 		tag.putInt("totalSlots", totalSlots);
+
+		return tag;
 	}
 
 	@Override
 	public void load(CompoundTag tag) {
 		super.load(tag);
 
-		storagePositions = NBTHelper.getCollection(tag, "storagePositions", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), ArrayList::new).orElse(new ArrayList<>());
-		baseIndexes = NBTHelper.getCollection(tag, "baseIndexes", Tag.TAG_INT, t -> Optional.of(((IntTag) t).getAsInt()), ArrayList::new).orElse(new ArrayList<>());
+		storagePositions = NBTHelper.getCollection(tag, "storagePositions", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), ArrayList::new).orElseGet(ArrayList::new);
+		baseIndexes = NBTHelper.getCollection(tag, "baseIndexes", Tag.TAG_INT, t -> Optional.of(((IntTag) t).getAsInt()), ArrayList::new).orElseGet(ArrayList::new);
 		totalSlots = tag.getInt("totalSlots");
+		linkedBlocks = NBTHelper.getCollection(tag, "linkedBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
+	}
+
+	@Override
+	public CompoundTag getUpdateTag() {
+		return saveData(super.getUpdateTag());
+	}
+
+	@Nullable
+	@Override
+	public ClientboundBlockEntityDataPacket getUpdatePacket() {
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	public void addStorageWithEmptySlots(BlockPos storageBlockPos) {
@@ -512,5 +599,13 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	public void removeStorageWithEmptySlots(BlockPos storageBlockPos) {
 		emptySlotsStorages.remove(storageBlockPos);
+	}
+
+	public Set<BlockPos> getLinkedBlocks() {
+		return linkedBlocks;
+	}
+
+	public List<BlockPos> getStoragePositions() {
+		return storagePositions;
 	}
 }
