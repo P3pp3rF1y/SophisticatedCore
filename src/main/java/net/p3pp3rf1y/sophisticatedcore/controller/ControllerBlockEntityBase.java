@@ -53,8 +53,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
 	private Set<BlockPos> linkedBlocks = new LinkedHashSet<>();
 
-	public void addLinkedBlock(BlockPos linkedPos) {
-		if (level != null && !level.isClientSide() && !linkedBlocks.contains(linkedPos) && !storagePositions.contains(linkedPos)) {
+	public boolean addLinkedBlock(BlockPos linkedPos) {
+		if (level != null && !level.isClientSide() && isWithinRange(linkedPos) && !linkedBlocks.contains(linkedPos) && !storagePositions.contains(linkedPos)) {
 
 			linkedBlocks.add(linkedPos);
 			setChanged();
@@ -68,9 +68,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 				searchAndAddStorages(new LinkedHashSet<>(l.getConnectablePositions()), false);
 			});
+			WorldHelper.notifyBlockUpdate(this);
+			return true;
 		}
-
-		WorldHelper.notifyBlockUpdate(this);
+		return false;
 	}
 
 	public void removeLinkedBlock(BlockPos storageBlockPos) {
