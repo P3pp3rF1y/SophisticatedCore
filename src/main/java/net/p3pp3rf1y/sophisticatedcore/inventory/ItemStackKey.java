@@ -20,8 +20,8 @@ public record ItemStackKey(ItemStack stack) {
 		return ItemHandlerHelper.canItemStacksStack(stack, that.stack);
 	}
 
-	public boolean hashCodeEquals(ItemStack otherStack) {
-		return hashCode() == getHashCode(otherStack);
+	public boolean hashCodeNotEquals(ItemStack otherStack) {
+		return hashCode() != getHashCode(otherStack);
 	}
 
 	@Override
@@ -29,7 +29,7 @@ public record ItemStackKey(ItemStack stack) {
 		return getHashCode(stack);
 	}
 
-	private int getHashCode(ItemStack stack) {
+	public static int getHashCode(ItemStack stack) {
 		//noinspection ConstantConditions - hasTag call makes sure getTag doesn't return null
 		return stack.getItem().hashCode() * 31 + (stack.hasTag() ? stack.getTag().hashCode() : 0);
 	}
