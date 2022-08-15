@@ -106,7 +106,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 		if (isPartiallyFilled(inventoryHandler, slot, stack)) {
 			boolean containsSlot = partiallyFilledSlotStacks.containsKey(slot);
-			if (!containsSlot || !partiallyFilledSlotStacks.get(slot).hashCodeEquals(stack)) {
+			if (!containsSlot || partiallyFilledSlotStacks.get(slot).hashCodeNotEquals(stack)) {
 				if (containsSlot) {
 					removePartiallyFilled(slot);
 				}
@@ -117,7 +117,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			}
 		} else {
 			boolean containsSlot = fullSlotStacks.containsKey(slot);
-			if (!containsSlot || !fullSlotStacks.get(slot).hashCodeEquals(stack)) {
+			if (!containsSlot || fullSlotStacks.get(slot).hashCodeNotEquals(stack)) {
 				if (containsSlot) {
 					removeFull(slot);
 				}

@@ -26,9 +26,9 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -150,20 +150,25 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			it.remove();
 
 			final boolean finalFirst = first;
-			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllableStorage.class).ifPresentOrElse(storage -> {
-				if (storage.canBeConnected() || (addingLinkedSelf && finalFirst)) {
-					if (storage instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
-						linkedBlocks.remove(posToCheck);
-						linkable.setNotLinked();
-					} else {
-						addStorageData(posToCheck);
-					}
-					if (storage.canConnectStorages()) {
-						addUncheckedPositionsAround(positionsToCheck, positionsChecked, posToCheck);
-					}
-				}
-			}, () -> positionsChecked.add(posToCheck));
+			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllableStorage.class).ifPresentOrElse(storage ->
+							tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked, posToCheck, finalFirst, storage),
+					() -> positionsChecked.add(posToCheck)
+			);
 			first = false;
+		}
+	}
+
+	private void tryToConnectStorageAndAddPositionsToCheckAround(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf, Set<BlockPos> positionsChecked, BlockPos posToCheck, boolean finalFirst, IControllableStorage storage) {
+		if (storage.canBeConnected() || (addingLinkedSelf && finalFirst)) {
+			if (storage instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
+				linkedBlocks.remove(posToCheck);
+				linkable.setNotLinked();
+			} else {
+				addStorageData(posToCheck);
+			}
+			if (storage.canConnectStorages()) {
+				addUncheckedPositionsAround(positionsToCheck, positionsChecked, posToCheck);
+			}
 		}
 	}
 
@@ -220,9 +225,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	public void removeStorageMemorizedItem(BlockPos storagePos, Item item) {
-		memorizedItemStorages.computeIfPresent(item, (i, storagePositions) -> {
-			storagePositions.remove(storagePos);
-			return storagePositions;
+		memorizedItemStorages.computeIfPresent(item, (i, positions) -> {
+			positions.remove(storagePos);
+			return positions;
 		});
 		if (memorizedItemStorages.containsKey(item) && memorizedItemStorages.get(item).isEmpty()) {
 			memorizedItemStorages.remove(item);
@@ -244,9 +249,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	public void removeStorageStack(BlockPos storagePos, ItemStackKey stackKey) {
-		stackStorages.computeIfPresent(stackKey, (sk, storagePositions) -> {
-			storagePositions.remove(storagePos);
-			return storagePositions;
+		stackStorages.computeIfPresent(stackKey, (sk, positions) -> {
+			positions.remove(storagePos);
+			return positions;
 		});
 		if (stackStorages.containsKey(stackKey) && stackStorages.get(stackKey).isEmpty()) {
 			stackStorages.remove(stackKey);
@@ -380,13 +385,13 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 	}
 
-	public ControllerBlockEntityBase(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
+	protected ControllerBlockEntityBase(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
 		super(blockEntityType, pos, state);
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
-	public <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
 		if (cap == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			return LazyOptional.of(() -> this).cast();
 		}
@@ -426,7 +431,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return slot - baseIndexes.get(index - 1);
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		if (isSlotIndexInvalid(slot)) {
@@ -450,17 +455,17 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			return true;
 		}
 		if (handlerIndex < 0 || handlerIndex >= storagePositions.size()) {
-			SophisticatedCore.LOGGER.debug("Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}", handlerIndex, methodName, getBlockPos().toShortString());
+			SophisticatedCore.LOGGER.debug("Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}", () -> handlerIndex, () -> methodName, () -> getBlockPos().toShortString());
 		} else {
-			SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}", slot, methodName, storagePositions.get(handlerIndex).toShortString(), getBlockPos().toShortString());
+			SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}", () -> slot, () -> methodName, () -> storagePositions.get(handlerIndex).toShortString(), () -> getBlockPos().toShortString());
 		}
 
 		return false;
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
-	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		if (isSlotIndexInvalid(slot)) {
 			return stack;
 		}
@@ -469,8 +474,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		ItemStack remaining = stack;
 
 		if (stackStorages.containsKey(stackKey)) {
-			Set<BlockPos> storagePositions = stackStorages.get(stackKey);
-			remaining = insertIntoStorages(storagePositions, remaining, simulate);
+			Set<BlockPos> positions = stackStorages.get(stackKey);
+			remaining = insertIntoStorages(positions, remaining, simulate);
 		}
 
 		if (memorizedItemStorages.containsKey(stack.getItem())) {
@@ -492,7 +497,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return remaining;
 	}
 
-	@NotNull
+	@Nonnull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		if (isSlotIndexInvalid(slot)) {
