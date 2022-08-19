@@ -199,7 +199,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		if (!contents.isEmpty() && isValidFluidHandler(fluidHandler, true)) {
 			Fluid fluid = contents.getFluid();
 			int filled = fluidHandler.fill(new FluidStack(fluid, Math.min(FluidAttributes.BUCKET_VOLUME, contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
-			if (filled == 0) {
+			if (filled <= 0) { //checking for less than as well because some mods have incorrect fill logic
 				return false;
 			}
 			FluidStack drained = drain(filled, IFluidHandler.FluidAction.EXECUTE, false);
