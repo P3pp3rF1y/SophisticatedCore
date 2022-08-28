@@ -1281,6 +1281,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	@Override
+	public void setItem(int slotId, int pStateId, ItemStack pStack) {
+		if (getTotalSlotsNumber() > slotId) {
+			super.setItem(slotId, pStateId, pStack);
+		}
+	}
+
+	@Override
 	public void broadcastChanges() {
 		closeScreenIfSomethingMessedWithStorageItemStack();
 
