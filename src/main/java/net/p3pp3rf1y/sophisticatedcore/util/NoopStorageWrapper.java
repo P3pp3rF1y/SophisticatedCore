@@ -16,6 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings("java:S4144") //this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
 public class NoopStorageWrapper implements IStorageWrapper {
@@ -44,6 +45,11 @@ public class NoopStorageWrapper implements IStorageWrapper {
 		@Override
 		protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
 			return contentsNbt;
+		}
+
+		@Override
+		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
+			//noop
 		}
 
 		@Override

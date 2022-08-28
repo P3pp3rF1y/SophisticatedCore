@@ -5,15 +5,14 @@ import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 
-import java.util.Optional;
+import java.util.List;
 
 public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisplaySettingsCategory> {
-	private static final String ACTION_TAG = "action";
 	private static final String COLOR_TAG = "color";
 	private static final String SELECT_SLOT_TAG = "selectSlot";
-	private static final String UNSELECT_SLOT_ACTION = "unselectSlot";
-	private static final String ROTATE_CLOCKWISE_ACTION = "rotateClockwise";
-	private static final String ROTATE_COUNTER_CLOCKWISE_ACTION = "rotateCounterClockwise";
+	private static final String UNSELECT_SLOT_TAG = "unselectSlot";
+	private static final String ROTATE_CLOCKWISE_TAG = "rotateClockwise";
+	private static final String ROTATE_COUNTER_CLOCKWISE_TAG = "rotateCounterClockwise";
 
 	public ItemDisplaySettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, ItemDisplaySettingsCategory category) {
 		super(settingsContainer, categoryName, category);
@@ -21,61 +20,55 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 
 	@Override
 	public void handleMessage(CompoundTag data) {
-		if (data.contains(ACTION_TAG)) {
-			switch (data.getString(ACTION_TAG)) {
-				case UNSELECT_SLOT_ACTION -> unselectSlot();
-				case ROTATE_CLOCKWISE_ACTION -> rotateClockwise();
-				case ROTATE_COUNTER_CLOCKWISE_ACTION -> rotateCounterClockwise();
-				default -> {
-					//noop
-				}
-			}
-		} else if (data.contains(SELECT_SLOT_TAG)) {
+		if (data.contains(SELECT_SLOT_TAG)) {
 			selectSlot(data.getInt(SELECT_SLOT_TAG));
+		} else if (data.contains(UNSELECT_SLOT_TAG)) {
+			unselectSlot(data.getInt(UNSELECT_SLOT_TAG));
+		} else if (data.contains(ROTATE_CLOCKWISE_TAG)) {
+			rotateClockwise(data.getInt(ROTATE_CLOCKWISE_TAG));
+		} else if (data.contains(ROTATE_COUNTER_CLOCKWISE_TAG)) {
+			rotateCounterClockwise(data.getInt(ROTATE_COUNTER_CLOCKWISE_TAG));
 		} else if (data.contains(COLOR_TAG)) {
 			setColor(DyeColor.byId(data.getInt(COLOR_TAG)));
 		}
 	}
 
-	public void unselectSlot(int slotNumber) {
-		if (!isSlotSelected(slotNumber)) {
+	public void unselectSlot(int slotIndex) {
+		if (!isSlotSelected(slotIndex)) {
 			return;
 		}
-		unselectSlot();
-	}
 
-	private void unselectSlot() {
 		if (isServer()) {
-			getCategory().unselectSlot();
+			getCategory().unselectSlot(slotIndex);
 		} else {
-			sendStringToServer(ACTION_TAG, UNSELECT_SLOT_ACTION);
+			sendIntToServer(UNSELECT_SLOT_TAG, slotIndex);
 		}
 	}
 
-	public void selectSlot(int slotNumber) {
-		if (isSlotSelected(slotNumber)) {
+	public void selectSlot(int slotIndex) {
+		if (isSlotSelected(slotIndex)) {
 			return;
 		}
 		if (isServer()) {
-			getCategory().selectSlot(slotNumber);
+			getCategory().selectSlot(slotIndex);
 		} else {
-			sendIntToServer(SELECT_SLOT_TAG, slotNumber);
+			sendIntToServer(SELECT_SLOT_TAG, slotIndex);
 		}
 	}
 
-	public void rotateClockwise() {
+	public void rotateClockwise(int slotIndex) {
 		if (isServer()) {
-			getCategory().rotate(true);
+			getCategory().rotate(slotIndex, true);
 		} else {
-			sendStringToServer(ACTION_TAG, ROTATE_CLOCKWISE_ACTION);
+			sendIntToServer(ROTATE_CLOCKWISE_TAG, slotIndex);
 		}
 	}
 
-	public void rotateCounterClockwise() {
+	public void rotateCounterClockwise(int slotIndex) {
 		if (isServer()) {
-			getCategory().rotate(false);
+			getCategory().rotate(slotIndex, false);
 		} else {
-			sendStringToServer(ACTION_TAG, ROTATE_COUNTER_CLOCKWISE_ACTION);
+			sendIntToServer(ROTATE_COUNTER_CLOCKWISE_TAG, slotIndex);
 		}
 	}
 
@@ -87,19 +80,21 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		}
 	}
 
-	public boolean isSlotSelected(int slotNumber) {
-		return getCategory().getSlot().map(s -> s == slotNumber).orElse(false);
+	public boolean isSlotSelected(int slotIndex) {
+		return getCategory().getSlots().contains(slotIndex);
 	}
 
 	public DyeColor getColor() {
 		return getCategory().getColor();
 	}
 
-	public int getRotation() {
-		return getCategory().getRotation();
+	public int getRotation(int slotIndex) {
+		return getCategory().getRotation(slotIndex);
 	}
 
-	public Optional<Integer> getSlot() {
-		return getCategory().getSlot();
+	public int getFirstSelectedSlot() {
+		List<Integer> slots = getCategory().getSlots();
+
+		return slots.isEmpty() ? -1 : slots.get(0);
 	}
 }

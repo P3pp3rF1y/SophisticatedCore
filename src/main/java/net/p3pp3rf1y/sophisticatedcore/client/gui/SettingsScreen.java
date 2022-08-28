@@ -27,7 +27,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	private InventoryScrollPanel inventoryScrollPanel = null;
 	private StorageBackgroundProperties storageBackgroundProperties;
 
-	public SettingsScreen(SettingsContainer screenContainer, Inventory inv, Component titleIn) {
+	protected SettingsScreen(SettingsContainer<?> screenContainer, Inventory inv, Component titleIn) {
 		super(screenContainer, inv, titleIn);
 		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
 	}
@@ -153,6 +153,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 				hoveredSlot = slot;
 				renderSlotOverlay(matrixStack, slot, getSlotColor(slotId));
 			}
+
+			settingsTabControl.renderSlotExtra(matrixStack, slot);
 		}
 	}
 

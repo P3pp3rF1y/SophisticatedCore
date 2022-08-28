@@ -1,6 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -27,12 +29,15 @@ import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.DEFAULT
 
 public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsContainer> {
 	private static final TextureBlitData ICON = new TextureBlitData(GuiHelper.ICONS, Dimension.SQUARE_256, new UV(112, 64), Dimension.SQUARE_16);
+	private static final TextureBlitData SLOT_SELECTION = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(93, 0), Dimension.SQUARE_24);
 	private static final List<Component> ROTATE_TOOLTIP = new ImmutableList.Builder<Component>()
 			.add(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("rotate")))
 			.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("rotate_detail"), null, ChatFormatting.GRAY))
 			.build();
 	private static final TextureBlitData ROTATE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(128, 64), Dimension.SQUARE_16);
 	public static final ButtonDefinition ROTATE = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, ROTATE_FOREGROUND);
+
+	private int currentSelectedSlot = -1;
 
 	public ItemDisplaySettingsTab(ItemDisplaySettingsContainer container, Position position, SettingsScreen screen) {
 		super(container, position, screen, new TranslatableComponent(TranslationHelper.INSTANCE.translSettings(ItemDisplaySettingsCategory.NAME)),
@@ -47,9 +52,9 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 				onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
 		addHideableChild(new Button(new Position(x + 3, y + 24), ROTATE, button -> {
 			if (button == 0) {
-				container.rotateClockwise();
+				container.rotateClockwise(currentSelectedSlot);
 			} else if (button == 1) {
-				container.rotateCounterClockwise();
+				container.rotateCounterClockwise(currentSelectedSlot);
 			}
 		}) {
 			@Override
@@ -58,6 +63,7 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 			}
 		});
 		addHideableChild(new ColorToggleButton(new Position(x + 21, y + 24), container::getColor, container::setColor));
+		currentSelectedSlot = getSettingsContainer().getFirstSelectedSlot();
 	}
 
 	@Override
@@ -69,13 +75,31 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	public void handleSlotClick(Slot slot, int mouseButton) {
 		if (mouseButton == 0) {
 			getSettingsContainer().selectSlot(slot.index);
+			if (getSettingsContainer().isSlotSelected(slot.index)) {
+				currentSelectedSlot = slot.index;
+			}
 		} else if (mouseButton == 1) {
+			if (getSettingsContainer().isSlotSelected(slot.index)) {
+				currentSelectedSlot = getSettingsContainer().getFirstSelectedSlot();
+			}
 			getSettingsContainer().unselectSlot(slot.index);
 		}
 	}
 
 	@Override
+	public void renderExtra(PoseStack poseStack, Slot slot) {
+		super.renderExtra(poseStack, slot);
+		if (isOpen && slot.index == currentSelectedSlot) {
+			RenderSystem.disableDepthTest();
+			RenderSystem.colorMask(true, true, true, false);
+			GuiHelper.blit(poseStack, slot.x - 4, slot.y - 4, SLOT_SELECTION);
+			RenderSystem.colorMask(true, true, true, true);
+			RenderSystem.enableDepthTest();
+		}
+	}
+
+	@Override
 	public int getItemRotation(int slotIndex) {
-		return getSettingsContainer().getSlot().orElse(-1) == slotIndex ? getSettingsContainer().getRotation() : 0;
+		return getSettingsContainer().getRotation(slotIndex);
 	}
 }
