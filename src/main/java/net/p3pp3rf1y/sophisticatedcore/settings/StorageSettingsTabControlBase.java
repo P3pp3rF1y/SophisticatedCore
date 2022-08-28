@@ -59,6 +59,10 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		}
 	}
 
+	public void renderSlotExtra(PoseStack poseStack, Slot slot) {
+		settingsTabs.forEach(tab -> tab.renderExtra(poseStack, slot));
+	}
+
 	public void handleSlotClick(Slot slot, int mouseButton) {
 		getOpenTab().ifPresent(tab -> tab.handleSlotClick(slot, mouseButton));
 	}

@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
@@ -32,5 +33,10 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 	@SuppressWarnings("unused") // parameter used in override
 	public int getItemRotation(int slotIndex) {
 		return 0;
+	}
+
+	@SuppressWarnings("unused") //parameters used in overrides
+	public void renderExtra(PoseStack poseStack, Slot slot) {
+		//noop by default
 	}
 }

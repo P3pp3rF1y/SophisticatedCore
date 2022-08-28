@@ -29,6 +29,10 @@ public class NBTHelper {
 		return getTagValue(tag, key, CompoundTag::getInt);
 	}
 
+	public static Optional<int[]> getIntArray(CompoundTag tag, String key) {
+		return getTagValue(tag, key, CompoundTag::getIntArray);
+	}
+
 	private static <T> Optional<T> getTagValue(ItemStack stack, String key, BiFunction<CompoundTag, String, T> getValue) {
 		return getTagValue(stack, "", key, getValue);
 	}
@@ -211,11 +215,13 @@ public class NBTHelper {
 		return getTagValue(stack, key, CompoundTag::getFloat);
 	}
 
-	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue) {
+	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue) {
+		CompoundTag mapNbt = tag.getCompound(key);
+
 		Map<K, V> map = new HashMap<>();
 
-		for (String tagName : tag.getAllKeys()) {
-			getValue.apply(tagName, tag.get(tagName)).ifPresent(value -> map.put(getKey.apply(tagName), value));
+		for (String tagName : mapNbt.getAllKeys()) {
+			getValue.apply(tagName, mapNbt.get(tagName)).ifPresent(value -> map.put(getKey.apply(tagName), value));
 		}
 
 		return Optional.of(map);
