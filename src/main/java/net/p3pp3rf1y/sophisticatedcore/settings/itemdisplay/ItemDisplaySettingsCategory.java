@@ -56,7 +56,6 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 			categoryNbt.remove(SLOTS_TAG);
 			categoryNbt.remove(ROTATIONS_TAG);
 		}
-		saveNbt.accept(categoryNbt);
 		serializeSlotIndexes();
 
 		updateFullRenderInfo();
@@ -151,11 +150,17 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 		color = NBTHelper.getInt(categoryNbt, COLOR_TAG).map(DyeColor::byId).orElse(DyeColor.RED);
 
 		//legacy nbt support to be removed in the future
-		NBTHelper.getInt(categoryNbt, SLOT_TAG).ifPresent(slotIndexes::add);
+		NBTHelper.getInt(categoryNbt, SLOT_TAG).ifPresent(e -> {
+			slotIndexes.add(e);
+			categoryNbt.remove(SLOT_TAG);
+			serializeSlotIndexes();
+		});
 		NBTHelper.getInt(categoryNbt, ROTATION_TAG).ifPresent(r -> {
 			if (!slotIndexes.isEmpty()) {
 				slotRotations.put(slotIndexes.iterator().next(), r);
 			}
+			categoryNbt.remove(ROTATION_TAG);
+			serializeRotations();
 		});
 	}
 

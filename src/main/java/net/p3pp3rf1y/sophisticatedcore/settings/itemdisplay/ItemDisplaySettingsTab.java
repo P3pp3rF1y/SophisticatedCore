@@ -78,10 +78,10 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 				currentSelectedSlot = slot.index;
 			}
 		} else if (mouseButton == 1) {
-			if (getSettingsContainer().isSlotSelected(slot.index)) {
+			getSettingsContainer().unselectSlot(slot.index);
+			if (!getSettingsContainer().isSlotSelected(slot.index) && currentSelectedSlot == slot.index) {
 				currentSelectedSlot = getSettingsContainer().getFirstSelectedSlot();
 			}
-			getSettingsContainer().unselectSlot(slot.index);
 		}
 	}
 
