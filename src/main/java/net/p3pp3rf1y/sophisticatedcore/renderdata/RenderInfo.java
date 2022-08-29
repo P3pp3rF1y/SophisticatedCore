@@ -11,8 +11,10 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeRenderData
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -36,7 +38,7 @@ public abstract class RenderInfo {
 		);
 	}
 
-	private ItemDisplayRenderInfo itemDisplayRenderInfo = new ItemDisplayRenderInfo();
+	private ItemDisplayRenderInfo itemDisplayRenderInfo;
 	private final Supplier<Runnable> getSaveHandler;
 	private final Map<UpgradeRenderDataType<?>, IUpgradeRenderData> upgradeData = new HashMap<>();
 
@@ -48,6 +50,7 @@ public abstract class RenderInfo {
 
 	protected RenderInfo(Supplier<Runnable> getSaveHandler) {
 		this.getSaveHandler = getSaveHandler;
+		itemDisplayRenderInfo = new ItemDisplayRenderInfo();
 	}
 
 	public ItemDisplayRenderInfo getItemDisplayRenderInfo() {
@@ -75,9 +78,21 @@ public abstract class RenderInfo {
 		serializeRenderInfo(renderInfo);
 	}
 
-	public void setItemDisplayRenderInfo(ItemStack item, int rotation) {
-		itemDisplayRenderInfo.setItem(item);
-		itemDisplayRenderInfo.setRotation(rotation);
+	public void refreshItemDisplayRenderInfo(List<DisplayItem> displayItems) {
+		itemDisplayRenderInfo = new ItemDisplayRenderInfo(displayItems);
+		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
+		serializeRenderInfo(renderInfo);
+		save();
+	}
+
+	public void updateItemDisplayRenderInfo(int index, ItemStack item, int rotation) {
+		if (item.isEmpty()) {
+			itemDisplayRenderInfo.removeDisplayItem(index);
+		} else {
+			itemDisplayRenderInfo.setItem(index, item);
+			itemDisplayRenderInfo.setRotation(index, rotation);
+		}
 		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
 		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
 		serializeRenderInfo(renderInfo);
@@ -220,50 +235,108 @@ public abstract class RenderInfo {
 	}
 
 	public static class ItemDisplayRenderInfo {
+		private static final String ITEMS_TAG = "items";
+		private final List<DisplayItem> displayItems;
+
+		private ItemDisplayRenderInfo(DisplayItem displayItem) {
+			displayItems = new ArrayList<>();
+			displayItems.add(displayItem);
+		}
+
+		private ItemDisplayRenderInfo(List<DisplayItem> displayItems) {
+			this.displayItems = displayItems;
+		}
+
+		public ItemDisplayRenderInfo() {
+			this(new ArrayList<>());
+		}
+
+		public CompoundTag serialize() {
+			CompoundTag ret = new CompoundTag();
+			if (displayItems.size() == 1) {
+				displayItems.get(0).serialize(ret);
+			} else if (displayItems.size() > 1) {
+				NBTHelper.putList(ret, ITEMS_TAG, displayItems, displayItem -> displayItem.serialize(new CompoundTag()));
+			}
+			return ret;
+		}
+
+		private void setItem(int index, ItemStack item) {
+			if (index > displayItems.size()) {
+				return;
+			}
+
+			if (item.isEmpty()) {
+				displayItems.remove(index);
+			} else {
+				if (index == displayItems.size()) {
+					displayItems.add(new DisplayItem(item, 0));
+				} else {
+					displayItems.get(index).item = item;
+				}
+			}
+		}
+
+		private void removeDisplayItem(int index) {
+			displayItems.remove(index);
+		}
+
+		public static ItemDisplayRenderInfo deserialize(CompoundTag tag) {
+			if (tag.contains(DisplayItem.ITEM_TAG)) {
+				return new ItemDisplayRenderInfo(DisplayItem.deserialize(tag));
+			} else if (tag.contains(ITEMS_TAG)) {
+				List<DisplayItem> items = NBTHelper.getCollection(tag, ITEMS_TAG, Tag.TAG_COMPOUND, stackTag -> Optional.of(DisplayItem.deserialize((CompoundTag) stackTag)), ArrayList::new).orElseGet(ArrayList::new);
+				return new ItemDisplayRenderInfo(items);
+			}
+			return new ItemDisplayRenderInfo();
+		}
+
+		private void setRotation(int index, int rot) {
+			if (!isValidIndex(displayItems, index)) {
+				return;
+			}
+
+			displayItems.get(index).rotation = rot;
+		}
+
+		public Optional<DisplayItem> getDisplayItem() {
+			return isValidIndex(displayItems, 0) ? Optional.of(displayItems.get(0)) : Optional.empty();
+		}
+		private boolean isValidIndex(List<?> list, int index) {
+			return index >= 0 && index < list.size();
+		}
+
+		public List<DisplayItem> getDisplayItems() {
+			return displayItems;
+		}
+	}
+	public static class DisplayItem {
 		private static final String ITEM_TAG = "item";
 		private static final String ROTATION_TAG = "rotation";
 		private ItemStack item;
 		private int rotation;
 
-		private ItemDisplayRenderInfo(ItemStack item, int rotation) {
+		public DisplayItem(ItemStack item, int rotation) {
 			this.item = item;
 			this.rotation = rotation;
 		}
 
-		public ItemDisplayRenderInfo() {
-			this(ItemStack.EMPTY, 0);
+		private CompoundTag serialize(CompoundTag tag) {
+			tag.put(ITEM_TAG, item.serializeNBT());
+			tag.putInt(ROTATION_TAG, rotation);
+			return tag;
 		}
 
-		public CompoundTag serialize() {
-			CompoundTag ret = new CompoundTag();
-			if (!item.isEmpty()) {
-				ret.put(ITEM_TAG, item.serializeNBT());
-				ret.putInt(ROTATION_TAG, rotation);
-			}
-			return ret;
-		}
-
-		private void setItem(ItemStack item) {
-			this.item = item;
-		}
-
-		public static ItemDisplayRenderInfo deserialize(CompoundTag tag) {
-			if (tag.contains(ITEM_TAG)) {
-				return new ItemDisplayRenderInfo(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG));
-			}
-			return new ItemDisplayRenderInfo();
-		}
-
-		private void setRotation(int rot) {
-			rotation = rot;
-		}
-
-		public int getRotation() {
-			return rotation;
+		private static DisplayItem deserialize(CompoundTag tag) {
+			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG));
 		}
 
 		public ItemStack getItem() {
 			return item;
+		}
+
+		public int getRotation() {
+			return rotation;
 		}
 	}
 }

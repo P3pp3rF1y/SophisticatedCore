@@ -16,8 +16,15 @@ public interface ILinkable extends IControllerBoundable {
 		Level level = getStorageBlockLevel();
 
 		if (!level.isClientSide() && WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class).isPresent()) {
-			setControllerPos(controllerPos);
-			runOnController(level, controller -> controller.addLinkedBlock(getStorageBlockPos()));
+			boolean hadControllerPos = getControllerPos().isPresent();
+			if (!hadControllerPos) {
+				setControllerPos(controllerPos);
+			}
+			runOnController(level, controller -> {
+				if (!controller.addLinkedBlock(getStorageBlockPos()) && !hadControllerPos) {
+					removeControllerPos();
+				}
+			});
 		}
 	}
 

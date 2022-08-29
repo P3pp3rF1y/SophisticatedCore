@@ -13,7 +13,6 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -78,7 +77,7 @@ public class TransferMessage {
 
 		@Nonnull
 		@Override
-		public ItemStack insertItem(@Nonnull ItemStack stack, boolean simulate) {
+		public ItemStack insertItem(ItemStack stack, boolean simulate) {
 			if (!smart || matchesFilter(stack)) {
 				return itemHandler.insertItem(stack, simulate);
 			} else {
@@ -87,7 +86,7 @@ public class TransferMessage {
 		}
 
 		@Override
-		public void setStackInSlot(int slot, @NotNull ItemStack stack) {
+		public void setStackInSlot(int slot, ItemStack stack) {
 			itemHandler.setStackInSlot(slot, stack);
 		}
 	}
@@ -106,15 +105,15 @@ public class TransferMessage {
 			return itemHandler.getSlots();
 		}
 
-		@NotNull
+		@Nonnull
 		@Override
 		public ItemStack getStackInSlot(int slot) {
 			return itemHandler.getStackInSlot(slot);
 		}
 
-		@NotNull
+		@Nonnull
 		@Override
-		public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 			if (!smart || matchesFilter(stack)) {
 				return itemHandler.insertItem(slot, stack, simulate);
 			} else {
@@ -144,7 +143,7 @@ public class TransferMessage {
 			return false;
 		}
 
-		@NotNull
+		@Nonnull
 		@Override
 		public ItemStack extractItem(int slot, int amount, boolean simulate) {
 			return itemHandler.extractItem(slot, amount, simulate);
@@ -156,7 +155,7 @@ public class TransferMessage {
 		}
 
 		@Override
-		public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+		public boolean isItemValid(int slot, ItemStack stack) {
 			return itemHandler.isItemValid(slot, stack);
 		}
 	}

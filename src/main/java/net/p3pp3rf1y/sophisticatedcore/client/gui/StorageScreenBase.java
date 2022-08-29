@@ -910,7 +910,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			});
 			upgradeSlotChangeResult.getErrorInventoryParts().forEach(partIndex -> {
 				if (inventoryParts.size() > partIndex) {
-					inventoryParts.get(partIndex).renderErrorOverlay(matrixStack);
+					UpgradeInventoryPartBase<?> inventoryPart = inventoryParts.get(partIndex);
+					if (inventoryPart != null) {
+						inventoryPart.renderErrorOverlay(matrixStack);
+					}
 				}
 			});
 			matrixStack.popPose();

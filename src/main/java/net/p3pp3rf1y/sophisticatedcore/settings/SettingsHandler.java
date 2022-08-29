@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 
@@ -24,7 +23,7 @@ public abstract class SettingsHandler {
 	private final Map<Class<?>, List<?>> interfaceCategories = new HashMap<>();
 	private final Map<Class<? extends ISettingsCategory>, ISettingsCategory> typeCategories = new HashMap<>();
 
-	public SettingsHandler(CompoundTag contentsNbt, Runnable markContentsDirty, Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier) {
+	protected SettingsHandler(CompoundTag contentsNbt, Runnable markContentsDirty, Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier) {
 		this.contentsNbt = contentsNbt;
 		this.markContentsDirty = markContentsDirty;
 		addSettingsCategories(inventoryHandlerSupplier, renderInfoSupplier, getSettingsNbtFromContentsNbt(contentsNbt));
@@ -36,8 +35,10 @@ public abstract class SettingsHandler {
 		addGlobalSettingsCategory(settingsNbt);
 		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
 		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
-		addSettingsCategory(settingsNbt, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) -> new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderInfoSupplier, categoryNbt, saveNbt));
+		addItemDisplayCategory(inventoryHandlerSupplier, renderInfoSupplier, settingsNbt);
 	}
+
+	protected abstract void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt);
 
 	protected abstract void addGlobalSettingsCategory(CompoundTag settingsNbt);
 
