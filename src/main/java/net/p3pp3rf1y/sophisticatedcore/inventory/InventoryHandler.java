@@ -41,7 +41,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private boolean isInitializing;
 	private final StackUpgradeConfig stackUpgradeConfig;
 
-	public InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int slotLimit, StackUpgradeConfig stackUpgradeConfig) {
+	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int slotLimit, StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
 		this.stackUpgradeConfig = stackUpgradeConfig;
 		isInitializing = true;
@@ -209,10 +209,6 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}
 
 		ret = super.insertItem(slot, ret, simulate);
-
-		if (!ret.isEmpty()) {
-			ret = triggerOverflowUpgrades(ret);
-		}
 
 		if (!simulate) {
 			slotTracker.removeAndSetSlotIndexes(this, slot, getStackInSlot(slot));

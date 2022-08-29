@@ -105,27 +105,35 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		}
 
 		if (isPartiallyFilled(inventoryHandler, slot, stack)) {
-			boolean containsSlot = partiallyFilledSlotStacks.containsKey(slot);
-			if (!containsSlot || partiallyFilledSlotStacks.get(slot).hashCodeNotEquals(stack)) {
-				if (containsSlot) {
-					removePartiallyFilled(slot);
-				}
-				addPartiallyFilled(slot, stack);
-			}
-			if (fullSlotStacks.containsKey(slot)) {
+			setPartiallyFilled(slot, stack);
+		} else {
+			setFull(slot, stack);
+		}
+	}
+
+	private void setFull(int slot, ItemStack stack) {
+		boolean containsSlot = fullSlotStacks.containsKey(slot);
+		if (!containsSlot || fullSlotStacks.get(slot).hashCodeNotEquals(stack)) {
+			if (containsSlot) {
 				removeFull(slot);
 			}
-		} else {
-			boolean containsSlot = fullSlotStacks.containsKey(slot);
-			if (!containsSlot || fullSlotStacks.get(slot).hashCodeNotEquals(stack)) {
-				if (containsSlot) {
-					removeFull(slot);
-				}
-				addFull(slot, stack);
-			}
-			if (partiallyFilledSlotStacks.containsKey(slot)) {
+			addFull(slot, stack);
+		}
+		if (partiallyFilledSlotStacks.containsKey(slot)) {
+			removePartiallyFilled(slot);
+		}
+	}
+
+	private void setPartiallyFilled(int slot, ItemStack stack) {
+		boolean containsSlot = partiallyFilledSlotStacks.containsKey(slot);
+		if (!containsSlot || partiallyFilledSlotStacks.get(slot).hashCodeNotEquals(stack)) {
+			if (containsSlot) {
 				removePartiallyFilled(slot);
 			}
+			addPartiallyFilled(slot, stack);
+		}
+		if (fullSlotStacks.containsKey(slot)) {
+			removeFull(slot);
 		}
 	}
 
@@ -194,6 +202,9 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		if (!remainingStack.isEmpty()) {
 			remainingStack = insertIntoEmptySlots(inserter, remainingStack, simulate);
 		}
+		if (!remainingStack.isEmpty()) {
+			remainingStack = handleOverflow(overflowHandler, stackKey, stack);
+		}
 		return remainingStack;
 	}
 
@@ -218,6 +229,10 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		}
 		if (!remainingStack.isEmpty()) {
 			remainingStack = inserter.insertItem(slot, remainingStack, simulate);
+		}
+
+		if (!remainingStack.isEmpty()) {
+			remainingStack = handleOverflow(overflowHandler, stackKey, remainingStack);
 		}
 
 		return remainingStack;
