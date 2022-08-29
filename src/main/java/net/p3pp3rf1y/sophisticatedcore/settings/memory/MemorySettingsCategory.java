@@ -40,7 +40,7 @@ public class MemorySettingsCategory implements ISettingsCategory {
 	}
 
 	private void deserialize() {
-		NBTHelper.getMap(categoryNbt.getCompound(SLOT_FILTER_ITEMS_TAG),
+		NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG,
 						Integer::valueOf,
 						(k, v) -> Optional.ofNullable(ForgeRegistries.ITEMS.getValue(new ResourceLocation(v.getAsString()))))
 				.ifPresent(map -> map.forEach(this::addSlotItem));
