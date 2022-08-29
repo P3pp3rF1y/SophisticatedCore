@@ -5,9 +5,11 @@ import net.minecraft.nbt.IntTag;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
@@ -32,16 +34,18 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 	private CompoundTag categoryNbt;
 	private final Consumer<CompoundTag> saveNbt;
 	private final int itemNumberLimit;
+	private final Supplier<MemorySettingsCategory> getMemorySettings;
 	private DyeColor color = DyeColor.RED;
 	private final List<Integer> slotIndexes = new LinkedList<>();
 	private Map<Integer, Integer> slotRotations = new HashMap<>();
 
-	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, int itemNumberLimit) {
+	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.renderInfoSupplier = renderInfoSupplier;
 		this.categoryNbt = categoryNbt;
 		this.saveNbt = saveNbt;
 		this.itemNumberLimit = itemNumberLimit;
+		this.getMemorySettings = getMemorySettings;
 
 		deserialize();
 	}
@@ -61,22 +65,38 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 		updateFullRenderInfo();
 	}
 
-	private void updateFullRenderInfo() {
-		RenderInfo renderInfo = renderInfoSupplier.get();
-		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
+	private boolean haveRenderedItemsChanged() {
+		List<RenderInfo.DisplayItem> previousDisplayItems = renderInfoSupplier.get().getItemDisplayRenderInfo().getDisplayItems();
+		int i = 0;
+		for (int slotIndex : slotIndexes) {
+			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
+			if (newItem.isEmpty()) {
+				continue;
+			}
 
+			if (previousDisplayItems.size() <= i || ItemStackKey.getHashCode(newItem) != ItemStackKey.getHashCode(previousDisplayItems.get(i).getItem())) {
+				return true;
+			}
+
+			i++;
+		}
+		return i != previousDisplayItems.size();
+	}
+
+	private void updateFullRenderInfo() {
+		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
 		for (int slotIndex : slotIndexes) {
 			getSlotItemCopy(slotIndex).ifPresent(stackCopy ->
 					displayItems.add(new RenderInfo.DisplayItem(stackCopy, slotRotations.getOrDefault(slotIndex, 0))));
 		}
 
-		renderInfo.refreshItemDisplayRenderInfo(displayItems);
+		renderInfoSupplier.get().refreshItemDisplayRenderInfo(displayItems);
 	}
 
 	private Optional<ItemStack> getSlotItemCopy(int slotIndex) {
 		ItemStack slotStack = inventoryHandlerSupplier.get().getStackInSlot(slotIndex);
 		if (slotStack.isEmpty()) {
-			return Optional.empty();
+			return getMemorySettings.get().getSlotFilterItem(slotIndex).map(ItemStack::new);
 		}
 		ItemStack stackCopy = slotStack.copy();
 		stackCopy.setCount(1);
@@ -168,7 +188,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 		if (!slotIndexes.contains(changedSlotIndex)) {
 			return;
 		}
-		updateFullRenderInfo();
+
+		if (haveRenderedItemsChanged()) {
+			updateFullRenderInfo();
+		}
 	}
 
 	@Override
