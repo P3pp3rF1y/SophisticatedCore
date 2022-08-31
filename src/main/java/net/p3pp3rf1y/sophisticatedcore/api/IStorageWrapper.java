@@ -27,6 +27,10 @@ public interface IStorageWrapper {
 
 	ITrackedContentsItemHandler getInventoryForInputOutput();
 
+	default void setUpgradeCachesInvalidatedHandler(Runnable handler) {
+		//noop
+	}
+
 	SettingsHandler getSettingsHandler();
 
 	UpgradeHandler getUpgradeHandler();
