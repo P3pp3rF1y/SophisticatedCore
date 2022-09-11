@@ -16,6 +16,7 @@ import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.lang.ref.WeakReference;
@@ -38,7 +39,7 @@ public class RecipeHelper {
 	private static final LoadingCache<Item, Set<CompactingShape>> ITEM_COMPACTING_SHAPES = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build(new CacheLoader<>() {
 		@Override
 		public Set<CompactingShape> load(Item item) {
-			SophisticatedCore.LOGGER.debug("Compacting shapes not found in cache for \"{}\" - querying recipes to get these", item.getRegistryName());
+			SophisticatedCore.LOGGER.debug("Compacting shapes not found in cache for \"{}\" - querying recipes to get these", ForgeRegistries.ITEMS.getKey(item));
 			return getCompactingShapes(item);
 		}
 	});
