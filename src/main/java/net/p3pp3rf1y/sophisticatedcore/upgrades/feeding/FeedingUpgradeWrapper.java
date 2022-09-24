@@ -97,13 +97,17 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack, Player player) {
+		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
+		if (foodProperties == null || foodProperties.getNutrition() < 1) {
+			return false;
+		}
+
 		HungerLevel feedAtHungerLevel = getFeedAtHungerLevel();
 		if (feedAtHungerLevel == HungerLevel.ANY) {
 			return true;
 		}
 
-		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
-		int nutrition = foodProperties == null ? 1 : foodProperties.getNutrition();
+		int nutrition = foodProperties.getNutrition();
 		return (feedAtHungerLevel == HungerLevel.HALF ? (nutrition / 2) : nutrition) <= hungerLevel;
 	}
 
