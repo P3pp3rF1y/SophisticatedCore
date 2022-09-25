@@ -51,9 +51,7 @@ public class ModFluids {
 			});
 		}
 	});
-
-	public static final ForgeFlowingFluid.Properties XP_FLUID = new ForgeFlowingFluid.Properties(XP_FLUID_TYPE, XP_STILL, XP_FLOWING);
-
+	
 	public static void registerHandlers(IEventBus modBus) {
 		FLUIDS.register(modBus);
 		FLUID_TYPES.register(modBus);
