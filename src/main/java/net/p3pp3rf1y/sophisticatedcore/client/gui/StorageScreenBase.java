@@ -109,8 +109,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	protected StorageScreenBase(S pMenu, Inventory pPlayerInventory, Component pTitle) {
 		super(pMenu, pPlayerInventory, pTitle);
-		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
 		numberOfUpgradeSlots = getMenu().getNumberOfUpgradeSlots();
+		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
 		passEvents = true;
 	}
 
