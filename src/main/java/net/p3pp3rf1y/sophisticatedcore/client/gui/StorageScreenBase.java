@@ -148,7 +148,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	private void updateUpgradeSlotsPositions() {
-		int numberOfUpgradeSlots = getMenu().getNumberOfUpgradeSlots();
 		int yPosition = Math.max(inventoryLabelY - 2 - numberOfUpgradeSlots * 22, 8);
 		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
 			Slot slot = getMenu().getSlot(getMenu().getFirstUpgradeSlot() + slotIndex);
@@ -316,7 +315,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 					new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeTop() + getUpgradeHeightWithoutBottom() + UPGRADE_BOTTOM_HEIGHT + 2);
 			case BELOW_UPGRADE_TABS ->
 					settingsTabControl == null ? new Position(0, 0) : new Position(settingsTabControl.getX() + 2, settingsTabControl.getY() + Math.max(0, settingsTabControl.getHeight() + 2));
-			case TITLE_LINE_RIGHT -> new Position(leftPos + imageWidth - 34, topPos + 4);
 			default -> new Position(leftPos + imageWidth - 34, topPos + 4);
 		};
 	}
@@ -352,6 +350,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
+			updateInventoryScrollPanel();
 		}
 		renderBackground(matrixStack);
 		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
@@ -414,7 +413,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			String s = null;
 			if (!draggingItem.isEmpty() && isSplittingStack) {
 				itemstack = itemstack.copy();
-				itemstack.setCount(Mth.ceil((float) itemstack.getCount() / 2.0F));
+				itemstack.setCount(Mth.ceil(itemstack.getCount() / 2.0F));
 			} else if (isQuickCrafting && quickCraftSlots.size() > 1) {
 				itemstack = itemstack.copy();
 				itemstack.setCount(quickCraftingRemainder);
