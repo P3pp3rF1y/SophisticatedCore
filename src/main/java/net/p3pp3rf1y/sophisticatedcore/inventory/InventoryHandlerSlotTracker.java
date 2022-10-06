@@ -203,7 +203,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			remainingStack = insertIntoEmptySlots(inserter, remainingStack, simulate);
 		}
 		if (!remainingStack.isEmpty()) {
-			remainingStack = handleOverflow(overflowHandler, stackKey, stack);
+			remainingStack = handleOverflow(overflowHandler, stackKey, remainingStack);
 		}
 		return remainingStack;
 	}
