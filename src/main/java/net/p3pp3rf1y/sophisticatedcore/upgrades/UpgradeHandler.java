@@ -129,6 +129,7 @@ public class UpgradeHandler extends ItemStackHandler {
 		initializeWrappers();
 		typeWrappersInitialized = true;
 
+		typeWrappers.clear();
 		slotWrappers.values().forEach(wrapper -> {
 			if (wrapper.getUpgradeStack().getItem() instanceof IUpgradeItem<?> upgradeItem) {
 				UpgradeType<?> type = upgradeItem.getType();
