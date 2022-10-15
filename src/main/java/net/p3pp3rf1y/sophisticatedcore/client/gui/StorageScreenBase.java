@@ -126,7 +126,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void updateDimensionsAndSlotPositions(int pHeight) {
 		int displayableNumberOfRows = Math.min((pHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
-		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + displayableNumberOfRows * 18;
+		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(displayableNumberOfRows);
 		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		imageWidth = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
@@ -140,6 +140,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
 		updatePlayerSlotsPositions();
 		updateUpgradeSlotsPositions();
+	}
+
+	protected int getStorageInventoryHeight(int displayableNumberOfRows) {
+		return displayableNumberOfRows * 18;
 	}
 
 	@Override
@@ -156,7 +160,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 	}
 
-	private void updateStorageSlotsPositions() {
+	protected void updateStorageSlotsPositions() {
 		int yPosition = 18;
 
 		int slotIndex = 0;
@@ -218,8 +222,14 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			initUpgradeInventoryParts();
 			addUpgradeSwitches();
 		});
-		addSortButtons();
+		if (shouldShowSortButtons()) {
+			addSortButtons();
+		}
 		addAdditionalButtons();
+	}
+
+	protected boolean shouldShowSortButtons() {
+		return true;
 	}
 
 	private void addAdditionalButtons() {
@@ -368,6 +378,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		renderTooltip(matrixStack, mouseX, mouseY);
 	}
 
+	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
 	private void renderSuper(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) { //copy of super.render with storage inventory slots rendering and snap rendering removed
 		int i = leftPos;
 		int j = topPos;
@@ -593,17 +604,20 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		drawInventoryBg(matrixStack, x, y, storageBackgroundProperties.getTextureName());
 		if (inventoryScrollPanel == null) {
 			drawSlotBg(matrixStack, x, y);
+			drawSlotOverlays(matrixStack);
 		}
 		drawUpgradeBackground(matrixStack);
 	}
 
-	private void drawSlotBg(PoseStack matrixStack, int x, int y) {
+	protected void drawSlotBg(PoseStack matrixStack, int x, int y) {
 		int inventorySlots = getMenu().getNumberOfStorageInventorySlots();
 		int slotsOnLine = getSlotsOnLine();
 		int slotRows = inventorySlots / slotsOnLine;
 		int remainingSlots = inventorySlots % slotsOnLine;
 		GuiHelper.renderSlotsBackground(matrixStack, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
+	}
 
+	private void drawSlotOverlays(PoseStack matrixStack) {
 		matrixStack.pushPose();
 		matrixStack.translate(getGuiLeft(), getGuiTop(), 0.0F);
 		for (int slotNumber = 0; slotNumber < menu.getNumberOfStorageInventorySlots(); slotNumber++) {
@@ -900,9 +914,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			upgradeSlotChangeResult.getErrorUpgradeSlots().forEach(slotIndex -> renderSlotOverlay(matrixStack, menu.getSlot(menu.getFirstUpgradeSlot() + slotIndex), ERROR_SLOT_COLOR));
 			upgradeSlotChangeResult.getErrorInventorySlots().forEach(slotIndex -> {
 				Slot slot = menu.getSlot(slotIndex);
-				if (slot != null) {
-					renderSlotOverlay(matrixStack, slot, ERROR_SLOT_COLOR);
-				}
+				renderSlotOverlay(matrixStack, slot, ERROR_SLOT_COLOR);
 			});
 			upgradeSlotChangeResult.getErrorInventoryParts().forEach(partIndex -> {
 				if (inventoryParts.size() > partIndex) {
@@ -976,6 +988,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public void drawSlotBg(PoseStack matrixStack) {
 		drawSlotBg(matrixStack, (width - imageWidth) / 2, (height - imageHeight) / 2);
+		drawSlotOverlays(matrixStack);
 	}
 
 	@Override

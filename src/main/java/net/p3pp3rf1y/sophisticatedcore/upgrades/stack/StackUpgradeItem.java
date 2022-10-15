@@ -26,7 +26,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	}
 
 	public static int getInventorySlotLimit(IStorageWrapper storageWrapper) {
-		int multiplier = 1;
+		int multiplier = storageWrapper.getBaseStackSizeMultiplier();
 
 		for (Wrapper stackWrapper : storageWrapper.getUpgradeHandler().getTypeWrappers(TYPE)) {
 			if (Integer.MAX_VALUE / stackWrapper.getStackSizeMultiplier() < multiplier) {

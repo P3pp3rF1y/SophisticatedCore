@@ -270,7 +270,7 @@ public abstract class RenderInfo {
 				displayItems.remove(index);
 			} else {
 				if (index == displayItems.size()) {
-					displayItems.add(new DisplayItem(item, 0));
+					displayItems.add(new DisplayItem(item, 0, index));
 				} else {
 					displayItems.get(index).item = item;
 				}
@@ -313,22 +313,26 @@ public abstract class RenderInfo {
 	public static class DisplayItem {
 		private static final String ITEM_TAG = "item";
 		private static final String ROTATION_TAG = "rotation";
+		private static final String SLOT_INDEX_TAG = "slotIndex";
 		private ItemStack item;
 		private int rotation;
+		private int slotIndex;
 
-		public DisplayItem(ItemStack item, int rotation) {
+		public DisplayItem(ItemStack item, int rotation, int slotIndex) {
 			this.item = item;
 			this.rotation = rotation;
+			this.slotIndex = slotIndex;
 		}
 
 		private CompoundTag serialize(CompoundTag tag) {
 			tag.put(ITEM_TAG, item.serializeNBT());
 			tag.putInt(ROTATION_TAG, rotation);
+			tag.putInt(SLOT_INDEX_TAG, slotIndex);
 			return tag;
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
-			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG));
+			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG));
 		}
 
 		public ItemStack getItem() {
@@ -337,6 +341,10 @@ public abstract class RenderInfo {
 
 		public int getRotation() {
 			return rotation;
+		}
+
+		public int getSlotIndex() {
+			return slotIndex;
 		}
 	}
 }

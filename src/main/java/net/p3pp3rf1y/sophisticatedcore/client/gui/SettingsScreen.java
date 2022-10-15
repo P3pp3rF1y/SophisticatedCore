@@ -40,7 +40,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	private void updateDimensionsAndSlotPositions(int pHeight) {
 		int displayableNumberOfRows = Math.min((pHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
-		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + displayableNumberOfRows * 18;
+		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(displayableNumberOfRows);
 		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		imageWidth = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
@@ -52,6 +52,10 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		imageHeight = newImageHeight;
 		inventoryLabelY = imageHeight - 94;
 		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
+	}
+
+	protected int getStorageInventoryHeight(int displayableNumberOfRows) {
+		return displayableNumberOfRows * 18;
 	}
 
 	private void updateInventoryScrollPanel() {
@@ -73,7 +77,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		return Math.min((imageHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
 	}
 
-	private void updateStorageSlotsPositions() {
+	protected void updateStorageSlotsPositions() {
 		int yPosition = 18;
 
 		int slotIndex = 0;
@@ -108,13 +112,13 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
 		int x = (width - imageWidth) / 2;
 		int y = (height - imageHeight) / 2;
-		StorageGuiHelper.renderStorageBackground(new Position(x, y), matrixStack, storageBackgroundProperties.getTextureName(), imageWidth, 18 * getNumberOfVisibleRows());
+		StorageGuiHelper.renderStorageBackground(new Position(x, y), matrixStack, storageBackgroundProperties.getTextureName(), imageWidth, getStorageInventoryHeight(getNumberOfVisibleRows()));
 		if (inventoryScrollPanel == null) {
 			drawSlotBg(matrixStack, x, y);
 		}
 	}
 
-	private void drawSlotBg(PoseStack matrixStack, int x, int y) {
+	protected void drawSlotBg(PoseStack matrixStack, int x, int y) {
 		int inventorySlots = getMenu().getStorageInventorySlots().size();
 		int slotsOnLine = getSlotsOnLine();
 		int slotRows = inventorySlots / slotsOnLine;
