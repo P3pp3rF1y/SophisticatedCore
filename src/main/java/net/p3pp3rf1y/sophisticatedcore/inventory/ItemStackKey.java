@@ -1,7 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 
 public record ItemStackKey(ItemStack stack) {
 	public ItemStack getStack() {
@@ -30,7 +36,28 @@ public record ItemStackKey(ItemStack stack) {
 	}
 
 	public static int getHashCode(ItemStack stack) {
-		//noinspection ConstantConditions - hasTag call makes sure getTag doesn't return null
-		return stack.getItem().hashCode() * 31 + (stack.hasTag() ? stack.getTag().hashCode() : 0);
+		int hash = stack.getItem().hashCode();
+		if (stack.hasTag()) {
+			//noinspection ConstantConditions - hasTag call makes sure getTag doesn't return null
+			hash = hash * 31 + stack.getTag().hashCode();
+		}
+		CompoundTag capNbt = getCapNbt(stack);
+		if (capNbt != null) {
+			hash = hash * 31 + capNbt.hashCode();
+		}
+		return hash;
+	}
+
+	private static final Field CAP_NBT = ObfuscationReflectionHelper.findField(ItemStack.class, "capNBT");
+
+	@Nullable
+	private static CompoundTag getCapNbt(ItemStack stack) {
+		try {
+			return (CompoundTag) CAP_NBT.get(stack);
+		}
+		catch (IllegalAccessException e) {
+			SophisticatedCore.LOGGER.error("Error getting capNBT of stack ", e);
+			return null;
+		}
 	}
 }
