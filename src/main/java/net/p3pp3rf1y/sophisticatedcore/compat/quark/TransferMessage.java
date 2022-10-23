@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -48,7 +48,7 @@ public class TransferMessage {
 		}
 		IStorageWrapper storageWrapper = storageMenu.getStorageWrapper();
 		if (msg.isRestock) {
-			player.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY).ifPresent(playerInv ->
+			player.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(playerInv ->
 					InventoryHelper.transfer(storageWrapper.getInventoryHandler(), new FilteredItemHandler<>(playerInv, msg.smartTransfer), s -> {}));
 		} else {
 			Inventory inv = player.getInventory();
