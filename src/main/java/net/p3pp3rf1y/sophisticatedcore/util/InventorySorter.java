@@ -5,6 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 
 import java.util.ArrayList;
@@ -103,13 +104,8 @@ public class InventorySorter {
 
 	private static int placeStack(IItemHandlerModifiable handler, ItemStackKey current, int count, int slot) {
 		ItemStack copy = current.getStack().copy();
-		int slotLimit = handler.getSlotLimit(slot);
-		int countPlaced;
-		if (slotLimit > 64) {
-			countPlaced = Math.min(count, slotLimit / 64 * copy.getMaxStackSize());
-		} else {
-			countPlaced = Math.min(count, copy.getMaxStackSize());
-		}
+		int slotLimit = handler instanceof InventoryHandler inventoryHandler ? inventoryHandler.getStackLimit(slot, copy) : handler.getSlotLimit(slot);
+		int countPlaced = Math.min(count, slotLimit);
 		copy.setCount(countPlaced);
 		if (!ItemStack.matches(handler.getStackInSlot(slot), copy)) {
 			handler.setStackInSlot(slot, copy);
