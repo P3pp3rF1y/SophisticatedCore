@@ -1092,8 +1092,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
-	protected static int calculateMaxCountForStack(int slotLimit, ItemStack stack) {
-		return slotLimit / 64 * stack.getMaxStackSize();
+	protected static int calculateMaxCountForStack(Slot slot, ItemStack stack) {
+		if (slot instanceof StorageInventorySlot storageInventorySlot) {
+			return storageInventorySlot.getMaxStackSize(stack);
+		}
+		return stack.getMaxStackSize();
 	}
 
 	//copy of mergeItemStack from Container - just calling getSlot here to account for upgrade slots instead of direct inventorySlots.get
@@ -1123,7 +1126,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					ItemStack destStack = slot.getItem();
 					if (!destStack.isEmpty() && ItemStack.isSameItemSameTags(sourceStack, destStack)) {
 						int j = destStack.getCount() + toTransfer;
-						int maxSize = StorageContainerMenuBase.calculateMaxCountForStack(slot.getMaxStackSize(), sourceStack);
+						int maxSize = StorageContainerMenuBase.calculateMaxCountForStack(slot, sourceStack);
 						if (j <= maxSize) {
 							sourceStack.shrink(toTransfer);
 							destStack.setCount(j);
@@ -1265,7 +1268,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack) {
 		boolean flag = slot == null || !slot.hasItem();
 		if (!flag && stack.sameItem(slot.getItem()) && ItemStack.tagMatches(slot.getItem(), stack)) {
-			return slot.getItem().getCount() <= calculateMaxCountForStack(slot.getMaxStackSize(), stack);
+			return slot.getItem().getCount() <= calculateMaxCountForStack(slot, stack);
 		} else {
 			return flag;
 		}
