@@ -3,8 +3,10 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -66,9 +68,14 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	public void removePartiallyFilled(int slot) {
 		if (partiallyFilledSlotStacks.containsKey(slot)) {
 			ItemStackKey stackKey = partiallyFilledSlotStacks.remove(slot);
+			@Nullable
 			Set<Integer> partialSlots = partiallyFilledStackSlots.get(stackKey);
-			partialSlots.remove(slot);
-			if (partialSlots.isEmpty()) {
+			if (partialSlots == null) {
+				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}", () -> stackKey != null ? stackKey.stack().toString() : "null");
+			} else {
+				partialSlots.remove(slot);
+			}
+			if (partialSlots == null || partialSlots.isEmpty()) {
 				partiallyFilledStackSlots.remove(stackKey);
 				if (!fullStackSlots.containsKey(stackKey)) {
 					onRemoveStackKey.accept(stackKey);
@@ -80,9 +87,14 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private void removeFull(int slot) {
 		if (fullSlotStacks.containsKey(slot)) {
 			ItemStackKey stackKey = fullSlotStacks.remove(slot);
+			@Nullable
 			Set<Integer> fullSlots = fullStackSlots.get(stackKey);
-			fullSlots.remove(slot);
-			if (fullSlots.isEmpty()) {
+			if (fullSlots == null) {
+				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}", () -> stackKey != null ? stackKey.stack().toString() : "null");
+			} else {
+				fullSlots.remove(slot);
+			}
+			if (fullSlots == null || fullSlots.isEmpty()) {
 				fullStackSlots.remove(stackKey);
 				if (!partiallyFilledStackSlots.containsKey(stackKey)) {
 					onRemoveStackKey.accept(stackKey);
