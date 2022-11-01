@@ -25,6 +25,7 @@ public class TranslationHelper {
 	private final String guiStatusPrefix;
 	private final String buttonsPrefix;
 	private final String itemUpgradePrefix;
+	private final String blockPrefix;
 	private final String upgradeButtonsPrefix;
 	private final String upgradeControlsPrefix;
 	private final String keybindPrefix;
@@ -33,6 +34,7 @@ public class TranslationHelper {
 		guiPrefix = "gui." + modId + ".";
 		keybindPrefix = "keybind." + modId + ".";
 		itemUpgradePrefix = "item." + modId + ".";
+		blockPrefix = "block." + modId + ".";
 		guiUpgradePrefix = guiPrefix + "upgrades.";
 		guiSettingsPrefix = guiPrefix + "settings.";
 		guiStatusPrefix = guiPrefix + "status.";
@@ -55,6 +57,9 @@ public class TranslationHelper {
 
 	public String translUpgradeKey(String upgradeName) {
 		return guiUpgradePrefix + upgradeName;
+	}
+	public String translBlockTooltipKey(String blockName) {
+		return blockPrefix + blockName + TOOLTIP_SUFFIX;
 	}
 
 	public String translSettings(String categoryName) {
