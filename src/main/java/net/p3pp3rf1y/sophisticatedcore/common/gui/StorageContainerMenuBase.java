@@ -42,6 +42,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -216,7 +217,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> noSortSlotIndexes = getNoSortSlotIndexes();
 		while (slotIndex < inventoryHandler.getSlots()) {
 			int finalSlotIndex = slotIndex;
-			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex);
+			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex) {
+				@Override
+				public void set(@Nonnull ItemStack stack) {
+					super.set(stack);
+					onStorageInventorySlotSet(finalSlotIndex);
+				}
+			};
 			if (noSortSlotIndexes.contains(slotIndex)) {
 				addNoSortSlot(slot);
 			} else {
@@ -225,6 +232,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 			slotIndex++;
 		}
+	}
+
+	protected void onStorageInventorySlotSet(int slotIndex) {
+		//noop by default
 	}
 
 	protected void addPlayerInventorySlots(Inventory playerInventory, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {

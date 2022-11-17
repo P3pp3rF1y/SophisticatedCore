@@ -104,4 +104,14 @@ public interface IControllableStorage extends IControllerBoundable {
 			}
 		});
 	}
+
+	default void updateEmptySlots() {
+		getControllerPos().ifPresent(controllerPos -> {
+			Level level = getStorageBlockLevel();
+			if (!level.isClientSide()) {
+				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class)
+						.ifPresent(controller -> controller.updateEmptySlots(getStorageBlockPos(), getStorageWrapper().getInventoryForInputOutput().hasEmptySlots()));
+			}
+		});
+	}
 }
