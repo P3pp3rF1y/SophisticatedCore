@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -29,8 +30,15 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private Runnable onAddFirstEmptySlot = () -> {};
 	private Runnable onRemoveLastEmptySlot = () -> {};
 
+	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
+
 	public InventoryHandlerSlotTracker(MemorySettingsCategory memorySettings) {
 		this.memorySettings = memorySettings;
+	}
+
+	@Override
+	public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
+		this.shouldInsertIntoEmpty = shouldInsertIntoEmpty;
 	}
 
 	public void addPartiallyFilled(int slot, ItemStack stack) {
@@ -239,7 +247,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		if (!remainingStack.isEmpty() && doesNotMatchCurrentSlot) {
 			remainingStack = insertIntoEmptySlots(inserter, remainingStack, simulate);
 		}
-		if (!remainingStack.isEmpty()) {
+		if (!remainingStack.isEmpty() && (!emptySlots.contains(slot) || shouldInsertIntoEmpty.getAsBoolean())) {
 			remainingStack = inserter.insertItem(slot, remainingStack, simulate);
 		}
 
@@ -266,7 +274,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	@Override
 	public boolean hasEmptySlots() {
-		return !emptySlots.isEmpty();
+		return shouldInsertIntoEmpty.getAsBoolean() && !emptySlots.isEmpty();
 	}
 
 	private ItemStack handleOverflow(UnaryOperator<ItemStack> overflowHandler, ItemStackKey stackKey, ItemStack remainingStack) {
@@ -298,7 +306,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private ItemStack insertIntoEmptySlots(IItemHandlerInserter inserter, ItemStack stack, boolean simulate) {
 		ItemStack remainingStack = stack.copy();
 		remainingStack = insertIntoEmptyMemorySlots(inserter, simulate, remainingStack);
-		if (!remainingStack.isEmpty()) {
+		if (shouldInsertIntoEmpty.getAsBoolean() && !remainingStack.isEmpty()) {
 			int sizeBefore = emptySlots.size();
 			int i = 0;
 			// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to inserts

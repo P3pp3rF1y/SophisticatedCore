@@ -38,6 +38,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		}
 		if (isServer()) {
 			getCategory().unselectSlot(slotNumber);
+			getSettingsContainer().onMemorizedStackRemoved(slotNumber);
 		} else {
 			sendIntToServer(UNSELECT_SLOT_TAG, slotNumber);
 		}

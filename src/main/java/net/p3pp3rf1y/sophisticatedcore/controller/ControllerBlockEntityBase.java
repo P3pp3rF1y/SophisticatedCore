@@ -109,7 +109,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		updateEmptySlots(storagePos, hasEmptySlots);
 	}
 
-	private void updateEmptySlots(BlockPos storagePos, boolean hasEmptySlots) {
+	public void updateEmptySlots(BlockPos storagePos, boolean hasEmptySlots) {
 		if (emptySlotsStorages.contains(storagePos) && !hasEmptySlots) {
 			emptySlotsStorages.remove(storagePos);
 		} else if (!emptySlotsStorages.contains(storagePos) && hasEmptySlots) {

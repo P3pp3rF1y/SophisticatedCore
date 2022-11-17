@@ -4,10 +4,13 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public interface ISlotTracker {
+
+	void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty);
 
 	Set<ItemStackKey> getFullStacks();
 
@@ -34,6 +37,11 @@ public interface ISlotTracker {
 	}
 
 	class Noop implements ISlotTracker {
+		@Override
+		public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
+			//noop
+		}
+
 		@Override
 		public Set<ItemStackKey> getFullStacks() {
 			return Collections.emptySet();
