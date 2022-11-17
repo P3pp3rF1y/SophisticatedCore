@@ -31,7 +31,7 @@ public interface ILinkable extends IControllerBoundable {
 	default void unlinkFromController() {
 		Level level = getStorageBlockLevel();
 
-		if (!level.isClientSide()) {
+		if (!level.isClientSide() && isLinked()) {
 			runOnController(level, controller -> controller.removeLinkedBlock(getStorageBlockPos()));
 			removeControllerPos();
 			setNotLinked();
