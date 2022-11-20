@@ -282,6 +282,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return stackStorages.containsKey(new ItemStackKey(stack));
 	}
 
+	protected boolean isMemorizedItem(ItemStack stack) {
+		return memorizedItemStorages.containsKey(stack.getItem());
+	}
+
 	public void removeStorage(BlockPos storagePos) {
 		removeStorageInventoryDataAndUnregisterController(storagePos);
 		verifyStoragesConnected();
