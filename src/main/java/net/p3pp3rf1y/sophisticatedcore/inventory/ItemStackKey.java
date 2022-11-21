@@ -60,4 +60,8 @@ public record ItemStackKey(ItemStack stack) {
 			return null;
 		}
 	}
+
+	public boolean matches(ItemStack stack) {
+		return hashCode() == getHashCode(stack);
+	}
 }

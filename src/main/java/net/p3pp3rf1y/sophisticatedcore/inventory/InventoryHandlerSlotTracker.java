@@ -346,6 +346,21 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 				}
 			}
 		}
+
+		Map<Integer, Set<Integer>> memoryFilterStackSlots = memorySettings.getFilterStackSlots();
+		if (!memoryFilterStackSlots.isEmpty()) {
+			int stackHash = ItemStackKey.getHashCode(remainingStack);
+			if (memoryFilterStackSlots.containsKey(stackHash)) {
+				for (int memorySlot : memoryFilterStackSlots.get(stackHash)) {
+					if (emptySlots.contains(memorySlot)) {
+						remainingStack = inserter.insertItem(memorySlot, remainingStack, simulate);
+						if (remainingStack.isEmpty()) {
+							break;
+						}
+					}
+				}
+			}
+		}
 		return remainingStack;
 	}
 }

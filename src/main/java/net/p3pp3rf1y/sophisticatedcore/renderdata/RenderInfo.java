@@ -86,19 +86,6 @@ public abstract class RenderInfo {
 		save();
 	}
 
-	public void updateItemDisplayRenderInfo(int index, ItemStack item, int rotation) {
-		if (item.isEmpty()) {
-			itemDisplayRenderInfo.removeDisplayItem(index);
-		} else {
-			itemDisplayRenderInfo.setItem(index, item);
-			itemDisplayRenderInfo.setRotation(index, rotation);
-		}
-		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
-		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
-		serializeRenderInfo(renderInfo);
-		save();
-	}
-
 	public void setChangeListener(Consumer<RenderInfo> changeListener) {
 		this.changeListener = changeListener;
 	}

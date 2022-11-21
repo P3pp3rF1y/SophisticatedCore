@@ -72,7 +72,7 @@ public class TransferMessage {
 
 		@Override
 		protected boolean matchesFilter(ItemStack stack) {
-			return super.matchesFilter(stack) || storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getFilterItemSlots().containsKey(stack.getItem());
+			return super.matchesFilter(stack) || storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(stack);
 		}
 
 		@Nonnull

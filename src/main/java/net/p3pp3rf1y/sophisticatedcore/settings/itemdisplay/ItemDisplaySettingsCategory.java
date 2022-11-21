@@ -96,7 +96,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 	private Optional<ItemStack> getSlotItemCopy(int slotIndex) {
 		ItemStack slotStack = inventoryHandlerSupplier.get().getStackInSlot(slotIndex);
 		if (slotStack.isEmpty()) {
-			return getMemorySettings.get().getSlotFilterItem(slotIndex).map(ItemStack::new);
+			return getMemorySettings.get().getSlotFilterStack(slotIndex, true);
 		}
 		ItemStack stackCopy = slotStack.copy();
 		stackCopy.setCount(1);
@@ -189,6 +189,12 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 			return;
 		}
 
+		if (haveRenderedItemsChanged()) {
+			updateFullRenderInfo();
+		}
+	}
+
+	public void itemsChanged() {
 		if (haveRenderedItemsChanged()) {
 			updateFullRenderInfo();
 		}
