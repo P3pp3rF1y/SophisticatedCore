@@ -677,7 +677,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
-		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterItem(slotId).map(ItemStack::new);
+		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterStack(slotId, false);
 	}
 
 	public void setUpgradeChangeListener(Consumer<StorageContainerMenuBase<?>> upgradeChangeListener) {
@@ -1176,7 +1176,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 			MemorySettingsCategory memory = storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
 			for (int slotIndex = firstIndex; (reverseDirection ? slotIndex >= startIndex : slotIndex < endIndex) && toTransfer > 0; slotIndex += increment) {
-				if (memory.getSlotIndexes().contains(slotIndex) && memory.matchesFilter(slotIndex, sourceStack)) {
+				if (memory.isSlotSelected(slotIndex) && memory.matchesFilter(slotIndex, sourceStack)) {
 					Slot slot = getSlot(slotIndex);
 					if (!slot.mayPlace(sourceStack)) {
 						continue;

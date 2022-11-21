@@ -72,7 +72,9 @@ public interface IControllableStorage extends IControllerBoundable {
 		registerInventoryStackListeners();
 		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).registerListeners(
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedItem(getStorageBlockPos(), i)),
-				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i))
+				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i)),
+				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedStack(getStorageBlockPos(), i)),
+				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedStack(getStorageBlockPos(), i))
 		);
 	}
 

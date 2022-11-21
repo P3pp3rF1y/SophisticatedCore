@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.function.Supplier;
 
@@ -40,6 +41,10 @@ public abstract class SettingsContainerBase<C extends ISettingsCategory> {
 			data.putString(key, value);
 			return data;
 		});
+	}
+
+	public void sendBooleanToServer(String key, boolean value) {
+		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), key, value));
 	}
 
 	public void sendDataToServer(Supplier<CompoundTag> supplyData) {
