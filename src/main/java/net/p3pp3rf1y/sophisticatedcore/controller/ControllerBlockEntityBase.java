@@ -526,6 +526,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			return stack;
 		}
 
+		return insertItem(stack, simulate, true);
+	}
+
+	protected ItemStack insertItem(ItemStack stack, boolean simulate, boolean insertIntoAnyEmpty) {
 		ItemStackKey stackKey = new ItemStackKey(stack);
 		ItemStack remaining = stack;
 
@@ -542,7 +546,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate);
 		}
 
-		return insertIntoStorages(emptySlotsStorages, remaining, simulate);
+		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, remaining, simulate) : remaining;
 	}
 
 	private ItemStack insertIntoStorages(Set<BlockPos> positions, ItemStack stack, boolean simulate) {
