@@ -42,7 +42,7 @@ public record ItemStackKey(ItemStack stack) {
 			hash = hash * 31 + stack.getTag().hashCode();
 		}
 		CompoundTag capNbt = getCapNbt(stack);
-		if (capNbt != null) {
+		if (capNbt != null && !capNbt.isEmpty()) {
 			hash = hash * 31 + capNbt.hashCode();
 		}
 		return hash;
