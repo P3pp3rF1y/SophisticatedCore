@@ -2,22 +2,15 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 public class CountAbbreviator {
 	private CountAbbreviator() {}
 
-	private static final NavigableMap<Integer, String> COUNT_SUFFIXES = new TreeMap<>();
+	private static final String[] COUNT_SUFFIXES = new String[] {"k", "m", "b"};
 	private static final DecimalFormat TWO_DIGIT_PRECISION;
 	private static final DecimalFormat ONE_DIGIT_PRECISION;
 
 	static {
-		COUNT_SUFFIXES.put(1_000, "k");
-		COUNT_SUFFIXES.put(1_000_000, "m");
-		COUNT_SUFFIXES.put(1_000_000_000, "b");
-
 		TWO_DIGIT_PRECISION = new DecimalFormat("#.00");
 		TWO_DIGIT_PRECISION.setRoundingMode(RoundingMode.DOWN);
 		ONE_DIGIT_PRECISION = new DecimalFormat("##.0");
@@ -25,23 +18,32 @@ public class CountAbbreviator {
 	}
 
 	public static String abbreviate(int count) {
-		if (count < 1000) {
-			return Integer.toString(count);
+		return abbreviate(count, 4);
+	}
+
+
+	public static String abbreviate(int count, int maxCharacters) {
+		int digits = (int) Math.log10(count) + 1;
+		if (digits <= maxCharacters) {
+			return String.format("%,d", count);
 		}
 
-		Map.Entry<Integer, String> e = COUNT_SUFFIXES.floorEntry(count);
-		Integer divideBy = e.getKey();
-		String suffix = e.getValue();
+		int thousandsExponent = ((digits - maxCharacters) / 3) + 1;
 
-		String numberPart;
-		if (count < 10 * divideBy) {
-			numberPart = TWO_DIGIT_PRECISION.format((double) count / divideBy);
-		} else if (count < 100 * divideBy) {
-			numberPart = ONE_DIGIT_PRECISION.format((double) count / divideBy);
-		} else {
-			numberPart = Integer.toString(count / divideBy);
+		String suffix = COUNT_SUFFIXES[thousandsExponent - 1];
+
+		double divisionResult = count / Math.pow(1000, thousandsExponent);
+		int wholeDigits = digits - thousandsExponent * 3;
+		int precisionDigits = maxCharacters - 1 - wholeDigits;
+
+		String numberPart = "";
+		if (wholeDigits > 3 || precisionDigits == 0) {
+			numberPart = String.format("%,d", (int) divisionResult);
+		} else if (precisionDigits == 2) {
+			numberPart = TWO_DIGIT_PRECISION.format(divisionResult);
+		} else if (precisionDigits == 1) {
+			numberPart = ONE_DIGIT_PRECISION.format(divisionResult);
 		}
 		return numberPart + suffix;
 	}
-
 }
