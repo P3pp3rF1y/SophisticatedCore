@@ -90,14 +90,22 @@ public class MemorySettingsCategory implements ISettingsCategory {
 	}
 
 	public void unselectAllSlots() {
-		filterItemSlots.keySet().forEach(i -> onItemRemoved.accept(i));
-		slotFilterItems.clear();
-		filterItemSlots.clear();
+		unselectAllFilterItemSlots();
+		unselectAllFilteStackSlots();
+
+		serializeFilterItems();
+	}
+
+	private void unselectAllFilteStackSlots() {
 		filterStackSlots.keySet().forEach(i -> onStackRemoved.accept(i));
 		slotFilterStacks.clear();
 		filterStackSlots.clear();
+	}
 
-		serializeFilterItems();
+	private void unselectAllFilterItemSlots() {
+		filterItemSlots.keySet().forEach(i -> onItemRemoved.accept(i));
+		slotFilterItems.clear();
+		filterItemSlots.clear();
 	}
 
 	/**
@@ -183,8 +191,26 @@ public class MemorySettingsCategory implements ISettingsCategory {
 	}
 
 	public void setIgnoreNbt(boolean ignoreNbt) {
+		if (this.ignoreNbt == ignoreNbt) {
+			return;
+		}
+
 		Set<Integer> slotIndexes = getSlotIndexes();
-		unselectAllSlots();
+		if (this.ignoreNbt && !ignoreNbt) {
+			slotFilterItems.forEach((slot, item) -> {
+				ItemStack stack = inventoryHandlerSupplier.get().getStackInSlot(slot);
+				if (stack.isEmpty()) {
+					stack = new ItemStack(item);
+				}
+				addSlotStack(slot, stack);
+			});
+			unselectAllFilterItemSlots();
+		} else {
+			slotFilterStacks.forEach((slot, isk) -> addSlotItem(slot, isk.getStack().getItem()));
+			unselectAllFilteStackSlots();
+		}
+		serializeFilterItems();
+
 		this.ignoreNbt = ignoreNbt;
 		categoryNbt.putBoolean(IGNORE_NBT_TAG, ignoreNbt);
 		saveNbt.accept(categoryNbt);
