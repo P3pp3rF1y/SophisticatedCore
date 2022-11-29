@@ -84,4 +84,9 @@ public interface IStorageWrapper {
 	default ItemStack getWrappedStorageStack() {
 		return ItemStack.EMPTY;
 	}
+
+	default int getBaseStackSizeMultiplier() {
+		return 1;
+	}
+
 }

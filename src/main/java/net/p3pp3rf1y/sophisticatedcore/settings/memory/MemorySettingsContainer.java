@@ -10,6 +10,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 	private static final String UNSELECT_ALL_ACTION = "unselectAll";
 	private static final String UNSELECT_SLOT_TAG = "unselectSlot";
 	private static final String SELECT_SLOT_TAG = "selectSlot";
+	private static final String IGNORE_NBT_TAG = "ignoreNbt";
 
 	public MemorySettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, MemorySettingsCategory category) {
 		super(settingsContainer, categoryName, category);
@@ -29,6 +30,8 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 			selectSlot(data.getInt(SELECT_SLOT_TAG));
 		} else if (data.contains(UNSELECT_SLOT_TAG)) {
 			unselectSlot(data.getInt(UNSELECT_SLOT_TAG));
+		} else if (data.contains(IGNORE_NBT_TAG)) {
+			setIgnoreNbt(data.getBoolean(IGNORE_NBT_TAG));
 		}
 	}
 
@@ -38,6 +41,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		}
 		if (isServer()) {
 			getCategory().unselectSlot(slotNumber);
+			getSettingsContainer().onMemorizedStackRemoved(slotNumber);
 		} else {
 			sendIntToServer(UNSELECT_SLOT_TAG, slotNumber);
 		}
@@ -72,5 +76,18 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 
 	public boolean isSlotSelected(int slotNumber) {
 		return getCategory().isSlotSelected(slotNumber);
+	}
+
+	public boolean ignoresNbt() {
+		return getCategory().ignoresNbt();
+	}
+
+	public void setIgnoreNbt(boolean ignoreNbt) {
+		if (isServer()) {
+			getCategory().setIgnoreNbt(ignoreNbt);
+			getSettingsContainer().onMemorizedItemsChanged();
+		} else {
+			sendBooleanToServer(IGNORE_NBT_TAG, ignoreNbt);
+		}
 	}
 }

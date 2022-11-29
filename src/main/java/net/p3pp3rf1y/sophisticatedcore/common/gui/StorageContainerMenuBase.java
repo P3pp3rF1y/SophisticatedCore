@@ -42,6 +42,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -216,7 +217,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> noSortSlotIndexes = getNoSortSlotIndexes();
 		while (slotIndex < inventoryHandler.getSlots()) {
 			int finalSlotIndex = slotIndex;
-			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex);
+			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex) {
+				@Override
+				public void set(@Nonnull ItemStack stack) {
+					super.set(stack);
+					onStorageInventorySlotSet(finalSlotIndex);
+				}
+			};
 			if (noSortSlotIndexes.contains(slotIndex)) {
 				addNoSortSlot(slot);
 			} else {
@@ -225,6 +232,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 			slotIndex++;
 		}
+	}
+
+	protected void onStorageInventorySlotSet(int slotIndex) {
+		//noop by default
 	}
 
 	protected void addPlayerInventorySlots(Inventory playerInventory, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
@@ -666,7 +677,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
-		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterItem(slotId).map(ItemStack::new);
+		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterStack(slotId, false);
 	}
 
 	public void setUpgradeChangeListener(Consumer<StorageContainerMenuBase<?>> upgradeChangeListener) {
@@ -1092,8 +1103,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
-	protected static int calculateMaxCountForStack(int slotLimit, ItemStack stack) {
-		return slotLimit / 64 * stack.getMaxStackSize();
+	protected static int calculateMaxCountForStack(Slot slot, ItemStack stack) {
+		if (slot instanceof StorageInventorySlot storageInventorySlot) {
+			return storageInventorySlot.getMaxStackSize(stack);
+		}
+		return stack.getMaxStackSize();
 	}
 
 	//copy of mergeItemStack from Container - just calling getSlot here to account for upgrade slots instead of direct inventorySlots.get
@@ -1123,7 +1137,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					ItemStack destStack = slot.getItem();
 					if (!destStack.isEmpty() && ItemStack.isSameItemSameTags(sourceStack, destStack)) {
 						int j = destStack.getCount() + toTransfer;
-						int maxSize = StorageContainerMenuBase.calculateMaxCountForStack(slot.getMaxStackSize(), sourceStack);
+						int maxSize = StorageContainerMenuBase.calculateMaxCountForStack(slot, sourceStack);
 						if (j <= maxSize) {
 							sourceStack.shrink(toTransfer);
 							destStack.setCount(j);
@@ -1162,7 +1176,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 			MemorySettingsCategory memory = storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
 			for (int slotIndex = firstIndex; (reverseDirection ? slotIndex >= startIndex : slotIndex < endIndex) && toTransfer > 0; slotIndex += increment) {
-				if (memory.getSlotIndexes().contains(slotIndex) && memory.matchesFilter(slotIndex, sourceStack)) {
+				if (memory.isSlotSelected(slotIndex) && memory.matchesFilter(slotIndex, sourceStack)) {
 					Slot slot = getSlot(slotIndex);
 					if (!slot.mayPlace(sourceStack)) {
 						continue;
@@ -1265,7 +1279,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack) {
 		boolean flag = slot == null || !slot.hasItem();
 		if (!flag && stack.sameItem(slot.getItem()) && ItemStack.tagMatches(slot.getItem(), stack)) {
-			return slot.getItem().getCount() <= calculateMaxCountForStack(slot.getMaxStackSize(), stack);
+			return slot.getItem().getCount() <= calculateMaxCountForStack(slot, stack);
 		} else {
 			return flag;
 		}

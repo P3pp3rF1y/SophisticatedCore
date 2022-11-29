@@ -188,7 +188,17 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	}
 
 	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
-		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterItem(slotId).map(ItemStack::new);
+		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterStack(slotId, false);
+	}
+
+	public void onMemorizedStackRemoved(int slotId) {
+		if (getSlot(slotId).getItem().isEmpty()) {
+			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(slotId);
+		}
+	}
+
+	public void onMemorizedItemsChanged() {
+		storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemsChanged();
 	}
 
 	@Override

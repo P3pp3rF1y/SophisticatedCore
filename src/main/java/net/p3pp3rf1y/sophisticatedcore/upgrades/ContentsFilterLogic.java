@@ -60,7 +60,7 @@ public class ContentsFilterLogic extends FilterLogic {
 				return true;
 			}
 		}
-		return memorySettings.getFilterItemSlots().containsKey(stack.getItem());
+		return memorySettings.matchesFilter(stack);
 	}
 
 	private void setFilterByStorage(boolean filterByStorage) {

@@ -84,8 +84,9 @@ public class Config {
 			}
 
 			private void addEnabledItemToConfig(ResourceLocation itemRegistryName) {
-				itemsEnableList.get().add(itemRegistryName + "|true");
-				COMMON_SPEC.save();
+				List<String> list = itemsEnableList.get();
+				list.add(itemRegistryName + "|true");
+				itemsEnableList.set(list);
 			}
 
 			private void loadEnabledMap() {

@@ -237,6 +237,10 @@ public class InventoryHelper {
 	}
 
 	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
+		transfer(handlerA, handlerB, -1, onInserted, canTransferStack);
+	}
+
+	private static void transfer(IItemHandler handlerA, IItemHandler handlerB, int slotB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
 		int slotsA = handlerA.getSlots();
 		for (int slot = 0; slot < slotsA; slot++) {
 			ItemStack slotStack = handlerA.getStackInSlot(slot);
@@ -244,10 +248,19 @@ public class InventoryHelper {
 				continue;
 			}
 
-			ItemStack resultStack = insertIntoInventory(slotStack, handlerB, true);
+			ItemStack resultStack;
+			if (slotB == -1) {
+				resultStack = insertIntoInventory(slotStack, handlerB, true);
+			} else {
+				resultStack = handlerB.insertItem(slotB, slotStack, true);
+			}
 			int countToExtract = slotStack.getCount() - resultStack.getCount();
 			if (countToExtract > 0 && handlerA.extractItem(slot, countToExtract, true).getCount() == countToExtract) {
-				InventoryHelper.insertIntoInventory(handlerA.extractItem(slot, countToExtract, false), handlerB, false);
+				if (slotB == -1) {
+					insertIntoInventory(handlerA.extractItem(slot, countToExtract, false), handlerB, false);
+				} else {
+					handlerB.insertItem(slotB, handlerA.extractItem(slot, countToExtract, false), false);
+				}
 				onInserted.accept(() -> {
 					ItemStack copiedStack = slotStack.copy();
 					copiedStack.setCount(countToExtract);
@@ -255,6 +268,10 @@ public class InventoryHelper {
 				});
 			}
 		}
+	}
+
+	public static void transferIntoSlot(IItemHandler handlerA, IItemHandler handlerB, int slotB, Predicate<ItemStack> canTransferStack) {
+		transfer(handlerA, handlerB, slotB, s -> {}, canTransferStack);
 	}
 
 	public static boolean isEmpty(IItemHandler itemHandler) {
