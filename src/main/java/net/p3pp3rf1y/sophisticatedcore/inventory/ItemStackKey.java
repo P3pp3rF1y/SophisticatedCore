@@ -42,7 +42,7 @@ public record ItemStackKey(ItemStack stack) {
 			hash = hash * 31 + stack.getTag().hashCode();
 		}
 		CompoundTag capNbt = getCapNbt(stack);
-		if (capNbt != null) {
+		if (capNbt != null && !capNbt.isEmpty()) {
 			hash = hash * 31 + capNbt.hashCode();
 		}
 		return hash;
@@ -59,5 +59,9 @@ public record ItemStackKey(ItemStack stack) {
 			SophisticatedCore.LOGGER.error("Error getting capNBT of stack ", e);
 			return null;
 		}
+	}
+
+	public boolean matches(ItemStack stack) {
+		return hashCode() == getHashCode(stack);
 	}
 }

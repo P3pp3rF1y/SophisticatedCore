@@ -87,7 +87,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
 		for (int slotIndex : slotIndexes) {
 			getSlotItemCopy(slotIndex).ifPresent(stackCopy ->
-					displayItems.add(new RenderInfo.DisplayItem(stackCopy, slotRotations.getOrDefault(slotIndex, 0))));
+					displayItems.add(new RenderInfo.DisplayItem(stackCopy, slotRotations.getOrDefault(slotIndex, 0), slotIndex)));
 		}
 
 		renderInfoSupplier.get().refreshItemDisplayRenderInfo(displayItems);
@@ -96,7 +96,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 	private Optional<ItemStack> getSlotItemCopy(int slotIndex) {
 		ItemStack slotStack = inventoryHandlerSupplier.get().getStackInSlot(slotIndex);
 		if (slotStack.isEmpty()) {
-			return getMemorySettings.get().getSlotFilterItem(slotIndex).map(ItemStack::new);
+			return getMemorySettings.get().getSlotFilterStack(slotIndex, true);
 		}
 		ItemStack stackCopy = slotStack.copy();
 		stackCopy.setCount(1);
@@ -194,8 +194,32 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 		}
 	}
 
+	public void itemsChanged() {
+		if (haveRenderedItemsChanged()) {
+			updateFullRenderInfo();
+		}
+	}
+
 	@Override
 	public Optional<Integer> getSlotColor(int slotNumber) {
 		return slotIndexes.contains(slotNumber) ? Optional.of(ColorHelper.getColor(color.getTextureDiffuseColors())) : Optional.empty();
+	}
+
+	/**
+	 * Selects slots that shouldn't be sorted
+	 *
+	 * @param minSlot inclusive
+	 * @param maxSlot exclusive
+	 */
+
+	public void selectSlots(int minSlot, int maxSlot) {
+		for (int slotIndex = minSlot; slotIndex < maxSlot; slotIndex++) {
+			if (slotIndexes.size() + 1 > itemNumberLimit) {
+				return;
+			}
+			slotIndexes.add(slotIndex);
+		}
+		serializeSlotIndexes();
+		updateFullRenderInfo();
 	}
 }
