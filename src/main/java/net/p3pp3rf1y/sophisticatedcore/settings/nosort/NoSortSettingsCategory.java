@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class NoSortSettingsCategory implements ISettingsCategory, ISlotColorCategory {
+public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsCategory>, ISlotColorCategory {
 	public static final String NAME = "no_sort";
 	private static final String COLOR_TAG = "color";
 	private static final String SELECTED_SLOTS_TAG = "selectedSlots";
@@ -102,5 +102,10 @@ public class NoSortSettingsCategory implements ISettingsCategory, ISlotColorCate
 		selectedSlots.clear();
 		color = DyeColor.LIME;
 		deserialize();
+	}
+
+	@Override
+	public void overwriteWith(NoSortSettingsCategory otherCategory) {
+		//noop for now
 	}
 }

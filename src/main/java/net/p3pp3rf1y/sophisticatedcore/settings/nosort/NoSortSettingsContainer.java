@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings.nosort;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 
 public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSettingsCategory> {
@@ -14,7 +14,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 	private static final String SELECT_SLOT_TAG = "selectSlot";
 	private static final String COLOR_TAG = "color";
 
-	public NoSortSettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, NoSortSettingsCategory category) {
+	public NoSortSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, NoSortSettingsCategory category) {
 		super(settingsContainer, categoryName, category);
 	}
 

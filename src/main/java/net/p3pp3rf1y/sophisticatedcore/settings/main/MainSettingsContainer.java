@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
@@ -11,7 +11,7 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 	private static final String CONTEXT_TAG = "context";
 	private Context context = Context.PLAYER;
 
-	public MainSettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, MainSettingsCategory category) {
+	public MainSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MainSettingsCategory category) {
 		super(settingsContainer, categoryName, category);
 	}
 
@@ -55,7 +55,7 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 		return getSettingValue(SettingsManager.KEEP_TAB_OPEN);
 	}
 
-	protected  <T> T getSettingValue(MainSetting<T> setting) {
+	protected  <S> S getSettingValue(MainSetting<S> setting) {
 		if (context == Context.PLAYER) {
 			return SettingsManager.getPlayerSettingOrDefault(getPlayer(), getCategory().getPlayerSettingsTagName(), setting);
 		} else {
@@ -63,7 +63,7 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 		}
 	}
 
-	private <T> void setSettingValue(Player player, MainSetting<T> setting, CompoundTag data) {
+	private <S> void setSettingValue(Player player, MainSetting<S> setting, CompoundTag data) {
 		setting.getValue(data).ifPresent(value -> {
 			if (context == Context.PLAYER) {
 				SettingsManager.setPlayerSetting(player, getCategory().getPlayerSettingsTagName(), setting, value);
