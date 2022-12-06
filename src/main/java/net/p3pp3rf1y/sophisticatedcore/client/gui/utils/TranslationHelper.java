@@ -15,6 +15,7 @@ import java.util.List;
 public class TranslationHelper {
 	public static final String TOOLTIP_SUFFIX = ".tooltip";
 	private static final String BUTTONS_SUFFIX = "buttons.";
+	private static final String MESSAGE_SUFFIX = "message.";
 	private static final String CONTROLS_SUFFIX = "controls.";
 
 	public static final TranslationHelper INSTANCE = new TranslationHelper(SophisticatedCore.MOD_ID);
@@ -68,6 +69,10 @@ public class TranslationHelper {
 
 	public String translSettingsButton(String buttonName) {
 		return translSettings(BUTTONS_SUFFIX + buttonName);
+	}
+
+	public String translSettingsMessage(String messageName) {
+		return translSettings(MESSAGE_SUFFIX + messageName);
 	}
 
 	public Component translUpgradeTooltip(String upgradeName) {

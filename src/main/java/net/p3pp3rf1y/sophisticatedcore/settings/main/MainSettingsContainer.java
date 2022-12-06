@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
@@ -11,7 +11,7 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 	private static final String CONTEXT_TAG = "context";
 	private Context context = Context.PLAYER;
 
-	public MainSettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, MainSettingsCategory category) {
+	public MainSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MainSettingsCategory category) {
 		super(settingsContainer, categoryName, category);
 	}
 

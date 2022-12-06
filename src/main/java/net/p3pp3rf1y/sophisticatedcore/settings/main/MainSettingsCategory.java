@@ -1,13 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.nbt.CompoundTag;
-import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class MainSettingsCategory implements ISettingsCategory {
+public class MainSettingsCategory<T extends MainSettingsCategory<?>> implements ISettingsCategory<T> {
 	public static final String NAME = "global";
 	private CompoundTag categoryNbt;
 	private final Consumer<CompoundTag> saveNbt;
@@ -41,5 +41,10 @@ public class MainSettingsCategory implements ISettingsCategory {
 	@Override
 	public void reloadFrom(CompoundTag categoryNbt) {
 		this.categoryNbt = categoryNbt;
+	}
+
+	@Override
+	public void overwriteWith(T otherCategory) {
+		//noop for now
 	}
 }

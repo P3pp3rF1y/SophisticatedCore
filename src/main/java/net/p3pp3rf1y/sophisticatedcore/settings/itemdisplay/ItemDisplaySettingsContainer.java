@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 
 import java.util.List;
@@ -14,7 +14,7 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 	private static final String ROTATE_CLOCKWISE_TAG = "rotateClockwise";
 	private static final String ROTATE_COUNTER_CLOCKWISE_TAG = "rotateCounterClockwise";
 
-	public ItemDisplaySettingsContainer(SettingsContainer<?> settingsContainer, String categoryName, ItemDisplaySettingsCategory category) {
+	public ItemDisplaySettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, ItemDisplaySettingsCategory category) {
 		super(settingsContainer, categoryName, category);
 	}
 

@@ -227,12 +227,13 @@ public class NBTHelper {
 		return Optional.of(map);
 	}
 
-	public static <K, V> void putMap(CompoundTag tag, String key, Map<K, V> map, Function<K, String> getStringKey, Function<V, Tag> getNbtValue) {
+	public static <K, V> CompoundTag putMap(CompoundTag tag, String key, Map<K, V> map, Function<K, String> getStringKey, Function<V, Tag> getNbtValue) {
 		CompoundTag mapNbt = new CompoundTag();
 		for (Map.Entry<K, V> entry : map.entrySet()) {
 			mapNbt.put(getStringKey.apply(entry.getKey()), getNbtValue.apply(entry.getValue()));
 		}
 		tag.put(key, mapNbt);
+		return tag;
 	}
 
 	public static <T> void setList(ItemStack stack, String parentKey, String key, Collection<T> values, Function<T, Tag> getNbtValue) {

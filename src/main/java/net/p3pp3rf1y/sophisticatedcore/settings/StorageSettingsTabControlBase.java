@@ -59,6 +59,16 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		}
 	}
 
+	public ItemStack getSlotStackDisplayOverride(int slotNumber) {
+		for (SettingsTab<?> settingsTab : settingsTabs) {
+			ItemStack stack = settingsTab.getItemDisplayOverride(slotNumber);
+			if (!stack.isEmpty()) {
+				return stack;
+			}
+		}
+		return ItemStack.EMPTY;
+	}
+
 	public void renderSlotExtra(PoseStack poseStack, Slot slot) {
 		settingsTabs.forEach(tab -> tab.renderExtra(poseStack, slot));
 	}
@@ -76,6 +86,12 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 			}
 		}
 		itemRenderer.renderAndDecorateItem(itemstack, slot.x, slot.y);
+	}
+
+	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot) {
+		for (SettingsTab<?> tab : settingsTabs) {
+			tab.drawSlotStackOverlay(poseStack, slot);
+		}
 	}
 
 	public interface ISlotOverlayRenderer {

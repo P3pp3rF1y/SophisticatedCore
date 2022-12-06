@@ -59,7 +59,7 @@ public class SettingsManager {
 		}
 	}
 
-	public static <T> void setSetting(Player player, String playerSettingsTagName, MainSettingsCategory category, MainSetting<T> setting, T value) {
+	public static <T> void setSetting(Player player, String playerSettingsTagName, MainSettingsCategory<?> category, MainSetting<T> setting, T value) {
 		T playerSettingValue = getPlayerSetting(player, playerSettingsTagName, setting).orElse(setting.getDefaultValue());
 		if (playerSettingValue != value) {
 			category.setSettingValue(setting, value);
@@ -68,7 +68,7 @@ public class SettingsManager {
 		}
 	}
 
-	public static <T> T getSettingValue(Player player, String playerSettingsTagName, MainSettingsCategory category, MainSetting<T> setting) {
+	public static <T> T getSettingValue(Player player, String playerSettingsTagName, MainSettingsCategory<?> category, MainSetting<T> setting) {
 		return category.getSettingValue(setting).orElse(getPlayerSetting(player, playerSettingsTagName, setting).orElse(setting.getDefaultValue()));
 	}
 
