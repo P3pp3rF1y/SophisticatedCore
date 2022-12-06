@@ -84,13 +84,13 @@ public class ClientEventHandler {
 				if (s == under) {
 					renderSpecialTooltip(event, mc, containerGui, poseStack, tooltip);
 				} else {
-					renderPlusSign(mc, containerGui, poseStack, s, stack);
+					renderStashSign(mc, containerGui, poseStack, s, stack);
 				}
 			}
 		}
 	}
 
-	private static void renderPlusSign(Minecraft mc, AbstractContainerScreen<?> containerGui, PoseStack poseStack, Slot s, ItemStack stack) {
+	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, PoseStack poseStack, Slot s, ItemStack stack) {
 		int x = containerGui.getGuiLeft() + s.x;
 		int y = containerGui.getGuiTop() + s.y;
 
@@ -100,7 +100,7 @@ public class ClientEventHandler {
 		if (stack.getItem() instanceof IStashStorageItem) {
 			mc.font.drawShadow(poseStack, "+", (float) x + 10, (float) y + 8, 0xFFFF00);
 		} else {
-			mc.font.drawShadow(poseStack, "+", x, y, 0xFFFF00);
+			mc.font.drawShadow(poseStack, "-", x + 1, y, 0xFFFF00);
 		}
 		poseStack.popPose();
 	}
