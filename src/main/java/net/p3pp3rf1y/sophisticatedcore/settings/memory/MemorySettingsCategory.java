@@ -166,6 +166,10 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void unselectFilterItemSlot(int slotNumber) {
+		if (!slotFilterItems.containsKey(slotNumber)) {
+			return;
+		}
+
 		Item item = slotFilterItems.remove(slotNumber);
 		Set<Integer> itemSlots = filterItemSlots.get(item);
 		itemSlots.remove(slotNumber);
@@ -176,6 +180,10 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void unselectFilterStackSlot(int slotNumber) {
+		if (!slotFilterStacks.containsKey(slotNumber)) {
+			return;
+		}
+
 		ItemStackKey isk = slotFilterStacks.remove(slotNumber);
 		int stackHash = isk.hashCode();
 		Set<Integer> stackSlots = filterStackSlots.get(stackHash);
