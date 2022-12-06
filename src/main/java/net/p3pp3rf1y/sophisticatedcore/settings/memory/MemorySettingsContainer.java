@@ -1,7 +1,10 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.memory;
 
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTemplateStorage;
@@ -117,6 +120,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 
 	public void saveTemplate() {
 		getSettingsContainer().saveTemplate(saveSlot);
+		getSettingsContainer().getPlayer().sendMessage(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsMessage("save_template"), saveSlot), Util.NIL_UUID);
 
 		if (saveSlot == 1 && getNumberOfSaves() == 1) {
 			selectLoadSlot(1);
@@ -125,6 +129,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 
 	public void loadTemplate() {
 		getSettingsContainer().loadTemplate();
+		getSettingsContainer().getPlayer().sendMessage(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsMessage("load_template"), loadSlot), Util.NIL_UUID);
 	}
 
 	public void scrollSaveSlot(boolean next) {
