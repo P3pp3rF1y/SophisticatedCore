@@ -23,6 +23,7 @@ public class Button extends ButtonBase {
 	@Nullable
 	private final TextureBlitData foregroundTexture;
 	private List<Component> tooltip;
+	private boolean hovered = false;
 
 	public Button(Position position, ButtonDefinition buttonDefinition, IntConsumer onClick) {
 		super(position, buttonDefinition.getDimension(), onClick);
@@ -32,13 +33,19 @@ public class Button extends ButtonBase {
 		tooltip = buttonDefinition.getTooltip();
 	}
 
+	public boolean isHovered() {
+		return hovered;
+	}
+
 	@Override
 	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
+			hovered = true;
 			if (hoveredBackgroundTexture != null) {
 				GuiHelper.blit(matrixStack, x, y, hoveredBackgroundTexture);
 			}
 		} else {
+			hovered = false;
 			GuiHelper.blit(matrixStack, x, y, backgroundTexture);
 		}
 	}

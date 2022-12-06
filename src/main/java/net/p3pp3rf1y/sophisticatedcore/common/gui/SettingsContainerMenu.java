@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -15,11 +16,16 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncTemplateSettingsMessage;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
+import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTemplateStorage;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
@@ -28,7 +34,10 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,10 +45,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class SettingsContainer<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer {
+public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer {
 	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
+	private static final String ACTION_TAG = "action";
 
 	static {
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
@@ -58,7 +69,10 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	private final Map<String, SettingsContainerBase<?>> settingsContainers = new LinkedHashMap<>();
 	public final List<Slot> ghostSlots = new ArrayList<>();
 
-	protected SettingsContainer(MenuType<?> menuType, int windowId, Player player, S storageWrapper) {
+	@Nullable
+	private TemplateSettingsHandler selectedTemplate;
+
+	protected SettingsContainerMenu(MenuType<?> menuType, int windowId, Player player, S storageWrapper) {
 		super(menuType, windowId);
 		this.player = player;
 		this.storageWrapper = storageWrapper;
@@ -160,6 +174,7 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	public int getNumberOfSlots() {
 		return storageWrapper.getInventoryHandler().getSlots();
 	}
+
 	@Override
 	public void sendAllDataToRemote() {
 		for (int slotIndex = 0; slotIndex < ghostSlots.size(); slotIndex++) {
@@ -168,6 +183,10 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 
 		if (synchronizer != null) {
 			synchronizer.sendInitialData(this, remoteGhostSlots, remoteCarried, new int[0]);
+		}
+
+		if (player instanceof ServerPlayer serverPlayer) {
+			SophisticatedCore.PACKET_HANDLER.sendToClient(serverPlayer, new SyncTemplateSettingsMessage(SettingsTemplateStorage.get().getPlayerTemplates(serverPlayer)));
 		}
 	}
 
@@ -185,10 +204,6 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	@Override
 	public Slot getSlot(int slotId) {
 		return ghostSlots.get(slotId);
-	}
-
-	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
-		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterStack(slotId, false);
 	}
 
 	public void onMemorizedStackRemoved(int slotId) {
@@ -217,6 +232,13 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 			if (settingsContainers.containsKey(categoryName)) {
 				settingsContainers.get(categoryName).handleMessage(data);
 			}
+		} else if (data.contains(ACTION_TAG, Tag.TAG_STRING)) {
+			String action = data.getString(ACTION_TAG);
+			if (action.equals("saveTemplate")) {
+				saveTemplate(data.getInt("slot"));
+			} else if (action.equals("loadTemplate")) {
+				loadTemplate();
+			}
 		}
 	}
 
@@ -235,6 +257,36 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 
 	public BlockPos getBlockPosition() {
 		return BlockPos.ZERO;
+	}
+
+	public void saveTemplate(int saveSlot) {
+		SettingsTemplateStorage.get().putPlayerTemplate(player, saveSlot, storageWrapper.getSettingsHandler().getNbt().copy());
+		sendDataToServer(() -> {
+			CompoundTag tag = NBTHelper.putString(new CompoundTag(), ACTION_TAG, "saveTemplate");
+			tag.putInt("slot", saveSlot);
+			return tag;
+		});
+	}
+
+	public void loadTemplate() {
+		if (selectedTemplate == null) {
+			return;
+		}
+		storageWrapper.getSettingsHandler().getSettingsCategories().values().forEach(category -> {
+			//noinspection unchecked
+			overwriteCategory(category.getClass(), category, selectedTemplate.getTypeCategory(category.getClass()));
+			});
+
+		sendDataToServer(() -> NBTHelper.putString(new CompoundTag(), ACTION_TAG, "loadTemplate"));
+	}
+
+	private <T extends ISettingsCategory<T>> void overwriteCategory(Class<T> categoryClazz, ISettingsCategory<?> currentCategory, ISettingsCategory<?> otherCategory) {
+		//noinspection unchecked
+		((T) currentCategory).overwriteWith(((T) otherCategory));
+	}
+
+	public <T extends ISettingsCategory<?>> Optional<T> getSelectedTemplatesCategory(Class<T> categoryClass) {
+		return selectedTemplate != null ? Optional.of(selectedTemplate.getTypeCategory(categoryClass)) : Optional.empty();
 	}
 
 	private static class ViewOnlyStorageInventorySlot extends SlotItemHandler {
@@ -257,10 +309,10 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	}
 
 	public interface ISettingsContainerFactory<C extends ISettingsCategory, T extends SettingsContainerBase<C>> {
-		T create(SettingsContainer<?> settingsContainer, String categoryName, C category);
+		T create(SettingsContainerMenu<?> settingsContainer, String categoryName, C category);
 	}
 
-	private static <C extends ISettingsCategory> SettingsContainerBase<C> instantiateContainer(SettingsContainer<?> settingsContainer, String name, C category) {
+	private static <C extends ISettingsCategory> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name, C category) {
 		//noinspection unchecked
 		return (SettingsContainerBase<C>) getSettingsContainerFactory(name).create(settingsContainer, name, category);
 	}
@@ -268,5 +320,66 @@ public abstract class SettingsContainer<S extends IStorageWrapper> extends Abstr
 	private static <C extends ISettingsCategory, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
 		//noinspection unchecked
 		return (ISettingsContainerFactory<C, T>) SETTINGS_CONTAINER_FACTORIES.get(name);
+	}
+
+	public void updateSelectedTemplate(@Nullable CompoundTag settingsTag) {
+		if (settingsTag == null) {
+			selectedTemplate = null;
+		} else {
+			selectedTemplate = new TemplateSettingsHandler(settingsTag) {
+				@Override
+				protected SettingsHandler getCurrentSettingsHandler() {
+					return storageWrapper.getSettingsHandler();
+				}
+			};
+		}
+	}
+
+	public void sendDataToServer(Supplier<CompoundTag> supplyData) {
+		if (isServer()) {
+			return;
+		}
+		CompoundTag data = supplyData.get();
+		SophisticatedCore.PACKET_HANDLER.sendToServer(new SyncContainerClientDataMessage(data));
+	}
+
+	protected boolean isServer() {
+		return !player.level.isClientSide;
+	}
+
+	private abstract static class TemplateSettingsHandler extends SettingsHandler {
+
+		protected TemplateSettingsHandler(CompoundTag contentsNbt) {
+			super(contentsNbt, () -> {}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderInfo);
+		}
+
+		protected abstract SettingsHandler getCurrentSettingsHandler();
+
+		@Override
+		protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
+			return contentsNbt;
+		}
+
+		@Override
+		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
+			int itemNumberLimit = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).getItemNumberLimit();
+			addSettingsCategory(settingsNbt, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) ->
+					new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderInfoSupplier, categoryNbt, saveNbt, itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)));
+		}
+
+		@Override
+		public String getGlobalSettingsCategoryName() {
+			return getCurrentSettingsHandler().getGlobalSettingsCategoryName();
+		}
+
+		@Override
+		public ISettingsCategory<?> instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
+			return getCurrentSettingsHandler().instantiateGlobalSettingsCategory(categoryNbt, saveNbt);
+		}
+
+		@Override
+		protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
+			//noop
+		}
 	}
 }

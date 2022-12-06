@@ -42,6 +42,7 @@ public class PacketHandler {
 		registerMessage(SoundStopNotificationMessage.class, SoundStopNotificationMessage::encode, SoundStopNotificationMessage::decode, SoundStopNotificationMessage::onMessage);
 		registerMessage(TankClickMessage.class, TankClickMessage::encode, TankClickMessage::decode, TankClickMessage::onMessage);
 		registerMessage(StorageInsertMessage.class, StorageInsertMessage::encode, StorageInsertMessage::decode, StorageInsertMessage::onMessage);
+		registerMessage(SyncTemplateSettingsMessage.class, SyncTemplateSettingsMessage::encode, SyncTemplateSettingsMessage::decode, SyncTemplateSettingsMessage::onMessage);
 	}
 
 	@SuppressWarnings("SameParameterValue")

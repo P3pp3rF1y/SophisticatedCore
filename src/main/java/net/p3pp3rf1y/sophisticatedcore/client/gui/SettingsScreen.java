@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
@@ -14,20 +13,19 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainer;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
 import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
-public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainer<?>> implements InventoryScrollPanel.IInventoryScreen {
+public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainerMenu<?>> implements InventoryScrollPanel.IInventoryScreen {
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
 	private StorageSettingsTabControlBase settingsTabControl;
 	private InventoryScrollPanel inventoryScrollPanel = null;
 	private StorageBackgroundProperties storageBackgroundProperties;
 
-	protected SettingsScreen(SettingsContainer<?> screenContainer, Inventory inv, Component titleIn) {
+	protected SettingsScreen(SettingsContainerMenu<?> screenContainer, Inventory inv, Component titleIn) {
 		super(screenContainer, inv, titleIn);
 		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
 	}
@@ -164,11 +162,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	protected void renderSlot(PoseStack poseStack, Slot slot) {
-		Optional<ItemStack> memorizedStack = getMenu().getMemorizedStackInSlot(slot.getSlotIndex());
-		ItemStack itemstack = slot.getItem();
-		if (memorizedStack.isPresent()) {
-			itemstack = memorizedStack.get();
-		}
+		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY ? slot.getItem() : settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex());
 
 		setBlitOffset(100);
 		itemRenderer.blitOffset = 100.0F;
@@ -180,22 +174,9 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		itemRenderer.blitOffset = 0.0F;
 		setBlitOffset(0);
 
-		if (memorizedStack.isPresent()) {
-			drawMemorizedStackOverlay(poseStack, slot.x, slot.y);
-		}
+		settingsTabControl.drawSlotStackOverlay(poseStack, slot);
 	}
 
-	private void drawMemorizedStackOverlay(PoseStack poseStack, int x, int y) {
-		poseStack.pushPose();
-		RenderSystem.enableBlend();
-		RenderSystem.disableDepthTest();
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderTexture(0, GuiHelper.GUI_CONTROLS);
-		blit(poseStack, x, y, 77, 0, 16, 16);
-		RenderSystem.enableDepthTest();
-		RenderSystem.disableBlend();
-		poseStack.popPose();
-	}
 
 	@SuppressWarnings("java:S2589") // slot can actually be null despite being marked non null
 	@Override
