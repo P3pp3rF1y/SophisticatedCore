@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTemplateStorage;
 
@@ -42,6 +44,7 @@ public class SyncTemplateSettingsMessage {
 		context.setPacketHandled(true);
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	private static void handleMessage(SyncTemplateSettingsMessage message) {
 		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) {
