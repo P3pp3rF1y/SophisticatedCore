@@ -170,6 +170,8 @@
     "gui.sophisticatedcore.settings.buttons.load_template": "Load Settings from slot %s",
     "gui.sophisticatedcore.settings.buttons.load_template.controls": "Scroll to change slot",
     "gui.sophisticatedcore.settings.buttons.load_template.no_save": "No Settings to Load exist",
+    "gui.sophisticatedcore.settings.message.save_template": "Saved Settings to slot %s",
+    "gui.sophisticatedcore.settings.message.load_template": "Loaded Settings from slot %s",
     "gui.sophisticatedcore.error.remove.stack_low_multiplier": "There's at least one slot or upgrade that requires multiplier higher than %s",
     "gui.sophisticatedcore.error.add.needs_occupied_inventory_slots": "There's an item in at least one of the last %s slots needed for %s",
     "gui.sophisticatedcore.error.add.two_tank_upgrades_present": "There are already two Tank Upgrades in other upgrade slots",
