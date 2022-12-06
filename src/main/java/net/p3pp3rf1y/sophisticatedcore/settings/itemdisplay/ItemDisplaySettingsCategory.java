@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColorCategory {
+public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDisplaySettingsCategory>, ISlotColorCategory {
 	public static final String NAME = "item_display";
 	private static final String SLOT_TAG = "slot";
 	private static final String ROTATION_TAG = "rotation";
@@ -48,6 +48,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 		this.getMemorySettings = getMemorySettings;
 
 		deserialize();
+	}
+
+	public int getItemNumberLimit() {
+		return itemNumberLimit;
 	}
 
 	public void unselectSlot(int slotIndex) {
@@ -157,6 +161,11 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory, ISlotColo
 	public void reloadFrom(CompoundTag categoryNbt) {
 		this.categoryNbt = categoryNbt;
 		deserialize();
+	}
+
+	@Override
+	public void overwriteWith(ItemDisplaySettingsCategory otherCategory) {
+		//noop for now
 	}
 
 	private void deserialize() {
