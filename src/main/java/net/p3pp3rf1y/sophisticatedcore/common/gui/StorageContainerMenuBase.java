@@ -301,7 +301,20 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
 		storageWrapper.setPersistent(player.level.isClientSide);
 		isUpdatingFromPacket = true;
-		super.initializeContents(stateId, items, carried);
+		int firstUpgradeSettingsSlot = getFirstUpgradeSlot() + getNumberOfUpgradeSlots();
+
+		for (int i = 0; i < firstUpgradeSettingsSlot; i++) {
+			getSlot(i).set(items.get(i));
+		}
+		reloadUpgradeControl();
+
+		for(int i = firstUpgradeSettingsSlot; i < items.size() && i < getTotalSlotsNumber(); ++i) {
+			getSlot(i).set(items.get(i));
+		}
+
+		this.carried = carried;
+		this.stateId = stateId;
+
 		isUpdatingFromPacket = false;
 		storageWrapper.setPersistent(true);
 		storageWrapper.getInventoryHandler().saveInventory();
@@ -1394,6 +1407,36 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		slotStacksToUpdate.put(slot, stack);
 	}
 
+	private void reloadUpgradeControl() {
+		storageWrapper.removeOpenTabId();
+		removeUpgradeSettingsSlots();
+		upgradeContainers.clear();
+		addUpgradeSettingsContainers(player);
+		onUpgradesChanged();
+	}
+
+	private void removeUpgradeSettingsSlots() {
+		List<Integer> slotNumbersToRemove = new ArrayList<>();
+		for (UpgradeContainerBase<?, ?> container : upgradeContainers.values()) {
+			container.getSlots().forEach(slot -> {
+				int upgradeSlotIndex = slot.index - getInventorySlotsSize();
+				slotNumbersToRemove.add(upgradeSlotIndex);
+				upgradeSlots.remove(slot);
+			});
+		}
+		slotNumbersToRemove.sort(IntComparators.OPPOSITE_COMPARATOR);
+		for (int slotNumber : slotNumbersToRemove) {
+			lastUpgradeSlots.remove(slotNumber);
+			remoteUpgradeSlots.remove(slotNumber);
+		}
+	}
+
+	private void onUpgradesChanged() {
+		if (upgradeChangeListener != null) {
+			upgradeChangeListener.accept(StorageContainerMenuBase.this);
+		}
+	}
+
 	public class StorageUpgradeSlot extends SlotItemHandler {
 		private boolean wasEmpty = false;
 		private final int slotIndex;
@@ -1480,36 +1523,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			}
 			return checkedContainersCount != upgradeContainers.size();
-		}
-
-		private void reloadUpgradeControl() {
-			storageWrapper.removeOpenTabId();
-			removeUpgradeSettingsSlots();
-			upgradeContainers.clear();
-			addUpgradeSettingsContainers(player);
-			onUpgradesChanged();
-		}
-
-		private void removeUpgradeSettingsSlots() {
-			List<Integer> slotNumbersToRemove = new ArrayList<>();
-			for (UpgradeContainerBase<?, ?> container : upgradeContainers.values()) {
-				container.getSlots().forEach(slot -> {
-					int upgradeSlotIndex = slot.index - getInventorySlotsSize();
-					slotNumbersToRemove.add(upgradeSlotIndex);
-					upgradeSlots.remove(slot);
-				});
-			}
-			slotNumbersToRemove.sort(IntComparators.OPPOSITE_COMPARATOR);
-			for (int slotNumber : slotNumbersToRemove) {
-				lastUpgradeSlots.remove(slotNumber);
-				remoteUpgradeSlots.remove(slotNumber);
-			}
-		}
-
-		private void onUpgradesChanged() {
-			if (upgradeChangeListener != null) {
-				upgradeChangeListener.accept(StorageContainerMenuBase.this);
-			}
 		}
 
 		@Nullable
