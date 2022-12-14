@@ -103,6 +103,10 @@ public class NBTHelper {
 		return getTagValue(stack, key, (t, k) -> deserialize.apply(t.getString(k)));
 	}
 
+	public static <T extends Enum<T>> Optional<T> getEnumConstant(CompoundTag tag, String key, Function<String, T> deserialize) {
+		return getTagValue(tag, key, (t, k) -> deserialize.apply(t.getString(k)));
+	}
+
 	public static Optional<Boolean> getBoolean(ItemStack stack, String parentKey, String key) {
 		return getTagValue(stack, parentKey, key, CompoundTag::getBoolean);
 	}

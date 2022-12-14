@@ -48,8 +48,8 @@ public class TranslationHelper {
 		return new TranslatableComponent(guiStatusPrefix + statusMessage, params);
 	}
 
-	public Component translUpgrade(String upgradeName) {
-		return new TranslatableComponent(translUpgradeKey(upgradeName));
+	public TranslatableComponent translUpgrade(String upgradeName, Object... params) {
+		return new TranslatableComponent(translUpgradeKey(upgradeName), params);
 	}
 
 	public Component translUpgradeSlotTooltip(String tooltipName) {
