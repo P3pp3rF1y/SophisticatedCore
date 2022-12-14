@@ -32,7 +32,7 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 	private final List<Component> tooltip;
 
 	private BooleanSupplier shouldShowTooltip = () -> true;
-	private BooleanSupplier shouldRender = () -> true;
+	protected BooleanSupplier shouldRender = () -> true;
 
 	protected Tab(Position position, List<Component> tooltip, Function<IntConsumer, ButtonBase> getTabButton) {
 		super(position, new Dimension(0, 0));

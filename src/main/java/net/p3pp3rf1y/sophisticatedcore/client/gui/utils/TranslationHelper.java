@@ -46,8 +46,8 @@ public class TranslationHelper {
 		return Component.translatable(guiStatusPrefix + statusMessage, params);
 	}
 
-	public Component translUpgrade(String upgradeName) {
-		return Component.translatable(translUpgradeKey(upgradeName));
+	public MutableComponent translUpgrade(String upgradeName, Object... params) {
+		return Component.translatable(translUpgradeKey(upgradeName), params);
 	}
 
 	public Component translUpgradeSlotTooltip(String tooltipName) {

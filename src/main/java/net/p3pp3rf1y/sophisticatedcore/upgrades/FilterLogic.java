@@ -6,6 +6,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.FilterItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
@@ -13,15 +14,15 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class
-FilterLogic extends FilterLogicBase {
+public class FilterLogic extends FilterLogicBase {
 	private final int filterSlotCount;
 	private final Predicate<ItemStack> isItemValid;
-	private FilterItemStackHandler filterHandler = null;
+	private ObservableFilterItemStackHandler filterHandler = null;
 	private boolean emptyAllowListMatchesEverything = false;
 
 	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount) {
@@ -42,41 +43,9 @@ FilterLogic extends FilterLogicBase {
 		emptyAllowListMatchesEverything = true;
 	}
 
-	public FilterItemStackHandler getFilterHandler() {
+	public ObservableFilterItemStackHandler getFilterHandler() {
 		if (filterHandler == null) {
-			filterHandler = new FilterItemStackHandler(filterSlotCount) {
-				@Override
-				protected void onContentsChanged(int slot) {
-					super.onContentsChanged(slot);
-					NBTHelper.setCompoundNBT(upgrade, parentTagKey, "filters", serializeNBT());
-					save();
-				}
-
-				@Override
-				public void deserializeNBT(CompoundTag nbt) {
-					setSize(filterSlotCount);
-					ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
-					for (int i = 0; i < tagList.size(); i++) {
-						CompoundTag itemTags = tagList.getCompound(i);
-						int slot = itemTags.getInt("Slot");
-
-						if (slot >= 0 && slot < stacks.size()) {
-							ItemStack stack = ItemStack.of(itemTags);
-							stacks.set(slot, stack);
-						}
-					}
-					onLoad();
-				}
-
-				@Override
-				public boolean isItemValid(int slot, ItemStack stack) {
-					return stack.isEmpty() || (doesNotContain(stack) && isItemValid.test(stack));
-				}
-
-				private boolean doesNotContain(ItemStack stack) {
-					return !InventoryHelper.hasItem(this, s -> ItemHandlerHelper.canItemStacksStack(s, stack));
-				}
-			};
+			filterHandler = new ObservableFilterItemStackHandler();
 			NBTHelper.getCompound(upgrade, parentTagKey, "filters").ifPresent(filterHandler::deserializeNBT);
 		}
 
@@ -126,5 +95,55 @@ FilterLogic extends FilterLogicBase {
 			initTags();
 		}
 		return tags.anyMatch(t -> tagKeys.contains(t));
+	}
+
+	public class ObservableFilterItemStackHandler extends FilterItemStackHandler {
+		private IntConsumer onSlotChange = s -> {};
+		public ObservableFilterItemStackHandler() {
+			super(filterSlotCount);
+		}
+
+		@Override
+		protected void onContentsChanged(int slot) {
+			super.onContentsChanged(slot);
+			NBTHelper.setCompoundNBT(upgrade, parentTagKey, "filters", serializeNBT());
+			save();
+			onSlotChange.accept(slot);
+		}
+
+		public void setOnSlotChange(IntConsumer onSlotChange) {
+			this.onSlotChange = onSlotChange;
+		}
+
+		@Override
+		public void deserializeNBT(CompoundTag nbt) {
+			int size = NBTHelper.getInt(nbt, "Size").orElse(filterSlotCount);
+			if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && filterSlotCount > size) {
+				NBTHelper.putInt(nbt, "Size", filterSlotCount);
+				save();
+				size = filterSlotCount;
+			}
+			setSize(size);
+			ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
+			for (int i = 0; i < tagList.size(); i++) {
+				CompoundTag itemTags = tagList.getCompound(i);
+				int slot = itemTags.getInt("Slot");
+
+				if (slot >= 0 && slot < stacks.size()) {
+					ItemStack stack = ItemStack.of(itemTags);
+					stacks.set(slot, stack);
+				}
+			}
+			onLoad();
+		}
+
+		@Override
+		public boolean isItemValid(int slot, ItemStack stack) {
+			return stack.isEmpty() || (doesNotContain(stack) && isItemValid.test(stack));
+		}
+
+		private boolean doesNotContain(ItemStack stack) {
+			return !InventoryHelper.hasItem(this, s -> ItemHandlerHelper.canItemStacksStack(s, stack));
+		}
 	}
 }
