@@ -303,10 +303,21 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		isUpdatingFromPacket = true;
 		int firstUpgradeSettingsSlot = getFirstUpgradeSlot() + getNumberOfUpgradeSlots();
 
+		boolean upgradeChanged = false;
 		for (int i = 0; i < firstUpgradeSettingsSlot; i++) {
-			getSlot(i).set(items.get(i));
+			if (i >= getFirstUpgradeSlot()) {
+				if (!ItemStack.matches(getSlot(i).getItem(), items.get(i))) {
+					getSlot(i).set(items.get(i));
+					upgradeChanged = true;
+				}
+			} else {
+				getSlot(i).set(items.get(i));
+			}
 		}
-		reloadUpgradeControl();
+
+		if (upgradeChanged) {
+			reloadUpgradeControl();
+		}
 
 		for(int i = firstUpgradeSettingsSlot; i < items.size() && i < getTotalSlotsNumber(); ++i) {
 			getSlot(i).set(items.get(i));
