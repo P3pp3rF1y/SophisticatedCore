@@ -7,7 +7,6 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.compat.jei.SetGhostSlotMessage;
 
 import java.util.ArrayList;
 import java.util.List;
