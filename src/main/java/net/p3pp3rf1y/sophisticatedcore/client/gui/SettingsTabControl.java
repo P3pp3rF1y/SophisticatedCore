@@ -60,7 +60,7 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 		return openTab != tab;
 	}
 
-	protected Optional<T> getOpenTab() {
+	public Optional<T> getOpenTab() {
 		return Optional.ofNullable(openTab);
 	}
 
