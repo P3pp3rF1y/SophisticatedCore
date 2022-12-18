@@ -65,7 +65,7 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 		UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = potentialCraftingContainer.get();
 
 		List<Slot> craftingSlots = Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
-		List<Slot> inventorySlots = Collections.unmodifiableList(container.realInventorySlots);
+		List<Slot> inventorySlots = container.realInventorySlots.stream().filter(s -> s.mayPickup(player)).toList();
 		if (!validateTransferInfo(container, craftingSlots, inventorySlots)) {
 			return handlerHelper.createInternalError();
 		}
