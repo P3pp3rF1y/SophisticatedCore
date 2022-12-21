@@ -319,4 +319,20 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 		onStackAdded = i -> {};
 		onStackRemoved = i -> {};
 	}
+
+	public void setFilter(int slot, ItemStack filter) {
+		InventoryHandler inventoryHandler = getInventoryHandler();
+		if (slot < inventoryHandler.getSlots()) {
+			ItemStack stackInSlot = inventoryHandler.getStackInSlot(slot);
+			if (stackInSlot.isEmpty()) {
+				if (ignoreNbt) {
+					Item item = filter.getItem();
+					addSlotItem(slot, item);
+				} else {
+					addSlotStack(slot, filter);
+				}
+			}
+		}
+		serializeFilterItems();
+	}
 }

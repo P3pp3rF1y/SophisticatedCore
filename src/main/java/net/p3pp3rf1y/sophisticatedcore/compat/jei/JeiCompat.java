@@ -8,5 +8,6 @@ public class JeiCompat implements ICompat {
 	public void setup() {
 		SophisticatedCore.PACKET_HANDLER.registerMessage(TransferRecipeMessage.class, TransferRecipeMessage::encode, TransferRecipeMessage::decode, TransferRecipeMessage::onMessage);
 		SophisticatedCore.PACKET_HANDLER.registerMessage(SetGhostSlotMessage.class, SetGhostSlotMessage::encode, SetGhostSlotMessage::decode, SetGhostSlotMessage::onMessage);
+		SophisticatedCore.PACKET_HANDLER.registerMessage(SetMemorySlotMessage.class, SetMemorySlotMessage::encode, SetMemorySlotMessage::decode, SetMemorySlotMessage::onMessage);
 	}
 }
