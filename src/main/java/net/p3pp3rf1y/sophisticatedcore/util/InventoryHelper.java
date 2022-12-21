@@ -190,9 +190,8 @@ public class InventoryHelper {
 		return remainingStack;
 	}
 
-	@SuppressWarnings("squid:S1764") // this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
-	private static void playPickupSound(Level world, @Nonnull Player player) {
-		world.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, (world.random.nextFloat() - world.random.nextFloat()) * 1.4F + 2.0F);
+	private static void playPickupSound(Level level, @Nonnull Player player) {
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, RandHelper.getRandomMinusOneToOne(level.random) * 1.4F + 2.0F);
 	}
 
 	public static void iterate(IItemHandler handler, BiConsumer<Integer, ItemStack> actOn) {
