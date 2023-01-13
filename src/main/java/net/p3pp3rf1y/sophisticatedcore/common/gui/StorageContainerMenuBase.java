@@ -315,7 +315,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 		}
 
-		if (upgradeChanged) {
+		if (upgradeChanged && checkUpgradeControlNeedsReload()) {
 			reloadUpgradeControl();
 		}
 
@@ -330,6 +330,18 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		storageWrapper.setPersistent(true);
 		storageWrapper.getInventoryHandler().saveInventory();
 		storageWrapper.getUpgradeHandler().saveInventory();
+	}
+
+	private boolean checkUpgradeControlNeedsReload() {
+		for (Map.Entry<Integer, IUpgradeWrapper> entry : storageWrapper.getUpgradeHandler().getSlotWrappers().entrySet()) {
+			Integer slot = entry.getKey();
+			IUpgradeWrapper slotWrapper = entry.getValue();
+			if(UpgradeContainerRegistry.instantiateContainer(player, slot, slotWrapper)
+					.map(newContainer -> !upgradeContainers.containsKey(slot) || upgradeContainers.get(slot).getSlots().size() != newContainer.getSlots().size()).orElse(false)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected boolean isUpgradeSettingsSlot(int index) {
