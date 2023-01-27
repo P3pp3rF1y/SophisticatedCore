@@ -42,4 +42,13 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 		NBTHelper.setBoolean(upgrade, "shiftClickIntoStorage", shiftClickIntoStorage);
 		save();
 	}
+
+	public boolean shouldReplenish() {
+		return NBTHelper.getBoolean(upgrade, "replenish").orElse(false);
+	}
+
+	public void setReplenish(boolean replenish) {
+		NBTHelper.setBoolean(upgrade, "replenish", replenish);
+		save();
+	}
 }
