@@ -40,4 +40,24 @@ public class StorageInventorySlot extends SlotItemHandler {
 	public int getMaxStackSize(ItemStack stack) {
 		return inventoryHandler.getStackLimit(slotIndex, stack);
 	}
+
+	@Override
+	public ItemStack safeInsert(ItemStack stack, int maxCount) {
+		if (!stack.isEmpty() && mayPlace(stack)) {
+			ItemStack itemstack = getItem();
+			int i = Math.min(Math.min(maxCount, stack.getCount()), getMaxStackSize(stack) - itemstack.getCount());
+			if (itemstack.isEmpty()) {
+				set(stack.split(i));
+			} else if (ItemStack.isSameItemSameTags(itemstack, stack)) {
+				stack.shrink(i);
+				ItemStack copy = itemstack.copy();
+				copy.grow(i);
+				set(copy);
+			}
+
+			return stack;
+		} else {
+			return stack;
+		}
+	}
 }

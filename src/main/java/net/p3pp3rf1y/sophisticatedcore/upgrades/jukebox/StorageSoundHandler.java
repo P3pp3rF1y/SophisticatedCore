@@ -12,7 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 
 import java.util.Map;
 import java.util.UUID;
@@ -35,7 +35,7 @@ public class StorageSoundHandler {
 	public static void stopStorageSound(UUID storageUuid) {
 		if (storageSounds.containsKey(storageUuid)) {
 			Minecraft.getInstance().getSoundManager().stop(storageSounds.remove(storageUuid));
-			SophisticatedCore.PACKET_HANDLER.sendToServer(new SoundStopNotificationMessage(storageUuid));
+			PacketHandler.INSTANCE.sendToServer(new SoundStopNotificationMessage(storageUuid));
 		}
 	}
 
@@ -44,7 +44,7 @@ public class StorageSoundHandler {
 			lastPlaybackChecked = event.level.getGameTime();
 			storageSounds.entrySet().removeIf(entry -> {
 				if (!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())) {
-					SophisticatedCore.PACKET_HANDLER.sendToServer(new SoundStopNotificationMessage(entry.getKey()));
+					PacketHandler.INSTANCE.sendToServer(new SoundStopNotificationMessage(entry.getKey()));
 					return true;
 				}
 				return false;

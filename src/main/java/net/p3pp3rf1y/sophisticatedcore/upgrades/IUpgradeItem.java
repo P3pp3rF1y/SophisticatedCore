@@ -7,16 +7,16 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 public interface IUpgradeItem<T extends IUpgradeWrapper> {
 	UpgradeType<T> getType();
 
-	default UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage) {
+	default UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
 		return new UpgradeSlotChangeResult.Success();
 	}
 
-	default UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper) {
+	default UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide) {
 		return new UpgradeSlotChangeResult.Success();
 	}
 
-	default UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper) {
-		return canRemoveUpgradeFrom(storageWrapper);
+	default UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper, boolean isClientSide) {
+		return canRemoveUpgradeFrom(storageWrapper, isClientSide);
 	}
 
 	default int getInventoryColumnsTaken() {

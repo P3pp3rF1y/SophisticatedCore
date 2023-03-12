@@ -15,6 +15,6 @@
 //				QuarkButtonManager.addButtons();
 //			}
 //		});
-//		SophisticatedCore.PACKET_HANDLER.registerMessage(TransferMessage.class, TransferMessage::encode, TransferMessage::decode, TransferMessage::onMessage);
+//		SophisticatedCore.INSTANCE.registerMessage(TransferMessage.class, TransferMessage::encode, TransferMessage::decode, TransferMessage::onMessage);
 //	}
 //}

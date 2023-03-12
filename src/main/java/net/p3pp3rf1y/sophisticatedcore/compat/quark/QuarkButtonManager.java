@@ -128,6 +128,6 @@
 //	private static AbstractButton instantiateButton(StorageScreenBase<?> screen, int priority, String name, boolean restock, int xOffset) {
 //		Position rightTopAbovePlayersInventory = screen.getRightTopAbovePlayersInventory();
 //		return new MiniInventoryButton(screen, priority, rightTopAbovePlayersInventory.x() + xOffset, rightTopAbovePlayersInventory.y() - 1, t -> t.add(I18n.get("quark.gui.button." + name + (Screen.hasShiftDown() ? "_filtered" : ""))),
-//				b -> SophisticatedCore.PACKET_HANDLER.sendToServer(new TransferMessage(restock, Screen.hasShiftDown()))).setTextureShift(Screen::hasShiftDown);
+//				b -> SophisticatedCore.INSTANCE.sendToServer(new TransferMessage(restock, Screen.hasShiftDown()))).setTextureShift(Screen::hasShiftDown);
 //	}
 //}

@@ -75,6 +75,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		}
 		if (isServer()) {
 			getCategory().selectSlot(slotNumber);
+			getSettingsContainer().onMemorizedStackAdded(slotNumber);
 		} else {
 			sendIntToServer(SELECT_SLOT_TAG, slotNumber);
 		}

@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
@@ -110,13 +111,49 @@ public class UpgradeHandler extends ItemStackHandler {
 		initRenderInfoCallbacks(false);
 	}
 
+	@Nonnull
+	@Override
+	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+		ItemStack result = super.insertItem(slot, stack, simulate);
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && result.isEmpty() && !stack.isEmpty()) {
+			onUpgradeAdded(slot);
+		}
+
+		return result;
+	}
+
+	private void onUpgradeAdded(int slot) {
+		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+		if (wrappers.containsKey(slot)) {
+			wrappers.get(slot).onAdded();
+		}
+	}
+
+	@Override
+	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+		ItemStack originalStack = getStackInSlot(slot);
+		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+		boolean itemsDiffer = originalStack.getItem() != stack.getItem();
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer && wrappers.containsKey(slot)) {
+			wrappers.get(slot).onBeforeRemoved();
+		}
+
+		super.setStackInSlot(slot, stack);
+
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer) {
+			onUpgradeAdded(slot);
+		}
+	}
+
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		ItemStack slotStack = getStackInSlot(slot);
-		if (persistent && !slotStack.isEmpty() && amount == 1) {
-			Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
-			if (wrappers.containsKey(slot)) {
-				wrappers.get(slot).onBeforeRemoved();
+		if (!simulate && Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
+			ItemStack slotStack = getStackInSlot(slot);
+			if (persistent && !slotStack.isEmpty() && amount == 1) {
+				Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+				if (wrappers.containsKey(slot)) {
+					wrappers.get(slot).onBeforeRemoved();
+				}
 			}
 		}
 		return super.extractItem(slot, amount, simulate);

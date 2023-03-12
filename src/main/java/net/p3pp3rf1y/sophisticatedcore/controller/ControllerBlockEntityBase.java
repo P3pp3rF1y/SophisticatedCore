@@ -53,7 +53,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
 	private final Map<Integer, Set<BlockPos>> memorizedStackStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Integer>> storageMemorizedStacks = new HashMap<>();
-
+	private final Map<Item, Set<BlockPos>> filterItemStorages = new HashMap<>();
+	private final Map<BlockPos, Set<Item>> storageFilterItems = new HashMap<>();
 	private Set<BlockPos> linkedBlocks = new LinkedHashSet<>();
 
 	@Nullable
@@ -223,6 +224,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			MemorySettingsCategory memorySettings = storage.getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
 			memorySettings.getFilterItemSlots().keySet().forEach(i -> addStorageMemorizedItem(storagePos, i));
 			memorySettings.getFilterStackSlots().keySet().forEach(stackHash -> addStorageMemorizedStack(storagePos, stackHash));
+
+			setStorageFilterItems(storagePos, storage.getStorageWrapper().getInventoryHandler().getFilterItems());
+
 			storage.registerController(this);
 		});
 	}
@@ -307,6 +311,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return memorizedItemStorages.containsKey(stack.getItem()) || memorizedStackStorages.containsKey(ItemStackKey.getHashCode(stack));
 	}
 
+	protected boolean isFilterItem(Item item) {
+		return filterItemStorages.containsKey(item);
+	}
+
 	public void removeStorage(BlockPos storagePos) {
 		removeStorageInventoryDataAndUnregisterController(storagePos);
 		verifyStoragesConnected();
@@ -332,8 +340,25 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		removeStorageMemorizedItems(storagePos);
 		removeStorageMemorizedStacks(storagePos);
 		removeStorageWithEmptySlots(storagePos);
+		removeStorageFilterItems(storagePos);
 		storagePositions.remove(idx);
 		removeBaseIndexAt(idx);
+	}
+
+	private void removeStorageFilterItems(BlockPos storagePos) {
+		storageFilterItems.computeIfPresent(storagePos, (pos, items) -> {
+			items.forEach(item -> {
+				Set<BlockPos> storages = filterItemStorages.get(item);
+				if (storages != null) {
+					storages.remove(storagePos);
+					if (storages.isEmpty()) {
+						filterItemStorages.remove(item);
+					}
+				}
+			});
+			return items;
+		});
+		storageFilterItems.remove(storagePos);
 	}
 
 	private void removeStorageMemorizedItems(BlockPos storagePos) {
@@ -546,6 +571,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate);
 		}
 
+		if (filterItemStorages.containsKey(stack.getItem())) {
+			remaining = insertIntoStorages(filterItemStorages.get(stack.getItem()), remaining, simulate);
+		}
+
 		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, remaining, simulate) : remaining;
 	}
 
@@ -681,5 +710,17 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	public List<BlockPos> getStoragePositions() {
 		return storagePositions;
+	}
+
+	public void setStorageFilterItems(BlockPos storagePos, Set<Item> filterItems) {
+		removeStorageFilterItems(storagePos);
+		if (filterItems.isEmpty()) {
+			return;
+		}
+
+		for (Item item : filterItems) {
+			filterItemStorages.computeIfAbsent(item, stackKey -> new LinkedHashSet<>()).add(storagePos);
+		}
+		storageFilterItems.put(storagePos, new LinkedHashSet<>(filterItems));
 	}
 }

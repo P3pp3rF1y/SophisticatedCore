@@ -8,7 +8,8 @@ public class XpPumpUpgradeItem extends UpgradeItemBase<XpPumpUpgradeWrapper> {
 	public static final UpgradeType<XpPumpUpgradeWrapper> TYPE = new UpgradeType<>(XpPumpUpgradeWrapper::new);
 	private final XpPumpUpgradeConfig xpPumpUpgradeConfig;
 
-	public XpPumpUpgradeItem(CreativeModeTab itemGroup, XpPumpUpgradeConfig xpPumpUpgradeConfig) {super(itemGroup);
+	public XpPumpUpgradeItem(CreativeModeTab itemGroup, XpPumpUpgradeConfig xpPumpUpgradeConfig) {
+		super(itemGroup);
 		this.xpPumpUpgradeConfig = xpPumpUpgradeConfig;
 	}
 
