@@ -46,7 +46,7 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	}
 
 	@Override
-	public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage) {
+	public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
 		Set<Integer> errorUpgradeSlots = new HashSet<>();
 		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
 			if (wrapper instanceof TankUpgradeWrapper) {

@@ -17,6 +17,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -102,7 +103,7 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 				container.setOpenTabId(openOrFirstCraftingContainer.getUpgradeContainerId());
 			}
 			TransferRecipeMessage message = new TransferRecipeMessage(matchingItemsResult.matchingItems, craftingSlotIndexes, inventorySlotIndexes, maxTransfer);
-			SophisticatedCore.PACKET_HANDLER.sendToServer(message);
+			PacketHandler.INSTANCE.sendToServer(message);
 		}
 
 		return null;

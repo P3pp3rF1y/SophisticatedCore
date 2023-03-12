@@ -33,8 +33,6 @@ import org.apache.logging.log4j.Logger;
 public class SophisticatedCore {
 	public static final String MOD_ID = "sophisticatedcore";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-	public static final PacketHandler PACKET_HANDLER = new PacketHandler(MOD_ID);
-
 	public final CommonEventHandler commonEventHandler = new CommonEventHandler();
 
 	@SuppressWarnings("java:S1118") //needs to be public for mod to work
@@ -73,7 +71,7 @@ public class SophisticatedCore {
 	}
 
 	private static void setup(FMLCommonSetupEvent event) {
-		PACKET_HANDLER.init();
+		PacketHandler.INSTANCE.init();
 		ModCompat.initCompats();
 	}
 

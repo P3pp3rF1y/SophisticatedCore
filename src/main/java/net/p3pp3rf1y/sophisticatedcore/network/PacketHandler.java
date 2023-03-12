@@ -11,6 +11,7 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.PlayDiscMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.SoundStopNotificationMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StopDiscPlaybackMessage;
@@ -21,6 +22,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PacketHandler {
+	public static final PacketHandler INSTANCE = new PacketHandler(SophisticatedCore.MOD_ID);
 	private static final String PROTOCOL = "1";
 
 	private final SimpleChannel networkWrapper;
@@ -44,6 +46,9 @@ public class PacketHandler {
 		registerMessage(StorageInsertMessage.class, StorageInsertMessage::encode, StorageInsertMessage::decode, StorageInsertMessage::onMessage);
 		registerMessage(InsertIntoHeldStorageMessage.class, InsertIntoHeldStorageMessage::encode, InsertIntoHeldStorageMessage::decode, InsertIntoHeldStorageMessage::onMessage);
 		registerMessage(SyncTemplateSettingsMessage.class, SyncTemplateSettingsMessage::encode, SyncTemplateSettingsMessage::decode, SyncTemplateSettingsMessage::onMessage);
+		registerMessage(SyncAdditionalSlotInfoMessage.class, SyncAdditionalSlotInfoMessage::encode, SyncAdditionalSlotInfoMessage::decode, SyncAdditionalSlotInfoMessage::onMessage);
+		registerMessage(SyncEmptySlotIconsMessage.class, SyncEmptySlotIconsMessage::encode, SyncEmptySlotIconsMessage::decode, SyncEmptySlotIconsMessage::onMessage);
+		registerMessage(SyncSlotChangeErrorMessage.class, SyncSlotChangeErrorMessage::encode, SyncSlotChangeErrorMessage::decode, SyncSlotChangeErrorMessage::onMessage);
 	}
 
 	@SuppressWarnings("SameParameterValue")

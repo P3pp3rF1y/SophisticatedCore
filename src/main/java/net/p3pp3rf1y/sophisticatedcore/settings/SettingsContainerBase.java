@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
 import net.minecraft.nbt.CompoundTag;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
@@ -53,7 +53,7 @@ public abstract class SettingsContainerBase<C extends ISettingsCategory> {
 		}
 		CompoundTag data = supplyData.get();
 		data.putString("categoryName", categoryName);
-		SophisticatedCore.PACKET_HANDLER.sendToServer(new SyncContainerClientDataMessage(data));
+		PacketHandler.INSTANCE.sendToServer(new SyncContainerClientDataMessage(data));
 	}
 
 	protected boolean isServer() {

@@ -18,13 +18,13 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.network.InsertIntoHeldStorageMessage;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.StorageInsertMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.battery.BatteryUpgradeContainer;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
@@ -52,6 +52,7 @@ public class ClientEventHandler {
 	public static void stitchTextures(TextureStitchEvent.Pre evt) {
 		if (evt.getAtlas().location() == InventoryMenu.BLOCK_ATLAS) {
 			evt.addSprite(StorageContainerMenuBase.EMPTY_UPGRADE_SLOT_BACKGROUND);
+			evt.addSprite(StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND.getSecond());
 			evt.addSprite(TankUpgradeContainer.EMPTY_TANK_INPUT_SLOT_BACKGROUND);
 			evt.addSprite(TankUpgradeContainer.EMPTY_TANK_OUTPUT_SLOT_BACKGROUND);
 			evt.addSprite(BatteryUpgradeContainer.EMPTY_BATTERY_INPUT_SLOT_BACKGROUND);
@@ -135,11 +136,11 @@ public class ClientEventHandler {
 			if (under != null && !held.isEmpty() && mc.player != null && under.mayPickup(mc.player)) {
 				ItemStack stack = under.getItem();
 				if (stack.getItem() instanceof IStashStorageItem && stack.getCount() == 1) {
-					SophisticatedCore.PACKET_HANDLER.sendToServer(new StorageInsertMessage(under.index));
+					PacketHandler.INSTANCE.sendToServer(new StorageInsertMessage(under.index));
 					screen.mouseReleased(0, 0, -1);
 					event.setCanceled(true);
 				} else if (held.getItem() instanceof IStashStorageItem) {
-					SophisticatedCore.PACKET_HANDLER.sendToServer(new InsertIntoHeldStorageMessage(under.index));
+					PacketHandler.INSTANCE.sendToServer(new InsertIntoHeldStorageMessage(under.index));
 					screen.mouseReleased(0, 0, -1);
 					event.setCanceled(true);
 				}

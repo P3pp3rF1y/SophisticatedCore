@@ -11,9 +11,9 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.common.MinecraftForge;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import vazkii.quark.base.network.QuarkNetwork;
 import vazkii.quark.base.network.message.SortInventoryMessage;
 import vazkii.quark.content.management.client.screen.widgets.MiniInventoryButton;
@@ -103,9 +103,9 @@ public class QuarkButtonManager {
 			}));
 		}
 
-		getKeyMapping("transfer_insert").ifPresent(mapping -> mappingsToCheck.put(mapping, () -> SophisticatedCore.PACKET_HANDLER.sendToServer(new TransferMessage(false, Screen.hasShiftDown()))));
+		getKeyMapping("transfer_insert").ifPresent(mapping -> mappingsToCheck.put(mapping, () -> PacketHandler.INSTANCE.sendToServer(new TransferMessage(false, Screen.hasShiftDown()))));
 
-		getKeyMapping("transfer_extract").ifPresent(mapping -> mappingsToCheck.put(mapping, () -> SophisticatedCore.PACKET_HANDLER.sendToServer(new TransferMessage(true, Screen.hasShiftDown()))));
+		getKeyMapping("transfer_extract").ifPresent(mapping -> mappingsToCheck.put(mapping, () -> PacketHandler.INSTANCE.sendToServer(new TransferMessage(true, Screen.hasShiftDown()))));
 
 		if (enableShiftLock) {
 			getKeyMapping("shift_lock").ifPresent(mapping -> mappingsToCheck.put(mapping, () ->  shiftLocked = !shiftLocked));
@@ -128,6 +128,6 @@ public class QuarkButtonManager {
 	private static AbstractButton instantiateButton(StorageScreenBase<?> screen, int priority, String name, boolean restock, int xOffset) {
 		Position rightTopAbovePlayersInventory = screen.getRightTopAbovePlayersInventory();
 		return new MiniInventoryButton(screen, priority, rightTopAbovePlayersInventory.x() + xOffset, rightTopAbovePlayersInventory.y() - 1, t -> t.add(I18n.get("quark.gui.button." + name + (Screen.hasShiftDown() ? "_filtered" : ""))),
-				b -> SophisticatedCore.PACKET_HANDLER.sendToServer(new TransferMessage(restock, Screen.hasShiftDown()))).setTextureShift(Screen::hasShiftDown);
+				b -> PacketHandler.INSTANCE.sendToServer(new TransferMessage(restock, Screen.hasShiftDown()))).setTextureShift(Screen::hasShiftDown);
 	}
 }

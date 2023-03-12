@@ -3,7 +3,10 @@ package net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
@@ -89,17 +92,26 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	private void updateFullRenderInfo() {
 		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
+		List<Integer> inaccessibleSlots = new ArrayList<>();
 		for (int slotIndex : slotIndexes) {
 			getSlotItemCopy(slotIndex).ifPresent(stackCopy ->
 					displayItems.add(new RenderInfo.DisplayItem(stackCopy, slotRotations.getOrDefault(slotIndex, 0), slotIndex)));
+			if (!inventoryHandlerSupplier.get().isSlotAccessible(slotIndex)) {
+				inaccessibleSlots.add(slotIndex);
+			}
 		}
 
-		renderInfoSupplier.get().refreshItemDisplayRenderInfo(displayItems);
+		renderInfoSupplier.get().refreshItemDisplayRenderInfo(displayItems, inaccessibleSlots);
 	}
 
 	private Optional<ItemStack> getSlotItemCopy(int slotIndex) {
 		ItemStack slotStack = inventoryHandlerSupplier.get().getStackInSlot(slotIndex);
 		if (slotStack.isEmpty()) {
+			Item filterItem = inventoryHandlerSupplier.get().getFilterItem(slotIndex);
+			if (filterItem != Items.AIR) {
+				return Optional.of(new ItemStack(filterItem));
+			}
+
 			return getMemorySettings.get().getSlotFilterStack(slotIndex, true);
 		}
 		ItemStack stackCopy = slotStack.copy();
@@ -194,7 +206,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	}
 
 	public void itemChanged(int changedSlotIndex) {
-		if (!slotIndexes.contains(changedSlotIndex)) {
+		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER || !slotIndexes.contains(changedSlotIndex)) {
 			return;
 		}
 
