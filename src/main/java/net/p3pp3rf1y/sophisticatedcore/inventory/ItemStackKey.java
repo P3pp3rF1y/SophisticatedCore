@@ -16,6 +16,7 @@ public record ItemStackKey(ItemStack stack) {
 
 	public ItemStackKey(ItemStack stack) {
 		this.stack = stack.copy();
+		stack.setCount(1);
 	}
 
 	@Override
