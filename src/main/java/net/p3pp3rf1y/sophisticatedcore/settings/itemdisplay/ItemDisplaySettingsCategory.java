@@ -74,19 +74,24 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	private boolean haveRenderedItemsChanged() {
 		List<RenderInfo.DisplayItem> previousDisplayItems = renderInfoSupplier.get().getItemDisplayRenderInfo().getDisplayItems();
+		List<Integer> inaccessibleSlots = renderInfoSupplier.get().getItemDisplayRenderInfo().getInaccessibleSlots();
+
+		if (previousDisplayItems.size() != slotIndexes.size()) {
+			return true;
+		}
+
 		int i = 0;
 		for (int slotIndex : slotIndexes) {
 			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
-			if (newItem.isEmpty()) {
-				continue;
-			}
 
-			if (previousDisplayItems.size() <= i || ItemStackKey.getHashCode(newItem) != ItemStackKey.getHashCode(previousDisplayItems.get(i).getItem())) {
+			if (ItemStackKey.getHashCode(newItem) != ItemStackKey.getHashCode(previousDisplayItems.get(i).getItem())
+					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandlerSupplier.get().isSlotAccessible(slotIndex))) {
 				return true;
 			}
 
 			i++;
 		}
+
 		return i != previousDisplayItems.size();
 	}
 
