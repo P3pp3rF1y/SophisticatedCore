@@ -255,15 +255,17 @@ public class InventoryHelper {
 				resultStack = handlerB.insertItem(slotB, slotStack, true);
 			}
 			int countToExtract = slotStack.getCount() - resultStack.getCount();
-			if (countToExtract > 0 && handlerA.extractItem(slot, countToExtract, true).getCount() == countToExtract) {
+			while (countToExtract > 0 && !handlerA.extractItem(slot, countToExtract, true).isEmpty()) {
+				ItemStack extractedStack = handlerA.extractItem(slot, countToExtract, false);
+				countToExtract -= extractedStack.getCount();
 				if (slotB == -1) {
-					insertIntoInventory(handlerA.extractItem(slot, countToExtract, false), handlerB, false);
+					insertIntoInventory(extractedStack, handlerB, false);
 				} else {
-					handlerB.insertItem(slotB, handlerA.extractItem(slot, countToExtract, false), false);
+					handlerB.insertItem(slotB, extractedStack, false);
 				}
 				onInserted.accept(() -> {
 					ItemStack copiedStack = slotStack.copy();
-					copiedStack.setCount(countToExtract);
+					copiedStack.setCount(extractedStack.getCount());
 					return copiedStack;
 				});
 			}
