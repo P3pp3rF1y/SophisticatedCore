@@ -19,6 +19,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -109,7 +110,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				itemstack = lastRecipe.assemble(inventory);
 			} else {
 				//noinspection ConstantConditions - we're on server and for sure in the world so getServer can't return null here
-				Optional<CraftingRecipe> optional = world.getServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, inventory, world);
+				Optional<CraftingRecipe> optional = RecipeHelper.safeGetRecipeFor(RecipeType.CRAFTING, inventory, world);
 				if (optional.isPresent()) {
 					CraftingRecipe craftingRecipe = optional.get();
 					if (inventoryResult.setRecipeUsed(world, serverplayerentity, craftingRecipe)) {
