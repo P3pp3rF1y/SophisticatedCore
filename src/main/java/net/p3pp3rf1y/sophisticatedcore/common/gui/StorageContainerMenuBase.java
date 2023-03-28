@@ -339,47 +339,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
 		storageWrapper.setPersistent(player.level.isClientSide);
 		isUpdatingFromPacket = true;
-		int firstUpgradeSettingsSlot = getFirstUpgradeSlot() + getNumberOfUpgradeSlots();
-
-		boolean upgradeChanged = false;
-		for (int i = 0; i < firstUpgradeSettingsSlot; i++) {
-			if (i >= getFirstUpgradeSlot()) {
-				if (!ItemStack.matches(getSlot(i).getItem(), items.get(i))) {
-					getSlot(i).set(items.get(i));
-					upgradeChanged = true;
-				}
-			} else {
-				getSlot(i).set(items.get(i));
-			}
-		}
-
-		if (upgradeChanged && checkUpgradeControlNeedsReload()) {
-			reloadUpgradeControl();
-		}
-
-		for(int i = firstUpgradeSettingsSlot; i < items.size() && i < getTotalSlotsNumber(); ++i) {
-			getSlot(i).set(items.get(i));
-		}
-
-		this.carried = carried;
-		this.stateId = stateId;
-
+		super.initializeContents(stateId, items, carried);
 		isUpdatingFromPacket = false;
 		storageWrapper.setPersistent(true);
 		storageWrapper.getInventoryHandler().saveInventory();
 		storageWrapper.getUpgradeHandler().saveInventory();
-	}
-
-	private boolean checkUpgradeControlNeedsReload() {
-		for (Map.Entry<Integer, IUpgradeWrapper> entry : storageWrapper.getUpgradeHandler().getSlotWrappers().entrySet()) {
-			Integer slot = entry.getKey();
-			IUpgradeWrapper slotWrapper = entry.getValue();
-			if(UpgradeContainerRegistry.instantiateContainer(player, slot, slotWrapper)
-					.map(newContainer -> !upgradeContainers.containsKey(slot) || upgradeContainers.get(slot).getSlots().size() != newContainer.getSlots().size()).orElse(false)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	protected boolean isUpgradeSettingsSlot(int index) {

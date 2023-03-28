@@ -56,7 +56,7 @@ public class StackUpgradeConfig {
 	}
 
 	public boolean canStackItem(Item item) {
-		if (!Config.COMMON_SPEC.isLoaded()) {
+		if (!Config.SERVER_SPEC.isLoaded()) {
 			return true;
 		}
 		if (nonStackableItems == null) {
