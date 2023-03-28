@@ -29,7 +29,7 @@ public class ItemEnabledCondition implements ICondition {
 
 	@Override
 	public boolean test() {
-		return Config.COMMON.enabledItems.isItemEnabled(itemRegistryName);
+		return Config.SERVER.enabledItems.isItemEnabled(itemRegistryName);
 	}
 
 	public static class Serializer implements IConditionSerializer<ItemEnabledCondition> {
