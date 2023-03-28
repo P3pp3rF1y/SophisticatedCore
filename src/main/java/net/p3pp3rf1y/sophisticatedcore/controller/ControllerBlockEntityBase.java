@@ -561,18 +561,30 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (stackStorages.containsKey(stackKey)) {
 			Set<BlockPos> positions = stackStorages.get(stackKey);
 			remaining = insertIntoStorages(positions, remaining, simulate);
+			if (remaining.isEmpty()) {
+				return remaining;
+			}
 		}
 
 		if (memorizedItemStorages.containsKey(stack.getItem())) {
 			remaining = insertIntoStorages(memorizedItemStorages.get(stack.getItem()), remaining, simulate);
+			if (remaining.isEmpty()) {
+				return remaining;
+			}
 		}
 		int stackHash = ItemStackKey.getHashCode(stack);
 		if (memorizedStackStorages.containsKey(stackHash)) {
 			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate);
+			if (remaining.isEmpty()) {
+				return remaining;
+			}
 		}
 
 		if (filterItemStorages.containsKey(stack.getItem())) {
 			remaining = insertIntoStorages(filterItemStorages.get(stack.getItem()), remaining, simulate);
+			if (remaining.isEmpty()) {
+				return remaining;
+			}
 		}
 
 		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, remaining, simulate) : remaining;
