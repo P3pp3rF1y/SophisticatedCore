@@ -176,6 +176,32 @@ class InventoryHelperTest {
 						)
 				},
 				{
+						stacks(new ItemStack(Items.IRON_INGOT, 1024), ItemStack.EMPTY),
+						16,
+						stacks(ItemStack.EMPTY),
+						1,
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 960),
+								1, ItemStack.EMPTY
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64)
+						)
+				},
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 1024), ItemStack.EMPTY),
+						16,
+						stacks(ItemStack.EMPTY),
+						4,
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 768),
+								1, ItemStack.EMPTY
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 256)
+						)
+				},
+				{
 						stacks(new ItemStack(Items.IRON_SWORD, 16)),
 						16,
 						stacks(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY,
