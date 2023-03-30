@@ -5,6 +5,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
@@ -126,6 +127,15 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 						addSlotItem(slot, item);
 					} else {
 						addSlotStack(slot, stackInSlot);
+					}
+				} else {
+					Item filterItem = inventoryHandler.getFilterItem(slot);
+					if (filterItem != Items.AIR) {
+						if (ignoreNbt) {
+							addSlotItem(slot, filterItem);
+						} else {
+							addSlotStack(slot, new ItemStack(filterItem));
+						}
 					}
 				}
 			}

@@ -13,7 +13,7 @@ public class ItemBase extends Item {
 
 	@Override
 	public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-		if (Config.COMMON.enabledItems.isItemEnabled(this)) {
+		if (Config.SERVER.enabledItems.isItemEnabled(this)) {
 			super.fillItemCategory(group, items);
 		}
 	}

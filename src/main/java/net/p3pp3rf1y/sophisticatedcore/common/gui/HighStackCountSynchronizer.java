@@ -6,7 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerSynchronizer;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerStacksMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncSlotStackMessage;
 
@@ -19,12 +19,12 @@ public class HighStackCountSynchronizer implements ContainerSynchronizer {
 
 	@Override
 	public void sendInitialData(AbstractContainerMenu containerMenu, NonNullList<ItemStack> stacks, ItemStack carriedStack, int[] dataSlots) {
-		SophisticatedCore.PACKET_HANDLER.sendToClient(player, new SyncContainerStacksMessage(containerMenu.containerId, containerMenu.incrementStateId(), stacks, carriedStack));
+		PacketHandler.INSTANCE.sendToClient(player, new SyncContainerStacksMessage(containerMenu.containerId, containerMenu.incrementStateId(), stacks, carriedStack));
 	}
 
 	@Override
 	public void sendSlotChange(AbstractContainerMenu containerMenu, int slotInd, ItemStack stack) {
-		SophisticatedCore.PACKET_HANDLER.sendToClient(player, new SyncSlotStackMessage(containerMenu.containerId, containerMenu.incrementStateId(), slotInd, stack));
+		PacketHandler.INSTANCE.sendToClient(player, new SyncSlotStackMessage(containerMenu.containerId, containerMenu.incrementStateId(), slotInd, stack));
 	}
 
 	@Override

@@ -21,6 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -108,9 +109,23 @@ public class InventoryHelper {
 	}
 
 	public static IItemHandler cloneInventory(IItemHandler inventory) {
-		IItemHandler cloned = new ItemStackHandler(inventory.getSlots());
+		Map<Integer, Integer> slotLimits = new HashMap<>();
+		IItemHandler cloned = new ItemStackHandler(inventory.getSlots()) {
+			@Override
+			public int getSlotLimit(int slot) {
+				return slotLimits.getOrDefault(slot, super.getSlotLimit(slot));
+			}
+
+			@Override
+			protected int getStackLimit(int slot, @NotNull ItemStack stack) {
+				return getSlotLimit(slot) / 64 * stack.getMaxStackSize();
+			}
+		};
 		for (int slot = 0; slot < inventory.getSlots(); slot++) {
-			cloned.insertItem(slot, inventory.getStackInSlot(slot).copy(), false);
+			ItemStack stackCopy = inventory.getStackInSlot(slot).copy();
+			cloned.insertItem(slot, stackCopy, false);
+			int slotLimit = inventory.getSlotLimit(slot);
+			slotLimits.put(slot, slotLimit);
 		}
 		return cloned;
 	}
@@ -249,21 +264,27 @@ public class InventoryHelper {
 			}
 
 			ItemStack resultStack;
+
+			//not simulating the two calls here because the clone actually needs to be updated so that oversized stack inserts into smaller slots don't reuse that slot
+			IItemHandler simulatedHandlerB = cloneInventory(handlerB);
 			if (slotB == -1) {
-				resultStack = insertIntoInventory(slotStack, handlerB, true);
+				resultStack = insertIntoInventory(slotStack, simulatedHandlerB, false); //not simulating here because the clone actually needs to be updated
 			} else {
-				resultStack = handlerB.insertItem(slotB, slotStack, true);
+				resultStack = simulatedHandlerB.insertItem(slotB, slotStack, false);
 			}
+
 			int countToExtract = slotStack.getCount() - resultStack.getCount();
-			if (countToExtract > 0 && handlerA.extractItem(slot, countToExtract, true).getCount() == countToExtract) {
+			while (countToExtract > 0 && !handlerA.extractItem(slot, countToExtract, true).isEmpty()) {
+				ItemStack extractedStack = handlerA.extractItem(slot, countToExtract, false);
+				countToExtract -= extractedStack.getCount();
 				if (slotB == -1) {
-					insertIntoInventory(handlerA.extractItem(slot, countToExtract, false), handlerB, false);
+					insertIntoInventory(extractedStack, handlerB, false);
 				} else {
-					handlerB.insertItem(slotB, handlerA.extractItem(slot, countToExtract, false), false);
+					handlerB.insertItem(slotB, extractedStack, false);
 				}
 				onInserted.accept(() -> {
 					ItemStack copiedStack = slotStack.copy();
-					copiedStack.setCount(countToExtract);
+					copiedStack.setCount(extractedStack.getCount());
 					return copiedStack;
 				});
 			}

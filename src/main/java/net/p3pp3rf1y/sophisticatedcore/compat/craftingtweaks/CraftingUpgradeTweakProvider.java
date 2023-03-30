@@ -200,6 +200,9 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 						ResourceLocation registryName = ForgeRegistries.ITEMS.getKey(itemStack.getItem());
 
 						String key = Objects.toString(registryName);
+						if (itemStack.getTag() != null) {
+							key = key + "@" + itemStack.getTag();
+						}
 						itemMap.put(key, itemStack);
 						itemCount.add(key, itemStack.getCount());
 					}

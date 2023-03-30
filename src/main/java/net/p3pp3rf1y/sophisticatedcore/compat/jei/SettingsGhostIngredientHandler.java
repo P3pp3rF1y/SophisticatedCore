@@ -3,20 +3,26 @@ package net.p3pp3rf1y.sophisticatedcore.compat.jei;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements IGhostIngredientHandler<S> {
+	private S targetedScreen;
+
 	@Override
 	public <I> List<Target<I>> getTargets(S screen, I i, boolean b) {
 		List<Target<I>> targets = new ArrayList<>();
 		if (!(i instanceof ItemStack ghostStack)) {
 			return targets;
 		}
+
+		screen.startMouseDragHandledByOther();
+		targetedScreen = screen;
+
 		screen.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
 			if (tab instanceof MemorySettingsTab) {
 				screen.getMenu().getStorageInventorySlots().forEach(s -> {
@@ -29,7 +35,7 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 
 							@Override
 							public void accept(I i) {
-								SophisticatedCore.PACKET_HANDLER.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
+								PacketHandler.INSTANCE.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
 							}
 						});
 					}
@@ -41,6 +47,6 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 
 	@Override
 	public void onComplete() {
-		//noop
+		targetedScreen.stopMouseDragHandledByOther();
 	}
 }

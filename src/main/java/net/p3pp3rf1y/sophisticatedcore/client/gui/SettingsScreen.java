@@ -2,10 +2,14 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
@@ -24,6 +28,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	private StorageSettingsTabControlBase settingsTabControl;
 	private InventoryScrollPanel inventoryScrollPanel = null;
 	private StorageBackgroundProperties storageBackgroundProperties;
+	private boolean mouseDragHandledByOther = false;
 
 	protected SettingsScreen(SettingsContainerMenu<?> screenContainer, Inventory inv, Component titleIn) {
 		super(screenContainer, inv, titleIn);
@@ -169,7 +174,20 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 		RenderSystem.enableDepthTest();
 		poseStack.pushPose();
-		settingsTabControl.renderGuiItem(itemRenderer, itemstack, slot);
+		if (!settingsTabControl.renderGuiItem(itemRenderer, itemstack, slot)) {
+			if (!getMenu().getSlotFilterItem(slot.index).isEmpty()) {
+				itemRenderer.renderAndDecorateItem(getMenu().getSlotFilterItem(slot.index), slot.x, slot.y);
+			} else {
+				Pair<ResourceLocation, ResourceLocation> pair = slot.getNoItemIcon();
+				if (pair != null) {
+					//noinspection ConstantConditions - by this point minecraft isn't null
+					TextureAtlasSprite textureatlassprite = minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
+					RenderSystem.setShader(GameRenderer::getPositionTexShader);
+					RenderSystem.setShaderTexture(0, textureatlassprite.atlas().location());
+					blit(poseStack, slot.x, slot.y, getBlitOffset(), 16, 16, textureatlassprite);
+				}
+			}
+		}
 		poseStack.popPose();
 		itemRenderer.blitOffset = 0.0F;
 		setBlitOffset(0);
@@ -189,6 +207,9 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		if (mouseDragHandledByOther) {
+			return false;
+		}
 		Slot slot = findSlot(mouseX, mouseY);
 		if (slot != null) {
 			settingsTabControl.handleSlotClick(slot, button);
@@ -273,5 +294,13 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@Override
 	public Slot getSlot(int slotIndex) {
 		return getMenu().getSlot(slotIndex);
+	}
+
+	public void startMouseDragHandledByOther() {
+		mouseDragHandledByOther = true;
+	}
+
+	public void stopMouseDragHandledByOther() {
+		mouseDragHandledByOther = false;
 	}
 }

@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.network;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
@@ -39,8 +40,11 @@ public class InsertIntoHeldStorageMessage {
 		AbstractContainerMenu containerMenu = player.containerMenu;
 		ItemStack storageStack = containerMenu.getCarried();
 		if (storageStack.getItem() instanceof IStashStorageItem stashStorageItem) {
-			ItemStack stackToStash = containerMenu.getSlot(msg.slotIndex).getItem();
-			containerMenu.getSlot(msg.slotIndex).set(stashStorageItem.stash(storageStack, stackToStash));
+			Slot slot = containerMenu.getSlot(msg.slotIndex);
+			ItemStack stackToStash = slot.getItem();
+			ItemStack stashResult = stashStorageItem.stash(storageStack, stackToStash);
+			slot.set(stashResult);
+			slot.onTake(player, stashResult);
 		}
 	}
 }

@@ -7,7 +7,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -94,12 +94,12 @@ public class ServerStorageSoundHandler {
 
 	public static void startPlayingDisc(ServerLevel serverWorld, BlockPos position, UUID storageUuid, int discItemId, Runnable onStopHandler) {
 		Vec3 pos = Vec3.atCenterOf(position);
-		SophisticatedCore.PACKET_HANDLER.sendToAllNear(serverWorld, serverWorld.dimension(), pos, 128, new PlayDiscMessage(storageUuid, discItemId, position));
+		PacketHandler.INSTANCE.sendToAllNear(serverWorld, serverWorld.dimension(), pos, 128, new PlayDiscMessage(storageUuid, discItemId, position));
 		putKeepAliveInfo(serverWorld, storageUuid, onStopHandler, pos);
 	}
 
 	public static void startPlayingDisc(ServerLevel serverWorld, Vec3 position, UUID storageUuid, int entityId, int discItemId, Runnable onStopHandler) {
-		SophisticatedCore.PACKET_HANDLER.sendToAllNear(serverWorld, serverWorld.dimension(), position, 128, new PlayDiscMessage(storageUuid, discItemId, entityId));
+		PacketHandler.INSTANCE.sendToAllNear(serverWorld, serverWorld.dimension(), position, 128, new PlayDiscMessage(storageUuid, discItemId, entityId));
 		putKeepAliveInfo(serverWorld, storageUuid, onStopHandler, position);
 	}
 
@@ -120,6 +120,6 @@ public class ServerStorageSoundHandler {
 	}
 
 	private static void sendStopMessage(ServerLevel serverWorld, Vec3 position, UUID storageUuid) {
-		SophisticatedCore.PACKET_HANDLER.sendToAllNear(serverWorld, serverWorld.dimension(), position, 128, new StopDiscPlaybackMessage(storageUuid));
+		PacketHandler.INSTANCE.sendToAllNear(serverWorld, serverWorld.dimension(), position, 128, new StopDiscPlaybackMessage(storageUuid));
 	}
 }

@@ -4,6 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
@@ -38,6 +39,9 @@ public class SetMemorySlotMessage {
 		if (sender == null || !(sender.containerMenu instanceof SettingsContainerMenu<?> settingsContainerMenu)) {
 			return;
 		}
-		settingsContainerMenu.getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).setFilter(msg.slotNumber, msg.stack);
+		IStorageWrapper storageWrapper = settingsContainerMenu.getStorageWrapper();
+		storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).setFilter(msg.slotNumber, msg.stack);
+		storageWrapper.getInventoryHandler().onSlotFilterChanged(msg.slotNumber);
+		settingsContainerMenu.sendAdditionalSlotInfo();
 	}
 }
