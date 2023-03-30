@@ -66,6 +66,7 @@ public interface IControllableStorage extends IControllerBoundable {
 		removeControllerPos();
 		getStorageWrapper().getInventoryForInputOutput().unregisterStackKeyListeners();
 		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unregisterListeners();
+		getStorageWrapper().getInventoryHandler().unregisterFilterItemsChangeListener();
 	}
 
 	private void registerListeners() {
@@ -75,6 +76,9 @@ public interface IControllableStorage extends IControllerBoundable {
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i)),
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedStack(getStorageBlockPos(), i)),
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedStack(getStorageBlockPos(), i))
+		);
+		getStorageWrapper().getInventoryHandler().registerFilterItemsChangeListener(
+				items -> runOnController(getStorageBlockLevel(), controller -> controller.setStorageFilterItems(getStorageBlockPos(), items))
 		);
 	}
 

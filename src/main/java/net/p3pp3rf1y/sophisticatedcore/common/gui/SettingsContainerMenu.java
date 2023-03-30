@@ -1,25 +1,32 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import com.google.common.base.Suppliers;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.inventory.ContainerSynchronizer;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncAdditionalSlotInfoMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncEmptySlotIconsMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncTemplateSettingsMessage;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
@@ -40,15 +47,17 @@ import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer {
+public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer, IAdditionalSlotInfoMenu {
 	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
 	private static final String ACTION_TAG = "action";
 
@@ -68,6 +77,10 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	public final NonNullList<ItemStack> remoteGhostSlots = NonNullList.create();
 	private final Map<String, SettingsContainerBase<?>> settingsContainers = new LinkedHashMap<>();
 	public final List<Slot> ghostSlots = new ArrayList<>();
+	private boolean inventorySlotStackChanged = false;
+	private final Set<Integer> inaccessibleSlots = new HashSet<>();
+	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
+	private final Map<Integer, Pair<ResourceLocation, ResourceLocation>> emptySlotIcons = new HashMap<>();
 
 	@Nullable
 	private TemplateSettingsHandler selectedTemplate;
@@ -128,6 +141,11 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			triggerSlotListeners(slot, itemstack, supplier);
 			synchronizeSlotToRemote(slot, itemstack, supplier);
 		}
+
+		if (inventorySlotStackChanged) {
+			inventorySlotStackChanged = false;
+			sendAdditionalSlotInfo();
+		}
 	}
 
 	@Override
@@ -160,10 +178,13 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	@SuppressWarnings("java:S2177")
 	private void synchronizeSlotToRemote(int slotIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy) {
 		if (!suppressRemoteUpdates) {
-			ItemStack itemstack = remoteGhostSlots.get(slotIndex);
-			if (!ItemStack.matches(itemstack, slotStack)) {
+			ItemStack remoteStack = remoteGhostSlots.get(slotIndex);
+			if (!ItemStack.matches(remoteStack, slotStack)) {
 				ItemStack stackCopy = slotStackCopy.get();
 				remoteGhostSlots.set(slotIndex, stackCopy);
+				if ((remoteStack.isEmpty() || slotStack.isEmpty())) {
+					inventorySlotStackChanged = true;
+				}
 				if (synchronizer != null) {
 					synchronizer.sendSlotChange(this, slotIndex, stackCopy);
 				}
@@ -186,8 +207,11 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		}
 
 		if (player instanceof ServerPlayer serverPlayer) {
-			SophisticatedCore.PACKET_HANDLER.sendToClient(serverPlayer, new SyncTemplateSettingsMessage(SettingsTemplateStorage.get().getPlayerTemplates(serverPlayer)));
+			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncTemplateSettingsMessage(SettingsTemplateStorage.get().getPlayerTemplates(serverPlayer)));
 		}
+
+		sendEmptySlotIcons();
+		sendAdditionalSlotInfo();
 	}
 
 	public abstract void detectSettingsChangeAndReload();
@@ -206,9 +230,16 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return ghostSlots.get(slotId);
 	}
 
-	public void onMemorizedStackRemoved(int slotId) {
-		if (getSlot(slotId).getItem().isEmpty()) {
-			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(slotId);
+	public void onMemorizedStackAdded(int slotNumber) {
+		storageWrapper.getInventoryHandler().onSlotFilterChanged(slotNumber);
+		sendAdditionalSlotInfo();
+	}
+
+	public void onMemorizedStackRemoved(int slotNumber) {
+		if (getSlot(slotNumber).getItem().isEmpty()) {
+			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(slotNumber);
+			storageWrapper.getInventoryHandler().onSlotFilterChanged(slotNumber);
+			sendAdditionalSlotInfo();
 		}
 	}
 
@@ -289,7 +320,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return selectedTemplate != null ? Optional.of(selectedTemplate.getTypeCategory(categoryClass)) : Optional.empty();
 	}
 
-	private static class ViewOnlyStorageInventorySlot extends SlotItemHandler {
+	private class ViewOnlyStorageInventorySlot extends SlotItemHandler {
 		public ViewOnlyStorageInventorySlot(IItemHandler inventoryHandler, int slotIndex) {
 			super(inventoryHandler, slotIndex, 0, 0);
 		}
@@ -297,6 +328,12 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		@Override
 		public boolean mayPickup(Player playerIn) {
 			return false;
+		}
+
+		@Nullable
+		@Override
+		public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+			return inaccessibleSlots.contains(getSlotIndex()) ? StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(getSlotIndex(), null);
 		}
 	}
 
@@ -340,11 +377,73 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			return;
 		}
 		CompoundTag data = supplyData.get();
-		SophisticatedCore.PACKET_HANDLER.sendToServer(new SyncContainerClientDataMessage(data));
+		PacketHandler.INSTANCE.sendToServer(new SyncContainerClientDataMessage(data));
 	}
 
 	protected boolean isServer() {
 		return !player.level.isClientSide;
+	}
+
+	public void sendAdditionalSlotInfo() {
+		if (!(player instanceof ServerPlayer serverPlayer)) {
+			return;
+		}
+		Set<Integer> inaccessibleSlots = new HashSet<>();
+		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
+		Map<Integer, Item> slotFilterItems = new HashMap<>();
+		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
+			if (!inventoryHandler.isSlotAccessible(slot)) {
+				inaccessibleSlots.add(slot);
+			}
+
+			if (inventoryHandler.getFilterItem(slot) != Items.AIR) {
+				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot));
+			}
+		}
+		PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncAdditionalSlotInfoMessage(inaccessibleSlots, Map.of(), slotFilterItems));
+	}
+
+	@Override
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Map<Integer, Item> slotFilterItems) {
+		this.inaccessibleSlots.clear();
+		this.inaccessibleSlots.addAll(inaccessibleSlots);
+
+		this.slotFilterItems.clear();
+		slotFilterItems.forEach((slot, item) -> this.slotFilterItems.put(slot, new ItemStack(item)));
+	}
+
+	@Override
+	public void updateEmptySlotIcons(Map<ResourceLocation, Set<Integer>> emptySlotIcons) {
+		this.emptySlotIcons.clear();
+		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, new Pair<>(InventoryMenu.BLOCK_ATLAS, textureName))));
+	}
+
+	@Override
+	public void setRemoteSlotNoCopy(int slot, ItemStack stack) {
+		ItemStack previous = getSlot(slot).getItem();
+		super.setRemoteSlotNoCopy(slot, stack);
+
+		if (previous.isEmpty() || stack.isEmpty()) {
+			inventorySlotStackChanged = true;
+		}
+	}
+
+	private void sendEmptySlotIcons() {
+		if (!(player instanceof ServerPlayer serverPlayer)) {
+			return;
+		}
+		Map<ResourceLocation, Set<Integer>> noItemSlotTextures = new HashMap<>();
+		for (int slot = 0; slot < storageWrapper.getInventoryHandler().getSlots(); slot++) {
+			Pair<ResourceLocation, ResourceLocation> noItemIcon = storageWrapper.getInventoryHandler().getNoItemIcon(slot);
+			if (noItemIcon != null) {
+				noItemSlotTextures.computeIfAbsent(noItemIcon.getSecond(), rl -> new HashSet<>()).add(slot);
+			}
+		}
+		PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncEmptySlotIconsMessage(noItemSlotTextures));
+	}
+
+	public ItemStack getSlotFilterItem(int slot) {
+		return slotFilterItems.getOrDefault(slot, ItemStack.EMPTY);
 	}
 
 	private abstract static class TemplateSettingsHandler extends SettingsHandler {

@@ -24,6 +24,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private final Map<Integer, ItemStackKey> partiallyFilledSlotStacks = new HashMap<>();
 	private final Set<Integer> emptySlots = new TreeSet<>();
 	private final MemorySettingsCategory memorySettings;
+	private Map<Item, Set<Integer>> filterItemSlots;
 	private Consumer<ItemStackKey> onAddStackKey = sk -> {};
 	private Consumer<ItemStackKey> onRemoveStackKey = sk -> {};
 
@@ -32,8 +33,9 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
 
-	public InventoryHandlerSlotTracker(MemorySettingsCategory memorySettings) {
+	public InventoryHandlerSlotTracker(MemorySettingsCategory memorySettings, Map<Item, Set<Integer>> filterItemSlots) {
 		this.memorySettings = memorySettings;
+		this.filterItemSlots = filterItemSlots;
 	}
 
 	@Override
@@ -306,6 +308,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private ItemStack insertIntoEmptySlots(IItemHandlerInserter inserter, ItemStack stack, boolean simulate) {
 		ItemStack remainingStack = stack.copy();
 		remainingStack = insertIntoEmptyMemorySlots(inserter, simulate, remainingStack);
+		remainingStack = insertIntoEmptyFilterSlots(inserter, simulate, remainingStack);
 		if (shouldInsertIntoEmpty.getAsBoolean() && !remainingStack.isEmpty()) {
 			int sizeBefore = emptySlots.size();
 			int i = 0;
@@ -329,6 +332,21 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			}
 		}
 
+		return remainingStack;
+	}
+
+	private ItemStack insertIntoEmptyFilterSlots(IItemHandlerInserter inserter, boolean simulate, ItemStack remainingStack) {
+		Item item = remainingStack.getItem();
+		if (filterItemSlots.containsKey(item)) {
+			for (int filterSlot : filterItemSlots.get(item)) {
+				if (emptySlots.contains(filterSlot)) {
+					remainingStack = inserter.insertItem(filterSlot, remainingStack, simulate);
+					if (remainingStack.isEmpty()) {
+						break;
+					}
+				}
+			}
+		}
 		return remainingStack;
 	}
 

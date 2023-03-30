@@ -89,4 +89,7 @@ public interface IStorageWrapper {
 		return 1;
 	}
 
+	default void onInit() {
+		getInventoryHandler().onInit();
+	}
 }

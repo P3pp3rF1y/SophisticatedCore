@@ -9,7 +9,6 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IStackableContentsUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
-import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,16 +47,24 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	}
 
 	@Override
-	public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper) {
+	public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (isClientSide) {
+			return new UpgradeSlotChangeResult.Success();
+		}
+
 		int currentInventoryMultiplier = getInventorySlotLimit(storageWrapper) / 64;
 		int multiplierWhenRemoved = currentInventoryMultiplier / stackSizeMultiplier;
 		return isMultiplierHighEnough(storageWrapper, multiplierWhenRemoved);
 	}
 
 	@Override
-	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper) {
+	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (isClientSide) {
+			return new UpgradeSlotChangeResult.Success();
+		}
+
 		if (!(upgradeStackToPut.getItem() instanceof StackUpgradeItem otherStackUpgradeItem)) {
-			return canRemoveUpgradeFrom(storageWrapper);
+			return canRemoveUpgradeFrom(storageWrapper, isClientSide);
 		}
 
 		if (otherStackUpgradeItem.stackSizeMultiplier >= stackSizeMultiplier) {
@@ -73,12 +80,13 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	private UpgradeSlotChangeResult isMultiplierHighEnough(IStorageWrapper storageWrapper, int multiplier) {
 		Set<Integer> slotsOverMultiplier = new HashSet<>();
 
-		InventoryHelper.iterate(storageWrapper.getInventoryHandler(), (slot, stack) -> {
+		for (int slot = 0; slot < storageWrapper.getInventoryHandler().getSlots(); slot++) {
+			ItemStack stack = storageWrapper.getInventoryHandler().getSlotStack(slot);
 			int stackMultiplierNeeded = (stack.getCount() / stack.getMaxStackSize()) + (stack.getCount() % stack.getMaxStackSize() != 0 ? 1 : 0);
 			if (stackMultiplierNeeded > multiplier) {
 				slotsOverMultiplier.add(slot);
 			}
-		});
+		}
 
 		Set<Integer> errorInventoryParts = new HashSet<>();
 

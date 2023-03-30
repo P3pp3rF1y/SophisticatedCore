@@ -32,7 +32,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.Config;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
@@ -44,6 +43,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageInventorySlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.TransferFullSlotMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
@@ -553,7 +553,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		Optional<ItemStack> memorizedStack = getMenu().getMemorizedStackInSlot(slot.index);
 		if (memorizedStack.isPresent()) {
 			itemRenderer.renderAndDecorateItem(memorizedStack.get(), i, j);
-			drawMemorizedStackOverlay(poseStack, i, j);
+			drawStackOverlay(poseStack, i, j);
+		} else if (!getMenu().getSlotFilterItem(slot.index).isEmpty()) {
+			itemRenderer.renderAndDecorateItem(getMenu().getSlotFilterItem(slot.index), i, j);
+			drawStackOverlay(poseStack, i, j);
 		} else {
 			Pair<ResourceLocation, ResourceLocation> pair = slot.getNoItemIcon();
 			if (pair != null) {
@@ -566,7 +569,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 	}
 
-	private void drawMemorizedStackOverlay(PoseStack poseStack, int x, int y) {
+	private void drawStackOverlay(PoseStack poseStack, int x, int y) {
 		poseStack.pushPose();
 		RenderSystem.enableBlend();
 		RenderSystem.disableDepthTest();
@@ -750,7 +753,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			ItemStack slotItem = slot2.getItem();
 			if (ItemStack.isSameItemSameTags(lastQuickMoved, slotItem)) {
 				if (slotItem.getCount() > slotItem.getMaxStackSize()) {
-					SophisticatedCore.PACKET_HANDLER.sendToServer(new TransferFullSlotMessage(slot2.index));
+					PacketHandler.INSTANCE.sendToServer(new TransferFullSlotMessage(slot2.index));
 				} else {
 					slotClicked(slot2, slot2.index, button, ClickType.QUICK_MOVE);
 				}
@@ -824,7 +827,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		Slot slot = findSlot(mouseX, mouseY);
 		if (hasShiftDown() && hasControlDown() && slot instanceof StorageInventorySlot && button == 0) {
-			SophisticatedCore.PACKET_HANDLER.sendToServer(new TransferFullSlotMessage(slot.index));
+			PacketHandler.INSTANCE.sendToServer(new TransferFullSlotMessage(slot.index));
 			return true;
 		}
 

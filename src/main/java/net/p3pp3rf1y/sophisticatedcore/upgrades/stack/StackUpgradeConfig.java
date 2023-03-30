@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 public class StackUpgradeConfig {
-	private static final String REGISTRY_NAME_MATCHER = "([a-z1-9_.-]+:[a-z1-9_/.-]+)";
+	private static final String REGISTRY_NAME_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+)";
 	private final ForgeConfigSpec.ConfigValue<List<String>> nonStackableItemsList;
 	@Nullable
 	private Set<Item> nonStackableItems = null;
@@ -56,7 +56,7 @@ public class StackUpgradeConfig {
 	}
 
 	public boolean canStackItem(Item item) {
-		if (!Config.COMMON_SPEC.isLoaded()) {
+		if (!Config.SERVER_SPEC.isLoaded()) {
 			return true;
 		}
 		if (nonStackableItems == null) {

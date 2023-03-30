@@ -74,7 +74,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		IItemHandlerModifiable inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		AtomicBoolean fedPlayer = new AtomicBoolean(false);
 		InventoryHelper.iterate(inventory, (slot, stack) -> {
-			if (stack.isEdible() && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
+			if (isEdible(stack, player) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 				ItemStack mainHandItem = player.getMainHandItem();
 				player.getInventory().items.set(player.getInventory().selected, stack);
 				if (stack.use(world, player, InteractionHand.MAIN_HAND).getResult() == InteractionResult.CONSUME) {
@@ -96,9 +96,17 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		return fedPlayer.get();
 	}
 
+	private static boolean isEdible(ItemStack stack, LivingEntity player) {
+		if (!stack.isEdible()) {
+			return false;
+		}
+		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
+		return foodProperties != null && foodProperties.getNutrition() >= 1;
+	}
+
 	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack, Player player) {
 		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
-		if (foodProperties == null || foodProperties.getNutrition() < 1) {
+		if (foodProperties == null) {
 			return false;
 		}
 
