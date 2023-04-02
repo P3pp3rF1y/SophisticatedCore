@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.items.IItemHandler;
@@ -14,7 +15,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
 
@@ -27,7 +31,11 @@ class InventoryHelperTest {
 	}
 
 	private IItemHandler getItemHandler(NonNullList<ItemStack> stacks, int stackLimitMultiplier) {
-		IItemHandler handler = new ItemStackHandler(stacks) {
+		return getItemHandler(stacks, stackLimitMultiplier, (slot, stack) -> true);
+	}
+
+	private IItemHandler getItemHandler(NonNullList<ItemStack> stacks, int stackLimitMultiplier, BiPredicate<Integer, ItemStack> isStackValidForSlot) {
+		return new ItemStackHandler(stacks) {
 			@Override
 			public int getSlotLimit(int slot) {
 				return super.getSlotLimit(slot) * stackLimitMultiplier;
@@ -37,8 +45,131 @@ class InventoryHelperTest {
 			protected int getStackLimit(int slot, @Nonnull ItemStack stack) {
 				return super.getStackLimit(slot, stack) * stackLimitMultiplier;
 			}
+
+			@Override
+			public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+				return isStackValidForSlot.test(slot, stack);
+			}
 		};
-		return handler;
+	}
+
+	@ParameterizedTest
+	@MethodSource("transferMovesOnlyStacksThatCanGoIntoInventory")
+	void transferMovesOnlyStacksThatCanGoIntoInventory(NonNullList<ItemStack> stacksHandlerA, int limitMultiplierA, NonNullList<ItemStack> stacksHandlerB, int limitMultiplierB,
+			BiPredicate<Integer, ItemStack> isStackValidInHandlerB, Map<Integer, ItemStack> stacksAfterTransferA, Map<Integer, ItemStack> stacksAfterTransferB) {
+		IItemHandler handlerA = getItemHandler(stacksHandlerA, limitMultiplierA);
+		IItemHandler handlerB = getItemHandler(stacksHandlerB, limitMultiplierB, isStackValidInHandlerB);
+
+		InventoryHelper.transfer(handlerA, handlerB, s -> {});
+
+		assertHandlerState(handlerA, stacksAfterTransferA);
+		assertHandlerState(handlerB, stacksAfterTransferB);
+	}
+
+	private static Object[][] transferMovesOnlyStacksThatCanGoIntoInventory() {
+		return new Object[][] {
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 64), new ItemStack(Items.IRON_INGOT, 64), new ItemStack(Items.GOLD_INGOT, 64)),
+						1,
+						stacks(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						itemMatches(Items.IRON_INGOT),
+						Map.of(
+								0, ItemStack.EMPTY,
+								1, ItemStack.EMPTY,
+								2, new ItemStack(Items.GOLD_INGOT, 64)
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64),
+								1, new ItemStack(Items.IRON_INGOT, 64),
+								2, ItemStack.EMPTY,
+								3, ItemStack.EMPTY
+						)
+				},
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 64), new ItemStack(Items.GOLD_INGOT, 64), new ItemStack(Items.GOLD_INGOT, 64)),
+						1,
+						stacks(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						itemAndSlotMatches(Map.of(0, Items.IRON_INGOT, 1, Items.IRON_SWORD, 2, Items.IRON_SWORD, 3, Items.GOLD_INGOT)),
+						Map.of(
+								0, ItemStack.EMPTY,
+								1, ItemStack.EMPTY,
+								2, new ItemStack(Items.GOLD_INGOT, 64)
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64),
+								1, ItemStack.EMPTY,
+								2, ItemStack.EMPTY,
+								3,  new ItemStack(Items.GOLD_INGOT, 64)
+						)
+				},
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 64), new ItemStack(Items.IRON_INGOT, 64), new ItemStack(Items.GOLD_INGOT, 64), new ItemStack(Items.GOLD_INGOT, 64)),
+						1,
+						stacks(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						itemAndSlotMatches(Map.of(0, Items.IRON_INGOT, 1, Items.IRON_SWORD, 2, Items.IRON_SWORD, 3, Items.GOLD_INGOT)),
+						Map.of(
+								0, ItemStack.EMPTY,
+								1, new ItemStack(Items.IRON_INGOT, 64),
+								2, ItemStack.EMPTY,
+								3, new ItemStack(Items.GOLD_INGOT, 64)
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64),
+								1, ItemStack.EMPTY,
+								2, ItemStack.EMPTY,
+								3,  new ItemStack(Items.GOLD_INGOT, 64)
+						)
+				},
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 128), new ItemStack(Items.IRON_INGOT, 97)),
+						2,
+						stacks(new ItemStack(Items.IRON_INGOT, 63), ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						itemAndSlotMatches(Map.of(0, Items.IRON_INGOT, 1, Items.IRON_INGOT, 2, Items.IRON_INGOT, 3, Items.GOLD_INGOT, 4, Items.IRON_INGOT)),
+						Map.of(
+								0, ItemStack.EMPTY,
+								1, new ItemStack(Items.IRON_INGOT, 32)
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64),
+								1, new ItemStack(Items.IRON_INGOT, 64),
+								2, new ItemStack(Items.IRON_INGOT, 64),
+								3, ItemStack.EMPTY,
+								4, new ItemStack(Items.IRON_INGOT, 64)
+						)
+				},
+				{
+						stacks(new ItemStack(Items.GOLD_BLOCK, 128), new ItemStack(Items.IRON_INGOT, 99)),
+						2,
+						stacks(ItemStack.EMPTY, new ItemStack(Items.IRON_INGOT, 63), ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						itemAndSlotMatches(Map.of(0, Items.GOLD_INGOT, 1, Items.IRON_INGOT, 2, Items.IRON_INGOT, 3, Items.GOLD_INGOT)),
+						Map.of(
+								0, new ItemStack(Items.GOLD_BLOCK, 128),
+								1, new ItemStack(Items.IRON_INGOT, 34)
+						),
+						Map.of(
+								0, ItemStack.EMPTY,
+								1, new ItemStack(Items.IRON_INGOT, 64),
+								2, new ItemStack(Items.IRON_INGOT, 64),
+								3, ItemStack.EMPTY
+						)
+				},
+		};
+	}
+
+	private static BiPredicate<Integer, ItemStack> itemAndSlotMatches(Map<Integer, Item> items) {
+		return (slot, st) -> items.containsKey(slot) && items.get(slot) == st.getItem();
+	}
+
+	private static BiPredicate<Integer, ItemStack> itemMatches(Item... items) {
+		HashSet<Item> itemsSet = new HashSet<>(items.length);
+		itemsSet.addAll(Arrays.asList(items));
+
+		return (slot, st) -> itemsSet.contains(st.getItem());
 	}
 
 	@ParameterizedTest
@@ -47,7 +178,7 @@ class InventoryHelperTest {
 		IItemHandler handlerA = getItemHandler(stacksHandlerA, limitMultiplierA);
 		IItemHandler handlerB = getItemHandler(stacksHandlerB, limitMultiplierB);
 
-		InventoryHelper.transfer(handlerA, handlerB, s -> {}, s -> true);
+		InventoryHelper.transfer(handlerA, handlerB, s -> {});
 
 		assertHandlerState(handlerA, stacksAfterTransferA);
 		assertHandlerState(handlerB, stacksAfterTransferB);
@@ -246,6 +377,34 @@ class InventoryHelperTest {
 								.put(5, new ItemStack(Items.IRON_SWORD, 2))
 								.put(6, new ItemStack(Items.IRON_SWORD, 2))
 								.build()
+				},
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 96)),
+						2,
+						stacks(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						Map.of(
+								0, ItemStack.EMPTY
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64),
+								1, new ItemStack(Items.IRON_INGOT, 32),
+								2, ItemStack.EMPTY
+						)
+				},
+				{
+						stacks(new ItemStack(Items.IRON_INGOT, 256)),
+						4,
+						stacks(new ItemStack(Items.IRON_INGOT, 63), ItemStack.EMPTY, ItemStack.EMPTY),
+						1,
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 127)
+						),
+						Map.of(
+								0, new ItemStack(Items.IRON_INGOT, 64),
+								1, new ItemStack(Items.IRON_INGOT, 64),
+								2, new ItemStack(Items.IRON_INGOT, 64)
+						)
 				},
 		};
 	}

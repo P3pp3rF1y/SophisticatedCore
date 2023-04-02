@@ -21,7 +21,6 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -109,23 +108,9 @@ public class InventoryHelper {
 	}
 
 	public static IItemHandler cloneInventory(IItemHandler inventory) {
-		Map<Integer, Integer> slotLimits = new HashMap<>();
-		IItemHandler cloned = new ItemStackHandler(inventory.getSlots()) {
-			@Override
-			public int getSlotLimit(int slot) {
-				return slotLimits.getOrDefault(slot, super.getSlotLimit(slot));
-			}
-
-			@Override
-			protected int getStackLimit(int slot, @NotNull ItemStack stack) {
-				return getSlotLimit(slot) / 64 * stack.getMaxStackSize();
-			}
-		};
+		IItemHandler cloned = new ItemStackHandler(inventory.getSlots());
 		for (int slot = 0; slot < inventory.getSlots(); slot++) {
-			ItemStack stackCopy = inventory.getStackInSlot(slot).copy();
-			cloned.insertItem(slot, stackCopy, false);
-			int slotLimit = inventory.getSlotLimit(slot);
-			slotLimits.put(slot, slotLimit);
+			cloned.insertItem(slot, inventory.getStackInSlot(slot).copy(), false);
 		}
 		return cloned;
 	}
@@ -248,51 +233,38 @@ public class InventoryHelper {
 	}
 
 	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted) {
-		transfer(handlerA, handlerB, onInserted, s -> true);
-	}
-
-	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
-		transfer(handlerA, handlerB, -1, onInserted, canTransferStack);
-	}
-
-	private static void transfer(IItemHandler handlerA, IItemHandler handlerB, int slotB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
 		int slotsA = handlerA.getSlots();
 		for (int slot = 0; slot < slotsA; slot++) {
 			ItemStack slotStack = handlerA.getStackInSlot(slot);
-			if (slotStack.isEmpty() || !canTransferStack.test(slotStack)) {
+			if (slotStack.isEmpty()) {
 				continue;
 			}
 
-			ItemStack resultStack;
-
-			//not simulating the two calls here because the clone actually needs to be updated so that oversized stack inserts into smaller slots don't reuse that slot
-			IItemHandler simulatedHandlerB = cloneInventory(handlerB);
-			if (slotB == -1) {
-				resultStack = insertIntoInventory(slotStack, simulatedHandlerB, false); //not simulating here because the clone actually needs to be updated
-			} else {
-				resultStack = simulatedHandlerB.insertItem(slotB, slotStack, false);
-			}
-
-			int countToExtract = slotStack.getCount() - resultStack.getCount();
-			while (countToExtract > 0 && !handlerA.extractItem(slot, countToExtract, true).isEmpty()) {
-				ItemStack extractedStack = handlerA.extractItem(slot, countToExtract, false);
-				countToExtract -= extractedStack.getCount();
-				if (slotB == -1) {
-					insertIntoInventory(extractedStack, handlerB, false);
-				} else {
-					handlerB.insertItem(slotB, extractedStack, false);
+			int countToTransfer = slotStack.getCount();
+			while (countToTransfer > 0) {
+				ItemStack toInsert = slotStack.copy();
+				toInsert.setCount(Math.min(slotStack.getMaxStackSize(), countToTransfer));
+				ItemStack remainingAfterInsert = insertIntoInventory(toInsert, handlerB, true);
+				if (remainingAfterInsert.getCount() == toInsert.getCount()) {
+					break;
 				}
+				int toExtract = toInsert.getCount() - remainingAfterInsert.getCount();
+
+				ItemStack extractedStack = handlerA.extractItem(slot, toExtract, true);
+				if (extractedStack.isEmpty()) {
+					break;
+				}
+
+				insertIntoInventory(handlerA.extractItem(slot, extractedStack.getCount(), false), handlerB, false);
+
 				onInserted.accept(() -> {
 					ItemStack copiedStack = slotStack.copy();
 					copiedStack.setCount(extractedStack.getCount());
 					return copiedStack;
 				});
+				countToTransfer -= extractedStack.getCount();
 			}
 		}
-	}
-
-	public static void transferIntoSlot(IItemHandler handlerA, IItemHandler handlerB, int slotB, Predicate<ItemStack> canTransferStack) {
-		transfer(handlerA, handlerB, slotB, s -> {}, canTransferStack);
 	}
 
 	public static boolean isEmpty(IItemHandler itemHandler) {
