@@ -18,6 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgradeWrapper, CraftingUpgradeContainer> implements ICraftingContainer {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
+	private static final String DATA_REPLENISH = "replenish";
 	private final ResultContainer craftResult = new ResultContainer();
 	private final CraftingItemHandler craftMatrix;
 	private final ResultSlot craftingResultSlot;
@@ -64,7 +66,15 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					ItemStack itemstack = craftMatrix.getItem(i);
 					ItemStack itemstack1 = nonnulllist.get(i);
 					if (!itemstack.isEmpty()) {
-						craftMatrix.removeItem(i, 1);
+						if (shouldReplenish()) {
+							if (InventoryHelper.extractFromInventory(itemstack.getItem(), 1, upgradeWrapper.getStorageWrapper().getInventoryHandler(), false).isEmpty()) {
+								craftMatrix.removeItem(i, 1);
+							} else {
+								onCraftMatrixChanged(craftMatrix);
+							}
+						} else {
+							craftMatrix.removeItem(i, 1);
+						}
 						itemstack = craftMatrix.getItem(i);
 					}
 
@@ -134,6 +144,9 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (data.contains(DATA_SHIFT_CLICK_INTO_STORAGE)) {
 			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
 		}
+		if (data.contains(DATA_REPLENISH)) {
+			setReplenish(data.getBoolean(DATA_REPLENISH));
+		}
 	}
 
 	@Override
@@ -163,6 +176,15 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
 		upgradeWrapper.setShiftClickIntoStorage(shiftClickIntoStorage);
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage));
+	}
+
+	public boolean shouldReplenish() {
+		return upgradeWrapper.shouldReplenish();
+	}
+
+	public void setReplenish(boolean replenish) {
+		upgradeWrapper.setReplenish(replenish);
+		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_REPLENISH, replenish));
 	}
 
 	@Override
