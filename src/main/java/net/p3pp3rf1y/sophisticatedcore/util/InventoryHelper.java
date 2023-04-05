@@ -393,8 +393,12 @@ public class InventoryHelper {
 
 	public static void dropItems(ItemStackHandler inventoryHandler, Level level, double x, double y, double z) {
 		iterate(inventoryHandler, (slot, stack) -> {
-			while(!stack.isEmpty()) {
-				Containers.dropItemStack(level, x, y, z, stack.split(Math.min(stack.getCount(), stack.getMaxStackSize())));
+			if (stack.isEmpty()) {
+				return;
+			}
+			ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getCount(), false);
+			while(!extractedStack.isEmpty()) {
+				Containers.dropItemStack(level, x, y, z, extractedStack.split(Math.min(extractedStack.getCount(), extractedStack.getMaxStackSize())));
 				inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 			}
 		});
