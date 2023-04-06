@@ -15,7 +15,6 @@ import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
@@ -23,9 +22,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.network.InsertIntoHeldStorageMessage;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.StorageInsertMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.battery.BatteryUpgradeContainer;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.tank.TankUpgradeContainer;
@@ -46,7 +42,6 @@ public class ClientEventHandler {
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
-		eventBus.addListener(EventPriority.HIGH, ClientEventHandler::onRightClick);
 	}
 
 	public static void stitchTextures(TextureStitchEvent.Pre evt) {
@@ -124,28 +119,6 @@ public class ClientEventHandler {
 			return stashStorageItem.getInventoryTooltip(held);
 		}
 		return Optional.empty();
-	}
-
-	private static void onRightClick(ScreenEvent.MouseButtonReleased.Pre event) {
-		Minecraft mc = Minecraft.getInstance();
-		Screen screen = mc.screen;
-		if (screen instanceof AbstractContainerScreen<?> container && !(screen instanceof CreativeModeInventoryScreen) && event.getButton() == 1) {
-			Slot under = container.getSlotUnderMouse();
-			ItemStack held = container.getMenu().getCarried();
-
-			if (under != null && !held.isEmpty() && mc.player != null && under.mayPickup(mc.player)) {
-				ItemStack stack = under.getItem();
-				if (stack.getItem() instanceof IStashStorageItem && stack.getCount() == 1) {
-					PacketHandler.INSTANCE.sendToServer(new StorageInsertMessage(under.index));
-					screen.mouseReleased(0, 0, -1);
-					event.setCanceled(true);
-				} else if (held.getItem() instanceof IStashStorageItem) {
-					PacketHandler.INSTANCE.sendToServer(new InsertIntoHeldStorageMessage(under.index));
-					screen.mouseReleased(0, 0, -1);
-					event.setCanceled(true);
-				}
-			}
-		}
 	}
 
 	private static void onPlayerJoinServer(ClientPlayerNetworkEvent.LoggingIn evt) {
