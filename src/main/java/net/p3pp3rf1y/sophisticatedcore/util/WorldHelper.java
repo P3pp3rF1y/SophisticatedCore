@@ -15,6 +15,13 @@ public class WorldHelper {
 		return getBlockEntity(level, pos, BlockEntity.class);
 	}
 
+	public static Optional<BlockEntity> getLoadedBlockEntity(@Nullable Level level, BlockPos pos) {
+		if (level != null && level.isLoaded(pos)) {
+			return Optional.ofNullable(level.getBlockEntity(pos));
+		}
+		return Optional.empty();
+	}
+
 	public static <T> Optional<T> getLoadedBlockEntity(@Nullable Level level, BlockPos pos, Class<T> teClass) {
 		if (level != null && level.isLoaded(pos)) {
 			return getBlockEntity(level, pos, teClass);
