@@ -28,6 +28,10 @@ public class FilterLogic extends FilterLogicBase {
 		this(upgrade, saveHandler, filterSlotCount, s -> true, "");
 	}
 
+	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, String parentTagKey) {
+		this(upgrade, saveHandler, filterSlotCount, s -> true, parentTagKey);
+	}
+
 	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Predicate<ItemStack> isItemValid) {
 		this(upgrade, saveHandler, filterSlotCount, isItemValid, "");
 	}
