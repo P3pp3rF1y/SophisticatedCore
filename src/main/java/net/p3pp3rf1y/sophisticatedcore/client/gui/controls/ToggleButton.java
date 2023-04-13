@@ -36,8 +36,12 @@ public class ToggleButton<T extends Comparable<T>> extends Button {
 	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			StateData data = stateData.get(getState.get());
-			GuiHelper.renderTooltip(screen, poseStack, data.getTooltip(), mouseX, mouseY);
+			GuiHelper.renderTooltip(screen, poseStack, getTooltip(data), mouseX, mouseY);
 		}
+	}
+
+	protected List<Component> getTooltip(StateData data) {
+		return data.getTooltip();
 	}
 
 	public static class StateData {

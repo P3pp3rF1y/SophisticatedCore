@@ -21,15 +21,20 @@ import java.util.function.Consumer;
 public class FilterLogicBase {
 	protected final ItemStack upgrade;
 	protected final Consumer<ItemStack> saveHandler;
+
 	protected final String parentTagKey;
+
 	private boolean allowListDefault = false;
 	@Nullable
 	protected Set<TagKey<Item>> tagKeys = null;
-
 	public FilterLogicBase(ItemStack upgrade, Consumer<ItemStack> saveHandler, String parentTagKey) {
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
 		this.parentTagKey = parentTagKey;
+	}
+
+	public String getParentTagKey() {
+		return parentTagKey;
 	}
 
 	public void setAllowByDefault() {
