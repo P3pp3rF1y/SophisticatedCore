@@ -56,7 +56,7 @@ public class RecipeHelper {
 	}
 
 	private static Optional<Level> getWorld() {
-		return Optional.ofNullable(world.get());
+		return world != null ? Optional.ofNullable(world.get()) : Optional.empty();
 	}
 
 	private static Set<CompactingShape> getCompactingShapes(Item item) {
