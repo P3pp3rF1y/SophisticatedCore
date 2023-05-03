@@ -463,5 +463,6 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			return;
 		}
 		inventoryPartitioner.onInit();
+		slotTracker = new ISlotTracker.Noop();
 	}
 }
