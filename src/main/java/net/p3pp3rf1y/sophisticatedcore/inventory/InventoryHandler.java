@@ -16,6 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -158,8 +159,16 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public int getBaseStackLimit(ItemStack stack) {
-		int adjustedMaxStackSizeMultiplier = maxStackSizeMultiplier > 1 && stackUpgradeConfig.canStackItem(stack.getItem()) ? maxStackSizeMultiplier : 1;
-		return Math.min(slotLimit, stack.getMaxStackSize() * adjustedMaxStackSizeMultiplier);
+		if (!stackUpgradeConfig.canStackItem(stack.getItem())) {
+			return stack.getMaxStackSize();
+		}
+
+		int limit = MathHelper.intMaxCappedMultiply(stack.getMaxStackSize(), (slotLimit / 64));
+		int remainder = slotLimit % 64;
+		if (remainder > 0) {
+			limit = MathHelper.intMaxCappedAddition(limit, remainder * stack.getMaxStackSize() / 64);
+		}
+		return limit;
 	}
 
 	@Override
