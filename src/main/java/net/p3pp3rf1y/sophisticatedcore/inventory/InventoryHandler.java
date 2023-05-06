@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
@@ -50,6 +51,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private final InventoryPartitioner inventoryPartitioner;
 	private Consumer<Set<Item>> filterItemsChangeListener = s -> {};
 	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
+	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int slotLimit, StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
@@ -263,6 +265,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		if (!(slotTracker instanceof InventoryHandlerSlotTracker)) {
 			slotTracker = new InventoryHandlerSlotTracker(storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class), filterItemSlots);
 			slotTracker.refreshSlotIndexesFrom(this);
+			slotTracker.setShouldInsertIntoEmpty(shouldInsertIntoEmpty);
 		}
 	}
 
@@ -464,5 +467,10 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}
 		inventoryPartitioner.onInit();
 		slotTracker = new ISlotTracker.Noop();
+	}
+
+	public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
+		this.shouldInsertIntoEmpty = shouldInsertIntoEmpty;
+		slotTracker.setShouldInsertIntoEmpty(shouldInsertIntoEmpty);
 	}
 }
