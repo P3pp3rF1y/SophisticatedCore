@@ -6,9 +6,8 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraftforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -32,12 +31,12 @@ public class FluidFilterControl extends WidgetBase {
 	@Override
 	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		for (int i = 0; i < container.getNumberOfFluidFilters(); i++) {
-			Fluid fluid = container.getFluid(i);
-			if (fluid != Fluids.EMPTY) {
-				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
-				ResourceLocation texture = renderProperties.getStillTexture();
+			FluidStack fluid = container.getFluid(i);
+			if (!fluid.isEmpty()) {
+				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
+				ResourceLocation texture = renderProperties.getStillTexture(fluid);
 				TextureAtlasSprite still = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-				GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, renderProperties.getTintColor(), x + i * 18 + 1, y + 1, 16);
+				GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}

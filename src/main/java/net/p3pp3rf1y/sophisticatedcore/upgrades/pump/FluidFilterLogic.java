@@ -1,27 +1,24 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public class FluidFilterLogic {
-	private final List<Fluid> fluidFilters;
+	private final List<FluidStack> fluidFilters;
 	private final ItemStack upgrade;
 	private final Consumer<ItemStack> saveHandler;
 	private boolean noFilter = true;
 
 	public FluidFilterLogic(int filterSlots, ItemStack upgrade, Consumer<ItemStack> saveHandler) {
-		fluidFilters = NonNullList.withSize(filterSlots, Fluids.EMPTY);
+		fluidFilters = NonNullList.withSize(filterSlots, FluidStack.EMPTY);
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
 		deserializeFluidFilters();
@@ -29,10 +26,10 @@ public class FluidFilterLogic {
 	}
 
 	private void deserializeFluidFilters() {
-		NBTHelper.getTagValue(upgrade, "", "fluids", (c, n1) -> c.getList(n1, Tag.TAG_STRING)).ifPresent(listNbt -> {
+		NBTHelper.getTagValue(upgrade, "", "fluidFilters", (c, n1) -> c.getList(n1, Tag.TAG_COMPOUND)).ifPresent(listNbt -> {
 			int i = 0;
 			for (Tag elementNbt : listNbt) {
-				Fluid value = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(elementNbt.getAsString()));
+				FluidStack value = FluidStack.loadFluidStackFromNBT((CompoundTag) elementNbt);
 				if (value != null) {
 					fluidFilters.set(i, value);
 				}
@@ -46,21 +43,21 @@ public class FluidFilterLogic {
 
 	private void updateNoFilter() {
 		noFilter = true;
-		for (Fluid fluidFilter : fluidFilters) {
-			if (fluidFilter != Fluids.EMPTY) {
+		for (FluidStack fluidFilter : fluidFilters) {
+			if (!fluidFilter.isEmpty()) {
 				noFilter = false;
 				return;
 			}
 		}
 	}
 
-	public boolean fluidMatches(Fluid fluid) {
+	public boolean fluidMatches(FluidStack fluid) {
 		return noFilter || matchesFluidFilter(fluid);
 	}
 
-	private boolean matchesFluidFilter(Fluid fluid) {
-		for (Fluid fluidFilter : fluidFilters) {
-			if (fluidFilter == fluid) {
+	private boolean matchesFluidFilter(FluidStack fluid) {
+		for (FluidStack fluidFilter : fluidFilters) {
+			if (fluidFilter.isFluidEqual(fluid)) {
 				return true;
 			}
 		}
@@ -71,14 +68,14 @@ public class FluidFilterLogic {
 		saveHandler.accept(upgrade);
 	}
 
-	public void setFluid(int index, Fluid fluid) {
-		fluidFilters.set(index, fluid);
+	public void setFluid(int index, FluidStack fluid) {
+		fluidFilters.set(index, fluid.copy());
 		serializeFluidFilters();
 		updateNoFilter();
 		save();
 	}
 
-	public Fluid getFluid(int index) {
+	public FluidStack getFluid(int index) {
 		return fluidFilters.get(index);
 	}
 
@@ -89,7 +86,7 @@ public class FluidFilterLogic {
 	private void serializeFluidFilters() {
 		ListTag fluids = new ListTag();
 		//noinspection ConstantConditions - only registered fluids get added
-		fluidFilters.forEach(f -> fluids.add(StringTag.valueOf(ForgeRegistries.FLUIDS.getKey(f).toString())));
-		upgrade.getOrCreateTag().put("fluids", fluids);
+		fluidFilters.forEach(f -> fluids.add(f.writeToNBT(new CompoundTag())));
+		upgrade.getOrCreateTag().put("fluidFilters", fluids);
 	}
 }
