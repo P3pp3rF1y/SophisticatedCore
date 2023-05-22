@@ -1,16 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 
 import java.util.function.Supplier;
@@ -27,21 +23,21 @@ public class FluidFilterContainer {
 		this.fluidFilterLogic = fluidFilterLogic;
 	}
 
-	public Fluid getFluid(int index) {
+	public FluidStack getFluid(int index) {
 		return fluidFilterLogic.get().getFluid(index);
 	}
 
-	private void setFluid(int index, Fluid fluid) {
+	private void setFluid(int index, FluidStack fluid) {
 		fluidFilterLogic.get().setFluid(index, fluid);
 		serverUpdater.sendDataToServer(() -> serializeSetFluidData(index, fluid));
 	}
 
-	private CompoundTag serializeSetFluidData(int index, Fluid fluid) {
+	private CompoundTag serializeSetFluidData(int index, FluidStack fluid) {
 		CompoundTag ret = new CompoundTag();
 		CompoundTag fluidNbt = new CompoundTag();
 		fluidNbt.putInt("index", index);
 		//noinspection ConstantConditions
-		fluidNbt.putString("fluid", ForgeRegistries.FLUIDS.getKey(fluid).toString());
+		fluidNbt.put("fluid", fluid.writeToNBT(new CompoundTag()));
 		ret.put(DATA_FLUID, fluidNbt);
 		return ret;
 	}
@@ -49,8 +45,8 @@ public class FluidFilterContainer {
 	public boolean handleMessage(CompoundTag data) {
 		if (data.contains(DATA_FLUID)) {
 			CompoundTag fluidData = data.getCompound(DATA_FLUID);
-			Fluid fluid = ForgeRegistries.FLUIDS.getValue(new ResourceLocation(fluidData.getString("fluid")));
-			if (fluid != null) {
+			FluidStack fluid = FluidStack.loadFluidStackFromNBT(data.getCompound("fluid"));
+			if (!fluid.isEmpty()) {
 				setFluid(fluidData.getInt("index"), fluid);
 			}
 			return true;
@@ -65,14 +61,14 @@ public class FluidFilterContainer {
 	public void slotClick(int index) {
 		ItemStack carried = player.containerMenu.getCarried();
 		if (carried.isEmpty()) {
-			setFluid(index, Fluids.EMPTY);
+			setFluid(index, FluidStack.EMPTY);
 			return;
 		}
 
 		carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).ifPresent(itemFluidHandler -> {
 			FluidStack containedFluid = itemFluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
 			if (!containedFluid.isEmpty()) {
-				setFluid(index, containedFluid.getRawFluid());
+				setFluid(index, containedFluid);
 			}
 		});
 	}

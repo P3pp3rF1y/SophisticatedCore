@@ -219,6 +219,16 @@ public class NBTHelper {
 		return getTagValue(stack, key, CompoundTag::getFloat);
 	}
 
+	public static <K, V> Optional<Map<K, V>> getMap(ItemStack stack, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue) {
+		CompoundTag tag = stack.getTag();
+
+		if (tag == null) {
+			return Optional.empty();
+		}
+
+		return getMap(tag, key, getKey, getValue);
+	}
+
 	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue) {
 		CompoundTag mapNbt = tag.getCompound(key);
 

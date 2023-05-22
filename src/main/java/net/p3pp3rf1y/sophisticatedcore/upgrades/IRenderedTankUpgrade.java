@@ -1,9 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.fluids.FluidStack;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -15,45 +13,45 @@ public interface IRenderedTankUpgrade {
 	void forceUpdateTankRenderInfo();
 
 	class TankRenderInfo {
-		private static final String FLUID_REGISTRY_NAME_TAG = "fluidRegistryName";
+		private static final String FLUID_TAG = "fluid";
 		private static final String FILL_RATIO_TAG = "fillRatio";
 
 		public TankRenderInfo() {
 			this(null, 0);
 		}
 
-		public TankRenderInfo(@Nullable ResourceLocation fluidRegistryName, float fillRatio) {
-			this.fluidRegistryName = fluidRegistryName;
+		public TankRenderInfo(@Nullable FluidStack fluidStack, float fillRatio) {
+			this.fluidStack = fluidStack;
 			this.fillRatio = fillRatio;
 		}
 
 		@Nullable
-		private ResourceLocation fluidRegistryName;
+		private FluidStack fluidStack;
 		private float fillRatio;
 
 		public CompoundTag serialize() {
 			CompoundTag ret = new CompoundTag();
-			if (fluidRegistryName != null) {
-				ret.putString(FLUID_REGISTRY_NAME_TAG, fluidRegistryName.toString());
+			if (fluidStack != null) {
+				ret.put(FLUID_TAG, fluidStack.writeToNBT(new CompoundTag()));
 				ret.putFloat(FILL_RATIO_TAG, fillRatio);
 			}
 			return ret;
 		}
 
 		public static TankRenderInfo deserialize(CompoundTag tag) {
-			if (tag.contains(FLUID_REGISTRY_NAME_TAG)) {
-				return new TankRenderInfo(new ResourceLocation(tag.getString(FLUID_REGISTRY_NAME_TAG)), tag.getFloat(FILL_RATIO_TAG));
+			if (tag.contains(FLUID_TAG)) {
+				return new TankRenderInfo( FluidStack.loadFluidStackFromNBT(tag.getCompound(FLUID_TAG)), tag.getFloat(FILL_RATIO_TAG));
 			}
 
 			return new TankRenderInfo();
 		}
 
-		public void setFluid(Fluid fluid) {
-			fluidRegistryName = ForgeRegistries.FLUIDS.getKey(fluid);
+		public void setFluid(FluidStack fluidStack) {
+			this.fluidStack = fluidStack.copy();
 		}
 
-		public Optional<Fluid> getFluid() {
-			return Optional.ofNullable(ForgeRegistries.FLUIDS.getValue(fluidRegistryName));
+		public Optional<FluidStack> getFluid() {
+			return Optional.ofNullable(fluidStack);
 		}
 
 		public void setFillRatio(float fillRatio) {

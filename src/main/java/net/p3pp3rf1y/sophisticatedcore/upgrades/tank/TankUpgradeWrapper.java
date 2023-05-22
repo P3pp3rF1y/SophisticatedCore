@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
@@ -85,8 +84,8 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		boolean tankEmpty = contents.isEmpty();
 		for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
 			FluidStack fluidInTank = fluidHandler.getFluidInTank(tank);
-			if ((isOutput && (fluidInTank.isEmpty() || (!tankEmpty && fluidInTank.getFluid() == contents.getFluid())))
-					|| (!isOutput && !fluidInTank.isEmpty() && (tankEmpty || contents.getFluid() == fluidInTank.getFluid()))
+			if ((isOutput && (fluidInTank.isEmpty() || (!tankEmpty && fluidInTank.isFluidEqual(contents))))
+					|| (!isOutput && !fluidInTank.isEmpty() && (tankEmpty || contents.isFluidEqual(fluidInTank)))
 			) {
 				return true;
 			}
@@ -102,7 +101,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	@Override
 	public void forceUpdateTankRenderInfo() {
 		TankRenderInfo renderInfo = new TankRenderInfo();
-		renderInfo.setFluid(contents.getFluid());
+		renderInfo.setFluid(contents);
 		renderInfo.setFillRatio((float) Math.round((float) contents.getAmount() / getTankCapacity() * 10) / 10);
 		updateTankRenderInfoCallback.accept(renderInfo);
 	}
@@ -126,7 +125,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	public int fill(FluidStack resource, IFluidHandler.FluidAction action, boolean ignoreInOutLimit) {
 		int capacity = getTankCapacity();
 
-		if (contents.getAmount() >= capacity || (!contents.isEmpty() && resource.getFluid() != contents.getFluid())) {
+		if (contents.getAmount() >= capacity || (!contents.isEmpty() && !resource.isFluidEqual(contents))) {
 			return 0;
 		}
 
@@ -137,7 +136,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 		if (action == IFluidHandler.FluidAction.EXECUTE) {
 			if (contents.isEmpty()) {
-				contents = new FluidStack(resource.getFluid(), toFill);
+				contents = new FluidStack(resource, toFill);
 			} else {
 				contents.setAmount(contents.getAmount() + toFill);
 			}
@@ -163,7 +162,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			toDrain = Math.min(getMaxInOut(), toDrain);
 		}
 
-		FluidStack ret = new FluidStack(contents.getFluid(), toDrain);
+		FluidStack ret = new FluidStack(contents, toDrain);
 		if (action == IFluidHandler.FluidAction.EXECUTE) {
 			if (toDrain == contents.getAmount()) {
 				contents = FluidStack.EMPTY;
@@ -197,8 +196,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 	public boolean fillHandler(IFluidHandlerItem fluidHandler, Consumer<ItemStack> updateContainerStack) {
 		if (!contents.isEmpty() && isValidFluidHandler(fluidHandler, true)) {
-			Fluid fluid = contents.getFluid();
-			int filled = fluidHandler.fill(new FluidStack(fluid, Math.min(FluidType.BUCKET_VOLUME, contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
+			int filled = fluidHandler.fill(new FluidStack(contents, Math.min(FluidType.BUCKET_VOLUME, contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
 			if (filled <= 0) { //checking for less than as well because some mods have incorrect fill logic
 				return false;
 			}
@@ -212,15 +210,14 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 	public boolean drainHandler(IFluidHandlerItem fluidHandler, Consumer<ItemStack> updateContainerStack) {
 		if (isValidFluidHandler(fluidHandler, false)) {
-			Fluid fluid = contents.getFluid();
 			FluidStack extracted = contents.isEmpty() ?
 					fluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE) :
-					fluidHandler.drain(new FluidStack(fluid, Math.min(FluidType.BUCKET_VOLUME, getTankCapacity() - contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
+					fluidHandler.drain(new FluidStack(contents, Math.min(FluidType.BUCKET_VOLUME, getTankCapacity() - contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
 			if (extracted.isEmpty()) {
 				return false;
 			}
 			int filled = fill(extracted, IFluidHandler.FluidAction.EXECUTE, false);
-			FluidStack toExtract = filled == extracted.getAmount() ? extracted : new FluidStack(extracted.getFluid(), filled);
+			FluidStack toExtract = filled == extracted.getAmount() ? extracted : new FluidStack(extracted, filled);
 			fluidHandler.drain(toExtract, IFluidHandler.FluidAction.EXECUTE);
 			updateContainerStack.accept(fluidHandler.getContainer());
 			return true;

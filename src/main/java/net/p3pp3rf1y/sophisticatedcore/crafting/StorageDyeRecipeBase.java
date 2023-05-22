@@ -30,13 +30,12 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 			if (slotStack.isEmpty()) {
 				continue;
 			}
-			Item item = slotStack.getItem();
-			if (isStorageItem(item)) {
+			if (isDyeableStorageItem(slotStack)) {
 				if (storagePresent) {
 					return false;
 				}
 				storagePresent = true;
-			} else if (item instanceof DyeItem) {
+			} else if (slotStack.getItem() instanceof DyeItem) {
 				dyePresent = true;
 			} else {
 				return false;
@@ -57,7 +56,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 			}
 			Item item = slotStack.getItem();
 			int column = slot % inv.getWidth();
-			if (isStorageItem(item)) {
+			if (isDyeableStorageItem(slotStack)) {
 				if (columnStorage != null) {
 					return ItemStack.EMPTY;
 				}
@@ -86,7 +85,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 		return coloredStorage;
 	}
 
-	protected abstract boolean isStorageItem(Item item);
+	protected abstract boolean isDyeableStorageItem(ItemStack stack);
 
 	private void applyTintColors(Map<Integer, List<DyeColor>> columnDyes, ItemStack coloredStorage, int storageColumn) {
 		List<DyeColor> mainDyes = new ArrayList<>();
