@@ -125,7 +125,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	public int fill(FluidStack resource, IFluidHandler.FluidAction action, boolean ignoreInOutLimit) {
 		int capacity = getTankCapacity();
 
-		if (contents.getAmount() >= capacity || (!contents.isEmpty() && resource.isFluidEqual(contents))) {
+		if (contents.getAmount() >= capacity || (!contents.isEmpty() && !resource.isFluidEqual(contents))) {
 			return 0;
 		}
 
