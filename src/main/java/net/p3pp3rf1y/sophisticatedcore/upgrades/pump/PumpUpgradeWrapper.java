@@ -140,7 +140,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		if (dir != Direction.UP) {
 			for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 				FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
-				if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid.getFluid())
+				if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
 						&& isValidForFluidPlacement(world, offsetPos) && FluidUtil.tryPlaceFluid(null, world, InteractionHand.MAIN_HAND, offsetPos, storageFluidHandler, tankFluid)) {
 					return true;
 				}
@@ -240,8 +240,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		boolean ret = false;
 		for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 			FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
-			if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid.getFluid())
-					&& !FluidUtil.tryFluidTransfer(fluidHandler, storageFluidHandler, new FluidStack(tankFluid.getFluid(), maxFill), true).isEmpty()) {
+			if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
+					&& !FluidUtil.tryFluidTransfer(fluidHandler, storageFluidHandler, new FluidStack(tankFluid, maxFill), true).isEmpty()) {
 				ret = true;
 				break;
 			}
@@ -263,7 +263,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	private boolean fillFromFluidHandler(IFluidHandler fluidHandler, IFluidHandler storageFluidHandler, int maxDrain) {
 		FluidStack containedFluid = fluidHandler.drain(maxDrain, IFluidHandler.FluidAction.SIMULATE);
-		if (!containedFluid.isEmpty() && fluidFilterLogic.fluidMatches(containedFluid.getFluid())) {
+		if (!containedFluid.isEmpty() && fluidFilterLogic.fluidMatches(containedFluid)) {
 			return !FluidUtil.tryFluidTransfer(storageFluidHandler, fluidHandler, containedFluid, true).isEmpty();
 		}
 		return false;
