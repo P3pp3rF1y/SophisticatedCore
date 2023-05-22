@@ -128,7 +128,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 
 		ResourceLocation texture = fluid.getAttributes().getStillTexture(contents);
 		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-		GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, fluid.getAttributes().getColor(), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, fluid.getAttributes().getColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
 
 }
