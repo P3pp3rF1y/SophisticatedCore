@@ -314,6 +314,11 @@ public class UpgradeHandler extends ItemStackHandler {
 		saveInventory();
 	}
 
+	@Override
+	public int getSlotLimit(int slot) {
+		return 1;
+	}
+
 	private static class Accessor implements IUpgradeWrapperAccessor {
 		private final Map<Class<?>, List<?>> interfaceWrappers = new HashMap<>();
 
