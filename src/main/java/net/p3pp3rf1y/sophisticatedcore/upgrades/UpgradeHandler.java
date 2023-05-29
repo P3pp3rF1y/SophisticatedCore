@@ -4,6 +4,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.util.thread.SidedThreadGroups;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
@@ -44,6 +45,9 @@ public class UpgradeHandler extends ItemStackHandler {
 		this.contentsSaveHandler = contentsSaveHandler;
 		this.onInvalidateUpgradeCaches = onInvalidateUpgradeCaches;
 		deserializeNBT(contentsNbt.getCompound(UPGRADE_INVENTORY_TAG));
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderInfo().getUpgradeItems().size() != getSlots()) {
+			setRenderUpgradeItems();
+		}
 	}
 
 	@Override
@@ -60,7 +64,14 @@ public class UpgradeHandler extends ItemStackHandler {
 		}
 		if (!justSavingNbtChange) {
 			refreshUpgradeWrappers();
+			setRenderUpgradeItems();
 		}
+	}
+
+	public void setRenderUpgradeItems() {
+		List<ItemStack> upgradeItems = new ArrayList<>();
+		InventoryHelper.iterate(this, (upgradeSlot, upgrade) -> upgradeItems.add(ItemHandlerHelper.copyStackWithSize(upgrade, 1)));
+		storageWrapper.getRenderInfo().setUpgradeItems(upgradeItems);
 	}
 
 	@Override
@@ -312,6 +323,7 @@ public class UpgradeHandler extends ItemStackHandler {
 			stacks.set(slot, previousStacks.get(slot));
 		}
 		saveInventory();
+		setRenderUpgradeItems();
 	}
 
 	@Override
