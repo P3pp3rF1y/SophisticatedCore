@@ -372,25 +372,33 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		} else if (isUpgradeSlot(slotId) && getSlot(slotId) instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot slot) {
 			ItemStack slotStack = slot.getItem();
 			if (slot.mayPlace(getCarried())) {
-				ItemStack cursorStack = getCarried();
-				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) cursorStack.getItem();
+				ItemStack carriedStack = getCarried();
+				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) carriedStack.getItem();
 				int newColumnsTaken = upgradeItem.getInventoryColumnsTaken();
 				int currentColumnsTaken = 0;
 				if (!slotStack.isEmpty()) {
 					currentColumnsTaken = ((IUpgradeItem<?>) slotStack.getItem()).getInventoryColumnsTaken();
 				}
-				if (needsSlotsThatAreOccupied(cursorStack, currentColumnsTaken, newColumnsTaken)) {
+				if (needsSlotsThatAreOccupied(carriedStack, currentColumnsTaken, newColumnsTaken)) {
 					return;
 				}
 
 				int columnsToRemove = newColumnsTaken - currentColumnsTaken;
-				if (slotStack.isEmpty() || slot.canSwapStack(player, cursorStack)) {
-					setCarried(slotStack);
-					slot.set(cursorStack);
+				if (slotStack.isEmpty() || slot.canSwapStack(player, carriedStack)) {
+					if (slotStack.isEmpty()) {
+						slot.set(carriedStack.split(1));
+						if (carriedStack.isEmpty()) {
+							setCarried(ItemStack.EMPTY);
+						}
+					} else if (carriedStack.getCount() == 1) {
+						slot.set(carriedStack);
+						setCarried(slotStack);
+					}
+
 					updateColumnsTaken(columnsToRemove);
 					slot.setChanged();
 				}
-			} else if ((getCarried().isEmpty() || slot.mayPlace(getCarried())) && !slotStack.isEmpty() && slot.mayPickup(player)) {
+			} else if (getCarried().isEmpty() && !slotStack.isEmpty() && slot.mayPickup(player)) {
 				int k2 = dragType == 0 ? Math.min(slotStack.getCount(), slotStack.getMaxStackSize()) : Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
 				int columnsTaken = ((IUpgradeItem<?>) slotStack.getItem()).getInventoryColumnsTaken();
 				if (clickType == ClickType.QUICK_MOVE) {
@@ -1192,13 +1200,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
-	protected static int calculateMaxCountForStack(Slot slot, ItemStack stack) {
-		if (slot instanceof StorageInventorySlot storageInventorySlot) {
-			return storageInventorySlot.getMaxStackSize(stack);
-		}
-		return stack.getMaxStackSize();
-	}
-
 	/**
 	 *
 	 * @param sourceStack stack to merge
@@ -1234,7 +1235,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					ItemStack destStack = slot.getItem();
 					if (!destStack.isEmpty() && ItemStack.isSameItemSameTags(result, destStack)) {
 						int j = destStack.getCount() + toTransfer;
-						int maxSize = StorageContainerMenuBase.calculateMaxCountForStack(slot, result);
+						int maxSize = slot.getMaxStackSize(result);
 						if (j <= maxSize) {
 							result.shrink(toTransfer);
 							ItemStack copy = destStack.copy();
@@ -1382,7 +1383,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack) {
 		boolean flag = slot == null || !slot.hasItem();
 		if (!flag && stack.sameItem(slot.getItem()) && ItemStack.tagMatches(slot.getItem(), stack)) {
-			return slot.getItem().getCount() <= calculateMaxCountForStack(slot, stack);
+			return slot.getItem().getCount() <= slot.getMaxStackSize(stack);
 		} else {
 			return flag;
 		}

@@ -16,6 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -25,51 +26,14 @@ import java.util.function.Supplier;
 public class NoopStorageWrapper implements IStorageWrapper {
 	public static final NoopStorageWrapper INSTANCE = new NoopStorageWrapper();
 
-	private final UpgradeHandler upgradeHandler = new UpgradeHandler(0, this, new CompoundTag(), () -> {}, () -> {});
-	private final InventoryHandler inventoryHandler = new InventoryHandler(0, this, new CompoundTag(), () -> {}, 64, new StackUpgradeConfig(new ForgeConfigSpec.Builder())) {
-		@Override
-		protected boolean isAllowed(ItemStack stack) {
-			return true;
-		}
-	};
-	private final RenderInfo renderInfo = new RenderInfo(() -> () -> {}) {
-
-		@Override
-		protected void serializeRenderInfo(CompoundTag renderInfo) {
-			//noop
-		}
-
-		@Override
-		protected Optional<CompoundTag> getRenderInfoTag() {
-			return Optional.empty();
-		}
-	};
-	private final SettingsHandler settingsHandler = new SettingsHandler(new CompoundTag(), () -> {}, () -> inventoryHandler, () -> renderInfo) {
-		@Override
-		protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
-			return contentsNbt;
-		}
-
-		@Override
-		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
-			//noop
-		}
-
-		@Override
-		public String getGlobalSettingsCategoryName() {
-			return "";
-		}
-
-		@Override
-		public ISettingsCategory instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
-			return new MainSettingsCategory(categoryNbt, saveNbt, "");
-		}
-
-		@Override
-		protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
-			//noop
-		}
-	};
+	@Nullable
+	private UpgradeHandler upgradeHandler;
+	@Nullable
+	private InventoryHandler inventoryHandler;
+	@Nullable
+	private RenderInfo renderInfo;
+	@Nullable
+	private SettingsHandler settingsHandler;
 
 	protected NoopStorageWrapper() {}
 
@@ -80,26 +44,66 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public ITrackedContentsItemHandler getInventoryForUpgradeProcessing() {
-		return inventoryHandler;
+		return getInventoryHandler();
 	}
 
 	@Override
 	public InventoryHandler getInventoryHandler() {
+		if (inventoryHandler == null) {
+			inventoryHandler = new InventoryHandler(0, this, new CompoundTag(), () -> {}, 64, new StackUpgradeConfig(new ForgeConfigSpec.Builder())) {
+				@Override
+				protected boolean isAllowed(ItemStack stack) {
+					return true;
+				}
+			};
+		}
 		return inventoryHandler;
 	}
 
 	@Override
 	public ITrackedContentsItemHandler getInventoryForInputOutput() {
-		return inventoryHandler;
+		return getInventoryHandler();
 	}
 
 	@Override
 	public SettingsHandler getSettingsHandler() {
+		if (settingsHandler == null) {
+			settingsHandler = new SettingsHandler(new CompoundTag(), () -> {}, this::getInventoryHandler, this::getRenderInfo) {
+				@Override
+				protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
+					return contentsNbt;
+				}
+
+				@Override
+				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
+					//noop
+				}
+
+				@Override
+				public String getGlobalSettingsCategoryName() {
+					return "";
+				}
+
+				@Override
+				public ISettingsCategory<?> instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
+					return new MainSettingsCategory<>(categoryNbt, saveNbt, "");
+				}
+
+				@Override
+				protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
+					//noop
+				}
+			};
+		}
 		return settingsHandler;
 	}
 
 	@Override
 	public UpgradeHandler getUpgradeHandler() {
+		if (upgradeHandler == null) {
+			upgradeHandler = new UpgradeHandler(0, this, new CompoundTag(), () -> {}, () -> {});
+		}
+
 		return upgradeHandler;
 	}
 
@@ -192,6 +196,20 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public RenderInfo getRenderInfo() {
+		if (renderInfo == null) {
+			renderInfo = new RenderInfo(() -> () -> {}) {
+
+				@Override
+				protected void serializeRenderInfo(CompoundTag renderInfo) {
+					//noop
+				}
+
+				@Override
+				protected Optional<CompoundTag> getRenderInfoTag() {
+					return Optional.empty();
+				}
+			};
+		}
 		return renderInfo;
 	}
 
