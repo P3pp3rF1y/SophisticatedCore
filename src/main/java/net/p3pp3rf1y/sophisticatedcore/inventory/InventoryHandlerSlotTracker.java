@@ -306,7 +306,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	private ItemStack insertIntoEmptySlots(IItemHandlerInserter inserter, ItemStack stack, boolean simulate) {
-		ItemStack remainingStack = stack.copy();
+		ItemStack remainingStack = stack;
 		remainingStack = insertIntoEmptyMemorySlots(inserter, simulate, remainingStack);
 		remainingStack = insertIntoEmptyFilterSlots(inserter, simulate, remainingStack);
 		if (shouldInsertIntoEmpty.getAsBoolean() && !remainingStack.isEmpty()) {
