@@ -3,11 +3,11 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 public record ItemStackKey(ItemStack stack) {
 	public ItemStack getStack() {
@@ -24,7 +24,16 @@ public record ItemStackKey(ItemStack stack) {
 		if (this == o) {return true;}
 		if (o == null || getClass() != o.getClass()) {return false;}
 		ItemStackKey that = (ItemStackKey) o;
-		return ItemHandlerHelper.canItemStacksStack(stack, that.stack);
+		return canItemStacksStack(stack, that.stack);
+	}
+
+	public static boolean canItemStacksStack(ItemStack a, ItemStack b) {
+		if (a.isEmpty() || !a.sameItem(b) || a.hasTag() != b.hasTag()) {
+			return false;
+		}
+
+		//noinspection DataFlowIssue
+		return (!a.hasTag() || a.getTag().equals(b.getTag())) && Objects.equals(getCapNbt(a), getCapNbt(b));
 	}
 
 	public boolean hashCodeNotEquals(ItemStack otherStack) {

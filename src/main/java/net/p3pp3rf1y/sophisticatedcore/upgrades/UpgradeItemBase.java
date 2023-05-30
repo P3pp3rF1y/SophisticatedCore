@@ -14,7 +14,7 @@ import java.util.List;
 
 public abstract class UpgradeItemBase<T extends IUpgradeWrapper> extends ItemBase implements IUpgradeItem<T> {
 	protected UpgradeItemBase(CreativeModeTab itemGroup) {
-		super(new Properties().stacksTo(1), itemGroup);
+		super(new Properties(), itemGroup);
 	}
 
 	@Override

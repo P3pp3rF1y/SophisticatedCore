@@ -29,6 +29,7 @@ public abstract class RenderInfo {
 	private static final String TANK_INFO_TAG = "info";
 	private static final String ITEM_DISPLAY_TAG = "itemDisplay";
 	private static final String UPGRADES_TAG = "upgrades";
+	private static final String UPGRADE_ITEMS_TAG = "upgradeItems";
 
 	private static final Map<String, UpgradeRenderDataType<?>> RENDER_DATA_TYPES;
 
@@ -41,6 +42,7 @@ public abstract class RenderInfo {
 
 	private ItemDisplayRenderInfo itemDisplayRenderInfo;
 	private final Supplier<Runnable> getSaveHandler;
+	private final List<ItemStack> upgradeItems = new ArrayList<>();
 	private final Map<UpgradeRenderDataType<?>, IUpgradeRenderData> upgradeData = new HashMap<>();
 
 	private final Map<TankPosition, IRenderedTankUpgrade.TankRenderInfo> tankRenderInfos = new LinkedHashMap<>();
@@ -56,6 +58,23 @@ public abstract class RenderInfo {
 
 	public ItemDisplayRenderInfo getItemDisplayRenderInfo() {
 		return itemDisplayRenderInfo;
+	}
+
+	public void setUpgradeItems(List<ItemStack> upgradeItems) {
+		this.upgradeItems.clear();
+		this.upgradeItems.addAll(upgradeItems);
+		serializeUpgradeItems();
+		save();
+	}
+
+	private void serializeUpgradeItems() {
+		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+		ListTag upgradeItemsTag = new ListTag();
+		for (ItemStack upgradeItem : upgradeItems) {
+			upgradeItemsTag.add(upgradeItem.serializeNBT());
+		}
+		renderInfo.put(UPGRADE_ITEMS_TAG, upgradeItemsTag);
+		serializeRenderInfo(renderInfo);
 	}
 
 	public <T extends IUpgradeRenderData> void setUpgradeRenderData(UpgradeRenderDataType<T> upgradeRenderDataType, T renderData) {
@@ -108,11 +127,20 @@ public abstract class RenderInfo {
 	protected void deserialize() {
 		getRenderInfoTag().ifPresent(renderInfoTag -> {
 			deserializeItemDisplay(renderInfoTag);
-			deserializeUpgrades(renderInfoTag);
+			deserializeUpgradeItems(renderInfoTag);
+			deserializeUpgradeData(renderInfoTag);
 			deserializeTanks(renderInfoTag);
 			deserializeBattery(renderInfoTag);
 		});
 		changeListener.accept(this);
+	}
+
+	private void deserializeUpgradeItems(CompoundTag renderInfoTag) {
+		ListTag upgradeItemsTag = renderInfoTag.getList(UPGRADE_ITEMS_TAG, Tag.TAG_COMPOUND);
+		upgradeItems.clear();
+		for (int i = 0; i < upgradeItemsTag.size(); i++) {
+			upgradeItems.add(ItemStack.of(upgradeItemsTag.getCompound(i)));
+		}
 	}
 
 	private void deserializeItemDisplay(CompoundTag renderInfoTag) {
@@ -131,7 +159,7 @@ public abstract class RenderInfo {
 		save();
 	}
 
-	private void deserializeUpgrades(CompoundTag renderInfoTag) {
+	private void deserializeUpgradeData(CompoundTag renderInfoTag) {
 		CompoundTag upgrades = renderInfoTag.getCompound(UPGRADES_TAG);
 		upgrades.getAllKeys().forEach(key -> {
 			if (RENDER_DATA_TYPES.containsKey(key)) {
@@ -220,6 +248,10 @@ public abstract class RenderInfo {
 		renderInfo.put(BATTERY_TAG, batteryInfo);
 		serializeRenderInfo(renderInfo);
 		save();
+	}
+
+	public List<ItemStack> getUpgradeItems() {
+		return upgradeItems;
 	}
 
 	public static class ItemDisplayRenderInfo {
