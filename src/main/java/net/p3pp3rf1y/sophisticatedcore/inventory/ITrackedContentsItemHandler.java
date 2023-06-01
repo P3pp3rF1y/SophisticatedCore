@@ -12,4 +12,6 @@ public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter 
 	void unregisterStackKeyListeners();
 
 	boolean hasEmptySlots();
+
+	int getInternalSlotLimit(int slot);
 }
