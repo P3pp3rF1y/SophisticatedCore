@@ -17,6 +17,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
@@ -397,19 +398,19 @@ public class InventoryHelper {
 				return;
 			}
 			ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getCount(), false);
-			while(!extractedStack.isEmpty()) {
+			while (!extractedStack.isEmpty()) {
 				Containers.dropItemStack(level, x, y, z, extractedStack.split(Math.min(extractedStack.getCount(), extractedStack.getMaxStackSize())));
 				inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 			}
 		});
 	}
 
-	public static int getAnalogOutputSignal(IItemHandler handler) {
+	public static int getAnalogOutputSignal(ITrackedContentsItemHandler handler) {
 		AtomicDouble totalFilled = new AtomicDouble(0);
 		AtomicBoolean isEmpty = new AtomicBoolean(true);
 		iterate(handler, (slot, stack) -> {
 			if (!stack.isEmpty()) {
-				int slotLimit = handler.getSlotLimit(slot);
+				int slotLimit = handler.getInternalSlotLimit(slot);
 				totalFilled.addAndGet(stack.getCount() / (slotLimit / ((float) 64 / stack.getMaxStackSize())));
 				isEmpty.set(false);
 			}

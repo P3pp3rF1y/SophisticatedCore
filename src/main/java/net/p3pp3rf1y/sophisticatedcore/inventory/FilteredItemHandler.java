@@ -145,5 +145,10 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		public boolean hasEmptySlots() {
 			return inventoryHandler.hasEmptySlots();
 		}
+
+		@Override
+		public int getInternalSlotLimit(int slot) {
+			return inventoryHandler.getInternalSlotLimit(slot);
+		}
 	}
 }
