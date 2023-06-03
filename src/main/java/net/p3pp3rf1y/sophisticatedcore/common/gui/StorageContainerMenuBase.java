@@ -403,6 +403,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				int columnsTaken = ((IUpgradeItem<?>) slotStack.getItem()).getInventoryColumnsTaken();
 				if (clickType == ClickType.QUICK_MOVE) {
 					quickMoveStack(player, slotId);
+					slot.wasEmpty = false; // slot was not empty when this was reached and need to force onTake below to trigger slot position recalculation if slots are refreshed when columns taken changes
 				} else {
 					setCarried(slot.remove(k2));
 				}
