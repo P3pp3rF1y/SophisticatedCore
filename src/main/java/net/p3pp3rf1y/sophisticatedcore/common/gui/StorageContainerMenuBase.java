@@ -670,7 +670,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private boolean mergeSlotStack(Slot slot, int index, ItemStack slotStack) {
 		if (isUpgradeSlot(index)) {
-			return mergeStackToStorage(slot, slotStack) || mergeStackToPlayersInventory(slot, slotStack);
+			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToStorage(slot, slotStack);
 		} else if (isStorageInventorySlot(index)) {
 			if (shouldShiftClickIntoOpenTabFirst()) {
 				return mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToPlayersInventory(slot, slotStack);
