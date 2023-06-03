@@ -51,7 +51,7 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 				s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), "inputFilter");
 		fuelFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.fuelFilterSlots.get(),
 				s -> ForgeHooks.getBurnTime(s, recipeType) > 0, "fuelFilter");
-		fuelFilterLogic.setAllowByDefault();
+		fuelFilterLogic.setAllowByDefault(true);
 		fuelFilterLogic.setEmptyAllowListMatchesEverything();
 
 		isValidInput = s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent() && inputFilterLogic.matchesFilter(s);
