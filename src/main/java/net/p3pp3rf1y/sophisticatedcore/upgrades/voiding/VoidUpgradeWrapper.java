@@ -13,6 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IFilteredUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.ISlotLimitUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.PrimaryMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
@@ -24,7 +25,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
+		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade, ISlotLimitUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
 	private boolean shouldVoidOverflow;
@@ -32,8 +33,8 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	public VoidUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount());
-		filterLogic.setAllowByDefault();
-		shouldVoidOverflow = !upgradeItem.isVoidAnythingEnabled() || NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false);
+		filterLogic.setAllowByDefault(true);
+		setShouldVoidOverflowDefaultOrLoadFromNbt(false);
 	}
 
 	@Override
@@ -80,6 +81,10 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		this.shouldVoidOverflow = shouldVoidOverflow;
 		NBTHelper.setBoolean(upgrade, "shouldVoidOverflow", shouldVoidOverflow);
 		save();
+	}
+
+	public void setShouldVoidOverflowDefaultOrLoadFromNbt(boolean shouldVoidOverflowDefault) {
+		shouldVoidOverflow = !upgradeItem.isVoidAnythingEnabled() || NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(shouldVoidOverflowDefault);
 	}
 
 	public boolean shouldVoidOverflow() {
@@ -129,5 +134,10 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 
 	public boolean isVoidAnythingEnabled() {
 		return upgradeItem.isVoidAnythingEnabled();
+	}
+
+	@Override
+	public int getSlotLimit() {
+		return Integer.MAX_VALUE;
 	}
 }

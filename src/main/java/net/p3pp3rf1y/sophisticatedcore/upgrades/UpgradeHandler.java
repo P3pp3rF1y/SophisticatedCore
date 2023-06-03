@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class UpgradeHandler extends ItemStackHandler {
 	public static final String UPGRADE_INVENTORY_TAG = "upgradeInventory";
@@ -37,7 +38,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	@Nullable
 	private IUpgradeWrapperAccessor wrapperAccessor = null;
 	private boolean persistent = true;
-
+	private final Map<Class<? extends IUpgradeWrapper>, Consumer<? extends IUpgradeWrapper>> upgradeDefaultsHandlers = new HashMap<>();
 	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
 		super(numberOfUpgradeSlots);
 		this.contentsNbt = contentsNbt;
@@ -48,6 +49,10 @@ public class UpgradeHandler extends ItemStackHandler {
 		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderInfo().getUpgradeItems().size() != getSlots()) {
 			setRenderUpgradeItems();
 		}
+	}
+
+	public <T extends IUpgradeWrapper> void registerUpgradeDefaultsHandler(Class<T> upgradeClass, Consumer<T> defaultsHandler) {
+		upgradeDefaultsHandlers.put(upgradeClass, defaultsHandler);
 	}
 
 	@Override
@@ -116,6 +121,7 @@ public class UpgradeHandler extends ItemStackHandler {
 				setStackInSlot(slot, upgradeStack);
 				justSavingNbtChange = false;
 			});
+			setUpgradeDefaults(wrapper);
 			slotWrappers.put(slot, wrapper);
 		});
 
@@ -138,6 +144,15 @@ public class UpgradeHandler extends ItemStackHandler {
 		if (wrappers.containsKey(slot)) {
 			wrappers.get(slot).onAdded();
 		}
+	}
+
+	private void setUpgradeDefaults(IUpgradeWrapper wrapper) {
+		getUpgradeDefaultsHandler(wrapper).accept(wrapper);
+	}
+
+	private <T extends IUpgradeWrapper> Consumer<T> getUpgradeDefaultsHandler(T wrapper) {
+		//noinspection unchecked
+		return (Consumer<T>) upgradeDefaultsHandlers.getOrDefault(wrapper.getClass(), w -> {});
 	}
 
 	@Override

@@ -38,8 +38,8 @@ public class FilterLogicBase {
 		return parentTagKey;
 	}
 
-	public void setAllowByDefault() {
-		allowListDefault = true;
+	public void setAllowByDefault(boolean allowListDefault) {
+		this.allowListDefault = allowListDefault;
 	}
 
 	protected void save() {
