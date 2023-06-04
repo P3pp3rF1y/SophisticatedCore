@@ -20,6 +20,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper.CompactingShape;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,10 +71,20 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(item, width, height);
 		if (!compactingResult.getResult().isEmpty()) {
 			ItemStack extractedStack = InventoryHelper.extractFromInventory(item, totalCount, inventoryHandler, true);
-			while (extractedStack.getCount() == totalCount && fitsResultAndRemainingItems(inventoryHandler, compactingResult.getRemainingItems(), compactingResult.getResult())) {
+			if (extractedStack.getCount() != totalCount) {
+				return;
+			}
+
+			while (extractedStack.getCount() == totalCount) {
+				ItemStack resultCopy = compactingResult.getResult().copy();
+				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
+
+				if (!fitsResultAndRemainingItems(inventoryHandler, remainingItemsCopy, resultCopy)) {
+					break;
+				}
 				InventoryHelper.extractFromInventory(item, totalCount, inventoryHandler, false);
-				inventoryHandler.insertItem(compactingResult.getResult(), false);
-				InventoryHelper.insertIntoInventory(compactingResult.getRemainingItems(), inventoryHandler, false);
+				inventoryHandler.insertItem(resultCopy, false);
+				InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, false);
 				extractedStack = InventoryHelper.extractFromInventory(item, totalCount, inventoryHandler, true);
 			}
 		}
