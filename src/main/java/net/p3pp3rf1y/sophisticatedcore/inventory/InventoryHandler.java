@@ -55,6 +55,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private Consumer<Set<Item>> filterItemsChangeListener = s -> {};
 	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
+	private boolean slotLimitInitialized = false;
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
@@ -165,6 +166,12 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public int getSlotLimit(int slot) {
+		if (!slotLimitInitialized) {
+			slotLimitInitialized = true;
+			updateSlotLimit();
+			inventoryPartitioner.onSlotLimitChange();
+		}
+
 		return slotLimit > baseSlotLimit ? slotLimit : inventoryPartitioner.getPartBySlot(slot).getSlotLimit(slot);
 	}
 
@@ -197,7 +204,6 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	public void setBaseSlotLimit(int baseSlotLimit) {
 		this.baseSlotLimit = baseSlotLimit;
 		maxStackSizeMultiplier = baseSlotLimit / 64;
-		updateSlotLimit();
 
 		if (inventoryPartitioner != null) {
 			inventoryPartitioner.onSlotLimitChange();
