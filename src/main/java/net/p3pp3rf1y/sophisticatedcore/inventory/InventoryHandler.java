@@ -283,7 +283,11 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	@Nonnull
 	public ItemStack insertItemOnlyToSlot(int slot, ItemStack stack, boolean simulate) {
 		initSlotTracker();
-		return triggerOverflowUpgrades(insertItemInternal(slot, stack, simulate));
+		if (ItemHandlerHelper.canItemStacksStack(getStackInSlot(slot), stack)) {
+			return triggerOverflowUpgrades(insertItemInternal(slot, stack, simulate));
+		}
+
+		return stack;
 	}
 
 	private void initSlotTracker() {
