@@ -392,7 +392,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						}
 					} else if (carriedStack.getCount() == 1) {
 						slot.set(carriedStack);
-						setCarried(slotStack);
+						setCarried(upgradeItem.getCleanedUpgradeStack(slotStack.copy()));
 					}
 
 					updateColumnsTaken(columnsToRemove);
@@ -400,12 +400,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			} else if (getCarried().isEmpty() && !slotStack.isEmpty() && slot.mayPickup(player)) {
 				int k2 = dragType == 0 ? Math.min(slotStack.getCount(), slotStack.getMaxStackSize()) : Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
-				int columnsTaken = ((IUpgradeItem<?>) slotStack.getItem()).getInventoryColumnsTaken();
+				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) slotStack.getItem();
+				int columnsTaken = upgradeItem.getInventoryColumnsTaken();
 				if (clickType == ClickType.QUICK_MOVE) {
 					quickMoveStack(player, slotId);
 					slot.wasEmpty = false; // slot was not empty when this was reached and need to force onTake below to trigger slot position recalculation if slots are refreshed when columns taken changes
 				} else {
-					setCarried(slot.remove(k2));
+					setCarried(upgradeItem.getCleanedUpgradeStack(slot.remove(k2)));
 				}
 				updateColumnsTaken(-columnsTaken);
 				slot.onTake(player, getCarried());
@@ -648,11 +649,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			ItemStack slotStack = upgradeContainer.map(c -> c.getSlotStackToTransfer(slot)).orElse(slot.getItem());
 			itemstack = slotStack.copy();
 
-			if (!mergeSlotStack(slot, index, slotStack)) {
+			ItemStack stackToMerge = isUpgradeSlot(index) && slotStack.getItem() instanceof IUpgradeItem<?> upgradeItem ? upgradeItem.getCleanedUpgradeStack(slotStack.copy()) : slotStack;
+			if (!mergeSlotStack(slot, index, stackToMerge)) {
 				return ItemStack.EMPTY;
 			}
 
-			if (slotStack.isEmpty()) {
+			if (stackToMerge.isEmpty()) {
 				slot.set(ItemStack.EMPTY);
 			} else {
 				slot.setChanged();

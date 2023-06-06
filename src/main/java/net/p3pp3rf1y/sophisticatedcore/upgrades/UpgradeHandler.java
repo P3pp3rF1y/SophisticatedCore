@@ -159,7 +159,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
 		ItemStack originalStack = getStackInSlot(slot);
 		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
-		boolean itemsDiffer = originalStack.getItem() != stack.getItem();
+		boolean itemsDiffer = !ItemHandlerHelper.canItemStacksStack( originalStack, stack);
 		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer && wrappers.containsKey(slot)) {
 			wrappers.get(slot).onBeforeRemoved();
 		}
