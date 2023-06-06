@@ -22,4 +22,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 	default int getInventoryColumnsTaken() {
 		return 0;
 	}
+
+	default ItemStack getCleanedUpgradeStack(ItemStack upgradeStack) {
+		return upgradeStack;
+	}
 }
