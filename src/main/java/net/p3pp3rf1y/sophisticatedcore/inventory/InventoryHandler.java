@@ -287,7 +287,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			return triggerOverflowUpgrades(insertItemInternal(slot, stack, simulate));
 		}
 
-		return stack;
+		return insertItemInternal(slot, stack, simulate);
 	}
 
 	private void initSlotTracker() {
