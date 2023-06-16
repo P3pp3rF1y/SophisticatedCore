@@ -105,6 +105,14 @@ public class InventoryScrollPanel extends ScrollPanel {
 		return ret;
 	}
 
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		if (isMouseOver(mouseX, mouseY)) {
+			return super.mouseClicked(mouseX, mouseY, button);
+		}
+		return false;
+	}
+
 	public void updateSlotsYPosition() {
 		for (int i = firstSlotIndex, row = 0; i < firstSlotIndex + numberOfSlots; i++, row = i / slotsInARow) {
 			int newY = top - screen.getTopY() - (int) scrollDistance / 18 * 18 + row * 18 + TOP_Y_OFFSET;
