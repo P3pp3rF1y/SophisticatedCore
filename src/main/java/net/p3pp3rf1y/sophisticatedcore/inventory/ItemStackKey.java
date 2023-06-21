@@ -28,7 +28,7 @@ public record ItemStackKey(ItemStack stack) {
 	}
 
 	public static boolean canItemStacksStack(ItemStack a, ItemStack b) {
-		if (a.isEmpty() || !a.sameItem(b) || a.hasTag() != b.hasTag()) {
+		if (a.isEmpty() || a.getItem() != b.getItem() || a.hasTag() != b.hasTag()) {
 			return false;
 		}
 

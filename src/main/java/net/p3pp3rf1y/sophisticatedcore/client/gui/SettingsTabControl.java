@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -65,13 +65,13 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
-		children.forEach(tab -> tab.renderTooltip(screen, poseStack, mouseX, mouseY));
+	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		children.forEach(tab -> tab.renderTooltip(screen, guiGraphics, mouseX, mouseY));
 	}
 
 	protected int getTopY() {
@@ -105,7 +105,7 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	public List<Rect2i> getTabRectangles() {
 		List<Rect2i> ret = new ArrayList<>();
-		children.forEach(child -> child.getRectangle().ifPresent(ret::add));
+		children.forEach(child -> child.getTabRectangle().ifPresent(ret::add));
 		return ret;
 	}
 

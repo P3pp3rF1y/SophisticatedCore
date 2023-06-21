@@ -3,7 +3,6 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
@@ -26,7 +25,7 @@ import java.util.function.Consumer;
 public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapper> {
 	public static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
-	public JukeboxUpgradeItem(CreativeModeTab itemGroup) {super(itemGroup);}
+	public JukeboxUpgradeItem() {super();}
 
 	@Override
 	public UpgradeType<Wrapper> getType() {
@@ -72,7 +71,7 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapp
 		}
 
 		public void play(LivingEntity entity) {
-			play(entity.level, (world, storageUuid) ->
+			play(entity.level(), (world, storageUuid) ->
 					ServerStorageSoundHandler.startPlayingDisc(world, entity.position(), storageUuid, entity.getId(),
 							Item.getId(getDisc().getItem()), () -> setIsPlaying(false)));
 		}
@@ -101,11 +100,11 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapp
 		}
 
 		public void stop(LivingEntity entity) {
-			if (!(entity.level instanceof ServerLevel)) {
+			if (!(entity.level() instanceof ServerLevel)) {
 				return;
 			}
 			storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-					ServerStorageSoundHandler.stopPlayingDisc((ServerLevel) entity.level, entity.position(), storageUuid)
+					ServerStorageSoundHandler.stopPlayingDisc((ServerLevel) entity.level(), entity.position(), storageUuid)
 			);
 			setIsPlaying(false);
 		}

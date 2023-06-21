@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -23,13 +23,13 @@ public class ItemButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		GuiHelper.renderItemInGUI(matrixStack, minecraft, stack, x, y);
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		GuiHelper.renderItemInGUI(guiGraphics, minecraft, stack, x, y);
 	}
 
 	@Override

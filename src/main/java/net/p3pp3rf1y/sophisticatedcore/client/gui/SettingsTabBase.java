@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -72,10 +72,10 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
-		super.renderTooltip(screen, poseStack, mouseX, mouseY);
+	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (!openTooltip.isEmpty() && isOpenTooltipVisible(mouseX, mouseY)) {
-			screen.renderTooltip(poseStack, openTooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.font, openTooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 

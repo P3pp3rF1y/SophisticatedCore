@@ -14,8 +14,8 @@ public class StonecutterUpgradeContainer extends UpgradeContainerBase<Stonecutte
 
 	public StonecutterUpgradeContainer(Player player, int upgradeContainerId, StonecutterUpgradeWrapper upgradeWrapper, UpgradeContainerType<StonecutterUpgradeWrapper, StonecutterUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		ContainerLevelAccess worldPosCallable = player.level.isClientSide ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level, player.blockPosition());
-		recipeContainer = new StonecutterRecipeContainer(this, slots::add, this, worldPosCallable);
+		ContainerLevelAccess worldPosCallable = player.level().isClientSide ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
+		recipeContainer = new StonecutterRecipeContainer(this, slots::add, this, worldPosCallable, player.level());
 	}
 
 	@Override

@@ -4,16 +4,15 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Matrix4f;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -48,6 +47,7 @@ import net.p3pp3rf1y.sophisticatedcore.network.TransferFullSlotMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
+import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 import java.text.NumberFormat;
@@ -81,7 +81,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private static final int ERROR_TEXT_COLOR = ColorHelper.getColor(DyeColor.RED.getTextureDiffuseColors());
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
 
-	private UpgradeSettingsTabControl settingsTabControl;
+	private UpgradeSettingsTabControl settingsTabControl = new UpgradeSettingsTabControl(new Position(0, 0), this, "");
 	private final int numberOfUpgradeSlots;
 	@Nullable
 	private Button sortButton = null;
@@ -111,7 +111,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		super(pMenu, pPlayerInventory, pTitle);
 		numberOfUpgradeSlots = getMenu().getNumberOfUpgradeSlots();
 		updateDimensionsAndSlotPositions(Minecraft.getInstance().getWindow().getGuiScaledHeight());
-		passEvents = true;
 	}
 
 	public ICraftingUIPart getCraftingUIAddition() {
@@ -323,8 +322,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			case ABOVE_UPGRADES -> new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeTop() - 14);
 			case BELOW_UPGRADES ->
 					new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeTop() + getUpgradeHeightWithoutBottom() + UPGRADE_BOTTOM_HEIGHT + 2);
-			case BELOW_UPGRADE_TABS ->
-					settingsTabControl == null ? new Position(0, 0) : new Position(settingsTabControl.getX() + 2, settingsTabControl.getY() + Math.max(0, settingsTabControl.getHeight() + 2));
+			case BELOW_UPGRADE_TABS -> new Position(settingsTabControl.getX() + 2, settingsTabControl.getY() + Math.max(0, settingsTabControl.getHeight() + 2));
 			default -> new Position(leftPos + imageWidth - 34, topPos + 4);
 		};
 	}
@@ -356,68 +354,65 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		PoseStack poseStack = guiGraphics.pose();
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
 			updateInventoryScrollPanel();
 		}
-		renderBackground(matrixStack);
-		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
-		matrixStack.translate(0, 0, 200);
+		renderBackground(guiGraphics);
+		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
+		poseStack.translate(0, 0, 200);
 
-		renderSuper(matrixStack, mouseX, mouseY, partialTicks);
+		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
 
-		settingsTabControl.renderTooltip(this, matrixStack, mouseX, mouseY);
+		settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		if (sortButton != null && sortByButton != null) {
-			sortButton.render(matrixStack, mouseX, mouseY, partialTicks);
-			sortByButton.render(matrixStack, mouseX, mouseY, partialTicks);
+			sortButton.render(guiGraphics, mouseX, mouseY, partialTicks);
+			sortByButton.render(guiGraphics, mouseX, mouseY, partialTicks);
 		}
-		upgradeSwitches.forEach(us -> us.render(matrixStack, mouseX, mouseY, partialTicks));
-		renderErrorOverlay(matrixStack);
-		renderTooltip(matrixStack, mouseX, mouseY);
+		upgradeSwitches.forEach(us -> us.render(guiGraphics, mouseX, mouseY, partialTicks));
+		renderErrorOverlay(guiGraphics);
+		renderTooltip(guiGraphics, mouseX, mouseY);
 	}
 
 	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
-	private void renderSuper(PoseStack pPoseStack, int pMouseX, int pMouseY, float pPartialTick) { //copy of super.render with storage inventory slots rendering and snap rendering removed
+	private void renderSuper(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) { //copy of super.render with storage inventory slots rendering and snap rendering removed
 		int i = leftPos;
 		int j = topPos;
-		renderBg(pPoseStack, pPartialTick, pMouseX, pMouseY);
+		renderBg(guiGraphics, pPartialTick, pMouseX, pMouseY);
 		//noinspection UnstableApiUsage
-		MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.Render.Background(this, pPoseStack, pMouseX, pMouseY));
+		MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.ContainerScreenEvent.Render.Background(this, guiGraphics, pMouseX, pMouseY));
 		RenderSystem.disableDepthTest();
 
 		hoveredSlot = null;
 
-		for (Widget widget : renderables) {
-			widget.render(pPoseStack, pMouseX, pMouseY, pPartialTick);
+		for (Renderable widget : renderables) {
+			widget.render(guiGraphics, pMouseX, pMouseY, pPartialTick);
 		}
 
-		PoseStack posestack = RenderSystem.getModelViewStack();
-		posestack.pushPose();
-		posestack.translate(i, j, 0.0D);
-		RenderSystem.applyModelViewMatrix();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		PoseStack poseStack = guiGraphics.pose();
+		poseStack.pushPose();
+		poseStack.translate(i, j, 0.0D);
 
 		for (int k = 0; k < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS; ++k) {
 			Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + k);
 			if (slot.isActive()) {
-				RenderSystem.setShader(GameRenderer::getPositionTexShader);
-				renderSlot(pPoseStack, slot);
+				renderSlot(guiGraphics, slot);
 			}
 
 			if (isHovering(slot, pMouseX, pMouseY) && slot.isActive()) {
 				hoveredSlot = slot;
 				int l = slot.x;
 				int i1 = slot.y;
-				renderSlotHighlight(pPoseStack, l, i1, getBlitOffset(), getSlotColor(k));
+				renderSlotHighlight(guiGraphics, l, i1, 0, getSlotColor(k));
 			}
 		}
 
-		renderLabels(pPoseStack, pMouseX, pMouseY);
+		renderLabels(guiGraphics, pMouseX, pMouseY);
 		//noinspection UnstableApiUsage
-		MinecraftForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, pPoseStack, pMouseX, pMouseY));
+		MinecraftForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, pMouseX, pMouseY));
 		ItemStack itemstack = draggingItem.isEmpty() ? menu.getCarried() : draggingItem;
 		if (!itemstack.isEmpty()) {
 			int i2 = draggingItem.isEmpty() ? 8 : 16;
@@ -434,197 +429,191 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			}
 
 			//noinspection ConstantConditions - renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
-			renderFloatingItem(itemstack, pMouseX - i - 8, pMouseY - j - i2, s);
+			renderFloatingItem(guiGraphics, itemstack, pMouseX - i - 8, pMouseY - j - i2, s);
 		}
 
-		posestack.popPose();
-		RenderSystem.applyModelViewMatrix();
+		poseStack.popPose();
 		RenderSystem.enableDepthTest();
 	}
 
 	@Override
-	protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
-		super.renderLabels(matrixStack, mouseX, mouseY);
-		renderUpgradeInventoryParts(matrixStack, mouseX, mouseY);
-		renderUpgradeSlots(matrixStack, mouseX, mouseY);
+	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		super.renderLabels(guiGraphics, mouseX, mouseY);
+		renderUpgradeInventoryParts(guiGraphics, mouseX, mouseY);
+		renderUpgradeSlots(guiGraphics, mouseX, mouseY);
 		if (inventoryScrollPanel == null) {
-			renderStorageInventorySlots(matrixStack, mouseX, mouseY);
+			renderStorageInventorySlots(guiGraphics, mouseX, mouseY);
 		}
 	}
 
-	private void renderUpgradeInventoryParts(PoseStack matrixStack, int mouseX, int mouseY) {
-		inventoryParts.values().forEach(ip -> ip.render(matrixStack, mouseX, mouseY));
+	private void renderUpgradeInventoryParts(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		inventoryParts.values().forEach(ip -> ip.render(guiGraphics, mouseX, mouseY));
 	}
 
-	private void renderStorageInventorySlots(PoseStack matrixStack, int mouseX, int mouseY) {
-		renderStorageInventorySlots(matrixStack, mouseX, mouseY, true);
+	private void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		renderStorageInventorySlots(guiGraphics, mouseX, mouseY, true);
 	}
 
-	private void renderStorageInventorySlots(PoseStack matrixStack, int mouseX, int mouseY, boolean canShowHover) {
+	private void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover) {
 		for (int slotId = 0; slotId < menu.realInventorySlots.size(); ++slotId) {
 			Slot slot = menu.realInventorySlots.get(slotId);
-			renderSlot(matrixStack, slot);
+			renderSlot(guiGraphics, slot);
 
 			if (canShowHover && isHovering(slot, mouseX, mouseY) && slot.isActive()) {
 				hoveredSlot = slot;
-				renderSlotOverlay(matrixStack, slot, getSlotColor(slotId));
+				renderSlotHighlight(guiGraphics, slot.x, slot.y, 0, getSlotColor(slotId));
 			}
 		}
 	}
 
-	private void renderUpgradeSlots(PoseStack matrixStack, int mouseX, int mouseY) {
+	private void renderUpgradeSlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		for (int slotId = 0; slotId < menu.upgradeSlots.size(); ++slotId) {
 			Slot slot = menu.upgradeSlots.get(slotId);
 			if (slot.x != DISABLED_SLOT_X_POS) {
-				renderSlot(matrixStack, slot);
+				renderSlot(guiGraphics, slot);
 				if (!slot.isActive()) {
-					renderSlotOverlay(matrixStack, slot, DISABLED_SLOT_COLOR);
+					renderSlotOverlay(guiGraphics, slot, DISABLED_SLOT_COLOR);
 				}
 			}
 
 			if (isHovering(slot, mouseX, mouseY) && slot.isActive()) {
 				hoveredSlot = slot;
-				renderSlotOverlay(matrixStack, slot, getSlotColor(slotId));
+				renderSlotHighlight(guiGraphics, slot.x, slot.y, 0, getSlotColor(slotId));
 			}
 		}
 	}
 
 	@Override
-	protected void renderSlot(PoseStack matrixStack, Slot slot) {
+	protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
 		int i = slot.x;
 		int j = slot.y;
-		ItemStack itemstack = slot.getItem();
+		ItemStack stackToRender = slot.getItem();
 		boolean flag = false;
 		boolean rightClickDragging = slot == clickedSlot && !draggingItem.isEmpty() && !isSplittingStack;
-		ItemStack itemstack1 = getMenu().getCarried();
+		ItemStack carriedStack = getMenu().getCarried();
 		String stackCountText = null;
-		if (slot == clickedSlot && !draggingItem.isEmpty() && isSplittingStack && !itemstack.isEmpty()) {
-			itemstack = itemstack.copy();
-			itemstack.setCount(itemstack.getCount() / 2);
-		} else if (isQuickCrafting && quickCraftSlots.contains(slot) && !itemstack1.isEmpty()) {
+		if (slot == clickedSlot && !draggingItem.isEmpty() && isSplittingStack && !stackToRender.isEmpty()) {
+			stackToRender = stackToRender.copy();
+			stackToRender.setCount(stackToRender.getCount() / 2);
+		} else if (isQuickCrafting && quickCraftSlots.contains(slot) && !carriedStack.isEmpty()) {
 			if (quickCraftSlots.size() == 1) {
 				return;
 			}
 
-			if (StorageContainerMenuBase.canItemQuickReplace(slot, itemstack1) && menu.canDragTo(slot)) {
-				itemstack = itemstack1.copy();
+			if (StorageContainerMenuBase.canItemQuickReplace(slot, carriedStack) && menu.canDragTo(slot)) {
 				flag = true;
-				AbstractContainerMenu.getQuickCraftSlotCount(quickCraftSlots, quickCraftingType, itemstack, slot.getItem().isEmpty() ? 0 : slot.getItem().getCount());
-				int slotLimit = slot.getMaxStackSize(itemstack);
-				if (itemstack.getCount() > slotLimit) {
+				int slotStackCount = stackToRender.isEmpty() ? 0 : stackToRender.getCount();
+				int renderCount = AbstractContainerMenu.getQuickCraftPlaceCount(quickCraftSlots, quickCraftingType, carriedStack) + slotStackCount;
+				int slotLimit = slot.getMaxStackSize(stackToRender);
+				if (renderCount > slotLimit) {
 					stackCountText = ChatFormatting.YELLOW + CountAbbreviator.abbreviate(slotLimit);
-					itemstack.setCount(slotLimit);
 				}
+				stackToRender = carriedStack.copyWithCount(renderCount);
 			} else {
 				quickCraftSlots.remove(slot);
 				recalculateQuickCraftRemaining();
 			}
 		}
-
-		setBlitOffset(100);
-		itemRenderer.blitOffset = 100.0F;
-		if (itemstack.isEmpty() && slot.isActive()) {
-			renderSlotBackground(matrixStack, slot, i, j);
+		PoseStack poseStack = guiGraphics.pose();
+		poseStack.pushPose();
+		poseStack.translate(0, 0, -50);
+		if (stackToRender.isEmpty() && slot.isActive()) {
+			renderSlotBackground(guiGraphics, slot, i, j);
 		} else if (!rightClickDragging) {
-			renderStack(matrixStack, i, j, itemstack, flag, stackCountText);
+			renderStack(guiGraphics, i, j, stackToRender, flag, stackCountText);
 		}
-
-		itemRenderer.blitOffset = 0.0F;
-		setBlitOffset(0);
+		poseStack.popPose();
 	}
 
-	private void renderStack(PoseStack poseStack, int i, int j, ItemStack itemstack, boolean flag, @Nullable String stackCountText) {
+	private void renderStack(GuiGraphics guiGraphics, int i, int j, ItemStack itemstack, boolean flag, @Nullable String stackCountText) {
 		if (flag) {
-			fill(poseStack, i, j, i + 16, j + 16, -2130706433);
+			guiGraphics.fill(i, j, i + 16, j + 16, -2130706433);
 		}
 
 		RenderSystem.enableDepthTest();
-		itemRenderer.renderAndDecorateItem(itemstack, i, j);
+		guiGraphics.renderItem(itemstack, i, j);
 		if (shouldUseSpecialCountRender(itemstack)) {
-			itemRenderer.renderGuiItemDecorations(font, itemstack, i, j, "");
+			guiGraphics.renderItemDecorations(font, itemstack, i, j, "");
 			if (stackCountText == null) {
 				stackCountText = CountAbbreviator.abbreviate(itemstack.getCount());
 			}
-			renderStackCount(stackCountText, i, j);
+			renderStackCount(guiGraphics, stackCountText, i, j);
 		} else {
-			itemRenderer.renderGuiItemDecorations(font, itemstack, i, j, stackCountText);
+			guiGraphics.renderItemDecorations(font, itemstack, i, j, stackCountText);
 		}
 	}
 
-	private void renderSlotBackground(PoseStack poseStack, Slot slot, int i, int j) {
+	private void renderSlotBackground(GuiGraphics guiGraphics, Slot slot, int i, int j) {
 		Optional<ItemStack> memorizedStack = getMenu().getMemorizedStackInSlot(slot.index);
 		if (memorizedStack.isPresent()) {
-			itemRenderer.renderAndDecorateItem(memorizedStack.get(), i, j);
-			drawStackOverlay(poseStack, i, j);
+			guiGraphics.renderItem(memorizedStack.get(), i, j);
+			drawStackOverlay(guiGraphics, i, j);
 		} else if (!getMenu().getSlotFilterItem(slot.index).isEmpty()) {
-			itemRenderer.renderAndDecorateItem(getMenu().getSlotFilterItem(slot.index), i, j);
-			drawStackOverlay(poseStack, i, j);
+			guiGraphics.renderItem(getMenu().getSlotFilterItem(slot.index), i, j);
+			drawStackOverlay(guiGraphics, i, j);
 		} else {
 			Pair<ResourceLocation, ResourceLocation> pair = slot.getNoItemIcon();
 			if (pair != null) {
 				//noinspection ConstantConditions - by this point minecraft isn't null
 				TextureAtlasSprite textureatlassprite = minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
-				RenderSystem.setShader(GameRenderer::getPositionTexShader);
-				RenderSystem.setShaderTexture(0, textureatlassprite.atlas().location());
-				blit(poseStack, i, j, getBlitOffset(), 16, 16, textureatlassprite);
+				guiGraphics.blit(i, j, 0, 16, 16, textureatlassprite);
 			}
 		}
 	}
 
-	private void drawStackOverlay(PoseStack poseStack, int x, int y) {
-		poseStack.pushPose();
+	private void drawStackOverlay(GuiGraphics guiGraphics, int x, int y) {
+		guiGraphics.pose().pushPose();
 		RenderSystem.enableBlend();
 		RenderSystem.disableDepthTest();
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderTexture(0, GuiHelper.GUI_CONTROLS);
-		blit(poseStack, x, y, 77, 0, 16, 16);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, 77, 0, 16, 16);
 		RenderSystem.enableDepthTest();
 		RenderSystem.disableBlend();
-		poseStack.popPose();
+		guiGraphics.pose().popPose();
 	}
 
 	private boolean shouldUseSpecialCountRender(ItemStack itemstack) {
 		return itemstack.getCount() > 99;
 	}
 
-	private void renderSlotOverlay(PoseStack matrixStack, Slot slot, int slotColor) {
-		renderSlotOverlay(matrixStack, slot, slotColor, 0, 16);
+	private void renderSlotOverlay(GuiGraphics guiGraphics, Slot slot, int slotColor) {
+		renderSlotOverlay(guiGraphics, slot, slotColor, 0, 16);
 	}
 
-	private void renderSlotOverlay(PoseStack matrixStack, Slot slot, int slotColor, int yOffset, int height) {
-		renderOverlay(matrixStack, slotColor, slot.x, slot.y + yOffset, 16, height);
+	private void renderSlotOverlay(GuiGraphics guiGraphics, Slot slot, int slotColor, int yOffset, int height) {
+		renderOverlay(guiGraphics, slotColor, slot.x, slot.y + yOffset, 16, height);
 	}
 
-	public void renderOverlay(PoseStack matrixStack, int slotColor, int xPos, int yPos, int width, int height) {
+	public void renderOverlay(GuiGraphics guiGraphics, int slotColor, int xPos, int yPos, int width, int height) {
 		RenderSystem.disableDepthTest();
 		RenderSystem.colorMask(true, true, true, false);
-		fillGradient(matrixStack, xPos, yPos, xPos + width, yPos + height, slotColor, slotColor);
+		guiGraphics.fillGradient(xPos, yPos, xPos + width, yPos + height, 0, slotColor, slotColor);
 		RenderSystem.colorMask(true, true, true, true);
 		RenderSystem.enableDepthTest();
 	}
 
-	protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		int x = (width - imageWidth) / 2;
 		int y = (height - imageHeight) / 2;
-		drawInventoryBg(matrixStack, x, y, storageBackgroundProperties.getTextureName());
+		drawInventoryBg(guiGraphics, x, y, storageBackgroundProperties.getTextureName());
 		if (inventoryScrollPanel == null) {
-			drawSlotBg(matrixStack, x, y);
-			drawSlotOverlays(matrixStack);
+			drawSlotBg(guiGraphics, x, y);
+			drawSlotOverlays(guiGraphics);
 		}
-		drawUpgradeBackground(matrixStack);
+		drawUpgradeBackground(guiGraphics);
 	}
 
-	protected void drawSlotBg(PoseStack matrixStack, int x, int y) {
+	protected void drawSlotBg(GuiGraphics guiGraphics, int x, int y) {
 		int inventorySlots = getMenu().getNumberOfStorageInventorySlots();
 		int slotsOnLine = getSlotsOnLine();
 		int slotRows = inventorySlots / slotsOnLine;
 		int remainingSlots = inventorySlots % slotsOnLine;
-		GuiHelper.renderSlotsBackground(matrixStack, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
+		GuiHelper.renderSlotsBackground(guiGraphics, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
 	}
 
-	private void drawSlotOverlays(PoseStack matrixStack) {
-		matrixStack.pushPose();
-		matrixStack.translate(getGuiLeft(), getGuiTop(), 0.0F);
+	private void drawSlotOverlays(GuiGraphics guiGraphics) {
+		PoseStack poseStack = guiGraphics.pose();
+		poseStack.pushPose();
+		poseStack.translate(getGuiLeft(), getGuiTop(), 0.0F);
 		for (int slotNumber = 0; slotNumber < menu.getNumberOfStorageInventorySlots(); slotNumber++) {
 			List<Integer> colors = menu.getSlotOverlayColors(slotNumber);
 			if (!colors.isEmpty()) {
@@ -632,71 +621,65 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				int i = 0;
 				for (int slotColor : colors) {
 					int yOffset = i * stripeHeight;
-					renderSlotOverlay(matrixStack, menu.getSlot(slotNumber), slotColor | (80 << 24), yOffset, i == colors.size() - 1 ? 16 - yOffset : stripeHeight);
+					renderSlotOverlay(guiGraphics, menu.getSlot(slotNumber), slotColor | (80 << 24), yOffset, i == colors.size() - 1 ? 16 - yOffset : stripeHeight);
 					i++;
 				}
 			}
-		}
-		matrixStack.popPose();
-	}
-
-	@Override
-	protected void renderTooltip(PoseStack poseStack, int x, int y) {
-		poseStack.pushPose();
-		poseStack.translate(0, 0, -100);
-		inventoryParts.values().forEach(part -> part.renderTooltip(this, poseStack, x, y));
-		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
-			if (hoveredSlot.hasItem()) {
-				renderTooltip(poseStack, hoveredSlot.getItem(), x, y);
-			} else if (hoveredSlot instanceof INameableEmptySlot emptySlot && emptySlot.hasEmptyTooltip()) {
-				renderComponentTooltip(poseStack, Collections.singletonList(emptySlot.getEmptyTooltip()), x, y, font);
-			}
-		}
-		if (sortButton != null) {
-			sortButton.renderTooltip(this, poseStack, x, y);
-		}
-		if (sortByButton != null) {
-			sortByButton.renderTooltip(this, poseStack, x, y);
 		}
 		poseStack.popPose();
 	}
 
 	@Override
-	public List<Component> getTooltipFromItem(ItemStack itemStack) {
-		List<Component> ret = super.getTooltipFromItem(itemStack);
+	protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+		PoseStack poseStack = guiGraphics.pose();
+		poseStack.pushPose();
+		poseStack.translate(0, 0, 0);
+		inventoryParts.values().forEach(part -> part.renderTooltip(this, guiGraphics, x, y));
+		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
+			if (hoveredSlot.hasItem()) {
+				guiGraphics.renderTooltip(font, hoveredSlot.getItem(), x, y);
+			} else if (hoveredSlot instanceof INameableEmptySlot emptySlot && emptySlot.hasEmptyTooltip()) {
+				guiGraphics.renderComponentTooltip(font, Collections.singletonList(emptySlot.getEmptyTooltip()), x, y);
+			}
+		}
+		if (sortButton != null) {
+			sortButton.renderTooltip(this, guiGraphics, x, y);
+		}
+		if (sortByButton != null) {
+			sortByButton.renderTooltip(this, guiGraphics, x, y);
+		}
+		poseStack.popPose();
+	}
+
+	@Override
+	protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
+		List<Component> ret = super.getTooltipFromContainerItem(itemStack);
 		if (itemStack.getCount() > 999) {
 			ret.add(Component.translatable("gui.sophisticatedcore.tooltip.stack_count",
-					Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA))
+							Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA))
 					.withStyle(ChatFormatting.GRAY)
 			);
 		}
 		return ret;
 	}
 
-	public void drawInventoryBg(PoseStack matrixStack, int x, int y, ResourceLocation textureName) {
-		StorageGuiHelper.renderStorageBackground(new Position(x, y), matrixStack, textureName, imageWidth, imageHeight - HEIGHT_WITHOUT_STORAGE_SLOTS);
+	public void drawInventoryBg(GuiGraphics guiGraphics, int x, int y, ResourceLocation textureName) {
+		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, textureName, imageWidth, imageHeight - HEIGHT_WITHOUT_STORAGE_SLOTS);
 	}
 
-	private void drawUpgradeBackground(PoseStack matrixStack) {
+	private void drawUpgradeBackground(GuiGraphics guiGraphics) {
 		if (numberOfUpgradeSlots == 0) {
 			return;
 		}
 
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, GUI_CONTROLS);
-
 		int firstHalfHeight = getUpgradeHeightWithoutBottom();
 
 		int upgradeTop = Math.max(getUpgradeTop(), 0);
-		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + upgradeTop, 0, 0, 29, firstHalfHeight, 256, 256);
-		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + upgradeTop + firstHalfHeight, 0, (float) TOTAL_UPGRADE_GUI_HEIGHT - UPGRADE_BOTTOM_HEIGHT, 29, UPGRADE_BOTTOM_HEIGHT, 256, 256);
+		guiGraphics.blit(GUI_CONTROLS, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + upgradeTop, 0, 0, 29, firstHalfHeight, 256, 256);
+		guiGraphics.blit(GUI_CONTROLS, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + upgradeTop + firstHalfHeight, 0, (float) TOTAL_UPGRADE_GUI_HEIGHT - UPGRADE_BOTTOM_HEIGHT, 29, UPGRADE_BOTTOM_HEIGHT, 256, 256);
 	}
 
 	public UpgradeSettingsTabControl getUpgradeSettingsControl() {
-		if (settingsTabControl == null) {
-			settingsTabControl = new UpgradeSettingsTabControl(new Position(leftPos + imageWidth, topPos + 4), this, getStorageSettingsTabTooltip());
-		}
 		return settingsTabControl;
 	}
 
@@ -874,73 +857,74 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return numberOfUpgradeSlots == 0 ? Optional.empty() : GuiHelper.getPositiveRectangle(leftPos - UPGRADE_INVENTORY_OFFSET, topPos + getUpgradeTop(), 32, getUpgradeHeight());
 	}
 
-	private void renderStackCount(String count, int x, int y) {
-		PoseStack posestack = new PoseStack();
-		posestack.translate(0.0D, 0.0D, itemRenderer.blitOffset + 200.0F);
+	private void renderStackCount(GuiGraphics guiGraphics, String count, int x, int y) {
+		PoseStack poseStack = guiGraphics.pose();
+		poseStack.pushPose();
+		poseStack.translate(0.0D, 0.0D, 200.0F);
 		float scale = Math.min(1f, (float) 16 / font.width(count));
 		if (scale < 1f) {
-			posestack.scale(scale, scale, 1.0F);
+			poseStack.scale(scale, scale, 1.0F);
 		}
 		MultiBufferSource.BufferSource renderBuffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
 		font.drawInBatch(count, (x + 19 - 2 - (font.width(count) * scale)) / scale,
-				(y + 6 + 3 + (1 / (scale * scale) - 1)) / scale, 16777215, true, posestack.last().pose(), renderBuffer, false, 0, 15728880);
+				(y + 6 + 3 + (1 / (scale * scale) - 1)) / scale, 16777215, true, poseStack.last().pose(), renderBuffer, Font.DisplayMode.NORMAL, 0, 15728880);
 		renderBuffer.endBatch();
+		poseStack.popPose();
 	}
 
 	@Override
 	protected void recalculateQuickCraftRemaining() {
-		ItemStack cursorStack = getMenu().getCarried();
-		if (!cursorStack.isEmpty() && isQuickCrafting) {
+		ItemStack carriedStack = getMenu().getCarried();
+		if (!carriedStack.isEmpty() && isQuickCrafting) {
 			if (quickCraftingType == 2) {
-				quickCraftingRemainder = cursorStack.getMaxStackSize();
+				quickCraftingRemainder = carriedStack.getMaxStackSize();
 			} else {
-				quickCraftingRemainder = cursorStack.getCount();
+				quickCraftingRemainder = carriedStack.getCount();
 
 				for (Slot slot : quickCraftSlots) {
-					ItemStack itemstack1 = cursorStack.copy();
 					ItemStack slotStack = slot.getItem();
 					int slotStackCount = slotStack.isEmpty() ? 0 : slotStack.getCount();
-					AbstractContainerMenu.getQuickCraftSlotCount(quickCraftSlots, quickCraftingType, itemstack1, slotStackCount);
-					int j = slot.getMaxStackSize(itemstack1);
-					if (itemstack1.getCount() > j) {
-						itemstack1.setCount(j);
-					}
-
-					quickCraftingRemainder -= itemstack1.getCount() - slotStackCount;
+					int maxStackSize = slot.getMaxStackSize(carriedStack);
+					int quickCraftPlaceCount = Math.min(AbstractContainerMenu.getQuickCraftPlaceCount(quickCraftSlots, quickCraftingType, carriedStack) + slotStackCount, maxStackSize);
+					quickCraftingRemainder -= quickCraftPlaceCount - slotStackCount;
 				}
 			}
 		}
 	}
 
-	private void renderErrorOverlay(PoseStack matrixStack) {
+	private void renderErrorOverlay(GuiGraphics guiGraphics) {
 		menu.getErrorUpgradeSlotChangeResult().ifPresent(upgradeSlotChangeResult -> upgradeSlotChangeResult.getErrorMessage().ifPresent(overlayErrorMessage -> {
-			matrixStack.pushPose();
-			matrixStack.translate(getGuiLeft(), getGuiTop(), 0.0F);
-			upgradeSlotChangeResult.getErrorUpgradeSlots().forEach(slotIndex -> renderSlotOverlay(matrixStack, menu.getSlot(menu.getFirstUpgradeSlot() + slotIndex), ERROR_SLOT_COLOR));
+			RenderSystem.disableDepthTest();
+			PoseStack poseStack = guiGraphics.pose();
+			poseStack.pushPose();
+			poseStack.translate(getGuiLeft(), getGuiTop(), 0.0F);
+			upgradeSlotChangeResult.getErrorUpgradeSlots().forEach(slotIndex -> {
+				Slot upgradeSlot = menu.getSlot(menu.getFirstUpgradeSlot() + slotIndex);
+				renderSlotHighlight(guiGraphics, upgradeSlot.x, upgradeSlot.y, 0, ERROR_SLOT_COLOR);
+			});
 			upgradeSlotChangeResult.getErrorInventorySlots().forEach(slotIndex -> {
 				Slot slot = menu.getSlot(slotIndex);
 				//noinspection ConstantConditions
 				if (slot != null) {
-					renderSlotOverlay(matrixStack, slot, ERROR_SLOT_COLOR);
+					renderSlotHighlight(guiGraphics, slot.x, slot.y, 0, ERROR_SLOT_COLOR);
 				}
 			});
 			upgradeSlotChangeResult.getErrorInventoryParts().forEach(partIndex -> {
 				if (inventoryParts.size() > partIndex) {
 					UpgradeInventoryPartBase<?> inventoryPart = inventoryParts.get(partIndex);
 					if (inventoryPart != null) {
-						inventoryPart.renderErrorOverlay(matrixStack);
+						inventoryPart.renderErrorOverlay(guiGraphics);
 					}
 				}
 			});
-			matrixStack.popPose();
+			poseStack.popPose();
 
-			renderErrorMessage(matrixStack, overlayErrorMessage);
+			renderErrorMessage(poseStack, overlayErrorMessage);
 		}));
 	}
 
 	private void renderErrorMessage(PoseStack matrixStack, Component overlayErrorMessage) {
 		matrixStack.pushPose();
-		RenderSystem.disableDepthTest();
 		matrixStack.translate((float) width / 2, (double) topPos + inventoryLabelY + 4, 300F);
 		Font fontrenderer = Minecraft.getInstance().font;
 
@@ -979,8 +963,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void renderInventorySlots(PoseStack matrixStack, int mouseX, int mouseY, boolean canShowHover) {
-		renderStorageInventorySlots(matrixStack, mouseX, mouseY, canShowHover);
+	public void renderInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover) {
+		renderStorageInventorySlots(guiGraphics, mouseX, mouseY, canShowHover);
 	}
 
 	@Override
@@ -994,9 +978,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void drawSlotBg(PoseStack matrixStack) {
-		drawSlotBg(matrixStack, (width - imageWidth) / 2, (height - imageHeight) / 2);
-		drawSlotOverlays(matrixStack);
+	public void drawSlotBg(GuiGraphics guiGraphics) {
+		drawSlotBg(guiGraphics, (width - imageWidth) / 2, (height - imageHeight) / 2);
+		drawSlotOverlays(guiGraphics);
 	}
 
 	@Override

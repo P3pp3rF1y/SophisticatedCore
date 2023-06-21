@@ -1,10 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Matrix4f;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -13,8 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.tank.TankClickMessage;
+import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,25 +38,25 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 	}
 
 	@Override
-	public void render(PoseStack poseStack, int mouseX, int mouseY) {
-		GuiHelper.blit(poseStack, getTankLeft(), pos.y(), TANK_BACKGROUND_TOP);
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y(), TANK_BACKGROUND_TOP);
 		int yOffset = 18;
 		for (int i = 0; i < (height - 36) / 18; i++) {
-			GuiHelper.blit(poseStack, getTankLeft(), pos.y() + yOffset, TANK_BACKGROUND_MIDDLE);
+			GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + yOffset, TANK_BACKGROUND_MIDDLE);
 			yOffset += 18;
 		}
-		GuiHelper.blit(poseStack, getTankLeft(), pos.y() + yOffset, TANK_BACKGROUND_BOTTOM);
+		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + yOffset, TANK_BACKGROUND_BOTTOM);
 
 		yOffset = 0;
 		for (int i = 0; i < height / 18; i++) {
-			GuiHelper.blit(poseStack, getTankLeft() + 1, pos.y() + yOffset, OVERLAY);
+			GuiHelper.blit(guiGraphics, getTankLeft() + 1, pos.y() + yOffset, OVERLAY);
 			yOffset += 18;
 		}
 
-		renderCharge(poseStack);
+		renderCharge(guiGraphics);
 
-		GuiHelper.blit(poseStack, getTankLeft() + 1, pos.y(), CONNECTION_TOP);
-		GuiHelper.blit(poseStack, getTankLeft() + 1, pos.y() + height - 4, CONNECTION_BOTTOM);
+		GuiHelper.blit(guiGraphics, getTankLeft() + 1, pos.y(), CONNECTION_TOP);
+		GuiHelper.blit(guiGraphics, getTankLeft() + 1, pos.y() + height - 4, CONNECTION_BOTTOM);
 	}
 
 	private int getTankLeft() {
@@ -69,24 +65,16 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 
 	@Override
 	public boolean handleMouseReleased(double mouseX, double mouseY, int button) {
-
-		ItemStack cursorStack = screen.getMenu().getCarried();
-		if (!cursorStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent()) {
-			return false;
-		}
-
-		PacketHandler.INSTANCE.sendToServer(new TankClickMessage(upgradeSlot));
-
-		return true;
+		return false;
 	}
 
 	@Override
-	public void renderErrorOverlay(PoseStack matrixStack) {
-		screen.renderOverlay(matrixStack, StorageScreenBase.ERROR_SLOT_COLOR, getTankLeft() + 1, pos.y() + 1, 16, height - 2);
+	public void renderErrorOverlay(GuiGraphics guiGraphics) {
+		screen.renderOverlay(guiGraphics, StorageScreenBase.ERROR_SLOT_COLOR, getTankLeft() + 1, pos.y() + 1, 16, height - 2);
 	}
 
 	@Override
-	public void renderTooltip(StorageScreenBase<?> screen, PoseStack poseStack, int mouseX, int mouseY) {
+	public void renderTooltip(StorageScreenBase<?> screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		int screenX = screen.getGuiLeft() + pos.x() + 10;
 		int screenY = screen.getGuiTop() + pos.y() + 1;
 		if (mouseX >= screenX && mouseX < screenX + 16 && mouseY >= screenY && mouseY < screenY + height - 2) {
@@ -94,11 +82,11 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			int maxEnergyStored = container.getMaxEnergyStored();
 			List<Component> tooltip = new ArrayList<>();
 			tooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("battery.contents_tooltip"), String.format("%,d", energyStored), String.format("%,d", maxEnergyStored)));
-			screen.renderTooltip(poseStack, tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.font, tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 
-	private void renderCharge(PoseStack matrixStack) {
+	private void renderCharge(GuiGraphics guiGraphics) {
 		int energyStored = container.getEnergyStored();
 
 		int maxEnergyStored = container.getMaxEnergyStored();
@@ -115,7 +103,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 		int initialGreen = BOTTOM_BAR_COLOR >> 8 & 255;
 		int initialBlue = BOTTOM_BAR_COLOR & 255;
 
-		Matrix4f matrix = matrixStack.last().pose();
+		Matrix4f matrix = guiGraphics.pose().last().pose();
 
 		for (int i = 0; i < displayLevel; i++) {
 			float percentage = (float) i / (numberOfSegments - 1);

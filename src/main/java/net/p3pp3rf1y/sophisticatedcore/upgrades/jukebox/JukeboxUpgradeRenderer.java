@@ -1,10 +1,10 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
-import com.mojang.math.Vector3f;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
+import org.joml.Vector3f;
 
 import java.util.function.UnaryOperator;
 

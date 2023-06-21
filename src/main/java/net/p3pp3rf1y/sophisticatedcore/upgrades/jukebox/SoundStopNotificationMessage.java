@@ -34,6 +34,6 @@ public class SoundStopNotificationMessage {
 		if (sender == null) {
 			return;
 		}
-		ServerStorageSoundHandler.onSoundStopped((ServerLevel) sender.level, msg.storageUuid);
+		ServerStorageSoundHandler.onSoundStopped((ServerLevel) sender.level(), msg.storageUuid);
 	}
 }

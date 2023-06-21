@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
@@ -17,8 +16,8 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 
 	private final BatteryUpgradeConfig batteryUpgradeConfig;
 
-	public BatteryUpgradeItem(CreativeModeTab itemGroup, BatteryUpgradeConfig batteryUpgradeConfig) {
-		super(itemGroup);
+	public BatteryUpgradeItem(BatteryUpgradeConfig batteryUpgradeConfig) {
+		super();
 		this.batteryUpgradeConfig = batteryUpgradeConfig;
 	}
 

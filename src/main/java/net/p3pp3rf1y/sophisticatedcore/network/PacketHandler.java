@@ -61,12 +61,12 @@ public class PacketHandler {
 	}
 
 	public <M> void sendToClient(ServerPlayer player, M message) {
-		networkWrapper.sendTo(message, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+		networkWrapper.sendTo(message, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public <M> void sendToAllNear(ServerLevel world, ResourceKey<Level> dimension, Vec3 position, int range, M message) {
 		world.players().forEach(player -> {
-			if (player.level.dimension() == dimension && player.distanceToSqr(position) <= range * range) {
+			if (player.level().dimension() == dimension && player.distanceToSqr(position) <= range * range) {
 				sendToClient(player, message);
 			}
 		});

@@ -6,10 +6,10 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
@@ -29,7 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class ClientStorageContentsTooltip implements ClientTooltipComponent {
+public abstract class ClientStorageContentsTooltipBase implements ClientTooltipComponent {
 	private static final int REFRESH_INTERVAL = 20;
 	private static final String STORAGE_ITEM = "storage";
 	protected static long lastRequestTime = 0;
@@ -61,16 +61,16 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 
 	@SuppressWarnings("java:S2696")
 	protected void setLastRequestTime(long lastRequestTime) {
-		ClientStorageContentsTooltip.lastRequestTime = lastRequestTime;
+		ClientStorageContentsTooltipBase.lastRequestTime = lastRequestTime;
 	}
 
 	protected long getLastRequestTime() {
-		return ClientStorageContentsTooltip.lastRequestTime;
+		return ClientStorageContentsTooltipBase.lastRequestTime;
 	}
 
 	private void requestContents(LocalPlayer player, IStorageWrapper wrapper) {
-		if (getLastRequestTime() + REFRESH_INTERVAL < player.level.getGameTime()) {
-			setLastRequestTime(player.level.getGameTime());
+		if (getLastRequestTime() + REFRESH_INTERVAL < player.level().getGameTime()) {
+			setLastRequestTime(player.level().getGameTime());
 			wrapper.getContentsUuid().ifPresent(this::sendInventorySyncRequest);
 		}
 	}
@@ -102,11 +102,11 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 
 	@SuppressWarnings("java:S2696")
 	protected void setShouldRefreshContents(boolean shouldRefreshContents) {
-		ClientStorageContentsTooltip.shouldRefreshContents = shouldRefreshContents;
+		ClientStorageContentsTooltipBase.shouldRefreshContents = shouldRefreshContents;
 	}
 
 	protected boolean shouldRefreshContents() {
-		return ClientStorageContentsTooltip.shouldRefreshContents;
+		return ClientStorageContentsTooltipBase.shouldRefreshContents;
 	}
 
 	private void calculateWidth() {
@@ -215,7 +215,7 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 		return height;
 	}
 
-	protected void renderTooltip(IStorageWrapper wrapper, Font font, int leftX, int topY, PoseStack poseStack, ItemRenderer itemRenderer, int blitOffset) {
+	protected void renderTooltip(IStorageWrapper wrapper, Font font, int leftX, int topY, GuiGraphics guiGraphics) {
 		Minecraft minecraft = Minecraft.getInstance();
 		LocalPlayer player = minecraft.player;
 		if (player == null) {
@@ -223,54 +223,55 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 		}
 
 		initContents(player, wrapper);
-		renderComponent(font, leftX, topY, poseStack, itemRenderer, blitOffset, minecraft);
+		renderComponent(font, leftX, topY, guiGraphics, minecraft);
 	}
 
-	private void renderComponent(Font font, int leftX, int topY, PoseStack poseStack, ItemRenderer itemRenderer, int blitOffset, Minecraft minecraft) {
+	private void renderComponent(Font font, int leftX, int topY, GuiGraphics guiGraphics, Minecraft minecraft) {
 		for (Component tooltipLine : tooltipLines) {
-			topY = renderTooltipLine(poseStack, leftX, topY, font, blitOffset, tooltipLine);
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font, tooltipLine);
 		}
-		renderContentsTooltip(minecraft, font, leftX, topY, poseStack, itemRenderer, blitOffset);
+		renderContentsTooltip(minecraft, font, leftX, topY, guiGraphics);
 	}
 
-	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, PoseStack poseStack, ItemRenderer itemRenderer, double blitOffset) {
+	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, GuiGraphics guiGraphics) {
 		if (!upgrades.isEmpty()) {
-			topY = renderTooltipLine(poseStack, leftX, topY, font, blitOffset, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
-			topY = renderUpgrades(poseStack, leftX, topY, itemRenderer);
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
+			topY = renderUpgrades(guiGraphics, leftX, topY);
 		}
 		if (!sortedContents.isEmpty()) {
-			topY = renderTooltipLine(poseStack, leftX, topY, font, blitOffset, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
-			renderContents(minecraft, leftX, topY, itemRenderer, font);
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
+			renderContents(minecraft, leftX, topY, guiGraphics, font);
 		}
 	}
 
-	private int renderTooltipLine(PoseStack poseStack, int leftX, int topY, Font font, double blitOffset, Component tooltip) {
+	private int renderTooltipLine(GuiGraphics guiGraphics, int leftX, int topY, Font font, Component tooltip) {
+		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
-		poseStack.translate(0.0D, 0.0D, blitOffset + 200.0F);
+		poseStack.translate(0.0D, 0.0D, 200.0F);
 		MultiBufferSource.BufferSource renderTypeBuffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-		font.drawInBatch(tooltip, leftX, topY, 16777215, true, poseStack.last().pose(), renderTypeBuffer, false, 0, 15728880);
+		font.drawInBatch(tooltip, leftX, topY, 16777215, true, poseStack.last().pose(), renderTypeBuffer, Font.DisplayMode.NORMAL, 0, 15728880);
 		renderTypeBuffer.endBatch();
-		poseStack.translate(0.0D, 0.0D, -(blitOffset + 200.0F));
+		poseStack.translate(0.0D, 0.0D, -200.0F);
 		poseStack.popPose();
 		return topY + 10;
 	}
 
-	private int renderUpgrades(PoseStack matrixStack, int leftX, int topY, ItemRenderer itemRenderer) {
+	private int renderUpgrades(GuiGraphics guiGraphics, int leftX, int topY) {
 		int x = leftX;
 		for (IUpgradeWrapper upgradeWrapper : upgrades) {
 			if (upgradeWrapper.canBeDisabled()) {
 				RenderSystem.disableDepthTest();
-				GuiHelper.blit(matrixStack, x, topY + 3, upgradeWrapper.isEnabled() ? UPGRADE_ON : UPGRADE_OFF);
+				GuiHelper.blit(guiGraphics, x, topY + 3, upgradeWrapper.isEnabled() ? UPGRADE_ON : UPGRADE_OFF);
 				x += 4;
 			}
-			itemRenderer.renderAndDecorateItem(upgradeWrapper.getUpgradeStack(), x, topY);
+			guiGraphics.renderItem(upgradeWrapper.getUpgradeStack(), x, topY);
 			x += DEFAULT_STACK_WIDTH;
 		}
 		topY += 20;
 		return topY;
 	}
 
-	private void renderContents(Minecraft minecraft, int leftX, int topY, ItemRenderer itemRenderer, Font font) {
+	private void renderContents(Minecraft minecraft, int leftX, int topY, GuiGraphics guiGraphics, Font font) {
 		int x = leftX;
 		for (int i = 0; i < sortedContents.size(); i++) {
 			int y = topY + i / MAX_STACKS_ON_LINE * 20;
@@ -280,8 +281,8 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 			ItemStack stack = sortedContents.get(i);
 			int stackWidth = Math.max(getStackCountWidth(minecraft.font, stack), DEFAULT_STACK_WIDTH);
 			int xOffset = stackWidth - DEFAULT_STACK_WIDTH;
-			itemRenderer.renderAndDecorateItem(stack, x + xOffset, y);
-			itemRenderer.renderGuiItemDecorations(font, stack, x + xOffset, y, CountAbbreviator.abbreviate(stack.getCount()));
+			guiGraphics.renderItem(stack, x + xOffset, y);
+			guiGraphics.renderItemDecorations(font, stack, x + xOffset, y, CountAbbreviator.abbreviate(stack.getCount()));
 			x += stackWidth;
 		}
 	}

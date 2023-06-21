@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.data;
 
 import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraftforge.data.event.GatherDataEvent;
 
 public class DataGenerators {
@@ -8,7 +9,8 @@ public class DataGenerators {
 
 	public static void gatherData(GatherDataEvent evt) {
 		DataGenerator generator = evt.getGenerator();
-		generator.addProvider(evt.includeServer(), new SCFluidTagsProvider(generator, evt.getExistingFileHelper()));
-		generator.addProvider(evt.includeServer(), new SCRecipeProvider(generator));
+		PackOutput packOutput = generator.getPackOutput();
+		generator.addProvider(evt.includeServer(), new SCFluidTagsProvider(packOutput, evt.getLookupProvider(), evt.getExistingFileHelper()));
+		generator.addProvider(evt.includeServer(), new SCRecipeProvider(packOutput));
 	}
 }

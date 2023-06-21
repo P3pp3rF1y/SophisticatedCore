@@ -1,20 +1,19 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
-import net.minecraft.core.NonNullList;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 
+import java.util.function.Consumer;
+
 public class ItemBase extends Item {
-	public ItemBase(Properties properties, CreativeModeTab itemGroup) {
-		super(properties.tab(itemGroup));
+	public ItemBase(Properties properties) {
+		super(properties);
 	}
 
-	@Override
-	public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
+	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
 		if (Config.SERVER.enabledItems.isItemEnabled(this)) {
-			super.fillItemCategory(group, items);
+			itemConsumer.accept(new ItemStack(this));
 		}
 	}
 }

@@ -383,7 +383,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 	protected boolean isServer() {
-		return !player.level.isClientSide;
+		return !player.level().isClientSide;
 	}
 
 	public void sendAdditionalSlotInfo() {

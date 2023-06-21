@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -19,13 +19,13 @@ public class ImageButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		GuiHelper.blit(matrixStack, x, y, texture);
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		GuiHelper.blit(guiGraphics, x, y, texture);
 	}
 
 	@Override

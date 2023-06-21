@@ -1,12 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.DyeItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.Tags;
@@ -17,8 +18,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class StorageDyeRecipeBase extends CustomRecipe {
-	protected StorageDyeRecipeBase(ResourceLocation registryName) {
-		super(registryName);
+	protected StorageDyeRecipeBase(ResourceLocation registryName, CraftingBookCategory category) {
+		super(registryName, category);
 	}
 
 	@Override
@@ -45,7 +46,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv) {
+	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
 		Map<Integer, List<DyeColor>> columnDyes = new HashMap<>();
 		Tuple<Integer, ItemStack> columnStorage = null;
 
@@ -54,7 +55,6 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 			if (slotStack.isEmpty()) {
 				continue;
 			}
-			Item item = slotStack.getItem();
 			int column = slot % inv.getWidth();
 			if (isDyeableStorageItem(slotStack)) {
 				if (columnStorage != null) {

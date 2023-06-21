@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -130,9 +130,9 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 	}
 
 	@Override
-	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot) {
+	public void drawSlotStackOverlay(GuiGraphics guiGraphics, Slot slot) {
 		if (getSettingsContainer().isSlotSelected(slot.getSlotIndex()) || isShowingTemplateItemInSlot(slot)) {
-			drawMemorizedStackOverlay(poseStack, slot);
+			drawMemorizedStackOverlay(guiGraphics, slot);
 		}
 	}
 
@@ -140,13 +140,12 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 		return loadTemplateButton.isHovered() && !getSettingsContainer().getSelectedTemplatesMemorizedStack(slot.getSlotIndex()).isEmpty();
 	}
 
-	private void drawMemorizedStackOverlay(PoseStack poseStack, Slot slot) {
+	private void drawMemorizedStackOverlay(GuiGraphics guiGraphics, Slot slot) {
+		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		RenderSystem.enableBlend();
 		RenderSystem.disableDepthTest();
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderTexture(0, GuiHelper.GUI_CONTROLS);
-		blit(poseStack, slot.x, slot.y, 77, 0, 16, 16);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, slot.x, slot.y, 77, 0, 16, 16);
 		RenderSystem.enableDepthTest();
 		RenderSystem.disableBlend();
 		poseStack.popPose();

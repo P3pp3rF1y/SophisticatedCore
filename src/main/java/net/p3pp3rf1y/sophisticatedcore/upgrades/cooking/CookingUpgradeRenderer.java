@@ -1,12 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
-import com.mojang.math.Vector3f;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
+import org.joml.Vector3f;
 
 import java.util.function.UnaryOperator;
 
@@ -18,7 +18,7 @@ public class CookingUpgradeRenderer implements IUpgradeRenderer<CookingUpgradeRe
 		}
 
 		if (level.random.nextDouble() < 0.1D) {
-			Vector3f renderCenter = getPositionFromOffset.apply(Vector3f.ZERO);
+			Vector3f renderCenter = getPositionFromOffset.apply(new Vector3f());
 			level.playLocalSound(renderCenter.x(), renderCenter.y(), renderCenter.z(), SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
 		}
 

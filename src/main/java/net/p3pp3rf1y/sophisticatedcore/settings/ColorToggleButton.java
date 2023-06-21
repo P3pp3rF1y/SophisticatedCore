@@ -2,9 +2,9 @@ package net.p3pp3rf1y.sophisticatedcore.settings;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -62,29 +62,29 @@ public class ColorToggleButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
-			GuiHelper.blit(matrixStack, x, y, DEFAULT_BUTTON_HOVERED_BACKGROUND);
+			GuiHelper.blit(guiGraphics, x, y, DEFAULT_BUTTON_HOVERED_BACKGROUND);
 		} else {
-			GuiHelper.blit(matrixStack, x, y, DEFAULT_BUTTON_BACKGROUND);
+			GuiHelper.blit(guiGraphics, x, y, DEFAULT_BUTTON_BACKGROUND);
 		}
 	}
 
 	@Override
-	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		RenderSystem.disableDepthTest();
 		RenderSystem.colorMask(true, true, true, false);
 		int color = ColorHelper.getColor(getColor.get().getTextureDiffuseColors()) | (200 << 24);
-		fillGradient(matrixStack, x + 3, y + 3, x + 15, y + 15, color, color);
+		guiGraphics.fillGradient(x + 3, y + 3, x + 15, y + 15, color, color);
 		RenderSystem.colorMask(true, true, true, true);
 		RenderSystem.enableDepthTest();
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
-		super.renderTooltip(screen, poseStack, mouseX, mouseY);
+	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (isMouseOver(mouseX, mouseY)) {
-			screen.renderTooltip(poseStack, TOOLTIP, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.font, TOOLTIP, Optional.empty(), mouseX, mouseY);
 		}
 	}
 

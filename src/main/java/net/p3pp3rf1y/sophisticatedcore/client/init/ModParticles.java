@@ -8,6 +8,6 @@ public class ModParticles {
 
 	@SuppressWarnings("unused") // need this to register the event correctly
 	public static void registerFactories(RegisterParticleProvidersEvent event) {
-		event.register(net.p3pp3rf1y.sophisticatedcore.init.ModParticles.JUKEBOX_NOTE.get(), JukeboxUpgradeNoteParticle.Factory::new);
+		event.registerSpriteSet(net.p3pp3rf1y.sophisticatedcore.init.ModParticles.JUKEBOX_NOTE.get(), JukeboxUpgradeNoteParticle.Factory::new);
 	}
 }

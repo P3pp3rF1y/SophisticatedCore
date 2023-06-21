@@ -31,7 +31,7 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 			String actionName = data.getString(ACTION_DATA);
 			if (actionName.equals("play")) {
 				if (player.containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu) {
-					storageContainerMenu.getBlockPosition().ifPresentOrElse(pos -> upgradeWrapper.play(player.level, pos), () -> upgradeWrapper.play(player));
+					storageContainerMenu.getBlockPosition().ifPresentOrElse(pos -> upgradeWrapper.play(player.level(), pos), () -> upgradeWrapper.play(player));
 				}
 			} else if (actionName.equals("stop")) {
 				upgradeWrapper.stop(player);

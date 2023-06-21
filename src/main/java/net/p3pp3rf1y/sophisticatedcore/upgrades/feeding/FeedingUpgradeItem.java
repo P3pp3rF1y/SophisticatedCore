@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
-import net.minecraft.world.item.CreativeModeTab;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -11,8 +10,8 @@ public class FeedingUpgradeItem extends UpgradeItemBase<FeedingUpgradeWrapper> {
 
 	private final IntSupplier filterSlotCount;
 
-	public FeedingUpgradeItem(IntSupplier filterSlotCount, CreativeModeTab itemGroup) {
-		super(itemGroup);
+	public FeedingUpgradeItem(IntSupplier filterSlotCount) {
+		super();
 		this.filterSlotCount = filterSlotCount;
 	}
 

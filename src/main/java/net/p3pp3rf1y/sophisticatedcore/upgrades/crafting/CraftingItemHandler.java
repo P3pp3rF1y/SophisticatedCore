@@ -4,7 +4,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
@@ -12,7 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class CraftingItemHandler extends CraftingContainer {
+public class CraftingItemHandler extends TransientCraftingContainer {
 	private final Supplier<IItemHandlerModifiable> supplyInventory;
 	private final Consumer<Container> onCraftingMatrixChanged;
 

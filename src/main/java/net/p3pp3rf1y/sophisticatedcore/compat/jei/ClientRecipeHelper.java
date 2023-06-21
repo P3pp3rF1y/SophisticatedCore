@@ -1,8 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.jei;
 
+import mezz.jei.library.util.RecipeUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;
@@ -45,8 +49,17 @@ public class ClientRecipeHelper {
 		return ret;
 	}
 
-
 	public static CraftingRecipe copyShapedRecipe(ShapedRecipe recipe) {
-		return new ShapedRecipe(recipe.getId(), "", recipe.getRecipeWidth(), recipe.getRecipeHeight(), recipe.getIngredients(), recipe.getResultItem());
+		return new ShapedRecipe(recipe.getId(), "", recipe.category(), recipe.getRecipeWidth(), recipe.getRecipeHeight(), recipe.getIngredients(), RecipeUtil.getResultItem(recipe));
+	}
+
+	public static <C extends Container> ItemStack assemble(Recipe<C> recipe, C container) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			throw new NullPointerException("level must not be null.");
+		}
+		RegistryAccess registryAccess = level.registryAccess();
+		return recipe.assemble(container, registryAccess);
 	}
 }

@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
@@ -24,19 +24,19 @@ public class FluidFilterControl extends WidgetBase {
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
-		GuiHelper.renderSlotsBackground(matrixStack, x, y, container.getNumberOfFluidFilters(), 1);
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		GuiHelper.renderSlotsBackground(guiGraphics, x, y, container.getNumberOfFluidFilters(), 1);
 	}
 
 	@Override
-	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		for (int i = 0; i < container.getNumberOfFluidFilters(); i++) {
 			FluidStack fluid = container.getFluid(i);
 			if (!fluid.isEmpty()) {
 				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
 				ResourceLocation texture = renderProperties.getStillTexture(fluid);
 				TextureAtlasSprite still = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-				GuiHelper.renderTiledFluidTextureAtlas(matrixStack, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
+				GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}

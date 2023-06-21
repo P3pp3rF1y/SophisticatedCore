@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
@@ -50,8 +50,8 @@ public class CookingLogicControl<T extends AbstractCookingRecipe> extends Compos
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
-		GuiHelper.blit(matrixStack, x, y, FURNACE_BACKGROUND);
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		GuiHelper.blit(guiGraphics, x, y, FURNACE_BACKGROUND);
 	}
 
 	public void moveSlotsToView(int screenGuiLeft, int screenGuiTop) {

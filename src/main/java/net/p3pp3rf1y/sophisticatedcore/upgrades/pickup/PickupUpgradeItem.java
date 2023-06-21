@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pickup;
 
-import net.minecraft.world.item.CreativeModeTab;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -11,8 +10,8 @@ public class PickupUpgradeItem extends UpgradeItemBase<PickupUpgradeWrapper> {
 
 	private final IntSupplier filterSlotCount;
 
-	public PickupUpgradeItem(IntSupplier filterSlotCount, CreativeModeTab itemGroup) {
-		super(itemGroup);
+	public PickupUpgradeItem(IntSupplier filterSlotCount) {
+		super();
 		this.filterSlotCount = filterSlotCount;
 	}
 

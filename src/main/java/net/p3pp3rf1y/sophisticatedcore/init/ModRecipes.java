@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.init;
 
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SimpleRecipeSerializer;
+import net.minecraft.world.item.crafting.SimpleCraftingRecipeSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -20,7 +20,7 @@ public class ModRecipes {
 
 	private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, SophisticatedCore.MOD_ID);
 	public static final RegistryObject<RecipeSerializer<?>> UPGRADE_NEXT_TIER_SERIALIZER = RECIPE_SERIALIZERS.register("upgrade_next_tier", UpgradeNextTierRecipe.Serializer::new);
-	public static final RegistryObject<SimpleRecipeSerializer<?>> UPGRADE_CLEAR_SERIALIZER = RECIPE_SERIALIZERS.register("upgrade_clear", () -> new SimpleRecipeSerializer<>(UpgradeClearRecipe::new));
+	public static final RegistryObject<SimpleCraftingRecipeSerializer<?>> UPGRADE_CLEAR_SERIALIZER = RECIPE_SERIALIZERS.register("upgrade_clear", () -> new SimpleCraftingRecipeSerializer<>(UpgradeClearRecipe::new));
 	public static void registerHandlers(IEventBus modBus) {
 		RECIPE_SERIALIZERS.register(modBus);
 		modBus.addListener(ModRecipes::registerRecipeCondition);

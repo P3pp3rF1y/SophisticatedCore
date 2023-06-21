@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
@@ -24,8 +24,8 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
-	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		children.forEach(child -> child.render(matrixStack, mouseX, mouseY, partialTicks));
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		children.forEach(child -> child.render(guiGraphics, mouseX, mouseY, partialTicks));
 	}
 
 	protected <U extends T> U addChild(U child) {
@@ -79,8 +79,8 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
-		super.renderTooltip(screen, poseStack, mouseX, mouseY);
-		children.forEach(c -> c.renderTooltip(screen, poseStack, mouseX, mouseY));
+	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+		children.forEach(c -> c.renderTooltip(screen, guiGraphics, mouseX, mouseY));
 	}
 }

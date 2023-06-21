@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.init;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.FlowingFluid;
@@ -25,7 +25,7 @@ public class ModFluids {
 
 	public static final ResourceLocation EXPERIENCE_TAG_NAME = new ResourceLocation("forge:experience");
 
-	public static final TagKey<Fluid> EXPERIENCE_TAG = TagKey.create(Registry.FLUID_REGISTRY, EXPERIENCE_TAG_NAME);
+	public static final TagKey<Fluid> EXPERIENCE_TAG = TagKey.create(Registries.FLUID, EXPERIENCE_TAG_NAME);
 	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(ForgeRegistries.FLUIDS, SophisticatedCore.MOD_ID);
 
 	public static final DeferredRegister<FluidType> FLUID_TYPES = DeferredRegister.create(ForgeRegistries.Keys.FLUID_TYPES, SophisticatedCore.MOD_ID);
@@ -36,8 +36,8 @@ public class ModFluids {
 		@Override
 		public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
 			consumer.accept(new IClientFluidTypeExtensions() {
-				private static final ResourceLocation XP_STILL_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "fluids/xp_still");
-				private static final ResourceLocation XP_FLOWING_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "fluids/xp_flowing");
+				private static final ResourceLocation XP_STILL_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_still");
+				private static final ResourceLocation XP_FLOWING_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
 				@Override
 				public ResourceLocation getStillTexture() {

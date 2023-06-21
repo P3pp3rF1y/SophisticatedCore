@@ -8,6 +8,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -148,9 +149,9 @@ public class RecipeHelper {
 		}).orElse(UncompactingResult.EMPTY));
 	}
 
-	private static ItemStack uncompactItem(Level w, Item itemToUncompact) {
+	private static ItemStack uncompactItem(Level level, Item itemToUncompact) {
 		CraftingContainer craftingInventory = getFilledCraftingInventory(itemToUncompact, 1, 1);
-		return safeGetRecipeFor(RecipeType.CRAFTING, craftingInventory, w).map(r -> r.assemble(craftingInventory)).orElse(ItemStack.EMPTY);
+		return safeGetRecipeFor(RecipeType.CRAFTING, craftingInventory, level).map(r -> r.assemble(craftingInventory, level.registryAccess())).orElse(ItemStack.EMPTY);
 	}
 
 	public static CompactingResult getCompactingResult(Item item, CompactingShape shape) {
@@ -166,7 +167,7 @@ public class RecipeHelper {
 		return getWorld().map(w -> getCompactingResult(item, w, width, height)).orElse(CompactingResult.EMPTY);
 	}
 
-	private static CompactingResult getCompactingResult(Item item, Level w, int width, int height) {
+	private static CompactingResult getCompactingResult(Item item, Level level, int width, int height) {
 		CompactedItem compactedItem = new CompactedItem(item, width, height);
 		if (COMPACTING_RESULTS.containsKey(compactedItem)) {
 			return COMPACTING_RESULTS.get(compactedItem);
@@ -174,13 +175,13 @@ public class RecipeHelper {
 
 		CraftingContainer craftingInventory = getFilledCraftingInventory(item, width, height);
 		List<ItemStack> remainingItems = new ArrayList<>();
-		ItemStack result = safeGetRecipeFor(RecipeType.CRAFTING, craftingInventory, w).map(r -> {
+		ItemStack result = safeGetRecipeFor(RecipeType.CRAFTING, craftingInventory, level).map(r -> {
 			r.getRemainingItems(craftingInventory).forEach(stack -> {
 				if (!stack.isEmpty()) {
 					remainingItems.add(stack);
 				}
 			});
-			return r.assemble(craftingInventory);
+			return r.assemble(craftingInventory, level.registryAccess());
 		}).orElse(ItemStack.EMPTY);
 
 		CompactingResult compactingResult = new CompactingResult(result, remainingItems);
@@ -191,7 +192,7 @@ public class RecipeHelper {
 	}
 
 	private static CraftingContainer getFilledCraftingInventory(Item item, int width, int height) {
-		CraftingContainer craftinginventory = new CraftingContainer(new AbstractContainerMenu(null, -1) {
+		CraftingContainer craftinginventory = new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
 			@Override
 			public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
 				return ItemStack.EMPTY;

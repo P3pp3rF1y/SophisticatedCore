@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
@@ -19,11 +19,11 @@ public class BatteryUpgradeTab extends UpgradeSettingsTab<BatteryUpgradeContaine
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
-		super.renderBg(matrixStack, minecraft, mouseX, mouseY);
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
 		if (getContainer().isOpen()) {
-			GuiHelper.renderSlotsBackground(matrixStack, x + 3, y + 24, 1, 1);
-			GuiHelper.renderSlotsBackground(matrixStack, x + 24, y + 24, 1, 1);
+			GuiHelper.renderSlotsBackground(guiGraphics, x + 3, y + 24, 1, 1);
+			GuiHelper.renderSlotsBackground(guiGraphics, x + 24, y + 24, 1, 1);
 		}
 	}
 

@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
@@ -53,7 +54,7 @@ public class StorageSoundHandler {
 	}
 
 	public static void playStorageSound(SoundEvent soundEvent, UUID storageUuid, BlockPos pos) {
-		playStorageSound(storageUuid, SimpleSoundInstance.forRecord(soundEvent, pos.getX(), pos.getY(), pos.getZ()));
+		playStorageSound(storageUuid, SimpleSoundInstance.forRecord(soundEvent, Vec3.atCenterOf(pos)));
 	}
 
 	public static void playStorageSound(SoundEvent soundEvent, UUID storageUuid, int entityId) {

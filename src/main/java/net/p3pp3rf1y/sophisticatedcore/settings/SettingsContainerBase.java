@@ -57,7 +57,7 @@ public abstract class SettingsContainerBase<C extends ISettingsCategory> {
 	}
 
 	protected boolean isServer() {
-		return !settingsContainer.getPlayer().level.isClientSide;
+		return !settingsContainer.getPlayer().level().isClientSide;
 	}
 
 	public abstract void handleMessage(CompoundTag data);

@@ -167,7 +167,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public Optional<UpgradeSlotChangeResult> getErrorUpgradeSlotChangeResult() {
-		if (errorUpgradeSlotChangeResult != null && player.level.getGameTime() >= errorResultExpirationTime) {
+		if (errorUpgradeSlotChangeResult != null && player.level().getGameTime() >= errorResultExpirationTime) {
 			errorResultExpirationTime = 0;
 			errorUpgradeSlotChangeResult = null;
 		}
@@ -229,7 +229,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> noSortSlotIndexes = getNoSortSlotIndexes();
 		while (slotIndex < inventoryHandler.getSlots()) {
 			int finalSlotIndex = slotIndex;
-			StorageInventorySlot slot = new StorageInventorySlot(player.level.isClientSide, storageWrapper, inventoryHandler, finalSlotIndex) {
+			StorageInventorySlot slot = new StorageInventorySlot(player.level().isClientSide, storageWrapper, inventoryHandler, finalSlotIndex) {
 				@Override
 				public void set(@Nonnull ItemStack stack) {
 					super.set(stack);
@@ -314,7 +314,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected boolean isClientSide() {
-		return player.level.isClientSide;
+		return player.level().isClientSide;
 	}
 
 	private void addSlotAndUpdateStorageItemSlotNumber(int storageItemSlotIndex, boolean lockStorageItemSlot, int slotIndex, Slot slot) {
@@ -337,7 +337,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
-		storageWrapper.setPersistent(player.level.isClientSide);
+		storageWrapper.setPersistent(player.level().isClientSide);
 		isUpdatingFromPacket = true;
 		super.initializeContents(stateId, items, carried);
 		isUpdatingFromPacket = false;
@@ -981,18 +981,16 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						ItemStack itemstack1 = getCarried();
 						if (slot1 != null && StorageContainerMenuBase.canItemQuickReplace(slot1, itemstack1) && slot1.mayPlace(itemstack1) && (quickcraftType == 2 || itemstack1.getCount() >= quickcraftSlots.size()) && canDragTo(slot1)) {
 							ItemStack carriedCopy = carried.copy();
+
 							int j = slot1.hasItem() ? slot1.getItem().getCount() : 0;
-							getQuickCraftSlotCount(quickcraftSlots, quickcraftType, carriedCopy, j);
 							int slotStackLimit = slot1.getMaxStackSize(carriedCopy);
 							if (!(slot1 instanceof StorageInventorySlot) && slotStackLimit > carriedCopy.getMaxStackSize()) {
 								slotStackLimit = carriedCopy.getMaxStackSize();
 							}
-							if (carriedCopy.getCount() > slotStackLimit) {
-								carriedCopy.setCount(slotStackLimit);
-							}
 
-							j1 -= carriedCopy.getCount() - j;
-							slot1.set(carriedCopy);
+							int l = Math.min(getQuickCraftPlaceCount(this.quickcraftSlots, this.quickcraftType, carriedCopy) + j, slotStackLimit);
+							j1 -= l - j;
+							slot1.setByPlayer(carriedCopy.copyWithCount(l));
 						}
 					}
 
@@ -1031,7 +1029,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					quickMoveStack(this.player, slotId).copy();
 				} else {
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					while (!itemstack8.isEmpty() && ItemStack.isSame(slot6.getItem(), itemstack8)) {
+					while (!itemstack8.isEmpty() && ItemStack.isSameItem(slot6.getItem(), itemstack8)) {
 						itemstack8 = quickMoveStack(this.player, slotId);
 					}
 				}
@@ -1179,7 +1177,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public void sendSlotUpdates() {
-		if (!player.level.isClientSide) {
+		if (!player.level().isClientSide) {
 			ServerPlayer serverPlayer = (ServerPlayer) player;
 			slotStacksToUpdate.forEach((slot, stack) -> serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(serverPlayer.containerMenu.containerId, incrementStateId(), slot, stack)));
 			slotStacksToUpdate.clear();
@@ -1198,7 +1196,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 		}
 		super.removed(player);
-		if (!player.level.isClientSide) {
+		if (!player.level().isClientSide) {
 			removeOpenTabIfKeepOff();
 		}
 	}
@@ -1385,7 +1383,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack) {
 		boolean flag = slot == null || !slot.hasItem();
-		if (!flag && stack.sameItem(slot.getItem()) && ItemStack.tagMatches(slot.getItem(), stack)) {
+		if (!flag && ItemStack.isSameItemSameTags(stack, slot.getItem())) {
 			return slot.getItem().getCount() <= slot.getMaxStackSize(stack);
 		} else {
 			return flag;
@@ -1565,10 +1563,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public void updateSlotChangeError(UpgradeSlotChangeResult result) {
-		if (player.level.isClientSide && !result.isSuccessful()) {
+		if (player.level().isClientSide && !result.isSuccessful()) {
 			errorUpgradeSlotChangeResult = result;
-			errorResultExpirationTime = player.level.getGameTime() + 60;
-		} else if (!player.level.isClientSide() && !result.isSuccessful()) {
+			errorResultExpirationTime = player.level().getGameTime() + 60;
+		} else if (!player.level().isClientSide() && !result.isSuccessful()) {
 			PacketHandler.INSTANCE.sendToClient((ServerPlayer) player, new SyncSlotChangeErrorMessage(result));
 		}
 	}
@@ -1604,7 +1602,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			if (stack.isEmpty() || !getItemHandler().isItemValid(slotIndex, stack)) {
 				return false;
 			}
-			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) stack.getItem()).canAddUpgradeTo(storageWrapper, stack, isFirstLevelStorage(), player.getLevel().isClientSide());
+			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) stack.getItem()).canAddUpgradeTo(storageWrapper, stack, isFirstLevelStorage(), player.level().isClientSide());
 			updateSlotChangeError(result);
 
 			return result.isSuccessful();
@@ -1617,7 +1615,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				return false;
 			}
 
-			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.getLevel().isClientSide());
+			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.level().isClientSide());
 			updateSlotChangeError(result);
 			return result.isSuccessful();
 		}
@@ -1627,7 +1625,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			if (!ret) {
 				return false;
 			}
-			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canSwapUpgradeFor(stackToPut, storageWrapper, player.getLevel().isClientSide());
+			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canSwapUpgradeFor(stackToPut, storageWrapper, player.level().isClientSide());
 			updateSlotChangeError(result);
 			return result.isSuccessful();
 		}

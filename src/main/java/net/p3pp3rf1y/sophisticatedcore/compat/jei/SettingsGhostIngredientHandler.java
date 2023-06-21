@@ -1,8 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.jei;
 
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
+import mezz.jei.api.ingredients.ITypedIngredient;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
@@ -14,32 +15,34 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 	private S targetedScreen;
 
 	@Override
-	public <I> List<Target<I>> getTargets(S screen, I i, boolean b) {
+	public <I> List<Target<I>> getTargetsTyped(S gui, ITypedIngredient<I> ingredient, boolean doStart) {
 		List<Target<I>> targets = new ArrayList<>();
-		if (!(i instanceof ItemStack ghostStack)) {
+		if (ingredient.getType() != VanillaTypes.ITEM_STACK) {
 			return targets;
 		}
 
-		screen.startMouseDragHandledByOther();
-		targetedScreen = screen;
+		gui.startMouseDragHandledByOther();
+		targetedScreen = gui;
 
-		screen.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
+		gui.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
 			if (tab instanceof MemorySettingsTab) {
-				screen.getMenu().getStorageInventorySlots().forEach(s -> {
-					if (s.getItem().isEmpty()) {
-						targets.add(new Target<>() {
-							@Override
-							public Rect2i getArea() {
-								return new Rect2i(screen.getGuiLeft() + s.x, screen.getGuiTop() + s.y, 17, 17);
-							}
+				ingredient.getItemStack().ifPresent(ghostStack ->
+						gui.getMenu().getStorageInventorySlots().forEach(s -> {
+							if (s.getItem().isEmpty()) {
+								targets.add(new Target<>() {
+									@Override
+									public Rect2i getArea() {
+										return new Rect2i(gui.getGuiLeft() + s.x, gui.getGuiTop() + s.y, 17, 17);
+									}
 
-							@Override
-							public void accept(I i) {
-								PacketHandler.INSTANCE.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
+									@Override
+									public void accept(I i) {
+										PacketHandler.INSTANCE.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
+									}
+								});
 							}
-						});
-					}
-				});
+						})
+				);
 			}
 		});
 		return targets;

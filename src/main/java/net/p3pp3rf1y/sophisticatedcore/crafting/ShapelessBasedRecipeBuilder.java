@@ -10,6 +10,7 @@ import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -37,23 +38,33 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 	private final List<ICondition> conditions = new ArrayList<>();
 	@Nullable
 	private String group;
+	private final RecipeSerializer<?> serializer;
 
-	public ShapelessBasedRecipeBuilder(ItemLike result, int count, @Nullable CompoundTag nbt) {
+	public ShapelessBasedRecipeBuilder(ItemLike result, int count, @Nullable CompoundTag nbt, RecipeSerializer<?> serializer) {
 		this.result = result.asItem();
 		this.count = count;
 		this.nbt = nbt;
+		this.serializer = serializer;
 	}
 
 	public static ShapelessBasedRecipeBuilder shapeless(ItemLike result) {
-		return shapeless(result, 1);
+		return shapeless(result, 1, RecipeSerializer.SHAPELESS_RECIPE);
+	}
+
+	public static ShapelessBasedRecipeBuilder shapeless(ItemLike result, RecipeSerializer<?> serializer) {
+		return shapeless(result, 1, serializer);
 	}
 
 	public static ShapelessBasedRecipeBuilder shapeless(ItemLike result, int count) {
-		return new ShapelessBasedRecipeBuilder(result, count, null);
+		return new ShapelessBasedRecipeBuilder(result, count, null, RecipeSerializer.SHAPELESS_RECIPE);
+	}
+
+	public static ShapelessBasedRecipeBuilder shapeless(ItemLike result, int count, RecipeSerializer<?> serializer) {
+		return new ShapelessBasedRecipeBuilder(result, count, null, serializer);
 	}
 
 	public static ShapelessBasedRecipeBuilder shapeless(ItemStack stack) {
-		return new ShapelessBasedRecipeBuilder(stack.getItem(), 1, stack.getTag());
+		return new ShapelessBasedRecipeBuilder(stack.getItem(), 1, stack.getTag(), RecipeSerializer.SHAPELESS_RECIPE);
 	}
 
 	public ShapelessBasedRecipeBuilder condition(ICondition condition) {
@@ -105,11 +116,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 
 	public void save(Consumer<FinishedRecipe> finishedRecipeConsumer, ResourceLocation recipeId) {
 		advancement.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId)).rewards(AdvancementRewards.Builder.recipe(recipeId)).requirements(RequirementsStrategy.OR);
-		finishedRecipeConsumer.accept(new ShapelessBasedRecipeBuilder.Result(recipeId, result, conditions, nbt, count, group == null ? "" : group, ingredients, advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + getGroup() + "/" + recipeId.getPath())));
-	}
-
-	private String getGroup() {
-		return result.getItemCategory() == null ? "" : result.getItemCategory().getRecipeFolderName();
+		finishedRecipeConsumer.accept(new ShapelessBasedRecipeBuilder.Result(recipeId, result, conditions, nbt, count, group == null ? "" : group, ingredients, advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + RecipeCategory.MISC.getFolderName() + "/" + recipeId.getPath()), serializer));
 	}
 
 	public static class Result implements FinishedRecipe {
@@ -123,10 +130,11 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 		private final List<Ingredient> ingredients;
 		private final Advancement.Builder advancement;
 		private final ResourceLocation advancementId;
+		private RecipeSerializer<?> serializer;
 
 		@SuppressWarnings("java:S107") //the only way of reducing number of parameters here means adding pretty much unnecessary object parameter
 		public Result(ResourceLocation id, Item itemResult, List<ICondition> conditions, @Nullable CompoundTag nbt,
-				int count, String group, List<Ingredient> ingredients, Advancement.Builder advancement, ResourceLocation advancementId) {
+				int count, String group, List<Ingredient> ingredients, Advancement.Builder advancement, ResourceLocation advancementId, RecipeSerializer<?> serializer) {
 			this.id = id;
 			this.itemResult = itemResult;
 			this.conditions = conditions;
@@ -136,6 +144,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 			this.ingredients = ingredients;
 			this.advancement = advancement;
 			this.advancementId = advancementId;
+			this.serializer = serializer;
 			conditions.add(new ItemEnabledCondition(this.itemResult));
 		}
 
@@ -168,7 +177,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 		}
 
 		public RecipeSerializer<?> getType() {
-			return RecipeSerializer.SHAPELESS_RECIPE;
+			return serializer;
 		}
 
 		public ResourceLocation getId() {

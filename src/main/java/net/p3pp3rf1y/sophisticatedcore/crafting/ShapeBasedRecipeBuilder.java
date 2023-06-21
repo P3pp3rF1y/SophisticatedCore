@@ -10,6 +10,7 @@ import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -30,6 +31,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ShapeBasedRecipeBuilder {
+	private static final RecipeCategory RECIPE_CATEGORY = RecipeCategory.MISC;
 	private final Item itemResult;
 	private final List<ICondition> conditions = new ArrayList<>();
 	private final List<String> pattern = new ArrayList<>();
@@ -101,11 +103,7 @@ public class ShapeBasedRecipeBuilder {
 	public void save(Consumer<FinishedRecipe> consumerIn, ResourceLocation id) {
 		ensureValid(id);
 		advancementBuilder.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id)).rewards(AdvancementRewards.Builder.recipe(id)).requirements(RequirementsStrategy.OR);
-		consumerIn.accept(new Result(id, conditions, itemResult, nbt, pattern, keyIngredients, advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + getGroup() + "/" + id.getPath()), serializer));
-	}
-
-	private String getGroup() {
-		return itemResult.getItemCategory() == null ? "" : itemResult.getItemCategory().getRecipeFolderName();
+		consumerIn.accept(new Result(id, conditions, itemResult, nbt, pattern, keyIngredients, advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + RECIPE_CATEGORY.getFolderName() + "/" + id.getPath()), serializer));
 	}
 
 	private void ensureValid(ResourceLocation id) {
@@ -148,7 +146,7 @@ public class ShapeBasedRecipeBuilder {
 
 		@SuppressWarnings("java:S107") //the only way of reducing number of parameters here means adding pretty much unnecessary object parameter
 		public Result(ResourceLocation id, List<ICondition> conditions, Item itemResult, @Nullable
-				CompoundTag nbt, List<String> pattern, Map<Character, Ingredient> keyIngredients, Advancement.Builder advancementBuilder, ResourceLocation advancementId, RecipeSerializer<?> serializer) {
+		CompoundTag nbt, List<String> pattern, Map<Character, Ingredient> keyIngredients, Advancement.Builder advancementBuilder, ResourceLocation advancementId, RecipeSerializer<?> serializer) {
 			this.id = id;
 			this.conditions = conditions;
 			this.itemResult = itemResult;

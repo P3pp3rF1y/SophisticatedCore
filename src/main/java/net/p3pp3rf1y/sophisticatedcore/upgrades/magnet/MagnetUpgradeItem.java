@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.magnet;
 
-import net.minecraft.world.item.CreativeModeTab;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -11,8 +10,8 @@ public class MagnetUpgradeItem extends UpgradeItemBase<MagnetUpgradeWrapper> {
 	private final IntSupplier radius;
 	private final IntSupplier filterSlotCount;
 
-	public MagnetUpgradeItem(IntSupplier radius, IntSupplier filterSlotCount, CreativeModeTab itemGroup) {
-		super(itemGroup);
+	public MagnetUpgradeItem(IntSupplier radius, IntSupplier filterSlotCount) {
+		super();
 		this.radius = radius;
 		this.filterSlotCount = filterSlotCount;
 	}

@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -37,15 +37,15 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			hovered = true;
 			if (hoveredBackgroundTexture != null) {
-				GuiHelper.blit(matrixStack, x, y, hoveredBackgroundTexture);
+				GuiHelper.blit(guiGraphics, x, y, hoveredBackgroundTexture);
 			}
 		} else {
 			hovered = false;
-			GuiHelper.blit(matrixStack, x, y, backgroundTexture);
+			GuiHelper.blit(guiGraphics, x, y, backgroundTexture);
 		}
 	}
 
@@ -54,9 +54,9 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (foregroundTexture != null) {
-			GuiHelper.blit(matrixStack, x, y, foregroundTexture);
+			GuiHelper.blit(guiGraphics, x, y, foregroundTexture);
 		}
 	}
 
@@ -71,10 +71,10 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
-		super.renderTooltip(screen, poseStack, mouseX, mouseY);
+	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (isMouseOver(mouseX, mouseY)) {
-			screen.renderTooltip(poseStack, getTooltip(), Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.font, getTooltip(), Optional.empty(), mouseX, mouseY);
 		}
 	}
 }

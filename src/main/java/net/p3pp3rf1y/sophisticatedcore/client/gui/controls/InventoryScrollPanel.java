@@ -1,9 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraftforge.client.gui.widget.ScrollPanel;
@@ -36,24 +36,19 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	@Override
-	protected void drawBackground(PoseStack poseStack, Tesselator tess, float partialTick) {
-		screen.drawSlotBg(poseStack);
+	protected void drawBackground(GuiGraphics guiGraphics, Tesselator tess, float partialTick) {
+		screen.drawSlotBg(guiGraphics);
 	}
 
 	@Override
-	protected void drawPanel(PoseStack poseStack, int entryRight, int relativeY, Tesselator tess, int mouseX, int mouseY) {
-		PoseStack posestack = RenderSystem.getModelViewStack();
-		posestack.pushPose();
-		posestack.translate(screen.getLeftX(), screen.getTopY(), 0.0D);
-		RenderSystem.applyModelViewMatrix();
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+	protected void drawPanel(GuiGraphics guiGraphics, int entryRight, int relativeY, Tesselator tess, int mouseX, int mouseY) {
+		PoseStack poseStack = guiGraphics.pose();
+		poseStack.pushPose();
+		poseStack.translate(screen.getLeftX(), screen.getTopY(), 0.0D);
 
-		screen.renderInventorySlots(poseStack, mouseX, mouseY, isMouseOver(mouseX, mouseY));
+		screen.renderInventorySlots(guiGraphics, mouseX, mouseY, isMouseOver(mouseX, mouseY));
 
-		posestack.popPose();
-		RenderSystem.applyModelViewMatrix();
-		RenderSystem.enableDepthTest();
+		poseStack.popPose();
 	}
 
 	public Optional<Slot> findSlot(double mouseX, double mouseY) {
@@ -70,10 +65,10 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	public interface IInventoryScreen {
-		void renderInventorySlots(PoseStack matrixStack, int mouseX, int mouseY, boolean canShowHover);
+		void renderInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover);
 
 		boolean isMouseOverSlot(Slot pSlot, double pMouseX, double pMouseY);
-		void drawSlotBg(PoseStack matrixStack);
+		void drawSlotBg(GuiGraphics guiGraphics);
 		int getTopY();
 
 		int getLeftX();
@@ -103,6 +98,14 @@ public class InventoryScrollPanel extends ScrollPanel {
 		boolean ret = super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 		updateSlotsYPosition();
 		return ret;
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		if (isMouseOver(mouseX, mouseY)) {
+			return super.mouseClicked(mouseX, mouseY, button);
+		}
+		return false;
 	}
 
 	public void updateSlotsYPosition() {

@@ -15,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
+import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingItemHandler;
@@ -30,6 +31,7 @@ public class StonecutterRecipeContainer {
 	private static final String DATA_SELECTED_RECIPE_INDEX = "selectedRecipeIndex";
 	private final Slot inputSlot;
 	private final IServerUpdater serverUpdater;
+	private final Level level;
 	private final Slot outputSlot;
 	private final ResultContainer resultInventory = new ResultContainer();
 	private List<StonecutterRecipe> recipes = Lists.newArrayList();
@@ -41,7 +43,7 @@ public class StonecutterRecipeContainer {
 	private final Consumer<ResourceLocation> setLastSelectedRecipeId;
 	private long lastOnTake = -1;
 
-	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
+	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level) {
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
 			public void setChanged() {
@@ -59,6 +61,7 @@ public class StonecutterRecipeContainer {
 			}
 		};
 		this.serverUpdater = serverUpdater;
+		this.level = level;
 		addSlot.accept(inputSlot);
 		inputInventory = new CraftingItemHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, this::onCraftMatrixChanged);
 		outputSlot = new ResultSlot(worldPosCallable);
@@ -138,7 +141,7 @@ public class StonecutterRecipeContainer {
 		if (!recipes.isEmpty() && isIndexInRecipeBounds(selectedRecipe.get())) {
 			StonecutterRecipe stonecuttingrecipe = recipes.get(selectedRecipe.get());
 			resultInventory.setRecipeUsed(stonecuttingrecipe);
-			outputSlot.set(stonecuttingrecipe.assemble(inputInventory));
+			outputSlot.set(stonecuttingrecipe.assemble(inputInventory, level.registryAccess()));
 		} else {
 			outputSlot.set(ItemStack.EMPTY);
 		}
@@ -168,9 +171,9 @@ public class StonecutterRecipeContainer {
 		}
 
 		@Override
-		public void onTake(Player thePlayer, ItemStack stack) {
-			stack.onCraftedBy(thePlayer.level, thePlayer, stack.getCount());
-			resultInventory.awardUsedRecipes(thePlayer);
+		public void onTake(Player player, ItemStack stack) {
+			stack.onCraftedBy(player.level(), player, stack.getCount());
+			resultInventory.awardUsedRecipes(player, List.of(inputSlot.getItem()));
 			ItemStack itemstack = inputSlot.remove(1);
 			if (!itemstack.isEmpty()) {
 				updateRecipeResultSlot();
@@ -183,7 +186,7 @@ public class StonecutterRecipeContainer {
 					lastOnTake = l;
 				}
 			});
-			super.onTake(thePlayer, stack);
+			super.onTake(player, stack);
 		}
 	}
 }

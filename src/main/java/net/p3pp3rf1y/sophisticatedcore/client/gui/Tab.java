@@ -1,11 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
@@ -50,18 +48,18 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (!shouldRender.getAsBoolean()) {
 			return;
 		}
-		super.render(matrixStack, mouseX, mouseY, partialTicks);
+		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
-		super.renderTooltip(screen, poseStack, mouseX, mouseY);
+	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (shouldRender.getAsBoolean() && isClosedTooltipVisible(mouseX, mouseY)) {
-			screen.renderTooltip(poseStack, tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.font, tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 
@@ -83,19 +81,16 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 		this.height = height;
 	}
 
-	public Optional<Rect2i> getRectangle() {
+	public Optional<Rect2i> getTabRectangle() {
 		return GuiHelper.getPositiveRectangle(x, y, width, height);
 	}
 
 	@Override
-	protected void renderBg(PoseStack matrixStack, Minecraft minecraft, int mouseX, int mouseY) {
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderTexture(0, GuiHelper.GUI_CONTROLS);
-
+	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		int halfHeight = height / 2;
-		blit(matrixStack, x, y, (float) TEXTURE_WIDTH - width, 0, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-		blit(matrixStack, x, y + halfHeight, (float) TEXTURE_WIDTH - width, (float) TEXTURE_HEIGHT - halfHeight, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-		blit(matrixStack, x - 3, y, TEXTURE_WIDTH / 2, TEXTURE_HEIGHT - height, 3, height);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, (float) TEXTURE_WIDTH - width, 0, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) TEXTURE_WIDTH - width, (float) TEXTURE_HEIGHT - halfHeight, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x - 3, y, TEXTURE_WIDTH / 2, TEXTURE_HEIGHT - height, 3, height);
 	}
 
 	protected boolean isClosedTooltipVisible(int mouseX, int mouseY) {

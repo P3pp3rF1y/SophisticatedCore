@@ -48,7 +48,7 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 
 	@Override
 	public void sendBooleanToServer(String key, boolean value) {
-		if (!player.level.isClientSide) {
+		if (!player.level().isClientSide) {
 			return;
 		}
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), key, value));
@@ -56,7 +56,7 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 
 	@Override
 	public void sendDataToServer(Supplier<CompoundTag> supplyData) {
-		if (!player.level.isClientSide) {
+		if (!player.level().isClientSide) {
 			return;
 		}
 		CompoundTag data = supplyData.get();

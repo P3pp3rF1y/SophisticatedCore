@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -57,7 +57,7 @@ public class FilterLogicBase {
 			if (!ForgeRegistries.ITEMS.getKey(stack.getItem()).getNamespace().equals(ForgeRegistries.ITEMS.getKey(filter.getItem()).getNamespace())) {
 				return false;
 			}
-		} else if (primaryMatch == PrimaryMatch.ITEM && !ItemStack.isSame(stack, filter)) {
+		} else if (primaryMatch == PrimaryMatch.ITEM && stack.getItem() == filter.getItem()) {
 			return false;
 		}
 
@@ -102,7 +102,7 @@ public class FilterLogicBase {
 
 	protected void initTags() {
 		tagKeys = NBTHelper.getCollection(upgrade, parentTagKey, "tags", Tag.TAG_STRING,
-						elementNbt -> Optional.of(TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(elementNbt.getAsString()))), () -> new TreeSet<>(Comparator.comparing(TagKey::location)))
+						elementNbt -> Optional.of(TagKey.create(Registries.ITEM, new ResourceLocation(elementNbt.getAsString()))), () -> new TreeSet<>(Comparator.comparing(TagKey::location)))
 				.orElse(new TreeSet<>(Comparator.comparing(TagKey::location)));
 	}
 

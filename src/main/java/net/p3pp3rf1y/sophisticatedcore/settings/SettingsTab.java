@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +37,7 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 	}
 
 	@SuppressWarnings("unused") //parameters used in overrides
-	public void renderExtra(PoseStack poseStack, Slot slot) {
+	public void renderExtra(GuiGraphics guiGraphics, Slot slot) {
 		//noop by default
 	}
 
@@ -47,7 +47,7 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 	}
 
 	@SuppressWarnings("unused") //parameters used in overrides
-	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot) {
+	public void drawSlotStackOverlay(GuiGraphics guiGraphics, Slot slot) {
 		//noop by default
 	}
 }

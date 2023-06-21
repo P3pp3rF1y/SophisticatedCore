@@ -1,21 +1,20 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 
+import java.util.function.Consumer;
+
 public class BlockItemBase extends BlockItem {
-	public BlockItemBase(Block pBlock, Properties properties, CreativeModeTab tab) {
-		super(pBlock, properties.tab(tab));
+	public BlockItemBase(Block pBlock, Properties properties) {
+		super(pBlock, properties);
 	}
 
-	@Override
-	public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-		if (Config.SERVER.enabledItems.isItemEnabled(this)) {
-			super.fillItemCategory(group, items);
+	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
+		if (Config.SERVER.enabledItems.isItemEnabled(this) && getBlock() instanceof BlockBase blockBase) {
+			blockBase.addCreativeTabItems(itemConsumer);
 		}
 	}
 }
