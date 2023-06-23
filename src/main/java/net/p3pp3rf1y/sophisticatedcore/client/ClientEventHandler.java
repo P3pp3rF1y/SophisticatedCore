@@ -75,7 +75,7 @@ public class ClientEventHandler {
 
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
-		poseStack.translate(0, 0, containerGui instanceof StorageScreenBase ? 100 : 499);
+		poseStack.translate(0, 0, containerGui instanceof StorageScreenBase ? 150 : 499);
 
 		if (stack.getItem() instanceof IStashStorageItem) {
 			guiGraphics.drawString(mc.font, "+", x + 10, y + 8, 0xFFFF00);

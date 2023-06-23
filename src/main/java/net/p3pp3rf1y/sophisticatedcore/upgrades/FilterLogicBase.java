@@ -57,7 +57,7 @@ public class FilterLogicBase {
 			if (!ForgeRegistries.ITEMS.getKey(stack.getItem()).getNamespace().equals(ForgeRegistries.ITEMS.getKey(filter.getItem()).getNamespace())) {
 				return false;
 			}
-		} else if (primaryMatch == PrimaryMatch.ITEM && stack.getItem() == filter.getItem()) {
+		} else if (primaryMatch == PrimaryMatch.ITEM && stack.getItem() != filter.getItem()) {
 			return false;
 		}
 
