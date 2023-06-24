@@ -713,6 +713,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			if (result.isPresent()) {
 				return result.get();
 			}
+			Slot slot = super.findSlot(mouseX, mouseY);
+
+			return slot == null || menu.isStorageInventorySlot(slot.index) ? null : slot; //if super finds inventory slot that's hidden inside the scroll panel just return null
 		} else {
 			for (int i = 0; i < menu.realInventorySlots.size(); ++i) {
 				Slot slot = menu.realInventorySlots.get(i);
@@ -720,9 +723,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 					return slot;
 				}
 			}
+			return super.findSlot(mouseX, mouseY);
 		}
-
-		return super.findSlot(mouseX, mouseY);
 	}
 
 	@Override
