@@ -59,7 +59,9 @@ public interface IControllableStorage extends IControllerBoundable {
 
 	default void registerController(ControllerBlockEntityBase controllerBlockEntity) {
 		setControllerPos(controllerBlockEntity.getBlockPos());
-		registerListeners();
+		if (controllerBlockEntity.getLevel() != null && !controllerBlockEntity.getLevel().isClientSide()) {
+			registerListeners();
+		}
 	}
 
 	default void unregisterController() {
