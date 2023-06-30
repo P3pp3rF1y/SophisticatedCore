@@ -38,7 +38,7 @@ public interface IControllableStorage extends IControllerBoundable {
 			BlockPos pos = getStorageBlockPos();
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getNormal());
-				WorldHelper.getBlockEntity(level, offsetPos, IControllableStorage.class).ifPresentOrElse(
+				WorldHelper.getBlockEntity(level, offsetPos, IControllerBoundable.class).ifPresentOrElse(
 						s -> {
 							if (s.canConnectStorages()) {
 								s.getControllerPos().ifPresent(controllerPos -> addToController(level, pos, controllerPos));
