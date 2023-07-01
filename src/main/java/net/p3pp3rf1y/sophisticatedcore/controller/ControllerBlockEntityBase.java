@@ -286,6 +286,14 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		});
 		if (stackStorages.containsKey(stackKey) && stackStorages.get(stackKey).isEmpty()) {
 			stackStorages.remove(stackKey);
+
+			itemStackKeys.computeIfPresent(stackKey.getStack().getItem(), (i, stackKeys) -> {
+				stackKeys.remove(stackKey);
+				return stackKeys;
+			});
+			if (itemStackKeys.containsKey(stackKey.getStack().getItem()) && itemStackKeys.get(stackKey.getStack().getItem()).isEmpty()) {
+				itemStackKeys.remove(stackKey.getStack().getItem());
+			}
 		}
 		storageStacks.computeIfPresent(storagePos, (pos, stackKeys) -> {
 			stackKeys.remove(stackKey);
@@ -293,14 +301,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		});
 		if (storageStacks.containsKey(storagePos) && storageStacks.get(storagePos).isEmpty()) {
 			storageStacks.remove(storagePos);
-		}
-
-		itemStackKeys.computeIfPresent(stackKey.getStack().getItem(), (i, positions) -> {
-			positions.remove(stackKey);
-			return positions;
-		});
-		if (itemStackKeys.containsKey(stackKey.getStack().getItem()) && itemStackKeys.get(stackKey.getStack().getItem()).isEmpty()) {
-			itemStackKeys.remove(stackKey.getStack().getItem());
 		}
 	}
 
