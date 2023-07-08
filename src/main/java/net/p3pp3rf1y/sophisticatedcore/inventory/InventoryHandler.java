@@ -67,7 +67,6 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		setBaseSlotLimit(baseSlotLimit);
 		deserializeNBT(contentsNbt.getCompound(INVENTORY_TAG));
 		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompound(PARTITIONER_TAG), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
-		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
 		initStackNbts();
 
 		isInitializing = false;
@@ -474,6 +473,10 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	public void unregisterFilterItemsChangeListener() {
 		filterItemsChangeListener = s -> {};
+	}
+
+	public void initFilterItems() {
+		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
 	}
 
 	public void onFilterItemsChanged() {
