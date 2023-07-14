@@ -1624,7 +1624,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 		public boolean canSwapStack(Player player, ItemStack stackToPut) {
 			boolean ret = super.mayPickup(player);
-			if (!ret) {
+			if (!ret || stackToPut.getCount() > 1) {
 				return false;
 			}
 			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canSwapUpgradeFor(stackToPut, storageWrapper, player.getLevel().isClientSide());

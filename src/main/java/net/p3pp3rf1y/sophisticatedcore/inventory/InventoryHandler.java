@@ -201,6 +201,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void setBaseSlotLimit(int baseSlotLimit) {
+		slotLimitInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
 		this.baseSlotLimit = baseSlotLimit;
 		maxStackSizeMultiplier = baseSlotLimit / 64;
 
