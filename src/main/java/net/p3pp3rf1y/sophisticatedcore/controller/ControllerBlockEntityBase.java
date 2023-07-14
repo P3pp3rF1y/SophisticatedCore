@@ -628,7 +628,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private ItemStack insertIntoStorages(Set<BlockPos> positions, ItemStack stack, boolean simulate) {
 		ItemStack remaining = stack;
-		for (BlockPos storagePos : positions) {
+		Set<BlockPos> positionsCopy = new HashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
+		for (BlockPos storagePos : positionsCopy) {
 			ItemStack finalRemaining = remaining;
 			remaining = getInventoryHandlerValueFromHolder(storagePos, ins -> ins.insertItem(finalRemaining, simulate)).orElse(remaining);
 			if (remaining.isEmpty()) {
