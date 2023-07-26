@@ -45,7 +45,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	public void addPartiallyFilled(int slot, ItemStack stack) {
-		ItemStackKey stackKey = new ItemStackKey(stack);
+		ItemStackKey stackKey = ItemStackKey.of(stack);
 		partiallyFilledStackSlots.computeIfAbsent(stackKey, k -> {
 			if (!fullStackSlots.containsKey(k)) {
 				onAddStackKey.accept(k);
@@ -72,7 +72,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	public void addFull(int slot, ItemStack stack) {
-		ItemStackKey stackKey = new ItemStackKey(stack);
+		ItemStackKey stackKey = ItemStackKey.of(stack);
 		fullStackSlots.computeIfAbsent(stackKey, k -> {
 			if (!partiallyFilledStackSlots.containsKey(k)) {
 				onAddStackKey.accept(k);
@@ -236,7 +236,11 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	@Override
 	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate) {
-		ItemStackKey stackKey = new ItemStackKey(stack);
+		if (emptySlots.isEmpty() && !itemStackKeys.containsKey(stack.getItem())) {
+			return stack;
+		}
+
+		ItemStackKey stackKey = ItemStackKey.of(stack);
 		ItemStack remainingStack = handleOverflow(overflowHandler, stackKey, stack);
 		if (remainingStack.isEmpty()) {
 			return remainingStack;
@@ -253,7 +257,11 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	@Override
 	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate) {
-		ItemStackKey stackKey = new ItemStackKey(stack);
+		if (emptySlots.isEmpty() && !itemStackKeys.containsKey(stack.getItem())) {
+			return stack;
+		}
+
+		ItemStackKey stackKey = ItemStackKey.of(stack);
 		ItemStack remainingStack = stack;
 		remainingStack = handleOverflow(overflowHandler, stackKey, remainingStack);
 		if (remainingStack.isEmpty()) {
@@ -311,7 +319,11 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		ItemStack remainingStack = stack;
 
 		Set<Integer> slots = partiallyFilledStackSlots.get(stackKey);
-		int sizeBefore = slots == null ? 0 : slots.size();
+		if (slots == null || slots.isEmpty()) {
+			return remainingStack;
+		}
+
+		int sizeBefore = slots.size();
 		int i = 0;
 		// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to inserts
 		// and going into this logic as well and because of that causing collection to be updated outside of first level iterator. The increment is here just
