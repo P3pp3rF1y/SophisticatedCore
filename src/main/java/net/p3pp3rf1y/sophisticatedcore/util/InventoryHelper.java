@@ -307,7 +307,7 @@ public class InventoryHelper {
 			if (stack.isEmpty() || ignoreSlots.contains(slot)) {
 				return;
 			}
-			ItemStackKey itemStackKey = new ItemStackKey(stack);
+			ItemStackKey itemStackKey = ItemStackKey.of(stack);
 			ret.put(itemStackKey, ret.computeIfAbsent(itemStackKey, fs -> 0) + stack.getCount());
 		});
 		return ret;
@@ -333,7 +333,7 @@ public class InventoryHelper {
 			if (stack.isEmpty()) {
 				return;
 			}
-			ItemStackKey itemStackKey = new ItemStackKey(stack);
+			ItemStackKey itemStackKey = ItemStackKey.of(stack);
 			uniqueStacks.add(itemStackKey);
 		});
 		return uniqueStacks;
