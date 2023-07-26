@@ -156,7 +156,7 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void addSlotStack(int slot, ItemStack stack) {
-		ItemStackKey isk = new ItemStackKey(stack);
+		ItemStackKey isk = ItemStackKey.of(stack);
 		slotFilterStacks.put(slot, isk);
 		int stackHash = isk.hashCode();
 		filterStackSlots.computeIfAbsent(stackHash, k -> {

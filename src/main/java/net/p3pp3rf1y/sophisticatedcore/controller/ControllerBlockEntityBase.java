@@ -579,63 +579,84 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	protected ItemStack insertItem(ItemStack stack, boolean simulate, boolean insertIntoAnyEmpty) {
-		ItemStackKey stackKey = new ItemStackKey(stack);
+		ItemStackKey stackKey = ItemStackKey.of(stack);
 		ItemStack remaining = stack;
 
-		if (stackStorages.containsKey(stackKey)) {
-			Set<BlockPos> positions = stackStorages.get(stackKey);
-			remaining = insertIntoStorages(positions, remaining, simulate);
-			if (remaining.isEmpty()) {
-				return remaining;
-			}
+		remaining = insertIntoStoragesThatMatchStack(remaining, stackKey, simulate);
+		if (remaining.isEmpty()) {
+			return remaining;
 		}
 
-		if (itemStackKeys.containsKey(stack.getItem())) {
-			for (ItemStackKey key : itemStackKeys.get(stack.getItem())) {
-				if (stackStorages.containsKey(key)) {
-					Set<BlockPos> positions = stackStorages.get(key);
-					remaining = insertIntoStorages(positions, remaining, simulate);
-					if (remaining.isEmpty()) {
-						break;
-					}
-				}
-			}
+		remaining = insertIntoStoragesThatMatchItem(remaining, simulate);
+		if (remaining.isEmpty()) {
+			return remaining;
 		}
 
 		if (memorizedItemStorages.containsKey(stack.getItem())) {
-			remaining = insertIntoStorages(memorizedItemStorages.get(stack.getItem()), remaining, simulate);
+			remaining = insertIntoStorages(memorizedItemStorages.get(stack.getItem()), remaining, simulate, false);
 			if (remaining.isEmpty()) {
 				return remaining;
 			}
 		}
-		int stackHash = ItemStackKey.getHashCode(stack);
+		int stackHash = stackKey.hashCode();
 		if (memorizedStackStorages.containsKey(stackHash)) {
-			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate);
+			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate, false);
 			if (remaining.isEmpty()) {
 				return remaining;
 			}
 		}
 
 		if (filterItemStorages.containsKey(stack.getItem())) {
-			remaining = insertIntoStorages(filterItemStorages.get(stack.getItem()), remaining, simulate);
+			remaining = insertIntoStorages(filterItemStorages.get(stack.getItem()), remaining, simulate, false);
 			if (remaining.isEmpty()) {
 				return remaining;
 			}
 		}
 
-		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, remaining, simulate) : remaining;
+		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, remaining, simulate, false) : remaining;
 	}
 
-	private ItemStack insertIntoStorages(Set<BlockPos> positions, ItemStack stack, boolean simulate) {
+	private ItemStack insertIntoStoragesThatMatchStack(ItemStack remaining, ItemStackKey stackKey, boolean simulate) {
+		if (stackStorages.containsKey(stackKey)) {
+			Set<BlockPos> positions = stackStorages.get(stackKey);
+			remaining = insertIntoStorages(positions, remaining, simulate, false);
+		}
+		return remaining;
+	}
+
+	private ItemStack insertIntoStoragesThatMatchItem(ItemStack remaining, boolean simulate) {
+		if (!emptySlotsStorages.isEmpty() && itemStackKeys.containsKey(remaining.getItem())) {
+			for (ItemStackKey key : itemStackKeys.get(remaining.getItem())) {
+				if (stackStorages.containsKey(key)) {
+					Set<BlockPos> positions = stackStorages.get(key);
+					remaining = insertIntoStorages(positions, remaining, simulate, true);
+					if (remaining.isEmpty()) {
+						return ItemStack.EMPTY;
+					}
+				}
+			}
+		}
+		return remaining;
+	}
+
+	private ItemStack insertIntoStorages(Set<BlockPos> positions, ItemStack stack, boolean simulate, boolean checkHasEmptySlotFirst) {
 		ItemStack remaining = stack;
 		Set<BlockPos> positionsCopy = new HashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
 		for (BlockPos storagePos : positionsCopy) {
-			ItemStack finalRemaining = remaining;
-			remaining = getInventoryHandlerValueFromHolder(storagePos, ins -> ins.insertItem(finalRemaining, simulate)).orElse(remaining);
+			if (checkHasEmptySlotFirst && !emptySlotsStorages.contains(storagePos)) {
+				continue;
+			}
+			remaining = insertIntoStorage(storagePos, remaining, simulate);
 			if (remaining.isEmpty()) {
 				return ItemStack.EMPTY;
 			}
 		}
+		return remaining;
+	}
+
+	private ItemStack insertIntoStorage(BlockPos storagePos, ItemStack remaining, boolean simulate) {
+		ItemStack finalRemaining = remaining;
+		remaining = getInventoryHandlerValueFromHolder(storagePos, ins -> ins.insertItem(finalRemaining, simulate)).orElse(remaining);
 		return remaining;
 	}
 
