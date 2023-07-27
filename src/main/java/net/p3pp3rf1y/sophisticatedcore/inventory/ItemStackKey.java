@@ -8,15 +8,15 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ItemStackKey {
 	private static final Field CAP_NBT = ObfuscationReflectionHelper.findField(ItemStack.class, "capNBT");
 	private final ItemStack stack;
 
-	private static final Map<ItemStack, ItemStackKey> CACHE = new HashMap<>();
+	private static final Map<ItemStack, ItemStackKey> CACHE = new ConcurrentHashMap<>();
 
 	public static ItemStackKey of(ItemStack stack) {
 		return CACHE.computeIfAbsent(stack, ItemStackKey::new);
