@@ -356,6 +356,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		renderBackground(guiGraphics);
 		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
+		poseStack.pushPose();
 		poseStack.translate(0, 0, 200);
 
 		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
@@ -368,6 +369,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		upgradeSwitches.forEach(us -> us.render(guiGraphics, mouseX, mouseY, partialTicks));
 		renderErrorOverlay(guiGraphics);
 		renderTooltip(guiGraphics, mouseX, mouseY);
+		poseStack.popPose();
 	}
 
 	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
@@ -624,9 +626,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-		PoseStack poseStack = guiGraphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(0, 0, 0);
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, guiGraphics, x, y));
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
@@ -641,7 +640,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (sortByButton != null) {
 			sortByButton.renderTooltip(this, guiGraphics, x, y);
 		}
-		poseStack.popPose();
 	}
 
 	@Override
