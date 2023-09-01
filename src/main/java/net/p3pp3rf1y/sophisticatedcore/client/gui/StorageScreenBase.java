@@ -349,26 +349,28 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
 			updateInventoryScrollPanel();
 		}
-		renderBackground(matrixStack);
-		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
-		matrixStack.translate(0, 0, 200);
+		renderBackground(poseStack);
+		settingsTabControl.render(poseStack, mouseX, mouseY, partialTicks);
+		poseStack.pushPose();
+		poseStack.translate(0, 0, 200);
 
-		renderSuper(matrixStack, mouseX, mouseY, partialTicks);
+		renderSuper(poseStack, mouseX, mouseY, partialTicks);
 
-		settingsTabControl.renderTooltip(this, matrixStack, mouseX, mouseY);
+		settingsTabControl.renderTooltip(this, poseStack, mouseX, mouseY);
 		if (sortButton != null && sortByButton != null) {
-			sortButton.render(matrixStack, mouseX, mouseY, partialTicks);
-			sortByButton.render(matrixStack, mouseX, mouseY, partialTicks);
+			sortButton.render(poseStack, mouseX, mouseY, partialTicks);
+			sortByButton.render(poseStack, mouseX, mouseY, partialTicks);
 		}
-		upgradeSwitches.forEach(us -> us.render(matrixStack, mouseX, mouseY, partialTicks));
-		renderErrorOverlay(matrixStack);
-		renderTooltip(matrixStack, mouseX, mouseY);
+		upgradeSwitches.forEach(us -> us.render(poseStack, mouseX, mouseY, partialTicks));
+		renderErrorOverlay(poseStack);
+		renderTooltip(poseStack, mouseX, mouseY);
+		poseStack.popPose();
 	}
 
 	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
@@ -636,7 +638,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	protected void renderTooltip(PoseStack poseStack, int x, int y) {
 		poseStack.pushPose();
-		poseStack.translate(0, 0, -100);
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, poseStack, x, y));
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
