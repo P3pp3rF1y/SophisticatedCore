@@ -641,7 +641,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private ItemStack insertIntoStorages(Set<BlockPos> positions, ItemStack stack, boolean simulate, boolean checkHasEmptySlotFirst) {
 		ItemStack remaining = stack;
-		Set<BlockPos> positionsCopy = new HashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
+		Set<BlockPos> positionsCopy = new LinkedHashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
 		for (BlockPos storagePos : positionsCopy) {
 			if (checkHasEmptySlotFirst && !emptySlotsStorages.contains(storagePos)) {
 				continue;
