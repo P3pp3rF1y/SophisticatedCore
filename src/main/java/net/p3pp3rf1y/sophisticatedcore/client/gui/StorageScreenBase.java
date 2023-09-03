@@ -92,11 +92,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private final Map<Integer, UpgradeInventoryPartBase<?>> inventoryParts = new LinkedHashMap<>();
 
 	private static ICraftingUIPart craftingUIPart = ICraftingUIPart.NOOP;
+	private static ISlotDecorationRenderer slotDecorationRenderer = (guiGraphics, slot) -> {};
 
 	private StorageBackgroundProperties storageBackgroundProperties;
 
 	public static void setCraftingUIPart(ICraftingUIPart part) {
 		craftingUIPart = part;
+	}
+
+	public static void setSlotDecorationRenderer(ISlotDecorationRenderer renderer) {
+		slotDecorationRenderer = renderer;
 	}
 
 	private static final Set<IButtonFactory> buttonFactories = new HashSet<>();
@@ -516,25 +521,26 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			renderSlotBackground(guiGraphics, slot, i, j);
 		} else if (!rightClickDragging) {
 			renderStack(guiGraphics, i, j, stackToRender, flag, stackCountText);
+			slotDecorationRenderer.renderDecoration(guiGraphics, slot);
 		}
 		poseStack.popPose();
 	}
 
-	private void renderStack(GuiGraphics guiGraphics, int i, int j, ItemStack itemstack, boolean flag, @Nullable String stackCountText) {
+	private void renderStack(GuiGraphics guiGraphics, int x, int y, ItemStack itemstack, boolean flag, @Nullable String stackCountText) {
 		if (flag) {
-			guiGraphics.fill(i, j, i + 16, j + 16, -2130706433);
+			guiGraphics.fill(x, y, x + 16, y + 16, -2130706433);
 		}
 
 		RenderSystem.enableDepthTest();
-		guiGraphics.renderItem(itemstack, i, j);
+		guiGraphics.renderItem(itemstack, x, y);
 		if (shouldUseSpecialCountRender(itemstack)) {
-			guiGraphics.renderItemDecorations(font, itemstack, i, j, "");
+			guiGraphics.renderItemDecorations(font, itemstack, x, y, "");
 			if (stackCountText == null) {
 				stackCountText = CountAbbreviator.abbreviate(itemstack.getCount());
 			}
-			renderStackCount(guiGraphics, stackCountText, i, j);
+			renderStackCount(guiGraphics, stackCountText, x, y);
 		} else {
-			guiGraphics.renderItemDecorations(font, itemstack, i, j, stackCountText);
+			guiGraphics.renderItemDecorations(font, itemstack, x, y, stackCountText);
 		}
 	}
 
