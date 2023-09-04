@@ -236,6 +236,8 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 	}
 
 	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, PoseStack poseStack, ItemRenderer itemRenderer, double blitOffset) {
+		float currentBlitoffset = itemRenderer.blitOffset;
+		itemRenderer.blitOffset = currentBlitoffset + 200;
 		if (!upgrades.isEmpty()) {
 			topY = renderTooltipLine(poseStack, leftX, topY, font, blitOffset, new TranslatableComponent(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
 			topY = renderUpgrades(poseStack, leftX, topY, itemRenderer);
@@ -244,6 +246,7 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 			topY = renderTooltipLine(poseStack, leftX, topY, font, blitOffset, new TranslatableComponent(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
 			renderContents(minecraft, leftX, topY, itemRenderer, font);
 		}
+		itemRenderer.blitOffset = currentBlitoffset;
 	}
 
 	private int renderTooltipLine(PoseStack poseStack, int leftX, int topY, Font font, double blitOffset, Component tooltip) {
