@@ -69,11 +69,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public static final int ERROR_BORDER_COLOR = ColorHelper.getColor(DyeColor.RED.getTextureDiffuseColors()) | 0xFF000000;
 	private static final int DISABLED_SLOT_COLOR = -1072689136;
 	private static final int UPGRADE_TOP_HEIGHT = 7;
-	private static final int UPGRADE_SLOT_HEIGHT = 18;
-	private static final int UPGRADE_SPACE_BETWEEN_SLOTS = 4;
-	private static final int UPGRADE_BOTTOM_HEIGHT = 7;
-	private static final int TOTAL_UPGRADE_GUI_HEIGHT = 252;
-	public static final int UPGRADE_INVENTORY_OFFSET = 26;
+	private static final int UPGRADE_SLOT_HEIGHT = 16;
+	private static final int UPGRADE_BOTTOM_HEIGHT = 6;
+	public static final int UPGRADE_INVENTORY_OFFSET = 21;
 	public static final int DISABLED_SLOT_X_POS = -1000;
 	static final int SLOTS_Y_OFFSET = 17;
 	static final int SLOTS_X_OFFSET = 7;
@@ -152,11 +150,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	private void updateUpgradeSlotsPositions() {
-		int yPosition = Math.max(inventoryLabelY - 2 - numberOfUpgradeSlots * 22, 8);
+		int yPosition = 6;
 		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
 			Slot slot = getMenu().getSlot(getMenu().getFirstUpgradeSlot() + slotIndex);
 			slot.y = yPosition;
-			yPosition += 22;
+			yPosition += UPGRADE_SLOT_HEIGHT;
 		}
 	}
 
@@ -280,7 +278,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void addUpgradeSwitches() {
 		upgradeSwitches.clear();
-		int switchTop = topPos + getUpgradeTop() + 10;
+		int switchTop = topPos + 8;
 		for (int slot = 0; slot < numberOfUpgradeSlots; slot++) {
 			if (menu.canDisableUpgrade(slot)) {
 				int finalSlot = slot;
@@ -289,7 +287,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				addWidget(upgradeSwitch);
 				upgradeSwitches.add(upgradeSwitch);
 			}
-			switchTop += 22;
+			switchTop += UPGRADE_SLOT_HEIGHT;
 		}
 	}
 
@@ -320,9 +318,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private Position getSortButtonsPosition(SortButtonsPosition sortButtonsPosition) {
 		return switch (sortButtonsPosition) {
-			case ABOVE_UPGRADES -> new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeTop() - 14);
 			case BELOW_UPGRADES ->
-					new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeTop() + getUpgradeHeightWithoutBottom() + UPGRADE_BOTTOM_HEIGHT + 2);
+					new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeHeightWithoutBottom() + UPGRADE_BOTTOM_HEIGHT + 2);
 			case BELOW_UPGRADE_TABS ->
 					settingsTabControl == null ? new Position(0, 0) : new Position(settingsTabControl.getX() + 2, settingsTabControl.getY() + Math.max(0, settingsTabControl.getHeight() + 2));
 			default -> new Position(leftPos + imageWidth - 34, topPos + 4);
@@ -336,16 +333,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	protected abstract String getStorageSettingsTabTooltip();
 
-	public int getUpgradeTop() {
-		return imageHeight - 94 - getUpgradeHeight();
-	}
-
 	public int getUpgradeHeight() {
 		return getUpgradeHeightWithoutBottom() + UPGRADE_TOP_HEIGHT;
 	}
 
 	protected int getUpgradeHeightWithoutBottom() {
-		return UPGRADE_BOTTOM_HEIGHT + numberOfUpgradeSlots * UPGRADE_SLOT_HEIGHT + (numberOfUpgradeSlots - 1) * UPGRADE_SPACE_BETWEEN_SLOTS;
+		return UPGRADE_BOTTOM_HEIGHT + numberOfUpgradeSlots * UPGRADE_SLOT_HEIGHT;
 	}
 
 	public Optional<Rect2i> getSortButtonsRectangle() {
@@ -356,26 +349,28 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
 			updateInventoryScrollPanel();
 		}
-		renderBackground(matrixStack);
-		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
-		matrixStack.translate(0, 0, 200);
+		renderBackground(poseStack);
+		settingsTabControl.render(poseStack, mouseX, mouseY, partialTicks);
+		poseStack.pushPose();
+		poseStack.translate(0, 0, 200);
 
-		renderSuper(matrixStack, mouseX, mouseY, partialTicks);
+		renderSuper(poseStack, mouseX, mouseY, partialTicks);
 
-		settingsTabControl.renderTooltip(this, matrixStack, mouseX, mouseY);
+		settingsTabControl.renderTooltip(this, poseStack, mouseX, mouseY);
 		if (sortButton != null && sortByButton != null) {
-			sortButton.render(matrixStack, mouseX, mouseY, partialTicks);
-			sortByButton.render(matrixStack, mouseX, mouseY, partialTicks);
+			sortButton.render(poseStack, mouseX, mouseY, partialTicks);
+			sortByButton.render(poseStack, mouseX, mouseY, partialTicks);
 		}
-		upgradeSwitches.forEach(us -> us.render(matrixStack, mouseX, mouseY, partialTicks));
-		renderErrorOverlay(matrixStack);
-		renderTooltip(matrixStack, mouseX, mouseY);
+		upgradeSwitches.forEach(us -> us.render(poseStack, mouseX, mouseY, partialTicks));
+		renderErrorOverlay(poseStack);
+		renderTooltip(poseStack, mouseX, mouseY);
+		poseStack.popPose();
 	}
 
 	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
@@ -643,7 +638,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	protected void renderTooltip(PoseStack poseStack, int x, int y) {
 		poseStack.pushPose();
-		poseStack.translate(0, 0, -100);
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, poseStack, x, y));
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
@@ -686,11 +680,23 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 		RenderSystem.setShaderTexture(0, GUI_CONTROLS);
 
-		int firstHalfHeight = getUpgradeHeightWithoutBottom();
+		int heightWithoutBottom = getUpgradeHeightWithoutBottom();
 
-		int upgradeTop = Math.max(getUpgradeTop(), 0);
-		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + upgradeTop, 0, 0, 29, firstHalfHeight, 256, 256);
-		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + upgradeTop + firstHalfHeight, 0, (float) TOTAL_UPGRADE_GUI_HEIGHT - UPGRADE_BOTTOM_HEIGHT, 29, UPGRADE_BOTTOM_HEIGHT, 256, 256);
+		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos, 0, 0, 26, 4, 256, 256);
+		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + 4, 0, 4, 25, heightWithoutBottom - 4, 256, 256);
+		blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET, topPos + heightWithoutBottom, 0, 198, 25, UPGRADE_BOTTOM_HEIGHT, 256, 256);
+
+		boolean previousHasSwitch = false;
+		for (int slot = 0; slot < numberOfUpgradeSlots; slot++) {
+			if (menu.canDisableUpgrade(slot)) {
+				int y = topPos + 5 + slot * UPGRADE_SLOT_HEIGHT + (previousHasSwitch ? 1 : 0);
+
+				blit(matrixStack, leftPos - UPGRADE_INVENTORY_OFFSET - 4, y, 0, 204 + (previousHasSwitch ? 1 : 0), 7, 18 - (previousHasSwitch ? 1 : 0), 256, 256);
+				previousHasSwitch = true;
+			} else {
+				previousHasSwitch = false;
+			}
+		}
 	}
 
 	public UpgradeSettingsTabControl getUpgradeSettingsControl() {
@@ -873,7 +879,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	public Optional<Rect2i> getUpgradeSlotsRectangle() {
-		return numberOfUpgradeSlots == 0 ? Optional.empty() : GuiHelper.getPositiveRectangle(leftPos - UPGRADE_INVENTORY_OFFSET, topPos + getUpgradeTop(), 32, getUpgradeHeight());
+		return numberOfUpgradeSlots == 0 ? Optional.empty() : GuiHelper.getPositiveRectangle(leftPos - UPGRADE_INVENTORY_OFFSET + 4, topPos, UPGRADE_INVENTORY_OFFSET + 4, getUpgradeHeight());
 	}
 
 	private void renderStackCount(String count, int x, int y) {
