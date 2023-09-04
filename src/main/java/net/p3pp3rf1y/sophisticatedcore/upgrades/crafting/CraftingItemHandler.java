@@ -9,12 +9,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CraftingItemHandler extends TransientCraftingContainer {
 	private final Supplier<IItemHandlerModifiable> supplyInventory;
 	private final Consumer<Container> onCraftingMatrixChanged;
+	private boolean itemsInitialized = false;
+	private List<ItemStack> items = List.of();
 
 	public CraftingItemHandler(Supplier<IItemHandlerModifiable> supplyInventory, Consumer<Container> onCraftingMatrixChanged) {
 		super(new AbstractContainerMenu(null, -1) {
@@ -49,6 +53,18 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 	}
 
 	@Override
+	public List<ItemStack> getItems() {
+		if (!itemsInitialized) {
+			items = new ArrayList<>();
+			for (int slot = 0; slot < supplyInventory.get().getSlots(); slot++) {
+				items.add(supplyInventory.get().getStackInSlot(slot));
+			}
+			itemsInitialized = true;
+		}
+		return items;
+	}
+
+	@Override
 	public ItemStack removeItemNoUpdate(int index) {
 		return InventoryHelper.getAndRemove(supplyInventory.get(), index);
 	}
@@ -58,6 +74,7 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 		ItemStack itemstack = supplyInventory.get().extractItem(index, count, false);
 		if (!itemstack.isEmpty()) {
 			onCraftingMatrixChanged.accept(this);
+			itemsInitialized = false;
 		}
 
 		return itemstack;
@@ -67,6 +84,13 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 	public void setItem(int index, ItemStack stack) {
 		supplyInventory.get().setStackInSlot(index, stack);
 		onCraftingMatrixChanged.accept(this);
+		itemsInitialized = false;
+	}
+
+	@Override
+	public void setChanged() {
+		super.setChanged();
+		itemsInitialized = false;
 	}
 
 	@Override

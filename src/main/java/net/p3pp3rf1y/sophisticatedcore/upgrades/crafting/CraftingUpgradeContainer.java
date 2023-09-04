@@ -42,6 +42,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				public void setChanged() {
 					super.setChanged();
 					updateCraftingResult(player.level(), player, craftMatrix, craftResult, craftingResultSlot);
+					craftMatrix.setChanged();
 				}
 			});
 		}

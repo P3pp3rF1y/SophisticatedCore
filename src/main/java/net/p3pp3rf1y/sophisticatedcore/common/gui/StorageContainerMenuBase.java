@@ -1508,7 +1508,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private void reloadUpgradeControl() {
-		storageWrapper.removeOpenTabId();
+		if (!isUpdatingFromPacket) {
+			storageWrapper.removeOpenTabId();
+		}
 		removeUpgradeSettingsSlots();
 		upgradeContainers.clear();
 		addUpgradeSettingsContainers(player);
