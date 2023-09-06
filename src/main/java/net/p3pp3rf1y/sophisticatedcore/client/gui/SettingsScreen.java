@@ -135,13 +135,9 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		menu.detectSettingsChangeAndReload();
 		renderBackground(guiGraphics);
 		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
-		PoseStack poseStack = guiGraphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(0, 0, 200);
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		renderTooltip(guiGraphics, mouseX, mouseY);
-		poseStack.popPose();
 	}
 
 	@Override
