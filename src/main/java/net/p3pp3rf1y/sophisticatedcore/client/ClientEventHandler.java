@@ -91,7 +91,7 @@ public class ClientEventHandler {
 		int y = containerGui.getGuiTop() + s.y;
 
 		poseStack.pushPose();
-		poseStack.translate(0, 0, containerGui instanceof StorageScreenBase ? 100 : 499);
+		poseStack.translate(0, 0, 300);
 
 		if (stack.getItem() instanceof IStashStorageItem) {
 			mc.font.drawShadow(poseStack, "+", (float) x + 10, (float) y + 8, 0xFFFF00);
@@ -105,7 +105,7 @@ public class ClientEventHandler {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
 		poseStack.pushPose();
-		poseStack.translate(0, 0, containerGui instanceof StorageScreenBase ? -100 : 100);
+		poseStack.translate(0, 0, 100);
 		containerGui.renderTooltip(poseStack, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), tooltip, x, y, mc.font);
 		poseStack.popPose();
 	}
