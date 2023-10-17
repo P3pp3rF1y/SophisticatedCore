@@ -4,6 +4,9 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.minecraft.core.NonNullList;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -13,15 +16,18 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
+import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,6 +61,27 @@ public class RecipeHelper {
 
 	public static void setWorld(Level w) {
 		world = new WeakReference<>(w);
+	}
+
+	public static void clearCache() {
+		COMPACTING_RESULTS.clear();
+		UNCOMPACTING_RESULTS.clear();
+		ITEM_COMPACTING_SHAPES.invalidateAll();
+	}
+
+	public static void onReload(final AddReloadListenerEvent evt) {
+		evt.addListener(new SimplePreparableReloadListener<Void>() {
+			@Nonnull
+			@Override
+			protected Void prepare(ResourceManager resourceManager, ProfilerFiller profilerFiller) {
+				return null;
+			}
+
+			@Override
+			protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
+				clearCache();
+			}
+		});
 	}
 
 	private static Optional<Level> getWorld() {
@@ -131,27 +158,32 @@ public class RecipeHelper {
 
 	private static boolean uncompactMatchesItem(ItemStack result, Level w, Item item, int count) {
 		Item itemToUncompact = result.getItem();
-		result = uncompactItem(w, itemToUncompact);
-		return result.getItem() == item && result.getCount() == count;
+		for(ItemStack uncompactResult : getUncompactResultItems(w, itemToUncompact)) {
+			if (uncompactResult.getItem() == item && uncompactResult.getCount() == count) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static UncompactingResult getUncompactingResult(Item resultItem) {
 		return UNCOMPACTING_RESULTS.computeIfAbsent(resultItem, k -> getWorld().map(w -> {
-			ItemStack uncompactResult = uncompactItem(w, resultItem);
-			if (uncompactResult.getCount() == 9) {
-				if (getCompactingResult(uncompactResult.getItem(), 3, 3).getResult().getItem() == resultItem) {
-					return new UncompactingResult(uncompactResult.getItem(), THREE_BY_THREE_UNCRAFTABLE);
+			for (ItemStack uncompactResultItem : getUncompactResultItems(w, resultItem)) {
+				if (uncompactResultItem.getCount() == 9) {
+					if (getCompactingResult(uncompactResultItem.getItem(), 3, 3).getResult().getItem() == resultItem) {
+						return new UncompactingResult(uncompactResultItem.getItem(), THREE_BY_THREE_UNCRAFTABLE);
+					}
+				} else if (uncompactResultItem.getCount() == 4 && getCompactingResult(uncompactResultItem.getItem(), 2, 2).getResult().getItem() == resultItem) {
+					return new UncompactingResult(uncompactResultItem.getItem(), TWO_BY_TWO_UNCRAFTABLE);
 				}
-			} else if (uncompactResult.getCount() == 4 && getCompactingResult(uncompactResult.getItem(), 2, 2).getResult().getItem() == resultItem) {
-				return new UncompactingResult(uncompactResult.getItem(), TWO_BY_TWO_UNCRAFTABLE);
 			}
 			return UncompactingResult.EMPTY;
 		}).orElse(UncompactingResult.EMPTY));
 	}
 
-	private static ItemStack uncompactItem(Level level, Item itemToUncompact) {
+	private static List<ItemStack> getUncompactResultItems(Level w, Item itemToUncompact) {
 		CraftingContainer craftingInventory = getFilledCraftingInventory(itemToUncompact, 1, 1);
-		return safeGetRecipeFor(RecipeType.CRAFTING, craftingInventory, level).map(r -> r.assemble(craftingInventory, level.registryAccess())).orElse(ItemStack.EMPTY);
+		return safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory, w).stream().map(r -> r.assemble(craftingInventory, w.registryAccess())).toList();
 	}
 
 	public static CompactingResult getCompactingResult(Item item, CompactingShape shape) {
@@ -174,15 +206,43 @@ public class RecipeHelper {
 		}
 
 		CraftingContainer craftingInventory = getFilledCraftingInventory(item, width, height);
+		List<CraftingRecipe> compactingRecipes = safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory, level);
+
+		if (compactingRecipes.isEmpty()) {
+			COMPACTING_RESULTS.put(compactedItem, CompactingResult.EMPTY);
+			return CompactingResult.EMPTY;
+		}
+
+		if (compactingRecipes.size() == 1) {
+			return cacheAndGetCompactingResult(compactedItem, compactingRecipes.get(0), craftingInventory);
+		}
+
+		for (CraftingRecipe recipe : compactingRecipes) {
+			ItemStack result = recipe.assemble(craftingInventory, level.registryAccess());
+			if (uncompactMatchesItem(result, level, item, width * height)) {
+				return cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, result);
+			}
+		}
+
+		return cacheAndGetCompactingResult(compactedItem, compactingRecipes.get(0), craftingInventory);
+	}
+
+	private static CompactingResult cacheAndGetCompactingResult(CompactedItem compactedItem, CraftingRecipe recipe, CraftingContainer craftingInventory) {
+		Level level = world.get();
+		if (level == null) {
+			return CompactingResult.EMPTY;
+		}
+
+		return cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, recipe.assemble(craftingInventory, level.registryAccess()));
+	}
+
+	private static CompactingResult cacheAndGetCompactingResult(CompactedItem compactedItem, CraftingRecipe recipe, CraftingContainer craftingInventory, ItemStack result) {
 		List<ItemStack> remainingItems = new ArrayList<>();
-		ItemStack result = safeGetRecipeFor(RecipeType.CRAFTING, craftingInventory, level).map(r -> {
-			r.getRemainingItems(craftingInventory).forEach(stack -> {
-				if (!stack.isEmpty()) {
-					remainingItems.add(stack);
-				}
-			});
-			return r.assemble(craftingInventory, level.registryAccess());
-		}).orElse(ItemStack.EMPTY);
+		recipe.getRemainingItems(craftingInventory).forEach(stack -> {
+			if (!stack.isEmpty()) {
+				remainingItems.add(stack);
+			}
+		});
 
 		CompactingResult compactingResult = new CompactingResult(result, remainingItems);
 		if (!result.isEmpty()) {
@@ -231,6 +291,16 @@ public class RecipeHelper {
 		}
 	}
 
+	private static <C extends Container, T extends Recipe<C>> List<T> safeGetRecipesFor(RecipeType<T> recipeType, C inventory, Level level) {
+		try {
+			return level.getRecipeManager().getRecipesFor(recipeType, inventory, level);
+		}
+		catch (Exception e) {
+			SophisticatedCore.LOGGER.error("Error while getting recipe ", e);
+			return Collections.emptyList();
+		}
+	}
+
 	public enum CompactingShape {
 		NONE(false, 0),
 		THREE_BY_THREE(false, 9),
@@ -262,7 +332,7 @@ public class RecipeHelper {
 		private final ItemStack result;
 		private final List<ItemStack> remainingItems;
 
-		private CompactingResult(ItemStack result, List<ItemStack> remainingItems) {
+		public CompactingResult(ItemStack result, List<ItemStack> remainingItems) {
 			this.result = result;
 			this.remainingItems = remainingItems;
 		}
