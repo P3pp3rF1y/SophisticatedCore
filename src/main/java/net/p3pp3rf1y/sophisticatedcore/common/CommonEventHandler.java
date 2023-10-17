@@ -6,6 +6,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 public class CommonEventHandler {
 	public void registerHandlers() {
@@ -13,5 +14,6 @@ public class CommonEventHandler {
 		ModFluids.registerHandlers(modBus);
 		ModParticles.registerParticles(modBus);
 		MinecraftForge.EVENT_BUS.addListener(ItemStackKey::clearCacheOnTickEnd);
+		MinecraftForge.EVENT_BUS.addListener(RecipeHelper::onReload);
 	}
 }
