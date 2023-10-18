@@ -20,6 +20,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.inventory.CachedFailedInsertInventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
@@ -488,7 +489,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
 		if (cap == ForgeCapabilities.ITEM_HANDLER) {
 			if (itemHandlerCap == null) {
-				itemHandlerCap = LazyOptional.of(() -> this);
+				itemHandlerCap = LazyOptional.of(() -> new CachedFailedInsertInventoryHandler(this, () -> level != null ? level.getGameTime() : 0));
 			}
 			return itemHandlerCap.cast();
 		}
