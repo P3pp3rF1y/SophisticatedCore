@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
@@ -257,36 +256,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	@Override
 	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate) {
-		if (emptySlots.isEmpty() && !itemStackKeys.containsKey(stack.getItem())) {
-			return stack;
-		}
-
-		ItemStackKey stackKey = ItemStackKey.of(stack);
-		ItemStack remainingStack = stack;
-		remainingStack = handleOverflow(overflowHandler, stackKey, remainingStack);
-		if (remainingStack.isEmpty()) {
-			return remainingStack;
-		}
-
-		ItemStack existing = itemHandler.getStackInSlot(slot);
-		boolean wasEmpty = existing.isEmpty();
-
-		boolean doesNotMatchCurrentSlot = !ItemHandlerHelper.canItemStacksStack(stack, existing);
-		if (wasEmpty || doesNotMatchCurrentSlot) {
-			remainingStack = insertIntoSlotsThatMatchStack(inserter, remainingStack, simulate, stackKey);
-		}
-		if (!remainingStack.isEmpty() && doesNotMatchCurrentSlot) {
-			remainingStack = insertIntoEmptySlots(inserter, remainingStack, simulate);
-		}
-		if (!remainingStack.isEmpty() && (!emptySlots.contains(slot) || shouldInsertIntoEmpty.getAsBoolean())) {
-			remainingStack = inserter.insertItem(slot, remainingStack, simulate);
-		}
-
-		if (!remainingStack.isEmpty()) {
-			remainingStack = handleOverflow(overflowHandler, stackKey, remainingStack);
-		}
-
-		return remainingStack;
+		return insertItemIntoHandler(itemHandler, inserter, overflowHandler, stack, simulate);
 	}
 
 	@Override
