@@ -14,7 +14,7 @@ public class BlockItemBase extends BlockItem {
 
 	@Override
 	public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-		if (Config.SERVER.enabledItems.isItemEnabled(this)) {
+		if (Config.COMMON.enabledItems.isItemEnabled(this)) {
 			super.fillItemCategory(group, items);
 		}
 	}

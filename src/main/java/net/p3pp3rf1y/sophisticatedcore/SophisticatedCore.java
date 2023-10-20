@@ -37,7 +37,7 @@ public class SophisticatedCore {
 
 	@SuppressWarnings("java:S1118") //needs to be public for mod to work
 	public SophisticatedCore() {
-		ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, Config.SERVER_SPEC);
+		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
 		commonEventHandler.registerHandlers();
 		if (FMLEnvironment.dist == Dist.CLIENT) {

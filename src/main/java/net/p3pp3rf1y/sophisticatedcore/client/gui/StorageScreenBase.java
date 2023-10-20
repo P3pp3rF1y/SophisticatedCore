@@ -358,7 +358,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		renderBackground(poseStack);
 		settingsTabControl.render(poseStack, mouseX, mouseY, partialTicks);
 		poseStack.pushPose();
-		poseStack.translate(0, 0, 200);
 
 		renderSuper(poseStack, mouseX, mouseY, partialTicks);
 

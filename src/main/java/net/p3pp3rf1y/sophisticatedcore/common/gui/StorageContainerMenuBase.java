@@ -488,9 +488,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return isStorageInventorySlot(slotId) && (clickType == ClickType.SWAP || clickType == ClickType.PICKUP);
 	}
 
-	protected void updateColumnsTaken(int columnsToRemove) {
-		if (columnsToRemove != 0) {
-			storageWrapper.setColumnsTaken(Math.max(0, storageWrapper.getColumnsTaken() + columnsToRemove), true);
+	protected void updateColumnsTaken(int columnsChange) {
+		if (columnsChange != 0) {
+			storageWrapper.setColumnsTaken(Math.max(0, storageWrapper.getColumnsTaken() + columnsChange), true);
 			storageWrapper.onContentsNbtUpdated();
 			refreshAllSlots();
 		}
@@ -1161,13 +1161,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 							ItemStack itemstack3 = upgradeSlot.getItem();
 							if (j != 0 || itemstack3.getCount() != itemstack3.getMaxStackSize()) {
 								int l = Math.min(carriedStack.getMaxStackSize() - carriedStack.getCount(), itemstack3.getCount());
-								ItemStack itemstack4 = upgradeSlot.remove(l);
+								ItemStack upgradeStack = upgradeSlot.remove(l);
 								carriedStack.grow(l);
-								if (itemstack4.isEmpty()) {
+								if (upgradeStack.isEmpty()) {
 									upgradeSlot.set(ItemStack.EMPTY);
 								}
 
-								upgradeSlot.onTake(this.player, itemstack4);
+								upgradeSlot.onTake(this.player, upgradeStack);
 							}
 						}
 					}
@@ -1176,6 +1176,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 
 		sendSlotUpdates();
+	}
+
+	@Override
+	public boolean canTakeItemForPickAll(ItemStack pStack, Slot slot) {
+		if (isUpgradeSlot(slot.index) && slot.getItem().getItem() instanceof IUpgradeItem<?> upgradeItem && upgradeItem.getInventoryColumnsTaken() > 0) {
+			return false;
+		}
+
+		return super.canTakeItemForPickAll(pStack, slot);
 	}
 
 	public void sendSlotUpdates() {
@@ -1322,7 +1331,18 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 							result.shrink(result.getCount());
 							mergedSomething = true;
 						} else {
-							destSlot.set(result.split(destSlot.getMaxStackSize()));
+							if (isUpgradeSlot(i)) {
+								IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) result.getItem();
+								int newColumnsTaken = upgradeItem.getInventoryColumnsTaken();
+								if (!needsSlotsThatAreOccupied(result, 0, newColumnsTaken)) {
+									destSlot.set(result.split(destSlot.getMaxStackSize()));
+									updateColumnsTaken(newColumnsTaken);
+								} else {
+									errorMerging = true;
+								}
+							} else {
+								destSlot.set(result.split(destSlot.getMaxStackSize()));
+							}
 						}
 					} else {
 						if (isUpgradeSlot(i)) {
