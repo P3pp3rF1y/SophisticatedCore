@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -31,13 +32,11 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 					if (openTab != null && differentTabIsOpen(settingsTab)) {
 						openTab.close();
 					}
-					settingsTab.setZOffset(200);
 					openTab = settingsTab;
 					onTabOpenContainerAction.run();
 				},
 				() -> {
 					if (openTab != null) {
-						openTab.setZOffset(0);
 						openTab = null;
 						onTabCloseContainerAction.run();
 					}
@@ -46,6 +45,21 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 				() -> openTab == null || isNotCovered(openTab, settingsTab, false)
 		);
 		return settingsTab;
+	}
+
+	@Override
+	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+		RenderSystem.disableDepthTest();
+		children.forEach(child -> {
+			if (child != openTab) {
+				child.render(matrixStack, mouseX, mouseY, partialTicks);
+			}
+		});
+
+		if (openTab != null) {
+			openTab.render(matrixStack, mouseX, mouseY, partialTicks);
+		}
+		RenderSystem.enableDepthTest();
 	}
 
 	private boolean isNotCovered(T open, Tab t, boolean checkFullyCovered) {

@@ -134,7 +134,6 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		menu.detectSettingsChangeAndReload();
 		renderBackground(matrixStack);
 		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
-		matrixStack.translate(0, 0, 200);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
 		settingsTabControl.renderTooltip(this, matrixStack, mouseX, mouseY);
 		renderTooltip(matrixStack, mouseX, mouseY);

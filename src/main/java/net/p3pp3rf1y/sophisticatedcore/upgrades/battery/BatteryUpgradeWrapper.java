@@ -124,7 +124,9 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	}
 
 	private int getMaxInOut() {
-		return upgradeItem.getBatteryUpgradeConfig().maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * upgradeItem.getAdjustedStackMultiplier(storageWrapper);
+		int stackMultiplier = upgradeItem.getAdjustedStackMultiplier(storageWrapper);
+		int baseInOut = upgradeItem.getBatteryUpgradeConfig().maxInputOutput.get() * storageWrapper.getNumberOfSlotRows();
+		return stackMultiplier > Integer.MAX_VALUE / baseInOut ? Integer.MAX_VALUE : baseInOut * stackMultiplier;
 	}
 
 	private boolean isValidEnergyItem(ItemStack stack, boolean isOutput) {

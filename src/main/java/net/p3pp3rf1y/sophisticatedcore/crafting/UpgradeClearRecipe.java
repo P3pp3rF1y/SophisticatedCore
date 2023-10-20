@@ -39,6 +39,7 @@ public class UpgradeClearRecipe extends CustomRecipe {
 			}
 		}
 		ItemStack copy = upgrade.copy();
+		copy.setCount(1);
 		copy.setTag(null);
 		return copy;
 	}
