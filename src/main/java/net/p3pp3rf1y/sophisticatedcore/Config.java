@@ -20,17 +20,17 @@ public class Config {
 
 	public static final Client CLIENT;
 	public static final ForgeConfigSpec CLIENT_SPEC;
-	public static final Server SERVER;
-	public static final ForgeConfigSpec SERVER_SPEC;
+	public static final Common COMMON;
+	public static final ForgeConfigSpec COMMON_SPEC;
 
 	static {
 		final Pair<Client, ForgeConfigSpec> clientSpec = new ForgeConfigSpec.Builder().configure(Client::new);
 		CLIENT_SPEC = clientSpec.getRight();
 		CLIENT = clientSpec.getLeft();
 
-		final Pair<Server, ForgeConfigSpec> commonSpec = new ForgeConfigSpec.Builder().configure(Server::new);
-		SERVER_SPEC = commonSpec.getRight();
-		SERVER = commonSpec.getLeft();
+		final Pair<Common, ForgeConfigSpec> commonSpec = new ForgeConfigSpec.Builder().configure(Common::new);
+		COMMON_SPEC = commonSpec.getRight();
+		COMMON = commonSpec.getLeft();
 	}
 
 	public static class Client {
@@ -45,7 +45,7 @@ public class Config {
 		}
 	}
 
-	public static class Server {
+	public static class Common {
 		public final EnabledItems enabledItems;
 
 		@SuppressWarnings("unused") //need the Event parameter for forge reflection to understand what event this listens to
@@ -53,8 +53,8 @@ public class Config {
 			enabledItems.enabledMap.clear();
 		}
 
-		Server(ForgeConfigSpec.Builder builder) {
-			builder.comment("Server Settings").push("server");
+		Common(ForgeConfigSpec.Builder builder) {
+			builder.comment("Common Settings").push("common");
 
 			enabledItems = new EnabledItems(builder);
 		}
@@ -72,7 +72,7 @@ public class Config {
 			}
 
 			public boolean isItemEnabled(ResourceLocation itemRegistryName) {
-				if (!SERVER_SPEC.isLoaded()) {
+				if (!COMMON_SPEC.isLoaded()) {
 					return true;
 				}
 				if (enabledMap.isEmpty()) {
