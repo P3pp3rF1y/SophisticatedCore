@@ -12,7 +12,7 @@ public class ItemBase extends Item {
 	}
 
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (Config.SERVER.enabledItems.isItemEnabled(this)) {
+		if (Config.COMMON.enabledItems.isItemEnabled(this)) {
 			itemConsumer.accept(new ItemStack(this));
 		}
 	}

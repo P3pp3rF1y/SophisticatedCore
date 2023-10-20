@@ -13,7 +13,7 @@ public class BlockItemBase extends BlockItem {
 	}
 
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (Config.SERVER.enabledItems.isItemEnabled(this) && getBlock() instanceof BlockBase blockBase) {
+		if (Config.COMMON.enabledItems.isItemEnabled(this) && getBlock() instanceof BlockBase blockBase) {
 			blockBase.addCreativeTabItems(itemConsumer);
 		}
 	}
