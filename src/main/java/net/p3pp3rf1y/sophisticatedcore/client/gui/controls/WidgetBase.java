@@ -15,7 +15,6 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 	protected final int x;
 
 	protected final int y;
-	protected int zOffset;
 	protected final Minecraft minecraft;
 	protected final Font font;
 	private int height;
@@ -44,16 +43,9 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 		}
 
 		isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-		if (zOffset != 0) {
-			guiGraphics.pose().pushPose();
-			guiGraphics.pose().translate(0, 0, zOffset);
-		}
 		RenderSystem.enableDepthTest();
 		renderBg(guiGraphics, minecraft, mouseX, mouseY);
 		renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
-		if (zOffset != 0) {
-			guiGraphics.pose().popPose();
-		}
 	}
 
 	@Override
@@ -81,10 +73,6 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 	@Override
 	public boolean isMouseOver(double mouseX, double mouseY) {
 		return mouseX >= x && mouseX < x + getWidth() && mouseY >= y && mouseY < y + getHeight();
-	}
-
-	public void setZOffset(int zOffset) {
-		this.zOffset = zOffset;
 	}
 
 	public int getX() {
