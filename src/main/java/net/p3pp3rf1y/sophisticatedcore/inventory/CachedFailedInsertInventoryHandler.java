@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +13,7 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	private final IItemHandlerModifiable wrapped;
 	private final LongSupplier timeSupplier;
 	private long currentCacheTime = 0;
-	private final Set<Integer> failedInsertStackHashes = new HashSet<>();
+	private final Set<Item> failedInsertStackHashes = new HashSet<>();
 
 	public CachedFailedInsertInventoryHandler(IItemHandlerModifiable wrapped, LongSupplier timeSupplier) {
 		this.wrapped = wrapped;
@@ -43,14 +44,20 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 			currentCacheTime = timeSupplier.getAsLong();
 		}
 
-		if (failedInsertStackHashes.contains(ItemStackKey.getHashCode(stack))) {
-			return stack;
+		// Computing the hash of an item stack with NBT data is
+		// prohibitively expensive, only use the cache as an
+		// acceleration mechanism for items without that data.
+		boolean shouldCacheFailure = !stack.hasTag();
+		if (shouldCacheFailure) {
+			if (failedInsertStackHashes.contains(stack.getItem())) {
+				return stack;
+			}
 		}
 
 		ItemStack result = wrapped.insertItem(slot, stack, simulate);
 
-		if (result == stack) {
-			failedInsertStackHashes.add(ItemStackKey.getHashCode(stack));
+		if (shouldCacheFailure && result == stack) {
+			failedInsertStackHashes.add(stack.getItem());
 		}
 
 		return result;
