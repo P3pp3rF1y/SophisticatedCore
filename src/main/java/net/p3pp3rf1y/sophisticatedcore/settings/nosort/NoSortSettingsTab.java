@@ -50,7 +50,13 @@ public class NoSortSettingsTab extends SettingsTab<NoSortSettingsContainer> {
 	}
 
 	@Override
-	public Optional<Integer> getSlotOverlayColor(int slotNumber) {
+	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(NoSortSettingsCategory.class)
+					.filter(c -> c.isSlotSelected(slotNumber))
+					.map(category -> ColorHelper.getColor(category.getColor().getTextureDiffuseColors()) | (80 << 24));
+		}
+
 		return getSettingsContainer().isSlotSelected(slotNumber) ? Optional.of(ColorHelper.getColor(getSettingsContainer().getColor().getTextureDiffuseColors()) | (80 << 24)) : Optional.empty();
 	}
 

@@ -27,12 +27,12 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 		return settingsContainer;
 	}
 
-	public abstract Optional<Integer> getSlotOverlayColor(int slotNumber);
+	public abstract Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered);
 
 	public abstract void handleSlotClick(Slot slot, int mouseButton);
 
 	@SuppressWarnings("unused") // parameter used in override
-	public int getItemRotation(int slotIndex) {
+	public int getItemRotation(int slotIndex, boolean templateLoadHovered) {
 		return 0;
 	}
 
@@ -42,12 +42,12 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 	}
 
 	@SuppressWarnings("unused") // parameter used in override
-	public ItemStack getItemDisplayOverride(int slotNumber) {
+	public ItemStack getItemDisplayOverride(int slotNumber, boolean templateLoadHovered) {
 		return ItemStack.EMPTY;
 	}
 
 	@SuppressWarnings("unused") //parameters used in overrides
-	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot) {
+	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot, boolean templateLoadHovered) {
 		//noop by default
 	}
 }

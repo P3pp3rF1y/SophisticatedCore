@@ -67,7 +67,13 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	}
 
 	@Override
-	public Optional<Integer> getSlotOverlayColor(int slotNumber) {
+	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(ItemDisplaySettingsCategory.class)
+					.filter(c -> c.getSlots().contains(slotNumber))
+					.map(category -> ColorHelper.getColor(category.getColor().getTextureDiffuseColors()) | (80 << 24));
+		}
+
 		return getSettingsContainer().isSlotSelected(slotNumber) ? Optional.of(ColorHelper.getColor(getSettingsContainer().getColor().getTextureDiffuseColors()) | (80 << 24)) : Optional.empty();
 	}
 
@@ -99,7 +105,14 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	}
 
 	@Override
-	public int getItemRotation(int slotIndex) {
+	public int getItemRotation(int slotIndex, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(ItemDisplaySettingsCategory.class)
+					.filter(c -> c.getSlots().contains(slotIndex))
+					.map(category -> category.getRotation(slotIndex))
+					.orElse(0);
+		}
+
 		return getSettingsContainer().getRotation(slotIndex);
 	}
 }
