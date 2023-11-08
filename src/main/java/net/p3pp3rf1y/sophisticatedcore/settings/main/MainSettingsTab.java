@@ -67,7 +67,7 @@ public class MainSettingsTab<T extends MainSettingsContainer> extends SettingsTa
 	}
 
 	@Override
-	public Optional<Integer> getSlotOverlayColor(int slotNumber) {
+	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
 		return Optional.empty();
 	}
 

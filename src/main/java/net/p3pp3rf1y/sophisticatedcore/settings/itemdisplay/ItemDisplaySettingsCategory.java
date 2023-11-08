@@ -182,7 +182,15 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	@Override
 	public void overwriteWith(ItemDisplaySettingsCategory otherCategory) {
-		//noop for now
+		slotIndexes.clear();
+		slotIndexes.addAll(otherCategory.getSlots());
+		serializeSlotIndexes();
+		slotRotations.clear();
+		slotRotations.putAll(otherCategory.slotRotations);
+		serializeRotations();
+		setColor(otherCategory.getColor());
+
+		itemsChanged();
 	}
 
 	private void deserialize() {
@@ -247,5 +255,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		}
 		serializeSlotIndexes();
 		updateFullRenderInfo();
+	}
+
+	@Override
+	public boolean isLargerThanNumberOfSlots(int slots) {
+		return slotIndexes.stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
 }

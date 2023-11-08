@@ -28,7 +28,6 @@ import net.p3pp3rf1y.sophisticatedcore.network.SyncAdditionalSlotInfoMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncEmptySlotIconsMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncTemplateSettingsMessage;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
@@ -41,8 +40,6 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsContainer;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsContainer;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -54,12 +51,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer, IAdditionalSlotInfoMenu {
 	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
-	private static final String ACTION_TAG = "action";
 
 	static {
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
@@ -76,14 +71,12 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	public final NonNullList<ItemStack> lastGhostSlots = NonNullList.create();
 	public final NonNullList<ItemStack> remoteGhostSlots = NonNullList.create();
 	private final Map<String, SettingsContainerBase<?>> settingsContainers = new LinkedHashMap<>();
+	private final TemplatePersistanceContainer templatePersistanceContainer;
 	public final List<Slot> ghostSlots = new ArrayList<>();
 	private boolean inventorySlotStackChanged = false;
 	private final Set<Integer> inaccessibleSlots = new HashSet<>();
 	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
 	private final Map<Integer, Pair<ResourceLocation, ResourceLocation>> emptySlotIcons = new HashMap<>();
-
-	@Nullable
-	private TemplateSettingsHandler selectedTemplate;
 
 	protected SettingsContainerMenu(MenuType<?> menuType, int windowId, Player player, S storageWrapper) {
 		super(menuType, windowId);
@@ -92,6 +85,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 		addStorageInventorySlots();
 		addSettingsContainers();
+		templatePersistanceContainer = new TemplatePersistanceContainer(this);
 	}
 
 	public int getNumberOfStorageInventorySlots() {
@@ -207,7 +201,10 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		}
 
 		if (player instanceof ServerPlayer serverPlayer) {
-			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncTemplateSettingsMessage(SettingsTemplateStorage.get().getPlayerTemplates(serverPlayer)));
+			SettingsTemplateStorage settingsTemplateStorage = SettingsTemplateStorage.get();
+			PacketHandler.INSTANCE.sendToClient(serverPlayer,
+					new SyncTemplateSettingsMessage(settingsTemplateStorage.getPlayerTemplates(serverPlayer), settingsTemplateStorage.getPlayerNamedTemplates(serverPlayer))
+			);
 		}
 
 		sendEmptySlotIcons();
@@ -263,13 +260,8 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			if (settingsContainers.containsKey(categoryName)) {
 				settingsContainers.get(categoryName).handleMessage(data);
 			}
-		} else if (data.contains(ACTION_TAG, Tag.TAG_STRING)) {
-			String action = data.getString(ACTION_TAG);
-			if (action.equals("saveTemplate")) {
-				saveTemplate(data.getInt("slot"));
-			} else if (action.equals("loadTemplate")) {
-				loadTemplate();
-			}
+		} else if (data.contains(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG, Tag.TAG_COMPOUND)) {
+			templatePersistanceContainer.handleMessage(data.getCompound(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG));
 		}
 	}
 
@@ -295,31 +287,17 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return BlockPos.ZERO;
 	}
 
-	public void saveTemplate(int saveSlot) {
-		SettingsTemplateStorage.get().putPlayerTemplate(player, saveSlot, storageWrapper.getSettingsHandler().getNbt().copy());
-		sendDataToServer(() -> {
-			CompoundTag tag = NBTHelper.putString(new CompoundTag(), ACTION_TAG, "saveTemplate");
-			tag.putInt("slot", saveSlot);
-			return tag;
-		});
-	}
-
-	public void loadTemplate() {
-		if (selectedTemplate == null) {
-			return;
-		}
-		storageWrapper.getSettingsHandler().getSettingsCategories().values().forEach(category -> overwriteCategory(category, selectedTemplate.getTypeCategory(category.getClass())));
-
-		sendDataToServer(() -> NBTHelper.putString(new CompoundTag(), ACTION_TAG, "loadTemplate"));
-	}
-
-	private <T extends ISettingsCategory<T>> void overwriteCategory(ISettingsCategory<?> currentCategory, ISettingsCategory<?> otherCategory) {
-		//noinspection unchecked
-		((T) currentCategory).overwriteWith(((T) otherCategory));
-	}
 
 	public <T extends ISettingsCategory<?>> Optional<T> getSelectedTemplatesCategory(Class<T> categoryClass) {
-		return selectedTemplate != null ? Optional.of(selectedTemplate.getTypeCategory(categoryClass)) : Optional.empty();
+		return templatePersistanceContainer.getSelectedTemplate().map(selectedTemplate -> selectedTemplate.getTypeCategory(categoryClass));
+	}
+
+	public TemplatePersistanceContainer getTemplatePersistanceContainer() {
+		return templatePersistanceContainer;
+	}
+
+	public void refreshTemplateSlots() {
+		templatePersistanceContainer.refreshTemplateSlots();
 	}
 
 	private class ViewOnlyStorageInventorySlot extends SlotItemHandler {
@@ -359,19 +337,6 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	private static <C extends ISettingsCategory, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
 		//noinspection unchecked
 		return (ISettingsContainerFactory<C, T>) SETTINGS_CONTAINER_FACTORIES.get(name);
-	}
-
-	public void updateSelectedTemplate(@Nullable CompoundTag settingsTag) {
-		if (settingsTag == null) {
-			selectedTemplate = null;
-		} else {
-			selectedTemplate = new TemplateSettingsHandler(settingsTag) {
-				@Override
-				protected SettingsHandler getCurrentSettingsHandler() {
-					return storageWrapper.getSettingsHandler();
-				}
-			};
-		}
 	}
 
 	public void sendDataToServer(Supplier<CompoundTag> supplyData) {
@@ -446,41 +411,5 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 	public ItemStack getSlotFilterItem(int slot) {
 		return slotFilterItems.getOrDefault(slot, ItemStack.EMPTY);
-	}
-
-	private abstract static class TemplateSettingsHandler extends SettingsHandler {
-
-		protected TemplateSettingsHandler(CompoundTag contentsNbt) {
-			super(contentsNbt, () -> {}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderInfo);
-		}
-
-		protected abstract SettingsHandler getCurrentSettingsHandler();
-
-		@Override
-		protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
-			return contentsNbt;
-		}
-
-		@Override
-		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
-			int itemNumberLimit = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).getItemNumberLimit();
-			addSettingsCategory(settingsNbt, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) ->
-					new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderInfoSupplier, categoryNbt, saveNbt, itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)));
-		}
-
-		@Override
-		public String getGlobalSettingsCategoryName() {
-			return getCurrentSettingsHandler().getGlobalSettingsCategoryName();
-		}
-
-		@Override
-		public ISettingsCategory<?> instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
-			return getCurrentSettingsHandler().instantiateGlobalSettingsCategory(categoryNbt, saveNbt);
-		}
-
-		@Override
-		protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
-			//noop
-		}
 	}
 }

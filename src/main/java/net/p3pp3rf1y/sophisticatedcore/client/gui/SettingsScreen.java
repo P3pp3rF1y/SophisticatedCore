@@ -27,6 +27,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
 	private StorageSettingsTabControlBase settingsTabControl;
 	private InventoryScrollPanel inventoryScrollPanel = null;
+	private TemplatePersistanceControl templatePersistanceControl = null;
 	private StorageBackgroundProperties storageBackgroundProperties;
 	private boolean mouseDragHandledByOther = false;
 
@@ -106,7 +107,13 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		super.init();
 		updateInventoryScrollPanel();
 		settingsTabControl = initializeTabControl();
+		templatePersistanceControl = initializeTemplatePersistanceControl();
 		addWidget(settingsTabControl);
+		addWidget(templatePersistanceControl);
+	}
+
+	private TemplatePersistanceControl initializeTemplatePersistanceControl() {
+		return new TemplatePersistanceControl(new Position(leftPos + inventoryLabelX - 29, topPos + inventoryLabelY + 29), getMenu().getTemplatePersistanceContainer());
 	}
 
 	protected abstract StorageSettingsTabControlBase initializeTabControl();
@@ -134,8 +141,10 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		menu.detectSettingsChangeAndReload();
 		renderBackground(matrixStack);
 		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
+		templatePersistanceControl.render(matrixStack, mouseX, mouseY, partialTicks);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
 		settingsTabControl.renderTooltip(this, matrixStack, mouseX, mouseY);
+		templatePersistanceControl.renderTooltip(this, matrixStack, mouseX, mouseY);
 		renderTooltip(matrixStack, mouseX, mouseY);
 	}
 
@@ -153,7 +162,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 			Slot slot = menu.ghostSlots.get(slotId);
 			renderSlot(matrixStack, slot);
 
-			settingsTabControl.renderSlotOverlays(matrixStack, slot, this::renderSlotOverlay);
+			settingsTabControl.renderSlotOverlays(matrixStack, slot, this::renderSlotOverlay, isTemplateLoadHovered());
 
 			if (canShowHover && isHovering(slot, mouseX, mouseY) && slot.isActive()) {
 				hoveredSlot = slot;
@@ -166,14 +175,14 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	protected void renderSlot(PoseStack poseStack, Slot slot) {
-		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY ? slot.getItem() : settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex());
+		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY ? slot.getItem() : settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex(), isTemplateLoadHovered());
 
 		setBlitOffset(100);
 		itemRenderer.blitOffset = 100.0F;
 
 		RenderSystem.enableDepthTest();
 		poseStack.pushPose();
-		if (!settingsTabControl.renderGuiItem(itemRenderer, itemstack, slot)) {
+		if (!settingsTabControl.renderGuiItem(itemRenderer, itemstack, slot, isTemplateLoadHovered())) {
 			if (!getMenu().getSlotFilterItem(slot.index).isEmpty()) {
 				itemRenderer.renderAndDecorateItem(getMenu().getSlotFilterItem(slot.index), slot.x, slot.y);
 			} else {
@@ -191,7 +200,11 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		itemRenderer.blitOffset = 0.0F;
 		setBlitOffset(0);
 
-		settingsTabControl.drawSlotStackOverlay(poseStack, slot);
+		settingsTabControl.drawSlotStackOverlay(poseStack, slot, isTemplateLoadHovered());
+	}
+
+	private boolean isTemplateLoadHovered() {
+		return templatePersistanceControl.isTemplateLoadHovered();
 	}
 
 

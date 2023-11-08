@@ -47,4 +47,9 @@ public class MainSettingsCategory<T extends MainSettingsCategory<?>> implements 
 	public void overwriteWith(T otherCategory) {
 		//noop for now
 	}
+
+	@Override
+	public boolean isLargerThanNumberOfSlots(int slots) {
+		return false; //no slots in this category so it can't be too large
+	}
 }

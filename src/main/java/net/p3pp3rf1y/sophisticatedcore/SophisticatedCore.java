@@ -5,6 +5,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -15,9 +16,11 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.p3pp3rf1y.sophisticatedcore.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.CommonEventHandler;
+import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,6 +45,7 @@ public class SophisticatedCore {
 
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
 		eventBus.addListener(SophisticatedCore::serverStarted);
+		eventBus.addListener(SophisticatedCore::onResourceReload);
 	}
 
 	private static void serverStarted(ServerStartedEvent event) {
@@ -54,6 +58,10 @@ public class SophisticatedCore {
 	private static void setup(FMLCommonSetupEvent event) {
 		PacketHandler.INSTANCE.init();
 		ModCompat.initCompats();
+	}
+
+	private static void onResourceReload(AddReloadListenerEvent event) {
+		event.addListener(DatapackSettingsTemplateManager.Loader.INSTANCE);
 	}
 
 	public static ResourceLocation getRL(String regName) {
