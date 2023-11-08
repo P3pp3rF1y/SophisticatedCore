@@ -6,4 +6,6 @@ public interface ISettingsCategory<T extends ISettingsCategory<?>> {
 	void reloadFrom(CompoundTag categoryNbt);
 
 	void overwriteWith(T otherCategory);
+
+	boolean isLargerThanNumberOfSlots(int slots);
 }
