@@ -101,6 +101,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
 	private final Map<Integer, Pair<ResourceLocation, ResourceLocation>> emptySlotIcons = new HashMap<>();
 
+	private boolean slotsChangedSinceStartOfClick = false;
+
 	protected StorageContainerMenuBase(MenuType<?> pMenuType, int pContainerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		super(pMenuType, pContainerId);
 		this.player = player;
@@ -914,6 +916,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		upgradeContainers.clear();
 
 		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot);
+		slotsChangedSinceStartOfClick = true;
 	}
 
 	protected ItemStack processOverflowLogic(ItemStack stack) {
@@ -943,6 +946,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	//complexity here is brutal, but it's something that's in vanilla and need to keep this as close to it as possible for easier ports
 	@Override
 	protected void doClick(int slotId, int dragType, ClickType clickType, Player player) {
+		slotsChangedSinceStartOfClick = false;
 		Inventory inventory = player.getInventory();
 		if (clickType == ClickType.QUICK_CRAFT) {
 			int i = quickcraftStatus;
@@ -1031,7 +1035,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					quickMoveStack(this.player, slotId).copy();
 				} else {
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					while (!itemstack8.isEmpty() && ItemStack.isSame(slot6.getItem(), itemstack8)) {
+					while (!slotsChangedSinceStartOfClick && !itemstack8.isEmpty() && ItemStack.isSame(slot6.getItem(), itemstack8)) {
 						itemstack8 = quickMoveStack(this.player, slotId);
 					}
 				}
