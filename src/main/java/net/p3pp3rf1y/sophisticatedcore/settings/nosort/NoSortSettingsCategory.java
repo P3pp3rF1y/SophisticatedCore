@@ -106,6 +106,14 @@ public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsC
 
 	@Override
 	public void overwriteWith(NoSortSettingsCategory otherCategory) {
-		//noop for now
+		selectedSlots.clear();
+		selectedSlots.addAll(otherCategory.getNoSortSlots());
+		serializeSelectedSlots();
+		setColor(otherCategory.getColor());
+	}
+
+	@Override
+	public boolean isLargerThanNumberOfSlots(int slots) {
+		return selectedSlots.stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
 }
