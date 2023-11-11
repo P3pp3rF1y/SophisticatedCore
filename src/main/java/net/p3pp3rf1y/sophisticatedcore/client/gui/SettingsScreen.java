@@ -139,7 +139,10 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@Override
 	public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		menu.detectSettingsChangeAndReload();
+		matrixStack.pushPose();
+		matrixStack.translate(0, 0, -20);
 		renderBackground(matrixStack);
+		matrixStack.popPose();
 		settingsTabControl.render(matrixStack, mouseX, mouseY, partialTicks);
 		templatePersistanceControl.render(matrixStack, mouseX, mouseY, partialTicks);
 		super.render(matrixStack, mouseX, mouseY, partialTicks);
