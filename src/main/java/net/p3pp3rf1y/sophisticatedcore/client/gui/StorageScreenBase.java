@@ -354,15 +354,17 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		PoseStack poseStack = guiGraphics.pose();
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
 			updateInventoryScrollPanel();
 		}
-		renderBackground(guiGraphics);
-		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
+		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
+		poseStack.translate(0, 0, -20);
+		renderBackground(guiGraphics);
+		poseStack.popPose();
+		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
 
 		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
 
@@ -374,7 +376,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		upgradeSwitches.forEach(us -> us.render(guiGraphics, mouseX, mouseY, partialTicks));
 		renderErrorOverlay(guiGraphics);
 		renderTooltip(guiGraphics, mouseX, mouseY);
-		poseStack.popPose();
 	}
 
 	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter

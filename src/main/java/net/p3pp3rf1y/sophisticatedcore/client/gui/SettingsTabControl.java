@@ -50,12 +50,15 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		RenderSystem.disableDepthTest();
+		PoseStack pose = guiGraphics.pose();
+		pose.pushPose();
+		pose.translate(0,0, -11);
 		children.forEach(child -> {
 			if (child != openTab) {
 				child.render(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 		});
+		pose.popPose();
 
 		if (openTab != null) {
 			openTab.render(guiGraphics, mouseX, mouseY, partialTicks);

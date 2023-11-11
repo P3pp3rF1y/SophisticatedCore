@@ -1,5 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarratedElementType;
@@ -29,7 +31,11 @@ public class ItemButton extends ButtonBase {
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		GuiHelper.renderItemInGUI(guiGraphics, minecraft, stack, x, y);
+		PoseStack pose = guiGraphics.pose();
+		pose.pushPose();
+		pose.translate(0, 0, -140);
+		guiGraphics.renderItem(stack, x, y);
+		pose.popPose();
 	}
 
 	@Override
