@@ -45,6 +45,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageInventorySlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.TransferFullSlotMessage;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
@@ -355,7 +356,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updatePlayerSlotsPositions();
 			updateInventoryScrollPanel();
 		}
+		poseStack.pushPose();
+		poseStack.translate(0, 0, -20);
 		renderBackground(poseStack);
+		poseStack.popPose();
 		settingsTabControl.render(poseStack, mouseX, mouseY, partialTicks);
 		poseStack.pushPose();
 
@@ -850,15 +854,26 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		Slot slot = findSlot(mouseX, mouseY);
 		ItemStack itemstack = getMenu().getCarried();
-		if (isQuickCrafting && slot != null && !itemstack.isEmpty()
-				&& (itemstack.getCount() > quickCraftSlots.size() || quickCraftingType == 2)
-				&& StorageContainerMenuBase.canItemQuickReplace(slot, itemstack) && slot.mayPlace(itemstack)
-				&& menu.canDragTo(slot)) {
-			quickCraftSlots.add(slot);
-			recalculateQuickCraftRemaining();
+		if (isQuickCrafting) {
+			if (slot != null && !itemstack.isEmpty()
+					&& (itemstack.getCount() > quickCraftSlots.size() || quickCraftingType == 2)
+					&& StorageContainerMenuBase.canItemQuickReplace(slot, itemstack) && slot.mayPlace(itemstack)
+					&& menu.canDragTo(slot)
+					&& isAllowedSlotCombination(slot, itemstack)) {
+				quickCraftSlots.add(slot);
+				recalculateQuickCraftRemaining();
+			}
+			return true;
 		}
 
 		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+	}
+
+	private boolean isAllowedSlotCombination(Slot slot, ItemStack carried) {
+		if (quickCraftSlots.isEmpty() || !(carried.getItem() instanceof UpgradeItemBase<?> upgradeItem) || upgradeItem.getInventoryColumnsTaken() == 0) {
+			return true;
+		}
+		return quickCraftSlots.contains(slot) || (!(quickCraftSlots.iterator().next() instanceof StorageContainerMenuBase.StorageUpgradeSlot) && !(slot instanceof StorageContainerMenuBase.StorageUpgradeSlot));
 	}
 
 	@Override

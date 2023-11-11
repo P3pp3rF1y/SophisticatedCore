@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,6 +69,7 @@ public class SophisticatedCore {
 
 	private static void onResourceReload(AddReloadListenerEvent event) {
 		UpgradeNextTierRecipe.REGISTERED_RECIPES.clear();
+		event.addListener(DatapackSettingsTemplateManager.Loader.INSTANCE);
 	}
 
 	private static void setup(FMLCommonSetupEvent event) {

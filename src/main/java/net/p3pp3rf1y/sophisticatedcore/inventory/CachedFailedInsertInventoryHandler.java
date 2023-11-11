@@ -43,14 +43,23 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 			currentCacheTime = timeSupplier.getAsLong();
 		}
 
-		if (failedInsertStackHashes.contains(ItemStackKey.getHashCode(stack))) {
-			return stack;
+		boolean hashCalculated = false;
+		int stackHash = 0;
+		if (!failedInsertStackHashes.isEmpty()) {
+			stackHash = ItemStackKey.getHashCode(stack);
+			hashCalculated = true;
+			if (failedInsertStackHashes.contains(stackHash)) {
+				return stack;
+			}
 		}
 
 		ItemStack result = wrapped.insertItem(slot, stack, simulate);
 
 		if (result == stack) {
-			failedInsertStackHashes.add(ItemStackKey.getHashCode(stack));
+			if (!hashCalculated) {
+				stackHash = ItemStackKey.getHashCode(stack);
+			}
+			failedInsertStackHashes.add(stackHash);
 		}
 
 		return result;

@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +23,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTab;
 
-import java.util.List;
 import java.util.Optional;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.DEFAULT_BUTTON_BACKGROUND;
@@ -39,16 +37,6 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 	public static final ButtonDefinition UNSELECT_ALL_SLOTS = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, UNSELECT_ALL_SLOTS_FOREGROUND,
 			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("unselect_all_slots")));
 
-	private static final TextureBlitData SAVE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(240, 16), Dimension.SQUARE_16);
-	public static final ButtonDefinition SAVE_TEMPLATE = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, SAVE_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("save_template")));
-
-	private static final TextureBlitData LOAD_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(240, 32), Dimension.SQUARE_16);
-	public static final ButtonDefinition LOAD_TEMPLATE = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, LOAD_FOREGROUND,
-			new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("load_template")));
-	private final Button loadTemplateButton;
-	private final Button saveTemplateButton;
-
 	public MemorySettingsTab(MemorySettingsContainer container, Position position, SettingsScreen screen) {
 		super(container, position, screen, new TranslatableComponent(TranslationHelper.INSTANCE.translSettings(MemorySettingsCategory.NAME)),
 				new ImmutableList.Builder<Component>()
@@ -62,51 +50,12 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 				onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
 		addHideableChild(new Button(new Position(x + 3, y + 24), SELECT_ALL_SLOTS, button -> container.selectAllSlots()));
 		addHideableChild(new Button(new Position(x + 21, y + 24), UNSELECT_ALL_SLOTS, button -> container.unselectAllSlots()));
-		addHideableChild( new ToggleButton<>(new Position(x + 39, y + 24), ButtonDefinitions.MATCH_NBT,
+		addHideableChild(new ToggleButton<>(new Position(x + 39, y + 24), ButtonDefinitions.MATCH_NBT,
 				button -> container.setIgnoreNbt(!container.ignoresNbt()), () -> !container.ignoresNbt()));
-
-		saveTemplateButton = new Button(new Position(x + 12, y + 44), SAVE_TEMPLATE, button -> container.saveTemplate()) {
-			@Override
-			public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-				container.scrollSaveSlot(delta > 0);
-				setSaveTooltip();
-				return true;
-			}
-		};
-		setSaveTooltip();
-		addHideableChild(saveTemplateButton);
-		loadTemplateButton = new Button(new Position(x + 30, y + 44), LOAD_TEMPLATE, button -> container.loadTemplate()) {
-			@Override
-			public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-				container.scrollLoadSlot(delta > 0);
-				setLoadTooltip();
-				return true;
-			}
-		};
-		setLoadTooltip();
-		addHideableChild(loadTemplateButton);
-	}
-
-	private void setLoadTooltip() {
-		if (getSettingsContainer().getLoadSlot() == -1) {
-			loadTemplateButton.setTooltip(List.of(new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("load_template.no_save")).withStyle(ChatFormatting.RED)));
-		} else {
-			loadTemplateButton.setTooltip(List.of(
-					new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("load_template"), new TextComponent(String.valueOf(getSettingsContainer().getLoadSlot())).withStyle(ChatFormatting.GREEN)),
-					new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("load_template.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY))
-			);
-		}
-	}
-
-	private void setSaveTooltip() {
-		saveTemplateButton.setTooltip(List.of(
-				new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("save_template"), new TextComponent(String.valueOf(getSettingsContainer().getSaveSlot())).withStyle(ChatFormatting.GREEN)),
-				new TranslatableComponent(TranslationHelper.INSTANCE.translSettingsButton("save_template.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY))
-		);
 	}
 
 	@Override
-	public Optional<Integer> getSlotOverlayColor(int slotNumber) {
+	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
 		return Optional.empty();
 	}
 
@@ -120,26 +69,27 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 	}
 
 	@Override
-	public ItemStack getItemDisplayOverride(int slotNumber) {
-		if (loadTemplateButton.isHovered()) {
+	public ItemStack getItemDisplayOverride(int slotNumber, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
 			ItemStack templatesMemorizedStack = getSettingsContainer().getSelectedTemplatesMemorizedStack(slotNumber);
 			if (!templatesMemorizedStack.isEmpty()) {
 				return templatesMemorizedStack;
 			}
+			return ItemStack.EMPTY;
 		}
 
 		return getSettingsContainer().getMemorizedStack(slotNumber);
 	}
 
 	@Override
-	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot) {
-		if (getSettingsContainer().isSlotSelected(slot.getSlotIndex()) || isShowingTemplateItemInSlot(slot)) {
+	public void drawSlotStackOverlay(PoseStack poseStack, Slot slot, boolean templateLoadHovered) {
+		if (templateLoadHovered) {
+			if (!getSettingsContainer().getSelectedTemplatesMemorizedStack(slot.getSlotIndex()).isEmpty()) {
+				drawMemorizedStackOverlay(poseStack, slot);
+			}
+		} else if (getSettingsContainer().isSlotSelected(slot.getSlotIndex())) {
 			drawMemorizedStackOverlay(poseStack, slot);
 		}
-	}
-
-	private boolean isShowingTemplateItemInSlot(Slot slot) {
-		return loadTemplateButton.isHovered() && !getSettingsContainer().getSelectedTemplatesMemorizedStack(slot.getSlotIndex()).isEmpty();
 	}
 
 	private void drawMemorizedStackOverlay(PoseStack poseStack, Slot slot) {
