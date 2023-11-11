@@ -345,4 +345,9 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 		}
 		serializeFilterItems();
 	}
+
+	@Override
+	public boolean isLargerThanNumberOfSlots(int slots) {
+		return slotFilterItems.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots) || slotFilterStacks.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
+	}
 }

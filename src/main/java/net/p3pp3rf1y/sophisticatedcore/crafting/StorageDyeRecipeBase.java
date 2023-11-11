@@ -5,7 +5,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -36,7 +35,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 					return false;
 				}
 				storagePresent = true;
-			} else if (slotStack.getItem() instanceof DyeItem) {
+			} else if (slotStack.is(Tags.Items.DYES)) {
 				dyePresent = true;
 			} else {
 				return false;
