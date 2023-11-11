@@ -49,12 +49,14 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	@Override
 	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		RenderSystem.disableDepthTest();
+		matrixStack.pushPose();
+		matrixStack.translate(0, 0, -11);
 		children.forEach(child -> {
 			if (child != openTab) {
 				child.render(matrixStack, mouseX, mouseY, partialTicks);
 			}
 		});
+		matrixStack.popPose();
 
 		if (openTab != null) {
 			openTab.render(matrixStack, mouseX, mouseY, partialTicks);

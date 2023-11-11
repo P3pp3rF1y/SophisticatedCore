@@ -29,7 +29,10 @@ public class ItemButton extends ButtonBase {
 
 	@Override
 	protected void renderWidget(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+		matrixStack.pushPose();
+		matrixStack.translate(0, 0, -140);
 		GuiHelper.renderItemInGUI(matrixStack, minecraft, stack, x, y);
+		matrixStack.popPose();
 	}
 
 	@Override

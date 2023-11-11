@@ -356,7 +356,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updatePlayerSlotsPositions();
 			updateInventoryScrollPanel();
 		}
+		poseStack.pushPose();
+		poseStack.translate(0, 0, -20);
 		renderBackground(poseStack);
+		poseStack.popPose();
 		settingsTabControl.render(poseStack, mouseX, mouseY, partialTicks);
 		poseStack.pushPose();
 
