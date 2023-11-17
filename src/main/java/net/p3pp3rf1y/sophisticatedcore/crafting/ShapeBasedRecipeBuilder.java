@@ -96,6 +96,11 @@ public class ShapeBasedRecipeBuilder {
 		return this;
 	}
 
+	public ShapeBasedRecipeBuilder condition(ICondition condition) {
+		conditions.add(condition);
+		return this;
+	}
+
 	public void save(Consumer<FinishedRecipe> consumerIn) {
 		save(consumerIn, RegistryHelper.getItemKey(itemResult));
 	}
