@@ -19,7 +19,8 @@ public class UpgradeClearRecipe extends CustomRecipe {
 	@Override
 	public boolean matches(CraftingContainer inventory, Level level) {
 		boolean upgradePresent = false;
-		for (ItemStack stack : inventory.getItems()) {
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
+			ItemStack stack = inventory.getItem(i);
 			if (!stack.isEmpty()) {
 				if (stack.getItem() instanceof UpgradeItemBase && stack.hasTag() && !upgradePresent) {
 					upgradePresent = true;
@@ -35,7 +36,8 @@ public class UpgradeClearRecipe extends CustomRecipe {
 	@Override
 	public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
 		ItemStack upgrade = ItemStack.EMPTY;
-		for (ItemStack stack : inventory.getItems()) {
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
+			ItemStack stack = inventory.getItem(i);
 			if (!stack.isEmpty() && stack.getItem() instanceof UpgradeItemBase) {
 				upgrade = stack;
 			}
