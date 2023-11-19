@@ -73,8 +73,8 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 	public ItemStack removeItem(int index, int count) {
 		ItemStack itemstack = supplyInventory.get().extractItem(index, count, false);
 		if (!itemstack.isEmpty()) {
-			onCraftingMatrixChanged.accept(this);
 			itemsInitialized = false;
+			onCraftingMatrixChanged.accept(this);
 		}
 
 		return itemstack;
