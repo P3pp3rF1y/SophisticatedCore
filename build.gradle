@@ -103,6 +103,8 @@ dependencies {
     compileOnly fg.deobf("curse.maven:balm-531761:${balm_cf_file_id}")
     compileOnly fg.deobf("curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly fg.deobf("curse.maven:quark-243121:${quark_cf_file_id}")
+    compileOnly fg.deobf("curse.maven:chipped-456956:${chipped_cf_file_id}")
+    compileOnly fg.deobf("curse.maven:ctm-267602:${ctm_cf_file_id}")
     //runtimeOnly fg.deobf("curse.maven:balm-531761:${balm_cf_file_id}")
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.+'
