@@ -278,7 +278,11 @@ public class RecipeHelper {
 	}
 
 	public static List<StonecutterRecipe> getStonecuttingRecipes(Container inventory) {
-		return getWorld().map(w -> w.getRecipeManager().getRecipesFor(RecipeType.STONECUTTING, inventory, w)).orElse(Collections.emptyList());
+		return getRecipesOfType(RecipeType.STONECUTTING, inventory);
+	}
+
+	public static <T extends Recipe<Container>> List<T> getRecipesOfType(RecipeType<T> recipeType, Container inventory) {
+		return getWorld().map(w -> w.getRecipeManager().getRecipesFor(recipeType, inventory, w)).orElse(Collections.emptyList());
 	}
 
 	public static <C extends Container, T extends Recipe<C>> Optional<T> safeGetRecipeFor(RecipeType<T> recipeType, C inventory, Level level) {
