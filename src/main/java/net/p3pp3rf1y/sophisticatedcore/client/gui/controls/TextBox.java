@@ -9,6 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.function.Consumer;
+
 public class TextBox extends WidgetBase {
 	private final EditBox editBox;
 
@@ -29,12 +31,15 @@ public class TextBox extends WidgetBase {
 		poseStack.popPose();
 	}
 
+	@Override
 	public void setFocus(boolean focused) {
 		if (editBox.isFocused() != focused) {
 			editBox.setFocus(focused);
 		}
 		changeFocus(focused);
 	}
+
+
 
 	@Override
 	public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
@@ -68,5 +73,33 @@ public class TextBox extends WidgetBase {
 
 	public void setValue(String value) {
 		editBox.setValue(value);
+	}
+
+	public void setTextColor(int color) {
+		editBox.setTextColor(color);
+	}
+
+	public void setTextColorUneditable(int color) {
+		editBox.setTextColorUneditable(color);
+	}
+
+	public void setBordered(boolean bordered) {
+		editBox.setBordered(bordered);
+	}
+
+	public void setMaxLength(int maxLength) {
+		editBox.setMaxLength(maxLength);
+	}
+
+	public void setResponder(Consumer<String> responder) {
+		editBox.setResponder(responder);
+	}
+
+	public void setEditable(boolean editable) {
+		editBox.setEditable(editable);
+	}
+
+	public boolean isEditable() {
+		return editBox.isEditable();
 	}
 }
