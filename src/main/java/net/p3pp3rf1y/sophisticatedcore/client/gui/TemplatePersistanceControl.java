@@ -81,7 +81,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 					guiGraphics.renderTooltip(screen.font, getTooltip(), Optional.empty(), saveTemplateButton.getX() + 10, saveTemplateButton.getY() + (showTextBox ? -13 : 6));
 				}
 				saveInput.setVisible(showTextBox);
-				saveInput.setFocus(showTextBox);
+				saveInput.setFocused(showTextBox);
 				if (mouseOver && screen.getFocused() != saveInput) {
 					screen.setFocused(saveInput);
 				} else if (!mouseOver && screen.getFocused() == saveInput) {
@@ -128,7 +128,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 					guiGraphics.renderTooltip(screen.font, getTooltip(), Optional.empty(), exportTemplateButton.getX() + 10, exportTemplateButton.getY() - 13);
 				}
 				exportInput.setVisible(mouseOver);
-				exportInput.setFocus(mouseOver);
+				exportInput.setFocused(mouseOver);
 				if (mouseOver && screen.getFocused() != exportInput) {
 					screen.setFocused(exportInput);
 				} else if (!mouseOver && screen.getFocused() == exportInput) {
