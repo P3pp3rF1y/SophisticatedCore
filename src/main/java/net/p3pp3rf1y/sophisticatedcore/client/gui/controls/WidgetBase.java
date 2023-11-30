@@ -90,4 +90,8 @@ public abstract class WidgetBase extends GuiComponent implements Widget, GuiEven
 	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
 		//noop
 	}
+
+	public void setFocus(boolean focused) {
+		//noop
+	}
 }
