@@ -36,6 +36,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
@@ -840,6 +841,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (hasShiftDown() && hasControlDown() && slot instanceof StorageInventorySlot && button == 0) {
 			PacketHandler.INSTANCE.sendToServer(new TransferFullSlotMessage(slot.index));
 			return true;
+		}
+		GuiEventListener focused = getFocused();
+		if (focused != null && !focused.isMouseOver(mouseX, mouseY) && (focused instanceof WidgetBase widgetBase)) {
+				widgetBase.setFocus(false);
+
 		}
 
 		return super.mouseClicked(mouseX, mouseY, button);
