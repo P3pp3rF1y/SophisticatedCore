@@ -12,7 +12,7 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	private final IItemHandlerModifiable wrapped;
 	private final LongSupplier timeSupplier;
 	private long currentCacheTime = 0;
-	private final Set<Integer> failedInsertStackHashes = new HashSet<>();
+	private final Set<ItemStack> failedInsertStacks = new HashSet<>();
 
 	public CachedFailedInsertInventoryHandler(IItemHandlerModifiable wrapped, LongSupplier timeSupplier) {
 		this.wrapped = wrapped;
@@ -39,27 +39,18 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	@Override
 	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
 		if (currentCacheTime != timeSupplier.getAsLong()) {
-			failedInsertStackHashes.clear();
+			failedInsertStacks.clear();
 			currentCacheTime = timeSupplier.getAsLong();
 		}
 
-		boolean hashCalculated = false;
-		int stackHash = 0;
-		if (!failedInsertStackHashes.isEmpty()) {
-			stackHash = ItemStackKey.getHashCode(stack);
-			hashCalculated = true;
-			if (failedInsertStackHashes.contains(stackHash)) {
-				return stack;
-			}
+		if (failedInsertStacks.contains(stack)) {
+			return stack;
 		}
 
 		ItemStack result = wrapped.insertItem(slot, stack, simulate);
 
 		if (result == stack) {
-			if (!hashCalculated) {
-				stackHash = ItemStackKey.getHashCode(stack);
-			}
-			failedInsertStackHashes.add(stackHash);
+			failedInsertStacks.add(stack); //only working with stack references because this logic is meant to handle the case where something tries to insert the same stack number of slots times
 		}
 
 		return result;
