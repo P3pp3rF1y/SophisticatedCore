@@ -96,7 +96,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private static ICraftingUIPart craftingUIPart = ICraftingUIPart.NOOP;
 	private static ISlotDecorationRenderer slotDecorationRenderer = (guiGraphics, slot) -> {};
 
-	private StorageBackgroundProperties storageBackgroundProperties;
+	protected StorageBackgroundProperties storageBackgroundProperties;
 
 	public static void setCraftingUIPart(ICraftingUIPart part) {
 		craftingUIPart = part;
@@ -155,7 +155,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return getMenu().getSlot(slotIndex);
 	}
 
-	private void updateUpgradeSlotsPositions() {
+	protected void updateUpgradeSlotsPositions() {
 		int yPosition = 6;
 		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
 			Slot slot = getMenu().getSlot(getMenu().getFirstUpgradeSlot() + slotIndex);
@@ -637,7 +637,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, guiGraphics, x, y));
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
-				guiGraphics.renderTooltip(font, hoveredSlot.getItem(), x, y);
+				super.renderTooltip(guiGraphics, x, y);
 			} else if (hoveredSlot instanceof INameableEmptySlot emptySlot && emptySlot.hasEmptyTooltip()) {
 				guiGraphics.renderComponentTooltip(font, Collections.singletonList(emptySlot.getEmptyTooltip()), x, y);
 			}
@@ -652,10 +652,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
-		List<Component> ret = super.getTooltipFromContainerItem(itemStack);
-		if (itemStack.getCount() > 999) {
+		List<Component> ret = getTooltipFromItem(minecraft, itemStack);
+		if (hoveredSlot != null && hoveredSlot.getMaxStackSize() > 64) {
 			ret.add(Component.translatable("gui.sophisticatedcore.tooltip.stack_count",
-							Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA))
+							Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA)
+							.append(Component.literal(" / ").withStyle(ChatFormatting.GRAY))
+							.append(Component.literal(NumberFormat.getNumberInstance().format(hoveredSlot.getMaxStackSize(itemStack))).withStyle(ChatFormatting.DARK_AQUA)))
 					.withStyle(ChatFormatting.GRAY)
 			);
 		}
