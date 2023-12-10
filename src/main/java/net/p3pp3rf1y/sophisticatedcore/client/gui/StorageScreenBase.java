@@ -95,7 +95,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private static ICraftingUIPart craftingUIPart = ICraftingUIPart.NOOP;
 
-	private StorageBackgroundProperties storageBackgroundProperties;
+	protected StorageBackgroundProperties storageBackgroundProperties;
 
 	public static void setCraftingUIPart(ICraftingUIPart part) {
 		craftingUIPart = part;
@@ -151,7 +151,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return getMenu().getSlot(slotIndex);
 	}
 
-	private void updateUpgradeSlotsPositions() {
+	protected void updateUpgradeSlotsPositions() {
 		int yPosition = 6;
 		for (int slotIndex = 0; slotIndex < numberOfUpgradeSlots; slotIndex++) {
 			Slot slot = getMenu().getSlot(getMenu().getFirstUpgradeSlot() + slotIndex);
@@ -645,7 +645,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, poseStack, x, y));
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
-				renderTooltip(poseStack, hoveredSlot.getItem(), x, y);
+				renderTooltip(poseStack, hoveredSlot, hoveredSlot.getItem(), x, y);
 			} else if (hoveredSlot instanceof INameableEmptySlot emptySlot && emptySlot.hasEmptyTooltip()) {
 				renderComponentTooltip(poseStack, Collections.singletonList(emptySlot.getEmptyTooltip()), x, y, font);
 			}
@@ -659,12 +659,19 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		poseStack.popPose();
 	}
 
-	@Override
-	public List<Component> getTooltipFromItem(ItemStack itemStack) {
+	private void renderTooltip(PoseStack pPoseStack, Slot slot, ItemStack pItemStack, int pMouseX, int pMouseY) {
+		tooltipStack = pItemStack;
+		super.renderTooltip(pPoseStack, getTooltipFromItem(slot, pItemStack), pItemStack.getTooltipImage(), pMouseX, pMouseY);
+		tooltipStack = ItemStack.EMPTY;
+	}
+
+	private List<Component> getTooltipFromItem(Slot slot, ItemStack itemStack) {
 		List<Component> ret = super.getTooltipFromItem(itemStack);
-		if (itemStack.getCount() > 999) {
+		if (slot.getMaxStackSize() > 64) {
 			ret.add(Component.translatable("gui.sophisticatedcore.tooltip.stack_count",
-					Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA))
+							Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA)
+							.append(Component.literal(" / ").withStyle(ChatFormatting.GRAY))
+							.append(Component.literal(NumberFormat.getNumberInstance().format(slot.getMaxStackSize(itemStack))).withStyle(ChatFormatting.DARK_AQUA)))
 					.withStyle(ChatFormatting.GRAY)
 			);
 		}
