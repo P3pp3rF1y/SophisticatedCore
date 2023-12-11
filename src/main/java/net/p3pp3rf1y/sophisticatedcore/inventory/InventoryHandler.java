@@ -236,7 +236,9 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			return ItemStack.EMPTY;
 		}
 
-		if (existing.getCount() <= amount) {
+		int toExtract = Math.min(amount, existing.getMaxStackSize());
+
+		if (existing.getCount() <= toExtract) {
 			if (!simulate) {
 				setSlotStack(slot, ItemStack.EMPTY);
 				return existing;
@@ -245,10 +247,10 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			}
 		} else {
 			if (!simulate) {
-				setSlotStack(slot, ItemHandlerHelper.copyStackWithSize(existing, existing.getCount() - amount));
+				setSlotStack(slot, ItemHandlerHelper.copyStackWithSize(existing, existing.getCount() - toExtract));
 			}
 
-			return ItemHandlerHelper.copyStackWithSize(existing, amount);
+			return ItemHandlerHelper.copyStackWithSize(existing, toExtract);
 		}
 	}
 

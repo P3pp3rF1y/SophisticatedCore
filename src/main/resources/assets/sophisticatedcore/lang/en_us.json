@@ -205,5 +205,6 @@
     "gui.sophisticatedcore.narrate.context_button": "Context toggle set to: %s",
     "gui.sophisticatedcore.narrate.context_button.usage": "Click to toggle context",
     "fluid.sophisticatedcore.xp_still": "Experience",
-    "gui.sophisticatedcore.tooltip.stack_count": "Count: %s"
+    "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
+    "gui.sophisticatedcore.tooltip.stack_limit": "Limit: %s"
 }
