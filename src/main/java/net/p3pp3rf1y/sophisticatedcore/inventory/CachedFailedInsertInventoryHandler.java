@@ -7,32 +7,33 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 
 public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiable {
-	private final IItemHandlerModifiable wrapped;
+	private final Supplier<IItemHandlerModifiable> wrappedHandlerGetter;
 	private final LongSupplier timeSupplier;
 	private long currentCacheTime = 0;
 	private final Set<ItemStack> failedInsertStacks = new HashSet<>();
 
-	public CachedFailedInsertInventoryHandler(IItemHandlerModifiable wrapped, LongSupplier timeSupplier) {
-		this.wrapped = wrapped;
+	public CachedFailedInsertInventoryHandler(Supplier<IItemHandlerModifiable> wrappedHandlerGetter, LongSupplier timeSupplier) {
+		this.wrappedHandlerGetter = wrappedHandlerGetter;
 		this.timeSupplier = timeSupplier;
 	}
 
 	@Override
 	public void setStackInSlot(int slot, @NotNull ItemStack stack) {
-		wrapped.setStackInSlot(slot, stack);
+		wrappedHandlerGetter.get().setStackInSlot(slot, stack);
 	}
 
 	@Override
 	public int getSlots() {
-		return wrapped.getSlots();
+		return wrappedHandlerGetter.get().getSlots();
 	}
 
 	@NotNull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
-		return wrapped.getStackInSlot(slot);
+		return wrappedHandlerGetter.get().getStackInSlot(slot);
 	}
 
 	@NotNull
@@ -47,7 +48,7 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 			return stack;
 		}
 
-		ItemStack result = wrapped.insertItem(slot, stack, simulate);
+		ItemStack result = wrappedHandlerGetter.get().insertItem(slot, stack, simulate);
 
 		if (result == stack) {
 			failedInsertStacks.add(stack); //only working with stack references because this logic is meant to handle the case where something tries to insert the same stack number of slots times
@@ -59,16 +60,16 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	@NotNull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		return wrapped.extractItem(slot, amount, simulate);
+		return wrappedHandlerGetter.get().extractItem(slot, amount, simulate);
 	}
 
 	@Override
 	public int getSlotLimit(int slot) {
-		return wrapped.getSlotLimit(slot);
+		return wrappedHandlerGetter.get().getSlotLimit(slot);
 	}
 
 	@Override
 	public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-		return wrapped.isItemValid(slot, stack);
+		return wrappedHandlerGetter.get().isItemValid(slot, stack);
 	}
 }
