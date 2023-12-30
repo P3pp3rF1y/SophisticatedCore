@@ -397,11 +397,12 @@ public class InventoryHelper {
 			if (stack.isEmpty()) {
 				return;
 			}
-			ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getCount(), false);
+			ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
 			while (!extractedStack.isEmpty()) {
-				Containers.dropItemStack(level, x, y, z, extractedStack.split(Math.min(extractedStack.getCount(), extractedStack.getMaxStackSize())));
-				inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
+				Containers.dropItemStack(level, x, y, z, extractedStack);
+				extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
 			}
+			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 		});
 	}
 
