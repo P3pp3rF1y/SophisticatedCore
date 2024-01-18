@@ -406,6 +406,15 @@ public class InventoryHelper {
 		});
 	}
 
+	public static void deleteItems(ItemStackHandler inventoryHandler) {
+		iterate(inventoryHandler, (slot, stack) -> {
+			if (stack.isEmpty()) {
+				return;
+			}
+			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
+		});
+	}
+
 	public static int getAnalogOutputSignal(ITrackedContentsItemHandler handler) {
 		AtomicDouble totalFilled = new AtomicDouble(0);
 		AtomicBoolean isEmpty = new AtomicBoolean(true);
