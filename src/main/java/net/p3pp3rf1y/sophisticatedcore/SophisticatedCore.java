@@ -40,6 +40,7 @@ public class SophisticatedCore {
 			ClientEventHandler.registerHandlers();
 		}
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+		Config.COMMON.initListeners(modBus);
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);
 
