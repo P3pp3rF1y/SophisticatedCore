@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.compacting;
 
 import net.minecraft.world.item.CreativeModeTab;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -11,8 +12,8 @@ public class CompactingUpgradeItem extends UpgradeItemBase<CompactingUpgradeWrap
 	private final boolean shouldCompactThreeByThree;
 	private final IntSupplier filterSlotCount;
 
-	public CompactingUpgradeItem(boolean shouldCompactThreeByThree, IntSupplier filterSlotCount, CreativeModeTab itemGroup) {
-		super(itemGroup);
+	public CompactingUpgradeItem(boolean shouldCompactThreeByThree, IntSupplier filterSlotCount, CreativeModeTab itemGroup, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(itemGroup, upgradeTypeLimitConfig);
 		this.shouldCompactThreeByThree = shouldCompactThreeByThree;
 		this.filterSlotCount = filterSlotCount;
 	}
