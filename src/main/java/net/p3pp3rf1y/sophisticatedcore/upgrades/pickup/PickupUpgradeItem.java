@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pickup;
 
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -10,8 +11,8 @@ public class PickupUpgradeItem extends UpgradeItemBase<PickupUpgradeWrapper> {
 
 	private final IntSupplier filterSlotCount;
 
-	public PickupUpgradeItem(IntSupplier filterSlotCount) {
-		super();
+	public PickupUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(upgradeTypeLimitConfig);
 		this.filterSlotCount = filterSlotCount;
 	}
 

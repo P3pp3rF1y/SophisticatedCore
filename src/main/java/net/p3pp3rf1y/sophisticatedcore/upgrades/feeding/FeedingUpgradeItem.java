@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -10,8 +11,8 @@ public class FeedingUpgradeItem extends UpgradeItemBase<FeedingUpgradeWrapper> {
 
 	private final IntSupplier filterSlotCount;
 
-	public FeedingUpgradeItem(IntSupplier filterSlotCount) {
-		super();
+	public FeedingUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(upgradeTypeLimitConfig);
 		this.filterSlotCount = filterSlotCount;
 	}
 
