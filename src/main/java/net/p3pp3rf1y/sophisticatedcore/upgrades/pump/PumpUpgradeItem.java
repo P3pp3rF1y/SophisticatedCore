@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -9,8 +10,8 @@ public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	private final boolean interactWithWorldDefault;
 	private final PumpUpgradeConfig pumpUpgradeConfig;
 
-	public PumpUpgradeItem(boolean interactWithHandDefault, boolean interactWithWorldDefault, PumpUpgradeConfig pumpUpgradeConfig) {
-		super();
+	public PumpUpgradeItem(boolean interactWithHandDefault, boolean interactWithWorldDefault, PumpUpgradeConfig pumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(upgradeTypeLimitConfig);
 		this.interactWithHandDefault = interactWithHandDefault;
 		this.interactWithWorldDefault = interactWithWorldDefault;
 		this.pumpUpgradeConfig = pumpUpgradeConfig;

@@ -11,10 +11,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
@@ -25,7 +22,9 @@ import java.util.function.Consumer;
 public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapper> {
 	public static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
-	public JukeboxUpgradeItem() {super();}
+	public JukeboxUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+        super(upgradeTypeLimitConfig);
+    }
 
 	@Override
 	public UpgradeType<Wrapper> getType() {

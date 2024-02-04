@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.chipped;
 
 import com.google.common.base.Suppliers;
-import earth.terrarium.chipped.common.recipe.ChippedRecipe;
+import earth.terrarium.chipped.common.recipes.ChippedRecipe;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -93,7 +93,7 @@ public class BlockTransformationRecipeContainer {
 		if (!stack.isEmpty()) {
 			RecipeHelper.getRecipesOfType(recipeType, inventory).stream().findFirst().ifPresent(r -> {
 				recipe = r;
-				results = Suppliers.memoize(() -> recipe.getResults(inventory).toList());
+				results = Suppliers.memoize(() -> recipe.getResults(inventory.getItem(0)).toList());
 				getLastSelectedResult.get().ifPresent(lastSelectedResult -> {
 					int i = 0;
 					for (ItemStack result : results.get()) {
@@ -146,12 +146,12 @@ public class BlockTransformationRecipeContainer {
 	}
 
 	private boolean isIndexInRecipeBounds(int index) {
-		return recipe != null && index >= 0 && index < recipe.getResults(inputInventory).count();
+		return recipe != null && index >= 0 && index < recipe.getResults(inputInventory.getItem(0)).count();
 	}
 
 	private void updateRecipeResultSlot() {
 		if (recipe != null && isIndexInRecipeBounds(selectedRecipe.get())) {
-			recipe.getResults(inputInventory).skip(selectedRecipe.get()).findFirst().ifPresent(outputSlot::set);
+			recipe.getResults(inputInventory.getItem(0)).skip(selectedRecipe.get()).findFirst().ifPresent(outputSlot::set);
 			resultInventory.setRecipeUsed(recipe);
 		} else {
 			outputSlot.set(ItemStack.EMPTY);

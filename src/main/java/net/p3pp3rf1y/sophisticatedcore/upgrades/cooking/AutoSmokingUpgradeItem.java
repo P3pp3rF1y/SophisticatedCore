@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -7,7 +8,8 @@ public class AutoSmokingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWr
 	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoSmokingUpgradeConfig;
 
-	public AutoSmokingUpgradeItem(AutoCookingUpgradeConfig autoSmokingUpgradeConfig) {super();
+	public AutoSmokingUpgradeItem(AutoCookingUpgradeConfig autoSmokingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+        super(upgradeTypeLimitConfig);
 		this.autoSmokingUpgradeConfig = autoSmokingUpgradeConfig;
 	}
 
