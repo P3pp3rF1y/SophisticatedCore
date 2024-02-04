@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -17,8 +18,8 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 
 	private final BatteryUpgradeConfig batteryUpgradeConfig;
 
-	public BatteryUpgradeItem(CreativeModeTab itemGroup, BatteryUpgradeConfig batteryUpgradeConfig) {
-		super(itemGroup);
+	public BatteryUpgradeItem(CreativeModeTab itemGroup, BatteryUpgradeConfig batteryUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(itemGroup, upgradeTypeLimitConfig);
 		this.batteryUpgradeConfig = batteryUpgradeConfig;
 	}
 
@@ -38,6 +39,11 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 
 	@Override
 	public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
+		UpgradeSlotChangeResult result = super.canAddUpgradeTo(storageWrapper, upgradeStack, firstLevelStorage, isClientSide);
+		if (!result.isSuccessful()) {
+			return result;
+		}
+
 		Set<Integer> errorUpgradeSlots = new HashSet<>();
 		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
 			if (wrapper instanceof BatteryUpgradeWrapper) {
