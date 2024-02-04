@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SortButtonsPosition;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
@@ -46,6 +47,10 @@ public class Config {
 
 	public static class Common {
 		public final EnabledItems enabledItems;
+
+		public void initListeners(IEventBus modBus) {
+			modBus.addListener(this::onConfigReload);
+		}
 
 		@SuppressWarnings("unused") //need the Event parameter for forge reflection to understand what event this listens to
 		public void onConfigReload(ModConfigEvent.Reloading event) {

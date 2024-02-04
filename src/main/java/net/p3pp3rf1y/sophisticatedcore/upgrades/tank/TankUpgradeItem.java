@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -17,8 +18,8 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 
 	private final TankUpgradeConfig tankUpgradeConfig;
 
-	public TankUpgradeItem(CreativeModeTab itemGroup, TankUpgradeConfig tankUpgradeConfig) {
-		super(itemGroup);
+	public TankUpgradeItem(CreativeModeTab itemGroup, TankUpgradeConfig tankUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(itemGroup, upgradeTypeLimitConfig);
 		this.tankUpgradeConfig = tankUpgradeConfig;
 	}
 
@@ -47,6 +48,11 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 
 	@Override
 	public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
+		UpgradeSlotChangeResult result = super.canAddUpgradeTo(storageWrapper, upgradeStack, firstLevelStorage, isClientSide);
+		if (!result.isSuccessful()) {
+			return result;
+		}
+
 		Set<Integer> errorUpgradeSlots = new HashSet<>();
 		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
 			if (wrapper instanceof TankUpgradeWrapper) {

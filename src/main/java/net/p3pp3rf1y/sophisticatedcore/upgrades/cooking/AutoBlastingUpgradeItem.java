@@ -1,6 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
 import net.minecraft.world.item.CreativeModeTab;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -8,7 +10,8 @@ public class AutoBlastingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeW
 	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoBlastingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoBlastingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoBlastingUpgradeConfig;
 
-	public AutoBlastingUpgradeItem(CreativeModeTab itemGroup, AutoCookingUpgradeConfig autoBlastingUpgradeConfig) {super(itemGroup);
+	public AutoBlastingUpgradeItem(CreativeModeTab itemGroup, AutoCookingUpgradeConfig autoBlastingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+		super(itemGroup, upgradeTypeLimitConfig);
 		this.autoBlastingUpgradeConfig = autoBlastingUpgradeConfig;
 	}
 
@@ -20,5 +23,10 @@ public class AutoBlastingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeW
 	@Override
 	public AutoCookingUpgradeConfig getAutoCookingUpgradeConfig() {
 		return autoBlastingUpgradeConfig;
+	}
+
+	@Override
+	public UpgradeGroup getUpgradeGroup() {
+		return ICookingUpgrade.UPGRADE_GROUP;
 	}
 }
