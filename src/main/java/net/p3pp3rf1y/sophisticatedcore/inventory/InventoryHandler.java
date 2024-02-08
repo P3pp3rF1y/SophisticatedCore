@@ -21,13 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -48,7 +42,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	private int baseSlotLimit;
 	private int slotLimit;
-	private int maxStackSizeMultiplier;
+	private double maxStackSizeMultiplier;
 	private boolean isInitializing;
 	private final StackUpgradeConfig stackUpgradeConfig;
 	private final InventoryPartitioner inventoryPartitioner;
@@ -203,7 +197,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	public void setBaseSlotLimit(int baseSlotLimit) {
 		slotLimitInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
 		this.baseSlotLimit = baseSlotLimit;
-		maxStackSizeMultiplier = baseSlotLimit / 64;
+		maxStackSizeMultiplier = baseSlotLimit / 64f;
 
 		if (inventoryPartitioner != null) {
 			inventoryPartitioner.onSlotLimitChange();
@@ -409,7 +403,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		return nbt;
 	}
 
-	public int getStackSizeMultiplier() {
+	public double getStackSizeMultiplier() {
 		return maxStackSizeMultiplier;
 	}
 
