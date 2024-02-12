@@ -30,15 +30,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerModifiable {
@@ -101,6 +93,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			emptySlotsStorages.clear();
 			storagePositions.forEach(this::addStorageStacksAndRegisterListeners);
 		}
+	}
+
+	public boolean isStorageConnected(BlockPos storagePos) {
+		return storagePositions.contains(storagePos);
 	}
 
 	public void searchAndAddStorages() {
