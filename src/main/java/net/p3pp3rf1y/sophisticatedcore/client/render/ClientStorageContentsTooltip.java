@@ -14,16 +14,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nullable;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -149,10 +146,12 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 	}
 
 	private void addMultiplierTooltip(IStorageWrapper wrapper) {
-		int multiplier = wrapper.getInventoryHandler().getStackSizeMultiplier();
+		double multiplier = wrapper.getInventoryHandler().getStackSizeMultiplier();
 		if (multiplier > 1) {
+			DecimalFormat df = new DecimalFormat("0.###");
+
 			tooltipLines.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".stack_multiplier",
-					Component.literal(Integer.toString(multiplier)).withStyle(ChatFormatting.WHITE)
+					Component.literal(df.format(multiplier)).withStyle(ChatFormatting.WHITE)
 			).withStyle(ChatFormatting.GREEN));
 		}
 	}
