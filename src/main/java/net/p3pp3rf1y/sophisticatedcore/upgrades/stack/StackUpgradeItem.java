@@ -15,15 +15,15 @@ import java.util.function.Consumer;
 public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> {
 	public static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 	public static final UpgradeGroup UPGRADE_GROUP = new UpgradeGroup("stack_upgrades", TranslationHelper.INSTANCE.translUpgradeGroup("stack_upgrades"));
-	private final int stackSizeMultiplier;
+	private final double stackSizeMultiplier;
 
-	public StackUpgradeItem(int stackSizeMultiplier, CreativeModeTab itemGroup, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+	public StackUpgradeItem(double stackSizeMultiplier, CreativeModeTab itemGroup, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
 		super(itemGroup, upgradeTypeLimitConfig);
 		this.stackSizeMultiplier = stackSizeMultiplier;
 	}
 
 	public static int getInventorySlotLimit(IStorageWrapper storageWrapper) {
-		int multiplier = storageWrapper.getBaseStackSizeMultiplier();
+		double multiplier = storageWrapper.getBaseStackSizeMultiplier();
 
 		for (Wrapper stackWrapper : storageWrapper.getUpgradeHandler().getTypeWrappers(TYPE)) {
 			if (Integer.MAX_VALUE / stackWrapper.getStackSizeMultiplier() < multiplier) {
@@ -32,7 +32,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			multiplier *= stackWrapper.getStackSizeMultiplier();
 		}
 
-		return Integer.MAX_VALUE / 64 < multiplier ? Integer.MAX_VALUE : multiplier * 64;
+		return Integer.MAX_VALUE / 64D < multiplier ? Integer.MAX_VALUE : (int) (multiplier * 64);
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		return TYPE;
 	}
 
-	int getStackSizeMultiplier() {
+	double getStackSizeMultiplier() {
 		return stackSizeMultiplier;
 	}
 
@@ -50,8 +50,8 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			return new UpgradeSlotChangeResult.Success();
 		}
 
-		int currentInventoryMultiplier = getInventorySlotLimit(storageWrapper) / 64;
-		int multiplierWhenRemoved = currentInventoryMultiplier / stackSizeMultiplier;
+		double currentInventoryMultiplier = getInventorySlotLimit(storageWrapper) / 64D;
+		double multiplierWhenRemoved = currentInventoryMultiplier / stackSizeMultiplier;
 		return isMultiplierHighEnough(storageWrapper, multiplierWhenRemoved);
 	}
 
@@ -70,17 +70,17 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		}
 
 		int currentInventoryMultiplier = getInventorySlotLimit(storageWrapper) / 64;
-		int multiplierWhenRemoved = currentInventoryMultiplier / stackSizeMultiplier;
+		double multiplierWhenRemoved = currentInventoryMultiplier / stackSizeMultiplier;
 
 		return isMultiplierHighEnough(storageWrapper, multiplierWhenRemoved * otherStackUpgradeItem.stackSizeMultiplier);
 	}
 
-	private UpgradeSlotChangeResult isMultiplierHighEnough(IStorageWrapper storageWrapper, int multiplier) {
+	private UpgradeSlotChangeResult isMultiplierHighEnough(IStorageWrapper storageWrapper, double multiplier) {
 		Set<Integer> slotsOverMultiplier = new HashSet<>();
 
 		for (int slot = 0; slot < storageWrapper.getInventoryHandler().getSlots(); slot++) {
 			ItemStack stack = storageWrapper.getInventoryHandler().getSlotStack(slot);
-			int stackMultiplierNeeded = (stack.getCount() / stack.getMaxStackSize()) + (stack.getCount() % stack.getMaxStackSize() != 0 ? 1 : 0);
+			double stackMultiplierNeeded = (double) stack.getCount() / stack.getMaxStackSize();
 			if (stackMultiplierNeeded > multiplier) {
 				slotsOverMultiplier.add(slot);
 			}
@@ -111,7 +111,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			super(storageWrapper, upgrade, upgradeSaveHandler);
 		}
 
-		public int getStackSizeMultiplier() {
+		public double getStackSizeMultiplier() {
 			return upgradeItem.getStackSizeMultiplier();
 		}
 
