@@ -98,7 +98,15 @@ public interface IControllableStorage extends IControllerBoundable {
 			Level level = getStorageBlockLevel();
 			if (!level.isClientSide()) {
 				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class)
-						.ifPresent(controller -> controller.addStorageStacksAndRegisterListeners(getStorageBlockPos()));
+						.ifPresent(controller -> {
+									if (controller.isStorageConnected(getStorageBlockPos())) {
+										controller.addStorageStacksAndRegisterListeners(getStorageBlockPos());
+									} else {
+										removeControllerPos();
+										tryToAddToController();
+									}
+								}
+						);
 			}
 		});
 	}
