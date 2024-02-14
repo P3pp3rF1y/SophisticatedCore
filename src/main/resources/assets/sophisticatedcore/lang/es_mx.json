@@ -9,6 +9,8 @@
     "item.sophisticatedcore.storage.tooltip.empty": "Sin mejoras ni contenido en el inventario",
     "item.sophisticatedcore.storage.tooltip.press_for_contents": "Presiona <%s> para ver el contenido",
     "item.sophisticatedcore.storage.tooltip.shift": "Mayús izquierdo",
+  "upgrade_group.sophisticatedcore.stack_upgrades": "Mejoras de Stack",
+  "upgrade_group.sophisticatedcore.cooking_upgrades": "Mejoras de Horno",
     "gui.sophisticatedcore.settings.no_sort": "No ordenar",
     "gui.sophisticatedcore.settings.no_sort.tooltip": "Opciones de slot no ordenable",
     "gui.sophisticatedcore.settings.no_sort.tooltip_detail": "Permite seleccionar slots que son ignorados al ordenar\nAbrir pestaña para modificar las opciones de los slots",
@@ -178,9 +180,13 @@
     "gui.sophisticatedcore.error.add.tank_capacity_high": "La mochila no admite esta mejora de tanque. Mejora la mochila o añade un multiplicador de stack para obtener al menos x%s más capacidad",
     "gui.sophisticatedcore.error.add.battery_energy_high": "La mochila no admite esta mejora de batería. Mejora la mochila o añade un multiplicador de stack para obtener al menos x%s más energía máxima",
     "gui.sophisticatedcore.error.add.battery_exists": "Ya hay una Mejora de batería en otro slot de mejora",
+  "gui.sophisticatedcore.error.add.upgrade_not_allowed": "%s no se puede utilizar en %s",
+  "gui.sophisticatedcore.error.add.only_single_upgrade_allowed": "Solo se puede usar un %s en %s",
+  "gui.sophisticatedcore.error.add.only_x_upgrades_allowed": "Solo %dx %s se puede usar en %s",
     "gui.sophisticatedcore.narrate.tab_button": "Botón para abrir/cerrar la pestaña de mejora",
     "gui.sophisticatedcore.narrate.context_button": "Contexto establecido en: %s",
     "gui.sophisticatedcore.narrate.context_button.usage": "Clic para cambiar contexto",
     "fluid_type.sophisticatedcore.experience": "Experiencia",
-    "gui.sophisticatedcore.tooltip.stack_count": "Cantidad: %s"
+    "gui.sophisticatedcore.tooltip.stack_count": "Cantidad: %s",
+    "gui.sophisticatedcore.tooltip.stack_limit": "Límite: %s"
 }
