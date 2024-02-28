@@ -116,4 +116,21 @@ public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsC
 	public boolean isLargerThanNumberOfSlots(int slots) {
 		return selectedSlots.stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
+
+	@Override
+	public void copyTo(NoSortSettingsCategory otherCategory, int startFromSlot, int slotOffset) {
+		selectedSlots.forEach(slotIndex -> {
+			if (slotIndex < startFromSlot) {
+				return;
+			}
+			otherCategory.selectedSlots.add(slotIndex + slotOffset);
+		});
+		otherCategory.serializeSelectedSlots();
+	}
+
+	@Override
+	public void deleteSlotSettingsFrom(int slotIndex) {
+		selectedSlots.removeIf(slot -> slot >= slotIndex);
+		serializeSelectedSlots();
+	}
 }

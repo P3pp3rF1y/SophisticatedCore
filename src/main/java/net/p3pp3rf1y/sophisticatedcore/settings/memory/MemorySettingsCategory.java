@@ -350,4 +350,28 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	public boolean isLargerThanNumberOfSlots(int slots) {
 		return slotFilterItems.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots) || slotFilterStacks.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
+
+	@Override
+	public void copyTo(MemorySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
+		slotFilterItems.forEach((slotIndex, item) -> {
+			if (slotIndex < startFromSlot) {
+				return;
+			}
+			otherCategory.slotFilterItems.put(slotIndex + slotOffset, item);
+		});
+		slotFilterStacks.forEach((slotIndex, isk) -> {
+			if (slotIndex < startFromSlot) {
+				return;
+			}
+			otherCategory.slotFilterStacks.put(slotIndex + slotOffset, isk);
+		});
+		otherCategory.serializeFilterItems();
+	}
+
+	@Override
+	public void deleteSlotSettingsFrom(int slotIndex) {
+		slotFilterItems.entrySet().removeIf(e -> e.getKey() >= slotIndex);
+		slotFilterStacks.entrySet().removeIf(e -> e.getKey() >= slotIndex);
+		serializeFilterItems();
+	}
 }

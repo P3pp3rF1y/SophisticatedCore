@@ -316,25 +316,29 @@ public abstract class RenderInfo {
 		private static final String ITEM_TAG = "item";
 		private static final String ROTATION_TAG = "rotation";
 		private static final String SLOT_INDEX_TAG = "slotIndex";
+		private static final String DISPLAY_SIDE_TAG = "displaySide";
 		private ItemStack item;
 		private int rotation;
 		private int slotIndex;
+		private DisplaySide displaySide;
 
-		public DisplayItem(ItemStack item, int rotation, int slotIndex) {
+		public DisplayItem(ItemStack item, int rotation, int slotIndex, DisplaySide displaySide) {
 			this.item = item;
 			this.rotation = rotation;
 			this.slotIndex = slotIndex;
+			this.displaySide = displaySide;
 		}
 
 		private CompoundTag serialize(CompoundTag tag) {
 			tag.put(ITEM_TAG, item.serializeNBT());
 			tag.putInt(ROTATION_TAG, rotation);
 			tag.putInt(SLOT_INDEX_TAG, slotIndex);
+			tag.putString(DISPLAY_SIDE_TAG, displaySide.getSerializedName());
 			return tag;
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
-			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG));
+			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG), DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)));
 		}
 
 		public ItemStack getItem() {
@@ -347,6 +351,10 @@ public abstract class RenderInfo {
 
 		public int getSlotIndex() {
 			return slotIndex;
+		}
+
+		public DisplaySide getDisplaySide() {
+			return displaySide;
 		}
 	}
 }

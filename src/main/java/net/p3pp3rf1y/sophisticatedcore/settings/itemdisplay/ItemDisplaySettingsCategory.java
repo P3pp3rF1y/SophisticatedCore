@@ -9,6 +9,7 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
@@ -32,6 +33,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	private static final String SLOTS_TAG = "slots";
 	private static final String ROTATIONS_TAG = "rotations";
 	private static final String COLOR_TAG = "color";
+	private static final String DISPLAY_SIDE_TAG = "displaySide";
 	private final Supplier<InventoryHandler> inventoryHandlerSupplier;
 	private final Supplier<RenderInfo> renderInfoSupplier;
 	private CompoundTag categoryNbt;
@@ -41,6 +43,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	private DyeColor color = DyeColor.RED;
 	private final List<Integer> slotIndexes = new LinkedList<>();
 	private Map<Integer, Integer> slotRotations = new HashMap<>();
+	private DisplaySide displaySide = DisplaySide.FRONT;
 
 	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
@@ -100,7 +103,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		List<Integer> inaccessibleSlots = new ArrayList<>();
 		for (int slotIndex : slotIndexes) {
 			getSlotItemCopy(slotIndex).ifPresent(stackCopy ->
-					displayItems.add(new RenderInfo.DisplayItem(stackCopy, slotRotations.getOrDefault(slotIndex, 0), slotIndex)));
+					displayItems.add(new RenderInfo.DisplayItem(stackCopy, slotRotations.getOrDefault(slotIndex, 0), slotIndex, displaySide)));
 			if (!inventoryHandlerSupplier.get().isSlotAccessible(slotIndex)) {
 				inaccessibleSlots.add(slotIndex);
 			}
@@ -174,6 +177,17 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		return color;
 	}
 
+	public DisplaySide getDisplaySide() {
+		return displaySide;
+	}
+
+	public void setDisplaySide(DisplaySide displaySide) {
+		this.displaySide = displaySide;
+		categoryNbt.putString(DISPLAY_SIDE_TAG, displaySide.getSerializedName());
+		saveNbt.accept(categoryNbt);
+		updateFullRenderInfo();
+	}
+
 	@Override
 	public void reloadFrom(CompoundTag categoryNbt) {
 		this.categoryNbt = categoryNbt;
@@ -216,6 +230,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 			categoryNbt.remove(ROTATION_TAG);
 			serializeRotations();
 		});
+		NBTHelper.getEnumConstant(categoryNbt, DISPLAY_SIDE_TAG, DisplaySide::fromName).ifPresent(ds -> displaySide = ds);
 	}
 
 	public void itemChanged(int changedSlotIndex) {
@@ -261,4 +276,16 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	public boolean isLargerThanNumberOfSlots(int slots) {
 		return slotIndexes.stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
+
+	@Override
+	public void copyTo(ItemDisplaySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
+		//noop - keep the display item of the other category
+	}
+
+	@Override
+	public void deleteSlotSettingsFrom(int slotIndex) {
+		slotIndexes.removeIf(slot -> slot >= slotIndex);
+		serializeSlotIndexes();
+	}
+
 }

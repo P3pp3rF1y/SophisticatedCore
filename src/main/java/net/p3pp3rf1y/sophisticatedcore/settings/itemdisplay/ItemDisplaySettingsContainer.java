@@ -3,12 +3,14 @@ package net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 
 import java.util.List;
 
 public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisplaySettingsCategory> {
 	private static final String COLOR_TAG = "color";
+	private static final String DISPLAY_SIDE_TAG = "displaySide";
 	private static final String SELECT_SLOT_TAG = "selectSlot";
 	private static final String UNSELECT_SLOT_TAG = "unselectSlot";
 	private static final String ROTATE_CLOCKWISE_TAG = "rotateClockwise";
@@ -30,6 +32,8 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 			rotateCounterClockwise(data.getInt(ROTATE_COUNTER_CLOCKWISE_TAG));
 		} else if (data.contains(COLOR_TAG)) {
 			setColor(DyeColor.byId(data.getInt(COLOR_TAG)));
+		} else if (data.contains(DISPLAY_SIDE_TAG)) {
+			getCategory().setDisplaySide(DisplaySide.fromName(data.getString(DISPLAY_SIDE_TAG)));
 		}
 	}
 
@@ -82,6 +86,14 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		}
 	}
 
+	public void setDisplaySide(DisplaySide displaySide) {
+		if (isServer()) {
+			getCategory().setDisplaySide(displaySide);
+		} else {
+			sendStringToServer(DISPLAY_SIDE_TAG, displaySide.getSerializedName());
+		}
+	}
+
 	public boolean isSlotSelected(int slotIndex) {
 		return getCategory().getSlots().contains(slotIndex);
 	}
@@ -98,5 +110,9 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		List<Integer> slots = getCategory().getSlots();
 
 		return slots.isEmpty() ? -1 : slots.get(0);
+	}
+
+	public DisplaySide getDisplaySide() {
+		return getCategory().getDisplaySide();
 	}
 }
