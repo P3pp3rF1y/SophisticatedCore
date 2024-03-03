@@ -41,7 +41,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final Map<ItemStackKey, Set<BlockPos>> stackStorages = new HashMap<>();
 	private final Map<BlockPos, Set<ItemStackKey>> storageStacks = new HashMap<>();
 	private final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
-	private final Set<BlockPos> emptySlotsStorages = new LinkedHashSet<>();
+	private final Comparator<BlockPos> distanceComparator = Comparator.comparingDouble(p -> p.distSqr(getBlockPos()));
+	private final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
 
 	private final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
@@ -49,8 +50,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final Map<BlockPos, Set<Integer>> storageMemorizedStacks = new HashMap<>();
 	private final Map<Item, Set<BlockPos>> filterItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageFilterItems = new HashMap<>();
-	private Set<BlockPos> linkedBlocks = new LinkedHashSet<>();
-	private Set<BlockPos> connectingBlocks = new LinkedHashSet<>();
+	private Set<BlockPos> linkedBlocks = new TreeSet<>(distanceComparator);
+	private Set<BlockPos> connectingBlocks = new TreeSet<>(distanceComparator);
 
 	@Nullable
 	private LazyOptional<IItemHandler> itemHandlerCap;
@@ -738,6 +739,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	public void detachFromStoragesAndUnlinkBlocks() {
 		storagePositions.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
+		connectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
 		new HashSet<>(linkedBlocks).forEach(linkedPos -> WorldHelper.getLoadedBlockEntity(level, linkedPos, ILinkable.class).ifPresent(ILinkable::unlinkFromController)); //copying into new hashset to prevent CME when these are removed
 	}
 
