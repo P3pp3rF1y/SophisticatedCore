@@ -20,11 +20,13 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 public class ClientEventHandler {
@@ -51,7 +53,9 @@ public class ClientEventHandler {
 		if (!held.isEmpty()) {
 			Slot under = containerGui.getSlotUnderMouse();
 
-			for (Slot s : menu.slots) {
+			List<Slot> slots = menu instanceof StorageContainerMenuBase<?> storageMenu ? storageMenu.realInventorySlots : menu.slots;
+
+			for (Slot s : slots) {
 				ItemStack stack = s.getItem();
 				if (!s.mayPickup(mc.player) || stack.isEmpty()) {
 					continue;
