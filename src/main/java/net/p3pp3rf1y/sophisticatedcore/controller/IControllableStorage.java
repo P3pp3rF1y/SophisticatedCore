@@ -15,6 +15,10 @@ public interface IControllableStorage extends IControllerBoundable {
 		return getControllerPos().isEmpty();
 	}
 
+	default boolean hasStorageData() {
+		return true;
+	}
+
 	@Override
 	default boolean canConnectStorages() {
 		return true;
@@ -59,7 +63,7 @@ public interface IControllableStorage extends IControllerBoundable {
 
 	default void registerController(ControllerBlockEntityBase controllerBlockEntity) {
 		setControllerPos(controllerBlockEntity.getBlockPos());
-		if (controllerBlockEntity.getLevel() != null && !controllerBlockEntity.getLevel().isClientSide()) {
+		if (hasStorageData() && controllerBlockEntity.getLevel() != null && !controllerBlockEntity.getLevel().isClientSide()) {
 			registerListeners();
 		}
 	}

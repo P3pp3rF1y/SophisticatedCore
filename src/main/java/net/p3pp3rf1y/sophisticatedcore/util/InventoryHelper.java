@@ -25,23 +25,9 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 public class InventoryHelper {
 	private InventoryHelper() {}
@@ -393,17 +379,19 @@ public class InventoryHelper {
 	}
 
 	public static void dropItems(ItemStackHandler inventoryHandler, Level level, double x, double y, double z) {
-		iterate(inventoryHandler, (slot, stack) -> {
-			if (stack.isEmpty()) {
-				return;
-			}
-			ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
-			while (!extractedStack.isEmpty()) {
-				Containers.dropItemStack(level, x, y, z, extractedStack);
-				extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
-			}
-			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
-		});
+		iterate(inventoryHandler, (slot, stack) -> dropItem(inventoryHandler, level, x, y, z, slot, stack));
+	}
+
+	public static void dropItem(ItemStackHandler inventoryHandler, Level level, double x, double y, double z, Integer slot, ItemStack stack) {
+		if (stack.isEmpty()) {
+			return;
+		}
+		ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
+		while (!extractedStack.isEmpty()) {
+			Containers.dropItemStack(level, x, y, z, extractedStack);
+			extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
+		}
+		inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 	}
 
 	public static int getAnalogOutputSignal(ITrackedContentsItemHandler handler) {

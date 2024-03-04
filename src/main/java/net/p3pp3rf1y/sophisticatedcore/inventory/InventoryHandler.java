@@ -77,6 +77,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	private void initStackNbts() {
+		stackNbts.clear();
 		for (int slot = 0; slot < stacks.size(); slot++) {
 			ItemStack slotStack = stacks.get(slot);
 			if (!slotStack.isEmpty()) {

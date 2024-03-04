@@ -6,21 +6,27 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.level.block.state.BlockState;
+import net.p3pp3rf1y.sophisticatedcore.api.IDisplaySideStorage;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ImageButton;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.settings.ColorToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.DEFAULT_BUTTON_BACKGROUND;
@@ -36,6 +42,15 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	private static final TextureBlitData ROTATE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(128, 64), Dimension.SQUARE_16);
 	public static final ButtonDefinition ROTATE = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, ROTATE_FOREGROUND);
 
+	private static final ButtonDefinition.Toggle<DisplaySide> DISPLAY_SIDE = ButtonDefinitions.createToggleButtonDefinition(
+			Map.of(
+					DisplaySide.FRONT, GuiHelper.getButtonStateData(new UV(144, 64), Dimension.SQUARE_16, new Position(1, 1),
+							TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_front"), null)),
+					DisplaySide.LEFT, GuiHelper.getButtonStateData(new UV(160, 64), Dimension.SQUARE_16, new Position(1, 1),
+							TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_left"), null)),
+					DisplaySide.RIGHT, GuiHelper.getButtonStateData(new UV(176, 64), Dimension.SQUARE_16, new Position(1, 1),
+							TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_right"), null))
+			));
 	private int currentSelectedSlot = -1;
 
 	public ItemDisplaySettingsTab(ItemDisplaySettingsContainer container, Position position, SettingsScreen screen) {
@@ -62,6 +77,15 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 			}
 		});
 		addHideableChild(new ColorToggleButton(new Position(x + 21, y + 24), container::getColor, container::setColor));
+		if (showSideSelection()) {
+			addHideableChild(new ToggleButton<>(new Position(x + 39, y + 24), DISPLAY_SIDE, button -> {
+				if (button == 0) {
+					container.setDisplaySide(container.getDisplaySide().next());
+				} else if (button == 1) {
+					container.setDisplaySide(container.getDisplaySide().previous());
+				}
+			}, container::getDisplaySide));
+		}
 		currentSelectedSlot = getSettingsContainer().getFirstSelectedSlot();
 	}
 
@@ -113,5 +137,13 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 		}
 
 		return getSettingsContainer().getRotation(slotIndex);
+	}
+
+	private boolean showSideSelection() {
+		if (minecraft.level == null) {
+			return false;
+		}
+		BlockState state = minecraft.level.getBlockState(getSettingsContainer().getSettingsContainer().getBlockPosition());
+		return state.getBlock() instanceof IDisplaySideStorage displaySideStorage && displaySideStorage.canChangeDisplaySide(state);
 	}
 }
