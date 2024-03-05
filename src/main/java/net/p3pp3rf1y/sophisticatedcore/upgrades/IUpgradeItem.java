@@ -50,7 +50,7 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		});
 
 		if (slotsWithUgradeGroup.size() >= upgradesInGroupPerStorage) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.only_x_upgrades_allowed", upgradesInGroupPerStorage, Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), slotsWithUpgrade, Set.of(), Set.of());
+			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.only_x_upgrades_allowed", upgradesInGroupPerStorage, Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), slotsWithUgradeGroup, Set.of(), Set.of());
 		}
 
 		return new UpgradeSlotChangeResult.Success();
