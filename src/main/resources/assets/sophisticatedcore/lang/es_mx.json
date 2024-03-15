@@ -187,6 +187,5 @@
     "gui.sophisticatedcore.narrate.context_button": "Contexto establecido en: %s",
     "gui.sophisticatedcore.narrate.context_button.usage": "Clic para cambiar contexto",
     "fluid_type.sophisticatedcore.experience": "Experiencia",
-    "gui.sophisticatedcore.tooltip.stack_count": "Cantidad: %s",
-    "gui.sophisticatedcore.tooltip.stack_limit": "Límite: %s"
+    "gui.sophisticatedcore.tooltip.stack_count": "Cantidad: %s"
 }
