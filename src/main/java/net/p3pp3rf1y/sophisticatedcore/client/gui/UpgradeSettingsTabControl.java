@@ -19,11 +19,11 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 
 	public boolean slotIsNotCoveredAt(Slot slot, double mouseX, double mouseY) {
 		for (Tab tab : children) {
-			if (tab instanceof UpgradeSettingsTab<?> upgradeSettingsTab && upgradeSettingsTab.slotIsNotCoveredAt(slot, mouseX, mouseY)) {
-				return true;
+			if (tab instanceof UpgradeSettingsTab<?> upgradeSettingsTab && !upgradeSettingsTab.slotIsNotCoveredAt(slot, mouseX, mouseY)) {
+				return false;
 			}
 		}
 
-		return false;
+		return true;
 	}
 }
