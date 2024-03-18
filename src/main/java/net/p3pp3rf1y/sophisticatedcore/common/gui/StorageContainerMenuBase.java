@@ -1608,7 +1608,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			UpgradeSlotChangeResult result;
 			if (getItem().isEmpty()) {
 				result = ((IUpgradeItem<?>) stack.getItem()).canAddUpgradeTo(storageWrapper, stack, isFirstLevelStorage(), player.level.isClientSide());
-			} else if (stack.getCount() > 1 || !mayPickup(player)) {
+			} else if (stack.getCount() > 1) {
 				return false;
 			} else {
 				result = ((IUpgradeItem<?>) getItem().getItem()).canSwapUpgradeFor(stack, storageWrapper, player.level.isClientSide());
