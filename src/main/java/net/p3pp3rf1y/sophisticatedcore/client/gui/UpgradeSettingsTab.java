@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ItemButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -48,5 +49,10 @@ public abstract class UpgradeSettingsTab<C extends UpgradeContainerBase<?, ?>> e
 		if (upgradeContainer.isOpen()) {
 			setOpen(true);
 		}
+	}
+
+	@SuppressWarnings("unused") //parameters used in overrides
+	public boolean slotIsNotCoveredAt(Slot slot, double mouseX, double mouseY) {
+		return true;
 	}
 }

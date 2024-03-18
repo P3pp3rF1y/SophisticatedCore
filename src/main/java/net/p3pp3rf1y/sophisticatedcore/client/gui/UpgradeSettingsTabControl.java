@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
@@ -14,5 +15,15 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 					UpgradeGuiManager.getTab(entry.getValue(), new Position(x, getTopY()), screen))
 					.onAfterInit();
 		}
+	}
+
+	public boolean slotIsNotCoveredAt(Slot slot, double mouseX, double mouseY) {
+		for (Tab tab : children) {
+			if (tab instanceof UpgradeSettingsTab<?> upgradeSettingsTab && upgradeSettingsTab.slotIsNotCoveredAt(slot, mouseX, mouseY)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

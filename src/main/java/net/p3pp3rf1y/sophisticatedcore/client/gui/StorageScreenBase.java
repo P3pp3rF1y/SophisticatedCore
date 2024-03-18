@@ -31,18 +31,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.ContainerScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.p3pp3rf1y.sophisticatedcore.Config;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageInventorySlot;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.*;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.TransferFullSlotMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
@@ -53,14 +45,7 @@ import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.GUI_CONTROLS;
@@ -94,7 +79,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private final Map<Integer, UpgradeInventoryPartBase<?>> inventoryParts = new LinkedHashMap<>();
 
 	private static ICraftingUIPart craftingUIPart = ICraftingUIPart.NOOP;
-	private static ISlotDecorationRenderer slotDecorationRenderer = (guiGraphics, slot) -> {};
+	private static ISlotDecorationRenderer slotDecorationRenderer = (guiGraphics, slot) -> {
+	};
 
 	protected StorageBackgroundProperties storageBackgroundProperties;
 
@@ -326,7 +312,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return switch (sortButtonsPosition) {
 			case BELOW_UPGRADES ->
 					new Position(leftPos - UPGRADE_INVENTORY_OFFSET - 2, topPos + getUpgradeHeightWithoutBottom() + UPGRADE_BOTTOM_HEIGHT + 2);
-			case BELOW_UPGRADE_TABS -> new Position(settingsTabControl.getX() + 2, settingsTabControl.getY() + Math.max(0, settingsTabControl.getHeight() + 2));
+			case BELOW_UPGRADE_TABS ->
+					new Position(settingsTabControl.getX() + 2, settingsTabControl.getY() + Math.max(0, settingsTabControl.getHeight() + 2));
 			default -> new Position(leftPos + imageWidth - 34, topPos + 4);
 		};
 	}
@@ -379,7 +366,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		renderTooltip(guiGraphics, mouseX, mouseY);
 	}
 
-	@SuppressWarnings("java:S4449") //renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
+	@SuppressWarnings("java:S4449")
+	//renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
 	private void renderSuper(GuiGraphics guiGraphics, int pMouseX, int pMouseY, float pPartialTick) { //copy of super.render with storage inventory slots rendering and snap rendering removed
 		int i = leftPos;
 		int j = topPos;
@@ -656,8 +644,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (hoveredSlot != null && hoveredSlot.getMaxStackSize() > 64) {
 			ret.add(Component.translatable("gui.sophisticatedcore.tooltip.stack_count",
 							Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA)
-							.append(Component.literal(" / ").withStyle(ChatFormatting.GRAY))
-							.append(Component.literal(NumberFormat.getNumberInstance().format(hoveredSlot.getMaxStackSize(itemStack))).withStyle(ChatFormatting.DARK_AQUA)))
+									.append(Component.literal(" / ").withStyle(ChatFormatting.GRAY))
+									.append(Component.literal(NumberFormat.getNumberInstance().format(hoveredSlot.getMaxStackSize(itemStack))).withStyle(ChatFormatting.DARK_AQUA)))
 					.withStyle(ChatFormatting.GRAY)
 			);
 		}
@@ -724,6 +712,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			return super.findSlot(mouseX, mouseY);
 		}
 	}
+
+
 
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
@@ -832,8 +822,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		GuiEventListener focused = getFocused();
 		if (focused != null && !focused.isMouseOver(mouseX, mouseY) && (focused instanceof WidgetBase widgetBase)) {
-				widgetBase.setFocused(false);
-
+			widgetBase.setFocused(false);
 		}
 
 		return super.mouseClicked(mouseX, mouseY, button);
@@ -969,7 +958,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 			for (FormattedText line : wrappedLine) {
 				int lineWidth = font.width(line);
-				if (lineWidth > wrappedTooltipWidth) {wrappedTooltipWidth = lineWidth;}
+				if (lineWidth > wrappedTooltipWidth) {
+					wrappedTooltipWidth = lineWidth;
+				}
 				wrappedTextLines.add(line);
 			}
 			tooltipWidth = wrappedTooltipWidth;
@@ -1001,6 +992,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public boolean isMouseOverSlot(Slot pSlot, double pMouseX, double pMouseY) {
 		return isHovering(pSlot, pMouseX, pMouseY);
+	}
+
+	@Override
+	protected boolean isHovering(Slot slot, double mouseX, double mouseY) {
+		return super.isHovering(slot, mouseX, mouseY) && getUpgradeSettingsControl().slotIsNotCoveredAt(slot, mouseX, mouseY);
 	}
 
 	@Override

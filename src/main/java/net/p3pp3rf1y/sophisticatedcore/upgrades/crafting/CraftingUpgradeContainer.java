@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
@@ -12,25 +13,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
-import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.*;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgradeWrapper, CraftingUpgradeContainer> implements ICraftingContainer {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
+	private static final String DATA_SELECT_RESULT = "selectResult";
 	private final ResultContainer craftResult = new ResultContainer();
 	private final CraftingItemHandler craftMatrix;
 	private final ResultSlot craftingResultSlot;
 	@Nullable
 	private CraftingRecipe lastRecipe = null;
+	private List<CraftingRecipe> matchedCraftingRecipes = new ArrayList<>();
+	private List<ItemStack> matchedCraftingResults = new ArrayList<>();
+	private int selectedCraftingResultIndex = 0;
 
 	public CraftingUpgradeContainer(Player player, int upgradeContainerId, CraftingUpgradeWrapper upgradeWrapper, UpgradeContainerType<CraftingUpgradeWrapper, CraftingUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
@@ -88,6 +90,27 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					player.drop(remainingStack, false);
 				}
 			}
+
+			@Override
+			public void setChanged() {
+				super.setChanged();
+				if (player.level().isClientSide()) {
+					matchedCraftingRecipes.clear();
+					matchedCraftingResults.clear();
+					if (!getItem().isEmpty()) {
+						matchedCraftingRecipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, craftMatrix, player.level());
+						int resultIndex = 0;
+						for (CraftingRecipe craftingRecipe : matchedCraftingRecipes) {
+							ItemStack result = craftingRecipe.assemble(craftMatrix, player.level().registryAccess());
+							matchedCraftingResults.add(result);
+							if (ItemHandlerHelper.canItemStacksStack(getItem(), result)) {
+								selectedCraftingResultIndex = resultIndex;
+							}
+							resultIndex++;
+						}
+					}
+				}
+			}
 		};
 		slots.add(craftingResultSlot);
 	}
@@ -110,14 +133,21 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				itemstack = lastRecipe.assemble(inventory, level.registryAccess());
 			} else {
 				//noinspection ConstantConditions - we're on server and for sure in the world so getServer can't return null here
-				Optional<CraftingRecipe> optional = RecipeHelper.safeGetRecipeFor(RecipeType.CRAFTING, inventory, level);
-				if (optional.isPresent()) {
-					CraftingRecipe craftingRecipe = optional.get();
+				List<CraftingRecipe> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, inventory, level);
+				if (!recipes.isEmpty()) {
+					matchedCraftingRecipes = recipes;
+					matchedCraftingResults.clear();
+					selectedCraftingResultIndex = 0;
+					CraftingRecipe craftingRecipe = matchedCraftingRecipes.get(0);
 					if (inventoryResult.setRecipeUsed(level, serverplayerentity, craftingRecipe)) {
 						lastRecipe = craftingRecipe;
 						itemstack = lastRecipe.assemble(inventory, level.registryAccess());
+						matchedCraftingResults.add(itemstack.copy());
 					} else {
 						lastRecipe = null;
+					}
+					for (int i = 1; i < matchedCraftingRecipes.size(); i++) {
+						matchedCraftingResults.add(matchedCraftingRecipes.get(i).assemble(inventory, level.registryAccess()));
 					}
 				}
 			}
@@ -129,10 +159,47 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		}
 	}
 
+	public List<ItemStack> getMatchedCraftingResults() {
+		return matchedCraftingResults;
+	}
+
+	public void selectNextCraftingResult() {
+		if (matchedCraftingResults.size() > 1) {
+			selectCraftingResult((selectedCraftingResultIndex + 1) % matchedCraftingResults.size());
+		}
+	}
+
+	public void selectPreviousCraftingResult() {
+		if (matchedCraftingResults.size() > 1) {
+			selectCraftingResult((selectedCraftingResultIndex + matchedCraftingResults.size() - 1) % matchedCraftingResults.size());
+		}
+	}
+
+	public void selectCraftingResult(int resultIndex) {
+		if (resultIndex < 0 || resultIndex >= matchedCraftingResults.size()) {
+			return;
+		}
+		if (player instanceof ServerPlayer serverPlayer) {
+			selectedCraftingResultIndex = resultIndex;
+			lastRecipe = matchedCraftingRecipes.get(resultIndex);
+			ItemStack result = matchedCraftingResults.get(resultIndex).copy();
+			craftingResultSlot.set(result);
+			//noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
+			if (craftResult.setRecipeUsed(player.level(), serverPlayer, lastRecipe)
+					&& serverPlayer.containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu) {
+				storageContainerMenu.setSlotStackToUpdate(craftingResultSlot.index, result);
+			}
+		} else {
+			sendDataToServer(() -> NBTHelper.putInt(new CompoundTag(), DATA_SELECT_RESULT, resultIndex));
+		}
+	}
+
 	@Override
 	public void handleMessage(CompoundTag data) {
 		if (data.contains(DATA_SHIFT_CLICK_INTO_STORAGE)) {
 			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
+		} else if (data.contains(DATA_SELECT_RESULT)) {
+			selectCraftingResult(data.getInt(DATA_SELECT_RESULT));
 		}
 	}
 
@@ -154,6 +221,23 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	@Override
 	public Container getCraftMatrix() {
 		return craftMatrix;
+	}
+
+	@Override
+	public void setRecipeUsed(ResourceLocation recipeId) {
+		if (lastRecipe != null && lastRecipe.getId().equals(recipeId)) {
+			return;
+		}
+		player.level().getRecipeManager().byKey(recipeId).filter(r -> r.getType() == RecipeType.CRAFTING).map(r -> (CraftingRecipe) r)
+				.ifPresent(recipe -> {
+					lastRecipe = recipe;
+					for (int i = 0; i < matchedCraftingRecipes.size(); i++) {
+						if (matchedCraftingRecipes.get(i).getId().equals(recipeId)) {
+							selectCraftingResult(i);
+							return;
+						}
+					}
+				});
 	}
 
 	public boolean shouldShiftClickIntoStorage() {
