@@ -20,7 +20,7 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 	private int height;
 	private int width;
 	protected boolean isHovered;
-	private boolean visible = true;
+	protected boolean visible = true;
 	private boolean focused = false;
 
 	protected WidgetBase(Position position, Dimension dimension) {

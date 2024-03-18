@@ -26,14 +26,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class CraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>> implements IRecipeTransferHandler<C, CraftingRecipe> {
@@ -116,6 +109,7 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 				container.setOpenTabId(openOrFirstCraftingContainer.getUpgradeContainerId());
 			}
 			TransferRecipeMessage message = new TransferRecipeMessage(
+					recipe.getId(),
 					toMap(transferOperations.results),
 					craftingSlotIndexes,
 					inventorySlotIndexes,
