@@ -41,7 +41,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final Map<ItemStackKey, Set<BlockPos>> stackStorages = new HashMap<>();
 	private final Map<BlockPos, Set<ItemStackKey>> storageStacks = new HashMap<>();
 	private final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
-	private final Comparator<BlockPos> distanceComparator = Comparator.comparingDouble(p -> p.distSqr(getBlockPos()));
+	private final Comparator<BlockPos> distanceComparator = Comparator.<BlockPos>comparingDouble(p -> p.distSqr(getBlockPos())).thenComparing(Comparator.naturalOrder());
 	private final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
 
 	private final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
