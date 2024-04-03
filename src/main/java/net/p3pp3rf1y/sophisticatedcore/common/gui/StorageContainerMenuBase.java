@@ -35,6 +35,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -211,7 +212,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> noSortSlotIndexes = getNoSortSlotIndexes();
 		while (slotIndex < inventoryHandler.getSlots()) {
 			int finalSlotIndex = slotIndex;
-			StorageInventorySlot slot = new StorageInventorySlot(player.level().isClientSide, storageWrapper, inventoryHandler, finalSlotIndex) {
+			StorageInventorySlot slot = new StorageInventorySlot(player.level().isClientSide, storageWrapper, finalSlotIndex) {
 				@Override
 				public void set(@Nonnull ItemStack stack) {
 					super.set(stack);
@@ -1585,7 +1586,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public class StorageUpgradeSlot extends SlotItemHandler {
-		private boolean wasEmpty = false;
+		private boolean wasEmpty = true;
 		private final int slotIndex;
 
 		public StorageUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex) {
@@ -1603,6 +1604,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 				onUpgradeChanged();
 			}
+			wasEmpty = getItem().isEmpty();
+		}
+
+		@Override
+		public void set(@NotNull ItemStack stack) {
+			super.set(stack);
 			wasEmpty = getItem().isEmpty();
 		}
 
