@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -39,6 +40,11 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		return TYPE;
 	}
 
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
+	}
+
 	double getStackSizeMultiplier() {
 		return stackSizeMultiplier;
 	}
@@ -55,7 +61,12 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	}
 
 	@Override
-	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, IStorageWrapper storageWrapper, boolean isClientSide) {
+	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+		UpgradeSlotChangeResult result = super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
+		if (!result.isSuccessful()) {
+			return result;
+		}
+
 		if (isClientSide) {
 			return new UpgradeSlotChangeResult.Success();
 		}
