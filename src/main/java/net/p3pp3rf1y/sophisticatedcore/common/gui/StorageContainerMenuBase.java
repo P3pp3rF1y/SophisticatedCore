@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.IntComparators;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -65,7 +64,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	protected final Player player;
 	protected final S storageWrapper;
 	protected final IStorageWrapper parentStorageWrapper;
-	private final Map<Integer, ItemStack> slotStacksToUpdate = new HashMap<>();
 	private final int storageItemSlotIndex;
 	private final boolean shouldLockStorageItemSlot;
 	private int storageItemSlotNumber = -1;
@@ -771,12 +769,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private void broadcastFullStateOf(NonNullList<ItemStack> lastSlotsCollection, List<Slot> slotsCollection, int slotIndexOffset) {
 		for (int i = 0; i < slotsCollection.size(); ++i) {
-			ItemStack itemstack = slotsCollection.get(i).getItem();
-			triggerSlotListeners(i, itemstack, itemstack::copy, lastSlotsCollection, slotIndexOffset);
+			Slot slot = slotsCollection.get(i);
+			ItemStack itemstack = slot.getItem();
+			triggerSlotListeners(i, itemstack, itemstack::copy, lastSlotsCollection, slotIndexOffset, slot);
 		}
 	}
 
-	protected void triggerSlotListeners(int stackIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy, NonNullList<ItemStack> lastSlotsCollection, int slotIndexOffset) {
+	protected void triggerSlotListeners(int stackIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy, NonNullList<ItemStack> lastSlotsCollection, int slotIndexOffset, Slot slot) {
 		ItemStack itemstack = lastSlotsCollection.get(stackIndex);
 		if (!ItemStack.matches(itemstack, slotStack)) {
 			boolean clientStackChanged = !slotStack.equals(itemstack, true);
@@ -787,6 +786,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				for (ContainerListener containerlistener : containerListeners) {
 					containerlistener.slotChanged(this, stackIndex + slotIndexOffset, stackCopy);
 				}
+			}
+
+			if (isUpgradeSettingsSlot(slot.index)) {
+				slot.setChanged(); //updating slots in upgrade tabs to trigger related logic like updating recipe result on another player's screen
 			}
 		}
 	}
@@ -1158,8 +1161,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			}
 		}
-
-		sendSlotUpdates();
 	}
 
 	@Override
@@ -1169,14 +1170,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 
 		return super.canTakeItemForPickAll(pStack, slot);
-	}
-
-	public void sendSlotUpdates() {
-		if (!player.level().isClientSide) {
-			ServerPlayer serverPlayer = (ServerPlayer) player;
-			slotStacksToUpdate.forEach((slot, stack) -> serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(serverPlayer.containerMenu.containerId, incrementStateId(), slot, stack)));
-			slotStacksToUpdate.clear();
-		}
 	}
 
 	@Override
@@ -1438,9 +1431,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private void broadcastChangesIn(NonNullList<ItemStack> lastSlotsCollection, NonNullList<ItemStack> remoteSlotsCollection, List<Slot> slotsCollection, int slotIndexOffset) {
 		for (int i = 0; i < slotsCollection.size(); ++i) {
-			ItemStack itemstack = slotsCollection.get(i).getItem();
+			Slot slot = slotsCollection.get(i);
+			ItemStack itemstack = slot.getItem();
 			Supplier<ItemStack> supplier = Suppliers.memoize(itemstack::copy);
-			triggerSlotListeners(i, itemstack, supplier, lastSlotsCollection, slotIndexOffset);
+			triggerSlotListeners(i, itemstack, supplier, lastSlotsCollection, slotIndexOffset, slot);
 			synchronizeSlotToRemote(i, itemstack, supplier, remoteSlotsCollection, slotIndexOffset);
 		}
 	}
@@ -1506,10 +1500,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private boolean isInventorySlotInUpgradeTab(Player player, Slot slot) {
 		return slot.mayPickup(player) && !(slot instanceof ResultSlot);
-	}
-
-	public void setSlotStackToUpdate(int slot, ItemStack stack) {
-		slotStacksToUpdate.put(slot, stack);
 	}
 
 	private void reloadUpgradeControl() {
