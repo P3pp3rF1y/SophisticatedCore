@@ -5,6 +5,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
+import java.util.List;
+
 public class BlastingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.BlastingUpgradeWrapper> implements ICookingUpgradeItem {
 	public static final UpgradeType<CookingUpgradeWrapper.BlastingUpgradeWrapper> TYPE = new UpgradeType<>(CookingUpgradeWrapper.BlastingUpgradeWrapper::new);
 	private final CookingUpgradeConfig blastingUpgradeConfig;
@@ -17,6 +19,11 @@ public class BlastingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.B
 	@Override
 	public UpgradeType<CookingUpgradeWrapper.BlastingUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
 	}
 
 	@Override

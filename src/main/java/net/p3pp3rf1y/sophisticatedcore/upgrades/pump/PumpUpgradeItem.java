@@ -4,6 +4,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
+import java.util.List;
+
 public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	private static final UpgradeType<PumpUpgradeWrapper> TYPE = new UpgradeType<>(PumpUpgradeWrapper::new);
 	private final boolean interactWithHandDefault;
@@ -20,6 +22,11 @@ public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	@Override
 	public UpgradeType<PumpUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
 	}
 
 	public boolean getInteractWithHandDefault() {

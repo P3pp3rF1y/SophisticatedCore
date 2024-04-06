@@ -9,11 +9,11 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	public static final UpgradeType<TankUpgradeWrapper> TYPE = new UpgradeType<>(TankUpgradeWrapper::new);
+	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List.of(new UpgradeConflictDefinition(TankUpgradeItem.class::isInstance, 1, TranslationHelper.INSTANCE.translError("add.two_tank_upgrades_present")));
 
 	private final TankUpgradeConfig tankUpgradeConfig;
 
@@ -46,29 +46,18 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	}
 
 	@Override
-	public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
-		UpgradeSlotChangeResult result = super.canAddUpgradeTo(storageWrapper, upgradeStack, firstLevelStorage, isClientSide);
-		if (!result.isSuccessful()) {
-			return result;
-		}
-
-		Set<Integer> errorUpgradeSlots = new HashSet<>();
-		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
-			if (wrapper instanceof TankUpgradeWrapper) {
-				errorUpgradeSlots.add(slot);
-			}
-		});
-
-		if (errorUpgradeSlots.size() >= 2) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.two_tank_upgrades_present"), errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
-		}
-
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide) {
 		int multiplierRequired = (int) Math.ceil((float) TankUpgradeWrapper.getContents(upgradeStack).getAmount() / getTankCapacity(storageWrapper));
 		if (multiplierRequired > 1) {
 			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 		}
 
 		return new UpgradeSlotChangeResult.Success();
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return UPGRADE_CONFLICT_DEFINITIONS;
 	}
 
 	@Override

@@ -125,6 +125,6 @@ public class ClientEventHandler {
 
 	private static void onPlayerJoinServer(ClientPlayerNetworkEvent.LoggingIn evt) {
 		//noinspection ConstantConditions - by the time player is joining the world is not null
-		RecipeHelper.setWorld(Minecraft.getInstance().level);
+		RecipeHelper.setLevel(Minecraft.getInstance().level);
 	}
 }

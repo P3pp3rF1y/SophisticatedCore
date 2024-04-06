@@ -4,6 +4,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
+import java.util.List;
 import java.util.function.IntSupplier;
 
 public class MagnetUpgradeItem extends UpgradeItemBase<MagnetUpgradeWrapper> {
@@ -20,6 +21,11 @@ public class MagnetUpgradeItem extends UpgradeItemBase<MagnetUpgradeWrapper> {
 	@Override
 	public UpgradeType<MagnetUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
 	}
 
 	public int getFilterSlotCount() {

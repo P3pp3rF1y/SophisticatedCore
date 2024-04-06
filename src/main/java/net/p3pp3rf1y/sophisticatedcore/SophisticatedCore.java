@@ -16,7 +16,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.p3pp3rf1y.sophisticatedcore.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.CommonEventHandler;
-import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
@@ -52,7 +51,7 @@ public class SophisticatedCore {
 	private static void serverStarted(ServerStartedEvent event) {
 		ServerLevel world = event.getServer().getLevel(Level.OVERWORLD);
 		if (world != null) {
-			RecipeHelper.setWorld(world);
+			RecipeHelper.setLevel(world);
 		}
 	}
 

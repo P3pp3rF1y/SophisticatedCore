@@ -9,11 +9,11 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 	public static final UpgradeType<BatteryUpgradeWrapper> TYPE = new UpgradeType<>(BatteryUpgradeWrapper::new);
+	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List.of(new UpgradeConflictDefinition(BatteryUpgradeItem.class::isInstance, 0, TranslationHelper.INSTANCE.translError("add.battery_exists")));
 
 	private final BatteryUpgradeConfig batteryUpgradeConfig;
 
@@ -37,23 +37,12 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 	}
 
 	@Override
-	public UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
-		UpgradeSlotChangeResult result = super.canAddUpgradeTo(storageWrapper, upgradeStack, firstLevelStorage, isClientSide);
-		if (!result.isSuccessful()) {
-			return result;
-		}
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return UPGRADE_CONFLICT_DEFINITIONS;
+	}
 
-		Set<Integer> errorUpgradeSlots = new HashSet<>();
-		storageWrapper.getUpgradeHandler().getSlotWrappers().forEach((slot, wrapper) -> {
-			if (wrapper instanceof BatteryUpgradeWrapper) {
-				errorUpgradeSlots.add(slot);
-			}
-		});
-
-		if (!errorUpgradeSlots.isEmpty()) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.battery_exists"), errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
-		}
-
+	@Override
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide) {
 		int multiplierRequired = (int) Math.ceil((float) BatteryUpgradeWrapper.getEnergyStored(upgradeStack) / getMaxEnergyStored(storageWrapper));
 		if (multiplierRequired > 1) {
 			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.battery_energy_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
