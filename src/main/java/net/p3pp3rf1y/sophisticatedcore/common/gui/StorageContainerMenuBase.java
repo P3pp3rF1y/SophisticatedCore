@@ -149,10 +149,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public Optional<UpgradeSlotChangeResult> getErrorUpgradeSlotChangeResult() {
 		if (errorUpgradeSlotChangeResult != null && player.level().getGameTime() >= errorResultExpirationTime) {
-			errorResultExpirationTime = 0;
-			errorUpgradeSlotChangeResult = null;
+			clearErrorUpgradeSlotChangeResult();
 		}
 		return Optional.ofNullable(errorUpgradeSlotChangeResult);
+	}
+
+	private void clearErrorUpgradeSlotChangeResult() {
+		errorResultExpirationTime = 0;
+		errorUpgradeSlotChangeResult = null;
 	}
 
 	protected void sendStorageSettingsToClient() {
@@ -677,6 +681,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private boolean mergeStackToUpgradeSlots(Slot sourceSlot, ItemStack slotStack) {
+		if (!(slotStack.getItem() instanceof IUpgradeItem<?>)) {
+			return false;
+		}
+
+		clearErrorUpgradeSlotChangeResult();
 		tryingToMergeUpgrade = true;
 		boolean result = !upgradeSlots.isEmpty() && moveItemStackTo(sourceSlot, slotStack, getInventorySlotsSize(), getInventorySlotsSize() + getNumberOfUpgradeSlots(), false);
 		tryingToMergeUpgrade = false;
