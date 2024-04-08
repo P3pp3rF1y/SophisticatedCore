@@ -164,6 +164,7 @@
     "gui.sophisticatedcore.upgrades.slots.battery_output.tooltip": "Output",
     "gui.sophisticatedcore.upgrades.slots.battery_input.tooltip": "Input",
     "gui.sophisticatedcore.buttons.sort_by_name": "By Name",
+    "gui.sophisticatedcore.buttons.sort_by_mod": "By Mod",
     "gui.sophisticatedcore.buttons.sort_by_count": "By Count",
     "gui.sophisticatedcore.buttons.sort_by_tags": "By Tags",
     "gui.sophisticatedcore.buttons.sort_action": "Sort Inventory",

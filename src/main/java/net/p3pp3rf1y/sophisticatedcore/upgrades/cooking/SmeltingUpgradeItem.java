@@ -5,6 +5,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
+import java.util.List;
+
 public class SmeltingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.SmeltingUpgradeWrapper> implements ICookingUpgradeItem {
 	public static final UpgradeType<CookingUpgradeWrapper.SmeltingUpgradeWrapper> TYPE = new UpgradeType<>(CookingUpgradeWrapper.SmeltingUpgradeWrapper::new);
 
@@ -18,6 +20,11 @@ public class SmeltingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.S
 	@Override
 	public UpgradeType<CookingUpgradeWrapper.SmeltingUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
 	}
 
 	@Override

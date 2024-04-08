@@ -2,22 +2,18 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.SlotItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 
-public class StorageInventorySlot extends SlotItemHandler {
+public class StorageInventorySlot extends SlotSuppliedHandler {
 	private final boolean isClientSide;
 	private final IStorageWrapper storageWrapper;
-	private final InventoryHandler inventoryHandler;
 	private final int slotIndex;
 
-	public StorageInventorySlot(boolean isClientSide, IStorageWrapper storageWrapper, InventoryHandler inventoryHandler, int slotIndex) {
-		super(inventoryHandler, slotIndex, 0, 0);
+	public StorageInventorySlot(boolean isClientSide, IStorageWrapper storageWrapper, int slotIndex) {
+		super(storageWrapper::getInventoryHandler, slotIndex, 0, 0);
 		this.isClientSide = isClientSide;
 		this.storageWrapper = storageWrapper;
-		this.inventoryHandler = inventoryHandler;
 		this.slotIndex = slotIndex;
 	}
 
@@ -38,7 +34,7 @@ public class StorageInventorySlot extends SlotItemHandler {
 
 	@Override
 	public int getMaxStackSize(ItemStack stack) {
-		return inventoryHandler.getStackLimit(slotIndex, stack);
+		return storageWrapper.getInventoryHandler().getStackLimit(slotIndex, stack);
 	}
 
 	@Override

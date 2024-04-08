@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -16,6 +17,14 @@ public class InventorySorter {
 	private InventorySorter() {}
 
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getHoverName().getString());
+	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
+			Comparator
+					.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
+						ResourceLocation registryName = ForgeRegistries.ITEMS.getKey(o.getKey().getStack().getItem());
+						return registryName == null ? null : registryName.getNamespace();
+					})
+					.thenComparing(o -> o.getKey().getStack().getHoverName().getString());
+
 
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_COUNT = (first, second) -> {
 		int ret = second.getValue().compareTo(first.getValue());

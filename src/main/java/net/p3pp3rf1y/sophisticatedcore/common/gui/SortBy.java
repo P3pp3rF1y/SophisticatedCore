@@ -7,6 +7,7 @@ import java.util.Map;
 
 public enum SortBy implements StringRepresentable {
 	NAME("name"),
+	MOD("mod"),
 	COUNT("count"),
 	TAGS("tags");
 

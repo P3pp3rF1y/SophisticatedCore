@@ -16,6 +16,7 @@ public class CommonEventHandler {
 		ModParticles.registerParticles(modBus);
 		ModRecipes.registerHandlers(modBus);
 		MinecraftForge.EVENT_BUS.addListener(ItemStackKey::clearCacheOnTickEnd);
-		MinecraftForge.EVENT_BUS.addListener(RecipeHelper::onReload);
+		MinecraftForge.EVENT_BUS.addListener(RecipeHelper::onDataPackSync);
+		MinecraftForge.EVENT_BUS.addListener(RecipeHelper::onRecipesUpdated);
 	}
 }

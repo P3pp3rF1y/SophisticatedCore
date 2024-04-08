@@ -4,6 +4,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
+import java.util.List;
 import java.util.function.IntSupplier;
 
 public class FilterUpgradeItem extends UpgradeItemBase<FilterUpgradeWrapper> {
@@ -18,6 +19,11 @@ public class FilterUpgradeItem extends UpgradeItemBase<FilterUpgradeWrapper> {
 	@Override
 	public UpgradeType<FilterUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
 	}
 
 	public int getFilterSlotCount() {

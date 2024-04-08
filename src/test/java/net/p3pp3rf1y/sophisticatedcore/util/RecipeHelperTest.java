@@ -8,13 +8,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ShapedRecipe;
-import net.minecraft.world.item.crafting.ShapelessRecipe;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,11 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
@@ -136,7 +126,7 @@ public class RecipeHelperTest {
 	@ParameterizedTest
 	@MethodSource
 	void testGetCompatingResult(Level level, Item item, RecipeHelper.CompactingResult expectedResult) {
-		RecipeHelper.setWorld(level);
+		RecipeHelper.setLevel(level);
 
 		RecipeHelper.CompactingResult actualResult = RecipeHelper.getCompactingResult(item, RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE);
 
@@ -158,7 +148,7 @@ public class RecipeHelperTest {
 	@ParameterizedTest
 	@MethodSource
 	void testGetUncompactingResult(Level level, Item item, RecipeHelper.UncompactingResult expectedResult) {
-		RecipeHelper.setWorld(level);
+		RecipeHelper.setLevel(level);
 
 		RecipeHelper.UncompactingResult actualResult = RecipeHelper.getUncompactingResult(item);
 
@@ -179,7 +169,7 @@ public class RecipeHelperTest {
 	@ParameterizedTest
 	@MethodSource
 	void testGetItemCompactingShapes(Level level, Item item, Set<RecipeHelper.CompactingShape> shapes) {
-		RecipeHelper.setWorld(level);
+		RecipeHelper.setLevel(level);
 
 		Set<RecipeHelper.CompactingShape> actualShapes = RecipeHelper.getItemCompactingShapes(item);
 

@@ -4,6 +4,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
+import java.util.List;
+
 public class AutoSmokingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> implements IAutoCookingUpgradeItem {
 	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoSmokingUpgradeConfig;
@@ -16,6 +18,11 @@ public class AutoSmokingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWr
 	@Override
 	public UpgradeType<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
+		return List.of();
 	}
 
 	@Override
