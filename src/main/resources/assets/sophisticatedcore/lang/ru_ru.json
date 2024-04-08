@@ -164,6 +164,7 @@
     "gui.sophisticatedcore.upgrades.slots.battery_output.tooltip": "Разрядить",
     "gui.sophisticatedcore.upgrades.slots.battery_input.tooltip": "Зарядить",
     "gui.sophisticatedcore.buttons.sort_by_name": "По имени",
+    "gui.sophisticatedcore.buttons.sort_by_mod": "По моду",
     "gui.sophisticatedcore.buttons.sort_by_count": "По кол-ву",
     "gui.sophisticatedcore.buttons.sort_by_tags": "По тегам",
     "gui.sophisticatedcore.buttons.sort_action": "Сортировка инвентаря",
