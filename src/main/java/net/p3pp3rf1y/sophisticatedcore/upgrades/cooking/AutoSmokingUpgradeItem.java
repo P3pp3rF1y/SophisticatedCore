@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeGroup;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
@@ -28,5 +29,10 @@ public class AutoSmokingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWr
 	@Override
 	public AutoCookingUpgradeConfig getAutoCookingUpgradeConfig() {
 		return autoSmokingUpgradeConfig;
+	}
+
+	@Override
+	public UpgradeGroup getUpgradeGroup() {
+		return ICookingUpgrade.UPGRADE_GROUP;
 	}
 }
