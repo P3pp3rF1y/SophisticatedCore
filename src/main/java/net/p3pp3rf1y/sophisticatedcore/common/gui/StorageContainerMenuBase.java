@@ -81,6 +81,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private boolean slotsChangedSinceStartOfClick = false;
 	private boolean tryingToMergeUpgrade = false;
+	private boolean initialBroadcast = true;
 
 	protected StorageContainerMenuBase(MenuType<?> pMenuType, int pContainerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		super(pMenuType, pContainerId);
@@ -797,7 +798,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			}
 
-			if (isUpgradeSettingsSlot(slot.index)) {
+			if (!initialBroadcast && isUpgradeSettingsSlot(slot.index)) {
 				slot.setChanged(); //updating slots in upgrade tabs to trigger related logic like updating recipe result on another player's screen
 			}
 		}
@@ -1431,6 +1432,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			sendStorageSettingsToClient();
 			refreshInventorySlotsIfNeeded();
 		}
+
+		initialBroadcast = false;
 	}
 
 
