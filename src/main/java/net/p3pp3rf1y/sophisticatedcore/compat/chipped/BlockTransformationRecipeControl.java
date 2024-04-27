@@ -10,14 +10,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.List;
 
@@ -141,7 +137,7 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 
 	private void renderTooltip(GuiGraphics guiGraphics, ItemStack itemStack, int mouseX, int mouseY) {
 		Font font = IClientItemExtensions.of(itemStack).getFont(itemStack, IClientItemExtensions.FontContext.TOOLTIP);
-		guiGraphics.renderComponentTooltip((font == null ? this.font : font), screen.getTooltipFromItem(minecraft, itemStack), mouseX, mouseY);
+		guiGraphics.renderComponentTooltip((font == null ? this.font : font), Screen.getTooltipFromItem(minecraft, itemStack), mouseX, mouseY);
 	}
 
 	private void onInventoryUpdate() {
@@ -198,9 +194,9 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		if (canScroll()) {
-			scrollRecipesByDelta(delta);
+			scrollRecipesByDelta(scrollY);
 		}
 		return true;
 	}
@@ -217,7 +213,7 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//TODO narration - probably just copy from stonecutter screen
 	}
 }

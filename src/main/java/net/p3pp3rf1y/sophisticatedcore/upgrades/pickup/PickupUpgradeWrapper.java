@@ -21,7 +21,7 @@ public class PickupUpgradeWrapper extends UpgradeWrapperBase<PickupUpgradeWrappe
 	}
 
 	@Override
-	public ItemStack pickup(Level world, ItemStack stack, boolean simulate) {
+	public ItemStack pickup(Level level, ItemStack stack, boolean simulate) {
 		if (!filterLogic.matchesFilter(stack)) {
 			return stack;
 		}

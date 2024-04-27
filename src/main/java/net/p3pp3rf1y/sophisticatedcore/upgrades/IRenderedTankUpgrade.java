@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

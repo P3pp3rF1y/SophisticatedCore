@@ -1,19 +1,19 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.neoforge.attachment.AttachmentHolder;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.event.TickEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class ItemStackKey {
-	private static final Field CAP_NBT = ObfuscationReflectionHelper.findField(ItemStack.class, "capNBT");
+	private static final Field ATTACHMENTS = ObfuscationReflectionHelper.findField(AttachmentHolder.class, "attachments");
 	private final ItemStack stack;
 
 	private static final Map<ItemStack, ItemStackKey> CACHE = new ConcurrentHashMap<>();
@@ -44,8 +44,12 @@ public final class ItemStackKey {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {return true;}
-		if (o == null || getClass() != o.getClass()) {return false;}
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		ItemStackKey that = (ItemStackKey) o;
 		return canItemStacksStack(stack, that.stack);
 	}
@@ -56,7 +60,7 @@ public final class ItemStackKey {
 		}
 
 		//noinspection DataFlowIssue
-		return (!a.hasTag() || a.getTag().equals(b.getTag())) && Objects.equals(getCapNbt(a), getCapNbt(b));
+		return (!a.hasTag() || a.getTag().equals(b.getTag())) && a.areAttachmentsCompatible(b);
 	}
 
 	public boolean hashCodeNotEquals(ItemStack otherStack) {
@@ -78,20 +82,21 @@ public final class ItemStackKey {
 			//noinspection ConstantConditions - hasTag call makes sure getTag doesn't return null
 			hash = hash * 31 + stack.getTag().hashCode();
 		}
-		CompoundTag capNbt = getCapNbt(stack);
-		if (capNbt != null && !capNbt.isEmpty()) {
-			hash = hash * 31 + capNbt.hashCode();
+		if (stack.hasAttachments()) {
+			Map<AttachmentType<?>, Object> attachments = getAttachments(stack);
+			if (attachments != null) {
+				hash = hash * 31 + attachments.hashCode();
+			}
 		}
 		return hash;
 	}
 
 	@Nullable
-	private static CompoundTag getCapNbt(ItemStack stack) {
+	private static Map<AttachmentType<?>, Object> getAttachments(ItemStack stack) {
 		try {
-			return (CompoundTag) CAP_NBT.get(stack);
-		}
-		catch (IllegalAccessException e) {
-			SophisticatedCore.LOGGER.error("Error getting capNBT of stack ", e);
+			return (Map<AttachmentType<?>, Object>) ATTACHMENTS.get(stack);
+		} catch (IllegalAccessException e) {
+			SophisticatedCore.LOGGER.error("Error getting attachments of stack ", e);
 			return null;
 		}
 	}
@@ -100,7 +105,9 @@ public final class ItemStackKey {
 		return hashCode() == getHashCode(stack);
 	}
 
-	public ItemStack stack() {return stack;}
+	public ItemStack stack() {
+		return stack;
+	}
 
 	@Override
 	public String toString() {

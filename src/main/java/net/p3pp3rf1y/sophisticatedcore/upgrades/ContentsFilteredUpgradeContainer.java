@@ -20,7 +20,7 @@ public class ContentsFilteredUpgradeContainer<W extends IUpgradeWrapper & IConte
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
-		filterLogicContainer.handleMessage(data);
+	public void handlePacket(CompoundTag data) {
+		filterLogicContainer.handlePacket(data);
 	}
 }

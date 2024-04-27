@@ -10,20 +10,15 @@ import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class InventoryPartitioner {
+	public static final String BASE_INDEXES_TAG = "baseIndexes";
 	private IInventoryPartHandler[] inventoryPartHandlers;
 
 	private int[] baseIndexes;
-	private InventoryHandler parent;
+	private final InventoryHandler parent;
 
 	public InventoryPartitioner(CompoundTag tag, InventoryHandler parent, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.parent = parent;
@@ -211,7 +206,7 @@ public class InventoryPartitioner {
 
 	public CompoundTag serializeNBT() {
 		CompoundTag ret = new CompoundTag();
-		ret.putIntArray("baseIndexes", baseIndexes);
+		ret.putIntArray(BASE_INDEXES_TAG, baseIndexes);
 		ListTag partNames = new ListTag();
 		for (IInventoryPartHandler inventoryPartHandler : inventoryPartHandlers) {
 			partNames.add(StringTag.valueOf(inventoryPartHandler.getName()));
@@ -221,13 +216,13 @@ public class InventoryPartitioner {
 	}
 
 	private void deserializeNBT(CompoundTag tag, Supplier<MemorySettingsCategory> getMemorySettings) {
-		if (!tag.contains("baseIndexes")) {
+		if (!tag.contains(BASE_INDEXES_TAG)) {
 			this.inventoryPartHandlers = new IInventoryPartHandler[] {new IInventoryPartHandler.Default(parent, parent.getSlots())};
 			this.baseIndexes = new int[] {0};
 			return;
 		}
 
-		baseIndexes = tag.getIntArray("baseIndexes");
+		baseIndexes = tag.getIntArray(BASE_INDEXES_TAG);
 		inventoryPartHandlers = new IInventoryPartHandler[baseIndexes.length];
 		ListTag partNamesTag = tag.getList("inventoryPartNames", Tag.TAG_STRING);
 		int i = 0;

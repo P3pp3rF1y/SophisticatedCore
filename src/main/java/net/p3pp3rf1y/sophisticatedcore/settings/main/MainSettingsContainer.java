@@ -7,16 +7,16 @@ import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
 
-public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCategory> {
+public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCategory<?>> {
 	private static final String CONTEXT_TAG = "context";
 	private Context context = Context.PLAYER;
 
-	public MainSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MainSettingsCategory category) {
+	public MainSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MainSettingsCategory<?> category) {
 		super(settingsContainer, categoryName, category);
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(CONTEXT_TAG)) {
 			context = Context.fromId(data.getInt(CONTEXT_TAG));
 		} else {

@@ -4,8 +4,8 @@ import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import net.minecraft.client.renderer.Rect2i;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 
 									@Override
 									public void accept(I i) {
-										PacketHandler.INSTANCE.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
+										PacketDistributor.SERVER.noArg().send(new SetMemorySlotMessage(ghostStack, s.index));
 									}
 								});
 							}

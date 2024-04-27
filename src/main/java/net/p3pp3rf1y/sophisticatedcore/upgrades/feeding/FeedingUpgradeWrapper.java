@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -11,14 +10,15 @@ import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IFilteredUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
@@ -38,38 +38,38 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	@Override
-	public void tick(@Nullable LivingEntity entity, Level world, BlockPos pos) {
-		if (isInCooldown(world) || (entity != null && !(entity instanceof Player))) {
+	public void tick(@Nullable LivingEntity entity, Level level, BlockPos pos) {
+		if (isInCooldown(level) || (entity != null && !(entity instanceof Player))) {
 			return;
 		}
 
 		boolean hungryPlayer = false;
 		if (entity == null) {
 			AtomicBoolean stillHungryPlayer = new AtomicBoolean(false);
-			world.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true).forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, world)));
+			level.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true).forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, level)));
 			hungryPlayer = stillHungryPlayer.get();
 		} else {
-			if (feedPlayerAndGetHungry((Player) entity, world)) {
+			if (feedPlayerAndGetHungry((Player) entity, level)) {
 				hungryPlayer = true;
 			}
 		}
 		if (hungryPlayer) {
-			setCooldown(world, STILL_HUNGRY_COOLDOWN);
+			setCooldown(level, STILL_HUNGRY_COOLDOWN);
 			return;
 		}
 
-		setCooldown(world, COOLDOWN);
+		setCooldown(level, COOLDOWN);
 	}
 
-	private boolean feedPlayerAndGetHungry(Player player, Level world) {
+	private boolean feedPlayerAndGetHungry(Player player, Level level) {
 		int hungerLevel = 20 - player.getFoodData().getFoodLevel();
 		if (hungerLevel == 0) {
 			return false;
 		}
-		return tryFeedingFoodFromStorage(world, hungerLevel, player) && player.getFoodData().getFoodLevel() < 20;
+		return tryFeedingFoodFromStorage(level, hungerLevel, player) && player.getFoodData().getFoodLevel() < 20;
 	}
 
-	private boolean tryFeedingFoodFromStorage(Level world, int hungerLevel, Player player) {
+	private boolean tryFeedingFoodFromStorage(Level level, int hungerLevel, Player player) {
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
 		IItemHandlerModifiable inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		AtomicBoolean fedPlayer = new AtomicBoolean(false);
@@ -77,14 +77,13 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 			if (isEdible(stack, player) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 				ItemStack mainHandItem = player.getMainHandItem();
 				player.getInventory().items.set(player.getInventory().selected, stack);
-				if (stack.use(world, player, InteractionHand.MAIN_HAND).getResult() == InteractionResult.CONSUME) {
+				if (stack.use(level, player, InteractionHand.MAIN_HAND).getResult() == InteractionResult.CONSUME) {
 					player.getInventory().items.set(player.getInventory().selected, mainHandItem);
-					ItemStack containerItem = ForgeEventFactory.onItemUseFinish(player, stack.copy(), 0, stack.getItem().finishUsingItem(stack, world, player));
+					ItemStack containerItem = EventHooks.onItemUseFinish(player, stack.copy(), 0, stack.getItem().finishUsingItem(stack, level, player));
 					inventory.setStackInSlot(slot, stack);
 					if (!ItemStack.matches(containerItem, stack)) {
 						//not handling the case where player doesn't have item handler cap as the player should always have it. if that changes in the future well I guess I fix it
-						player.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP)
-								.ifPresent(playerInventory -> InventoryHelper.insertOrDropItem(player, containerItem, inventory, playerInventory));
+						CapabilityHelper.runOnCapability(player, Capabilities.ItemHandler.ENTITY, null, playerInventory -> InventoryHelper.insertOrDropItem(player, containerItem, inventory, playerInventory));
 					}
 					fedPlayer.set(true);
 					return true;

@@ -16,7 +16,7 @@ public class ItemStackHelper {
 			if (stackA.getTag() == null && stackB.getTag() != null) {
 				return false;
 			} else {
-				return (stackA.getTag() == null || areTagsEqualIgnoreDurability(stackA.getTag(), stackB.getTag())) && stackA.areCapsCompatible(stackB);
+				return (stackA.getTag() == null || areTagsEqualIgnoreDurability(stackA.getTag(), stackB.getTag())) && stackA.areAttachmentsCompatible(stackB);
 			}
 		} else {
 			return false;

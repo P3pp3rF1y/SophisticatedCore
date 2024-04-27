@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.data;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.FluidTagsProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 
@@ -17,7 +17,7 @@ public class SCFluidTagsProvider extends FluidTagsProvider {
 	}
 
 	@Override
-	protected void addTags(HolderLookup.Provider pProvider) {
+	protected void addTags(HolderLookup.Provider provider) {
 		tag(ModFluids.EXPERIENCE_TAG).add(ModFluids.XP_STILL.get());
 	}
 }

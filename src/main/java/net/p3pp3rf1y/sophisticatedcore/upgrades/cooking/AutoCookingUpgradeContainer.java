@@ -23,8 +23,8 @@ public class AutoCookingUpgradeContainer<R extends AbstractCookingRecipe, W exte
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
-		inputFilterLogicContainer.handleMessage(data);
+	public void handlePacket(CompoundTag data) {
+		inputFilterLogicContainer.handlePacket(data);
 	}
 
 	public CookingLogicContainer<R> getCookingLogicContainer() {

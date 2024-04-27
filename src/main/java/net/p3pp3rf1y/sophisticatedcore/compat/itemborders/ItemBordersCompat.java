@@ -1,10 +1,11 @@
+/*
 package net.p3pp3rf1y.sophisticatedcore.compat.itemborders;
 
 import com.anthonyhilyard.itemborders.ItemBorders;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.Slot;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.DistExecutor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 
@@ -18,3 +19,4 @@ public class ItemBordersCompat implements ICompat {
 		ItemBorders.renderBorder(guiGraphics.pose(), slot);
 	}
 }
+*/

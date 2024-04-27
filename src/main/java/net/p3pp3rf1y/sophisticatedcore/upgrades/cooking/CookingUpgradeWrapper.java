@@ -3,11 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.BlastingRecipe;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraft.world.item.crafting.SmokingRecipe;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
@@ -28,16 +24,16 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 		cookingLogic = new CookingLogic<>(upgrade, upgradeSaveHandler, upgradeItem.getCookingUpgradeConfig(), recipeType, burnTimeModifier);
 	}
 
-	public void tick(@Nullable LivingEntity entity, Level world, BlockPos pos) {
-		if (isInCooldown(world)) {
+	public void tick(@Nullable LivingEntity entity, Level level, BlockPos pos) {
+		if (isInCooldown(level)) {
 			return;
 		}
 
-		if (!cookingLogic.tick(world)) {
-			setCooldown(world, NOTHING_TO_DO_COOLDOWN);
+		if (!cookingLogic.tick(level)) {
+			setCooldown(level, NOTHING_TO_DO_COOLDOWN);
 		}
 
-		boolean isBurning = cookingLogic.isBurning(world);
+		boolean isBurning = cookingLogic.isBurning(level);
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
 		if (renderInfo.getUpgradeRenderData(CookingUpgradeRenderData.TYPE).map(CookingUpgradeRenderData::isBurning).orElse(false) != isBurning) {
 			if (isBurning) {

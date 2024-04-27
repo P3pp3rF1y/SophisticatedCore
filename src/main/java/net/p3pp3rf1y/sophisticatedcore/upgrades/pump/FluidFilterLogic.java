@@ -5,7 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.List;
@@ -85,7 +85,6 @@ public class FluidFilterLogic {
 
 	private void serializeFluidFilters() {
 		ListTag fluids = new ListTag();
-		//noinspection ConstantConditions - only registered fluids get added
 		fluidFilters.forEach(f -> fluids.add(f.writeToNBT(new CompoundTag())));
 		upgrade.getOrCreateTag().put("fluidFilters", fluids);
 	}

@@ -14,8 +14,8 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.SyncDatapackSettingsTemplateMessage;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHelper;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncDatapackSettingsTemplatePacket;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
@@ -54,7 +54,8 @@ public class TemplatePersistanceContainer {
 	private int loadSlotIndex = -1;
 	@Nullable
 	private TemplateSettingsHandler selectedTemplate;
-	private Runnable onSlotsRefreshed = () -> {};
+	private Runnable onSlotsRefreshed = () -> {
+	};
 
 	public TemplatePersistanceContainer(SettingsContainerMenu<?> settingsContainer) {
 		this.settingsContainer = settingsContainer;
@@ -95,7 +96,7 @@ public class TemplatePersistanceContainer {
 		onSlotsRefreshed.run();
 	}
 
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(ACTION_TAG)) {
 			String action = data.getString(ACTION_TAG);
 			switch (action) {
@@ -283,15 +284,14 @@ public class TemplatePersistanceContainer {
 			CompoundTag settingsNbt = settingsContainer.getStorageWrapper().getSettingsHandler().getNbt().copy();
 			try {
 				NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, exportPath, (new SnbtPrinterTagVisitor()).visit(settingsNbt));
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				SophisticatedCore.LOGGER.error("Error writing template export", e);
 				return;
 			}
 
 			DatapackSettingsTemplateManager.putTemplate(playersFolder, fileName, settingsNbt);
 
-			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncDatapackSettingsTemplateMessage(playersFolder, fileName, settingsNbt));
+			PacketHelper.sendToPlayer(new SyncDatapackSettingsTemplatePacket(playersFolder, fileName, settingsNbt), serverPlayer);
 
 			initSlots();
 
@@ -324,8 +324,7 @@ public class TemplatePersistanceContainer {
 	private static boolean initDatapackStructure(Path datapackRoot, Path templatesDir) {
 		try {
 			Files.createDirectories(templatesDir);
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			SophisticatedCore.LOGGER.error("Error creating directory for template export", e);
 			return false;
 		}
@@ -340,8 +339,7 @@ public class TemplatePersistanceContainer {
 						    }
 						}
 						""");
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				SophisticatedCore.LOGGER.error("Error creating pack.mcmeta for template export", e);
 				return false;
 			}
@@ -356,7 +354,8 @@ public class TemplatePersistanceContainer {
 	public abstract static class TemplateSettingsHandler extends SettingsHandler {
 
 		protected TemplateSettingsHandler(CompoundTag contentsNbt) {
-			super(contentsNbt, () -> {}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderInfo);
+			super(contentsNbt, () -> {
+			}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderInfo);
 		}
 
 		protected abstract SettingsHandler getCurrentSettingsHandler();

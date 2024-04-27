@@ -1,12 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 
@@ -20,8 +20,8 @@ public class InventorySorter {
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
 			Comparator
 					.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
-						ResourceLocation registryName = ForgeRegistries.ITEMS.getKey(o.getKey().getStack().getItem());
-						return registryName == null ? null : registryName.getNamespace();
+						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().getStack().getItem());
+						return registryName.getNamespace();
 					})
 					.thenComparing(o -> o.getKey().getStack().getHoverName().getString());
 
@@ -71,8 +71,7 @@ public class InventorySorter {
 	};
 
 	private static String getRegistryName(ItemStackKey itemStackKey) {
-		//noinspection ConstantConditions - registryName is nonNull by the time it exists in itemstack form
-		return ForgeRegistries.ITEMS.getKey(itemStackKey.getStack().getItem()).toString();
+		return BuiltInRegistries.ITEM.getKey(itemStackKey.getStack().getItem()).toString();
 	}
 
 	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {

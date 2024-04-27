@@ -9,11 +9,7 @@ import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.CompositeWidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ProgressBar;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.List;
 
@@ -42,11 +38,11 @@ public class CookingLogicControl<T extends AbstractCookingRecipe> extends Compos
 	}
 
 	private float getProgress(long finishTime, int timeTotal) {
-		Level world = Minecraft.getInstance().level;
-		if (world == null) {
+		Level level = Minecraft.getInstance().level;
+		if (level == null) {
 			return 0;
 		}
-		return 1 - ((float) Math.max(finishTime - world.getGameTime(), 0) / timeTotal);
+		return 1 - ((float) Math.max(finishTime - level.getGameTime(), 0) / timeTotal);
 	}
 
 	@Override
@@ -67,7 +63,7 @@ public class CookingLogicControl<T extends AbstractCookingRecipe> extends Compos
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//TODO add narration
 	}
 }

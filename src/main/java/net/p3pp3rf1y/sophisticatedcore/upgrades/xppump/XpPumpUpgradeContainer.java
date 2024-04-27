@@ -99,7 +99,7 @@ public class XpPumpUpgradeContainer extends UpgradeContainerBase<XpPumpUpgradeWr
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(DATA_DIRECTION)) {
 			setDirection(AutomationDirection.fromName(data.getString(DATA_DIRECTION)));
 		} else if (data.contains(DATA_LEVEL)) {

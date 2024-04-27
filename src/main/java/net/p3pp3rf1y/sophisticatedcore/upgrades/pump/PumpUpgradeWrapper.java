@@ -12,18 +12,18 @@ import net.minecraft.world.level.block.BucketPickup;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
-import net.minecraftforge.fluids.capability.wrappers.FluidBlockWrapper;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.fluids.IFluidBlock;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
+import net.neoforged.neoforge.fluids.capability.wrappers.FluidBlockWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
@@ -54,16 +54,16 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	@Override
-	public void tick(@Nullable LivingEntity entity, Level world, BlockPos pos) {
-		if (isInCooldown(world)) {
+	public void tick(@Nullable LivingEntity entity, Level level, BlockPos pos) {
+		if (isInCooldown(level)) {
 			return;
 		}
-		setCooldown(world, storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, world, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
+		setCooldown(level, storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, level, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
 	}
 
 	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable LivingEntity entity, Level level, BlockPos pos) {
 		if (entity == null) {
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
+			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, (Player) entity, level, pos);
 			if (newCooldown.isPresent()) {
 				return newCooldown.get();
 			}
@@ -72,7 +72,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 				lastHandActionTime = level.getGameTime();
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
+			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, (Player) entity, level, pos);
 			if (newCooldown.isPresent()) {
 				return newCooldown.get();
 			}
@@ -80,32 +80,32 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
 	}
 
-	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, Level world, BlockPos pos) {
-		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(world, pos, storageFluidHandler)) {
-			lastHandActionTime = world.getGameTime();
+	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, @Nullable Player player, Level level, BlockPos pos) {
+		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
+			lastHandActionTime = level.getGameTime();
 			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
 		}
 
 		if (shouldInteractWithWorld()) {
-			Optional<Integer> newCooldown = interactWithWorld(world, pos, storageFluidHandler);
+			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler, player);
 			if (newCooldown.isPresent()) {
 				return newCooldown;
 			}
 		}
 
-		return interactWithAttachedFluidHandlers(world, pos, storageFluidHandler);
+		return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
 	}
 
-	private Optional<Integer> interactWithAttachedFluidHandlers(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
+	private Optional<Integer> interactWithAttachedFluidHandlers(Level level, BlockPos pos, IFluidHandler storageFluidHandler) {
 		for (Direction dir : Direction.values()) {
-			boolean successful = WorldHelper.getBlockEntity(world, pos.offset(dir.getNormal())).map(te ->
-					te.getCapability(ForgeCapabilities.FLUID_HANDLER, dir.getOpposite()).map(fluidHandler -> {
+			boolean successful = WorldHelper.getBlockEntity(level, pos.offset(dir.getNormal())).map(be ->
+					CapabilityHelper.<Boolean>getFromFluidHandler(be, dir.getOpposite(), fluidHandler -> {
 						if (isInput()) {
 							return fillFromFluidHandler(fluidHandler, storageFluidHandler, getMaxInOut());
 						} else {
 							return fillFluidHandler(fluidHandler, storageFluidHandler, getMaxInOut());
 						}
-					}).orElse(false)).orElse(false);
+					}, false)).orElse(false);
 			if (successful) {
 				return Optional.of(FLUID_HANDLER_INTERACTION_COOLDOWN_TIME);
 			}
@@ -122,13 +122,13 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return 1 + (int) (pumpUpgradeConfig.stackMultiplierRatio.get() * (storageWrapper.getInventoryHandler().getStackSizeMultiplier() - 1));
 	}
 
-	private Optional<Integer> interactWithWorld(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
+	private Optional<Integer> interactWithWorld(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Player player) {
 		if (isInput()) {
-			return fillFromBlockInRange(world, pos, storageFluidHandler);
+			return fillFromBlockInRange(level, pos, storageFluidHandler, player);
 		} else {
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getNormal());
-				if (placeFluidInWorld(world, storageFluidHandler, dir, offsetPos)) {
+				if (placeFluidInWorld(level, storageFluidHandler, dir, offsetPos)) {
 					return Optional.of(WORLD_INTERACTION_COOLDOWN_TIME);
 				}
 			}
@@ -136,12 +136,12 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return Optional.empty();
 	}
 
-	private boolean placeFluidInWorld(Level world, IFluidHandler storageFluidHandler, Direction dir, BlockPos offsetPos) {
+	private boolean placeFluidInWorld(Level level, IFluidHandler storageFluidHandler, Direction dir, BlockPos offsetPos) {
 		if (dir != Direction.UP) {
 			for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 				FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
 				if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
-						&& isValidForFluidPlacement(world, offsetPos) && FluidUtil.tryPlaceFluid(null, world, InteractionHand.MAIN_HAND, offsetPos, storageFluidHandler, tankFluid)) {
+						&& isValidForFluidPlacement(level, offsetPos) && FluidUtil.tryPlaceFluid(null, level, InteractionHand.MAIN_HAND, offsetPos, storageFluidHandler, tankFluid)) {
 					return true;
 				}
 			}
@@ -149,19 +149,19 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return false;
 	}
 
-	private boolean isValidForFluidPlacement(Level world, BlockPos offsetPos) {
-		BlockState blockState = world.getBlockState(offsetPos);
+	private boolean isValidForFluidPlacement(Level level, BlockPos offsetPos) {
+		BlockState blockState = level.getBlockState(offsetPos);
 		return blockState.isAir() || (!blockState.getFluidState().isEmpty() && !blockState.getFluidState().isSource());
 	}
 
-	private Optional<Integer> fillFromBlockInRange(Level world, BlockPos basePos, IFluidHandler storageFluidHandler) {
+	private Optional<Integer> fillFromBlockInRange(Level level, BlockPos basePos, IFluidHandler storageFluidHandler, @Nullable Player player) {
 		LinkedList<BlockPos> nextPositions = new LinkedList<>();
 		Set<BlockPos> searchedPositions = new HashSet<>();
 		nextPositions.add(basePos);
 
 		while (!nextPositions.isEmpty()) {
 			BlockPos pos = nextPositions.poll();
-			if (fillFromBlock(world, pos, storageFluidHandler)) {
+			if (fillFromBlock(level, pos, storageFluidHandler, player)) {
 				return Optional.of((int) (Math.max(1, Math.sqrt(basePos.distSqr(pos))) * WORLD_INTERACTION_COOLDOWN_TIME));
 			}
 
@@ -178,16 +178,16 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return Optional.empty();
 	}
 
-	private boolean fillFromBlock(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
-		FluidState fluidState = world.getFluidState(pos);
+	private boolean fillFromBlock(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Player player) {
+		FluidState fluidState = level.getFluidState(pos);
 		if (!fluidState.isEmpty()) {
-			BlockState state = world.getBlockState(pos);
+			BlockState state = level.getBlockState(pos);
 			Block block = state.getBlock();
 			IFluidHandler targetFluidHandler;
 			if (block instanceof IFluidBlock fluidBlock) {
-				targetFluidHandler = new FluidBlockWrapper(fluidBlock, world, pos);
+				targetFluidHandler = new FluidBlockWrapper(fluidBlock, level, pos);
 			} else if (block instanceof BucketPickup bucketPickup) {
-				targetFluidHandler = new BucketPickupHandlerWrapper(bucketPickup, world, pos);
+				targetFluidHandler = new BucketPickupHandlerWrapper(player, bucketPickup, level, pos);
 			} else {
 				return false;
 			}
@@ -196,9 +196,9 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return false;
 	}
 
-	private boolean handleFluidContainersInHandsOfNearbyPlayers(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
+	private boolean handleFluidContainersInHandsOfNearbyPlayers(Level level, BlockPos pos, IFluidHandler storageFluidHandler) {
 		AABB searchBox = new AABB(pos).inflate(PLAYER_SEARCH_RANGE);
-		for (Player player : world.players()) {
+		for (Player player : level.players()) {
 			if (searchBox.contains(player.getX(), player.getY(), player.getZ()) && handleFluidContainerInHands(player, storageFluidHandler)) {
 				return true;
 			}
@@ -215,13 +215,13 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		if (itemInHand.getCount() != 1 || itemInHand == storageWrapper.getWrappedStorageStack()) {
 			return false;
 		}
-		return itemInHand.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).map(itemFluidHandler -> {
+		return CapabilityHelper.getFromFluidHandler(itemInHand, itemFluidHandler -> {
 			if (isInput()) {
 				return fillFromHand(player, hand, itemFluidHandler, storageFluidHandler);
 			} else {
 				return fillContainerInHand(player, hand, itemFluidHandler, storageFluidHandler);
 			}
-		}).orElse(false);
+		}, false);
 	}
 
 	private boolean fillContainerInHand(Player player, InteractionHand hand, IFluidHandlerItem itemFluidHandler, IFluidHandler storageFluidHandler) {

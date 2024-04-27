@@ -14,6 +14,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
@@ -35,7 +36,7 @@ public class StonecutterRecipeContainer {
 	private final Level level;
 	private final Slot outputSlot;
 	private final ResultContainer resultInventory = new ResultContainer();
-	private List<StonecutterRecipe> recipes = Lists.newArrayList();
+	private List<RecipeHolder<StonecutterRecipe>> recipes = Lists.newArrayList();
 	private final DataSlot selectedRecipe = DataSlot.standalone();
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
@@ -91,7 +92,7 @@ public class StonecutterRecipeContainer {
 			recipes = RecipeHelper.getRecipesOfType(RecipeType.STONECUTTING, inventory);
 			getLastSelectedRecipeId.get().ifPresent(id -> {
 				for (int i = 0; i < recipes.size(); i++) {
-					if (recipes.get(i).getId().equals(id)) {
+					if (recipes.get(i).id().equals(id)) {
 						selectedRecipe.set(i);
 						updateRecipeResultSlot();
 					}
@@ -112,7 +113,7 @@ public class StonecutterRecipeContainer {
 		inventoryUpdateListener = listenerIn;
 	}
 
-	public List<StonecutterRecipe> getRecipeList() {
+	public List<RecipeHolder<StonecutterRecipe>> getRecipeList() {
 		return recipes;
 	}
 
@@ -127,7 +128,7 @@ public class StonecutterRecipeContainer {
 	public boolean selectRecipe(int recipeIndex) {
 		if (isIndexInRecipeBounds(recipeIndex)) {
 			selectedRecipe.set(recipeIndex);
-			setLastSelectedRecipeId.accept(recipes.get(recipeIndex).getId());
+			setLastSelectedRecipeId.accept(recipes.get(recipeIndex).id());
 			updateRecipeResultSlot();
 			serverUpdater.sendDataToServer(() -> NBTHelper.putInt(new CompoundTag(), DATA_SELECTED_RECIPE_INDEX, recipeIndex));
 		}
@@ -140,15 +141,15 @@ public class StonecutterRecipeContainer {
 
 	private void updateRecipeResultSlot() {
 		if (!recipes.isEmpty() && isIndexInRecipeBounds(selectedRecipe.get())) {
-			StonecutterRecipe stonecuttingrecipe = recipes.get(selectedRecipe.get());
+			RecipeHolder<StonecutterRecipe> stonecuttingrecipe = recipes.get(selectedRecipe.get());
 			resultInventory.setRecipeUsed(stonecuttingrecipe);
-			outputSlot.set(stonecuttingrecipe.assemble(inputInventory, level.registryAccess()));
+			outputSlot.set(stonecuttingrecipe.value().assemble(inputInventory, level.registryAccess()));
 		} else {
 			outputSlot.set(ItemStack.EMPTY);
 		}
 	}
 
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(DATA_SELECTED_RECIPE_INDEX)) {
 			selectRecipe(data.getInt(DATA_SELECTED_RECIPE_INDEX));
 		}

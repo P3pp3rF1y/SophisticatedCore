@@ -7,5 +7,5 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nullable;
 
 public interface ITickableUpgrade {
-	void tick(@Nullable LivingEntity entity, Level world, BlockPos pos);
+	void tick(@Nullable LivingEntity entity, Level level, BlockPos pos);
 }

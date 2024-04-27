@@ -1,13 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class PumpUpgradeConfig {
-	public final ForgeConfigSpec.IntValue maxInputOutput;
-	public final ForgeConfigSpec.DoubleValue stackMultiplierRatio;
-	public final ForgeConfigSpec.IntValue filterSlots;
+	public final ModConfigSpec.IntValue maxInputOutput;
+	public final ModConfigSpec.DoubleValue stackMultiplierRatio;
+	public final ModConfigSpec.IntValue filterSlots;
 
-	public PumpUpgradeConfig(ForgeConfigSpec.Builder builder) {
+	public PumpUpgradeConfig(ModConfigSpec.Builder builder) {
 		builder.comment("Pump Upgrade Settings").push("pumpUpgrade");
 		filterSlots = builder.comment("Number of fluid filter slots").defineInRange("filterSlots", 4, 1, 20);
 		maxInputOutput = builder.comment("How much mB can be transfered in / out per operation. This is a base transfer rate that gets multiplied by number of rows in storage and stack multiplier.").defineInRange("maxInputOutput", 20, 1, 1000);

@@ -8,8 +8,8 @@ import net.p3pp3rf1y.sophisticatedcore.Config;
 import java.util.function.Consumer;
 
 public class BlockItemBase extends BlockItem {
-	public BlockItemBase(Block pBlock, Properties properties) {
-		super(pBlock, properties);
+	public BlockItemBase(Block block, Properties properties) {
+		super(block, properties);
 	}
 
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {

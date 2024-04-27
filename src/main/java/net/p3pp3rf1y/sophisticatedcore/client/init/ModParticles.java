@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.init;
 
-import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeNoteParticle;
 
 public class ModParticles {

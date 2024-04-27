@@ -13,12 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -210,7 +205,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 		sendBooleanToServer(DATA_MATCH_ANY_TAG, matchAnyTag);
 	}
 
-	public boolean handleMessage(CompoundTag data) {
+	public boolean handlePacket(CompoundTag data) {
 		if (isDifferentFilterLogicsData(data)) {
 			return false;
 		}
@@ -275,7 +270,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 		}
 
 		@Override
-		public boolean mayPickup(Player pPlayer) {
+		public boolean mayPickup(Player player) {
 			return false;
 		}
 
@@ -290,7 +285,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 		}
 
 		@Override
-		public ItemStack remove(int pAmount) {
+		public ItemStack remove(int amount) {
 			stack = ItemStack.EMPTY;
 			return stack;
 		}

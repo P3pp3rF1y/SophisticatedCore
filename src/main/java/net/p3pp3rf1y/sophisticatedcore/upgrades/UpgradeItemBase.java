@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 
@@ -27,7 +27,7 @@ public abstract class UpgradeItemBase<T extends IUpgradeWrapper> extends ItemBas
 
 	@Override
 	public int getUpgradesPerStorage(String storageType) {
-		return upgradeTypeLimitConfig.getMaxUpgradesPerStorage(storageType, ForgeRegistries.ITEMS.getKey(this));
+		return upgradeTypeLimitConfig.getMaxUpgradesPerStorage(storageType, BuiltInRegistries.ITEM.getKey(this));
 	}
 
 	@Override

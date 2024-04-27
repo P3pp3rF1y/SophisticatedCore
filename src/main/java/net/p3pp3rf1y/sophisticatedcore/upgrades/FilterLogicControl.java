@@ -17,7 +17,7 @@ public class FilterLogicControl<L extends FilterLogic, C extends FilterLogicCont
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//TODO add narration
 	}
 

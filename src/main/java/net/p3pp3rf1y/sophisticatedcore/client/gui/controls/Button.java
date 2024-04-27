@@ -61,9 +61,9 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		pNarrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("gui.narrate.button", getTooltip()));
-		pNarrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.focused"));
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
+		narrationElementOutput.add(NarratedElementType.TITLE, Component.translatable("gui.narrate.button", getTooltip()));
+		narrationElementOutput.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.focused"));
 	}
 
 	public void setTooltip(List<Component> tooltip) {

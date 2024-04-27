@@ -74,6 +74,6 @@ public class RotatedShapes {
 	}
 
 	public interface DoubleLineFunction {
-		VoxelShape apply(double pMinX, double pMinY, double pMinZ, double pMaxX, double pMaxY, double pMaxZ);
+		VoxelShape apply(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
 	}
 }

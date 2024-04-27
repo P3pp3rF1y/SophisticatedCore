@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
@@ -7,16 +8,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class FilterLogicBase {
@@ -53,8 +49,7 @@ public class FilterLogicBase {
 
 		PrimaryMatch primaryMatch = getPrimaryMatch();
 		if (primaryMatch == PrimaryMatch.MOD) {
-			//noinspection ConstantConditions
-			if (!ForgeRegistries.ITEMS.getKey(stack.getItem()).getNamespace().equals(ForgeRegistries.ITEMS.getKey(filter.getItem()).getNamespace())) {
+			if (!BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace().equals(BuiltInRegistries.ITEM.getKey(filter.getItem()).getNamespace())) {
 				return false;
 			}
 		} else if (primaryMatch == PrimaryMatch.ITEM && stack.getItem() != filter.getItem()) {

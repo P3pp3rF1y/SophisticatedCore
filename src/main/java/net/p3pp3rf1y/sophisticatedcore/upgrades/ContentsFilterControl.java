@@ -34,7 +34,7 @@ public abstract class ContentsFilterControl extends FilterLogicControl<ContentsF
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//TODO add narration
 	}
 

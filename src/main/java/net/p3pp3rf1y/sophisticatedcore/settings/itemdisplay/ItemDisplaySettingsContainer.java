@@ -21,7 +21,7 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(SELECT_SLOT_TAG)) {
 			selectSlot(data.getInt(SELECT_SLOT_TAG));
 		} else if (data.contains(UNSELECT_SLOT_TAG)) {

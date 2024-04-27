@@ -12,10 +12,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
@@ -154,19 +154,19 @@ public class InventoryHelper {
 		return result;
 	}
 
-	public static ItemStack runPickupOnPickupResponseUpgrades(Level world, UpgradeHandler upgradeHandler, ItemStack remainingStack, boolean simulate) {
-		return runPickupOnPickupResponseUpgrades(world, null, upgradeHandler, remainingStack, simulate);
+	public static ItemStack runPickupOnPickupResponseUpgrades(Level level, UpgradeHandler upgradeHandler, ItemStack remainingStack, boolean simulate) {
+		return runPickupOnPickupResponseUpgrades(level, null, upgradeHandler, remainingStack, simulate);
 	}
 
-	public static ItemStack runPickupOnPickupResponseUpgrades(Level world,
+	public static ItemStack runPickupOnPickupResponseUpgrades(Level level,
 			@Nullable Player player, UpgradeHandler upgradeHandler, ItemStack remainingStack, boolean simulate) {
 		List<IPickupResponseUpgrade> pickupUpgrades = upgradeHandler.getWrappersThatImplement(IPickupResponseUpgrade.class);
 
 		for (IPickupResponseUpgrade pickupUpgrade : pickupUpgrades) {
 			int countBeforePickup = remainingStack.getCount();
-			remainingStack = pickupUpgrade.pickup(world, remainingStack, simulate);
+			remainingStack = pickupUpgrade.pickup(level, remainingStack, simulate);
 			if (!simulate && player != null && remainingStack.getCount() != countBeforePickup) {
-				playPickupSound(world, player);
+				playPickupSound(level, player);
 			}
 
 			if (remainingStack.isEmpty()) {

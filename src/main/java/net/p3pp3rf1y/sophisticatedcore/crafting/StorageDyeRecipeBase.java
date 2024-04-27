@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
@@ -9,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.Tags;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class StorageDyeRecipeBase extends CustomRecipe {
-	protected StorageDyeRecipeBase(ResourceLocation registryName, CraftingBookCategory category) {
-		super(registryName, category);
+	protected StorageDyeRecipeBase(CraftingBookCategory category) {
+		super(category);
 	}
 
 	@Override

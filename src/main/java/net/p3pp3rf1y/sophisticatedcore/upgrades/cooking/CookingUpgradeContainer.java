@@ -16,7 +16,7 @@ public class CookingUpgradeContainer<R extends AbstractCookingRecipe, W extends 
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		//noop
 	}
 

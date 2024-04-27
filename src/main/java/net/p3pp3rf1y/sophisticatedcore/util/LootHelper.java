@@ -12,11 +12,12 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class LootHelper {
 	private LootHelper() {}
@@ -25,7 +26,7 @@ public class LootHelper {
 		LootTable lootTable = server.getLootData().getLootTable(lootTableName);
 		LootContext.Builder lootBuilder = new LootContext.Builder((new LootParams.Builder(level)).withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(entity.blockPosition())).create(LootContextParamSets.CHEST)).withOptionalRandomSeed(level.random.nextLong());
 		List<ItemStack> lootStacks = new ArrayList<>();
-		lootTable.getRandomItemsRaw(lootBuilder.create(null), lootStacks::add);
+		lootTable.getRandomItems(lootBuilder.create(Optional.empty()), lootStacks::add);
 		return lootStacks;
 	}
 

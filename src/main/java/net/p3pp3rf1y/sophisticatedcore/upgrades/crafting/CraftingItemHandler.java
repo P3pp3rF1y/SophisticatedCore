@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 	public CraftingItemHandler(Supplier<IItemHandlerModifiable> supplyInventory, Consumer<Container> onCraftingMatrixChanged) {
 		super(new AbstractContainerMenu(null, -1) {
 			@Override
-			public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
+			public ItemStack quickMoveStack(Player player, int index) {
 				return ItemStack.EMPTY;
 			}
 

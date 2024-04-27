@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 
 import javax.annotation.Nonnull;

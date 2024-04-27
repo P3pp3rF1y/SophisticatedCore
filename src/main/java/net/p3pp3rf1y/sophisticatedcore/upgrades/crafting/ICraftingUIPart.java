@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
 import net.minecraft.world.inventory.Slot;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 
 import java.util.List;

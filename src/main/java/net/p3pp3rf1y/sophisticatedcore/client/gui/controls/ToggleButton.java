@@ -68,7 +68,7 @@ public class ToggleButton<T extends Comparable<T>> extends Button {
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//TODO add narration for toggle button - should be custom for every type with usage saying to click to toggle to next state
 	}
 }

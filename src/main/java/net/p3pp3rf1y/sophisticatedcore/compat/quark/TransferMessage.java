@@ -1,12 +1,13 @@
+/*
 package net.p3pp3rf1y.sophisticatedcore.compat.quark;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.common.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
@@ -28,28 +29,28 @@ public class TransferMessage {
 		this.smartTransfer = smartTransfer;
 	}
 
-	public static void encode(TransferMessage msg, FriendlyByteBuf packetBuffer) {
-		packetBuffer.writeBoolean(msg.isRestock);
-		packetBuffer.writeBoolean(msg.smartTransfer);
+	public static void encode(TransferMessage msg, FriendlyByteBuf buffer) {
+		buffer.writeBoolean(msg.isRestock);
+		buffer.writeBoolean(msg.smartTransfer);
 	}
 
-	public static TransferMessage decode(FriendlyByteBuf packetBuffer) {
-		return new TransferMessage(packetBuffer.readBoolean(), packetBuffer.readBoolean());
+	public static TransferMessage decode(FriendlyByteBuf buffer) {
+		return new TransferMessage(buffer.readBoolean(), buffer.readBoolean());
 	}
 
 	static void onMessage(TransferMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
 		NetworkEvent.Context context = contextSupplier.get();
-		context.enqueueWork(() -> handleMessage(context.getSender(), msg));
+		context.enqueueWork(() -> handlePacket(context.getSender(), msg));
 		context.setPacketHandled(true);
 	}
 
-	private static void handleMessage(@Nullable ServerPlayer player, TransferMessage msg) {
+	private static void handlePacket(@Nullable ServerPlayer player, TransferMessage msg) {
 		if (player == null || !(player.containerMenu instanceof StorageContainerMenuBase<?> storageMenu)) {
 			return;
 		}
 		IStorageWrapper storageWrapper = storageMenu.getStorageWrapper();
 		if (msg.isRestock) {
-			player.getCapability(ForgeCapabilities.ITEM_HANDLER).ifPresent(playerInv ->
+			player.getCapability(Capabilities.ITEM_HANDLER).ifPresent(playerInv ->
 					InventoryHelper.transfer(storageWrapper.getInventoryHandler(), new FilteredItemHandler<>(playerInv, msg.smartTransfer), s -> {}));
 		} else {
 			Inventory inv = player.getInventory();
@@ -161,3 +162,4 @@ public class TransferMessage {
 		}
 	}
 }
+*/

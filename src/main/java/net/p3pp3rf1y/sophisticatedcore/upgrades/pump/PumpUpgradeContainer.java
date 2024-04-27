@@ -27,7 +27,7 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(DATA_IS_INPUT)) {
 			setIsInput(data.getBoolean(DATA_IS_INPUT));
 		} else if (data.contains(DATA_INTERACT_WITH_HAND)) {
@@ -35,7 +35,7 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 		} else if (data.contains(DATA_INTERACT_WITH_WORLD)) {
 			setInteractWithWorld(data.getBoolean(DATA_INTERACT_WITH_WORLD));
 		}
-		fluidFilterContainer.handleMessage(data);
+		fluidFilterContainer.handlePacket(data);
 	}
 
 	public FluidFilterContainer getFluidFilterContainer() {

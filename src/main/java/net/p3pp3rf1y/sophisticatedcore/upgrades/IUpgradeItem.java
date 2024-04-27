@@ -150,5 +150,7 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 
 	Component getName();
 
-	record UpgradeConflictDefinition(Predicate<Item> isConflictingItem, int maxConflictingAllowed, Component errorMessage) {}
+	record UpgradeConflictDefinition(Predicate<Item> isConflictingItem, int maxConflictingAllowed,
+									 Component errorMessage) {
+	}
 }

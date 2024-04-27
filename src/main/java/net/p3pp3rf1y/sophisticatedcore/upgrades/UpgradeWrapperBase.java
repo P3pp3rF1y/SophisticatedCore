@@ -32,16 +32,16 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 		upgradeSaveHandler.accept(upgrade);
 	}
 
-	protected void setCooldown(Level world, int time) {
-		cooldown = world.getGameTime() + time;
+	protected void setCooldown(Level level, int time) {
+		cooldown = level.getGameTime() + time;
 	}
 
 	public long getCooldownTime() {
 		return cooldown;
 	}
 
-	public boolean isInCooldown(Level world) {
-		return getCooldownTime() > world.getGameTime();
+	public boolean isInCooldown(Level level) {
+		return getCooldownTime() > level.getGameTime();
 	}
 
 	@Override

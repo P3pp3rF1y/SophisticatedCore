@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 import java.util.function.Function;
 
 public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & IWrapperRecipe<T>> implements RecipeSerializer<R> {
+	@Nullable
+	private Codec<R> codec;
 	private final Function<T, R> initialize;
 	private final RecipeSerializer<T> recipeSerializer;
 
@@ -19,14 +21,17 @@ public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & 
 	}
 
 	@Override
-	public R fromJson(ResourceLocation recipeId, JsonObject json) {
-		return initialize.apply(recipeSerializer.fromJson(recipeId, json));
+	public Codec<R> codec() {
+		if (this.codec == null) {
+			this.codec = ((MapCodec.MapCodecCodec<T>) recipeSerializer.codec()).codec().xmap(initialize, IWrapperRecipe::getCompose).codec();
+		}
+
+		return this.codec;
 	}
 
-	@Nullable
 	@Override
-	public R fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-		T compose = recipeSerializer.fromNetwork(recipeId, buffer);
+	public R fromNetwork(FriendlyByteBuf buffer) {
+		T compose = recipeSerializer.fromNetwork(buffer);
 		return compose == null ? null : initialize.apply(compose);
 	}
 

@@ -133,7 +133,7 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//noop
 	}
 }

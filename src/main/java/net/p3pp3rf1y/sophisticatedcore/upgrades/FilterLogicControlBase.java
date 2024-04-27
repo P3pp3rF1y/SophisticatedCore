@@ -9,12 +9,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.CompositeWidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
@@ -362,11 +357,11 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 		}
 
 		@Override
-		public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+		public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 			if (container.getPrimaryMatch() != PrimaryMatch.TAGS) {
 				return false;
 			}
-			onScroll.accept(pDelta);
+			onScroll.accept(scrollY);
 			return true;
 		}
 	}

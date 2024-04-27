@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SortButtonsPosition;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,25 +20,25 @@ public class Config {
 	private Config() {}
 
 	public static final Client CLIENT;
-	public static final ForgeConfigSpec CLIENT_SPEC;
+	public static final ModConfigSpec CLIENT_SPEC;
 	public static final Common COMMON;
-	public static final ForgeConfigSpec COMMON_SPEC;
+	public static final ModConfigSpec COMMON_SPEC;
 
 	static {
-		final Pair<Client, ForgeConfigSpec> clientSpec = new ForgeConfigSpec.Builder().configure(Client::new);
+		final Pair<Client, ModConfigSpec> clientSpec = new ModConfigSpec.Builder().configure(Client::new);
 		CLIENT_SPEC = clientSpec.getRight();
 		CLIENT = clientSpec.getLeft();
 
-		final Pair<Common, ForgeConfigSpec> commonSpec = new ForgeConfigSpec.Builder().configure(Common::new);
+		final Pair<Common, ModConfigSpec> commonSpec = new ModConfigSpec.Builder().configure(Common::new);
 		COMMON_SPEC = commonSpec.getRight();
 		COMMON = commonSpec.getLeft();
 	}
 
 	public static class Client {
-		public final ForgeConfigSpec.EnumValue<SortButtonsPosition> sortButtonsPosition;
-		public final ForgeConfigSpec.BooleanValue playButtonSound;
+		public final ModConfigSpec.EnumValue<SortButtonsPosition> sortButtonsPosition;
+		public final ModConfigSpec.BooleanValue playButtonSound;
 
-		Client(ForgeConfigSpec.Builder builder) {
+		Client(ModConfigSpec.Builder builder) {
 			builder.comment("Client Settings").push("client");
 			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods").defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
 			playButtonSound = builder.comment("Whether click sound should play when custom buttons are clicked in gui").define("playButtonSound", true);
@@ -58,22 +58,22 @@ public class Config {
 			enabledItems.enabledMap.clear();
 		}
 
-		Common(ForgeConfigSpec.Builder builder) {
+		Common(ModConfigSpec.Builder builder) {
 			builder.comment("Common Settings").push("common");
 
 			enabledItems = new EnabledItems(builder);
 		}
 
 		public static class EnabledItems {
-			private final ForgeConfigSpec.ConfigValue<List<String>> itemsEnableList;
+			private final ModConfigSpec.ConfigValue<List<String>> itemsEnableList;
 			private final Map<ResourceLocation, Boolean> enabledMap = new ConcurrentHashMap<>();
 
-			EnabledItems(ForgeConfigSpec.Builder builder) {
+			EnabledItems(ModConfigSpec.Builder builder) {
 				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)").define("enabledItems", new ArrayList<>());
 			}
 
 			public boolean isItemEnabled(Item item) {
-				return RegistryHelper.getRegistryName(ForgeRegistries.ITEMS, item).map(this::isItemEnabled).orElse(false);
+				return RegistryHelper.getRegistryName(BuiltInRegistries.ITEM, item).map(this::isItemEnabled).orElse(false);
 			}
 
 			public boolean isItemEnabled(ResourceLocation itemRegistryName) {

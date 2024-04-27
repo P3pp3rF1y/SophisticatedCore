@@ -41,15 +41,15 @@ public class TextBox extends WidgetBase {
 		super.setFocused(focused);
 	}
 	@Override
-	public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (!editBox.isFocused()) {
 			return false;
 		}
-		editBox.keyPressed(pKeyCode, pScanCode, pModifiers);
-		if (pKeyCode == GLFW.GLFW_KEY_ENTER) {
+		editBox.keyPressed(keyCode, scanCode, modifiers);
+		if (keyCode == GLFW.GLFW_KEY_ENTER) {
 			onEnterPressed();
 		}
-		return pKeyCode != GLFW.GLFW_KEY_ESCAPE;
+		return keyCode != GLFW.GLFW_KEY_ESCAPE;
 	}
 
 	protected void onEnterPressed() {
@@ -61,13 +61,13 @@ public class TextBox extends WidgetBase {
 	}
 
 	@Override
-	public boolean charTyped(char pCodePoint, int pModifiers) {
-		return editBox.charTyped(pCodePoint, pModifiers);
+	public boolean charTyped(char codePoint, int modifiers) {
+		return editBox.charTyped(codePoint, modifiers);
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		editBox.updateNarration(pNarrationElementOutput);
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
+		editBox.updateNarration(narrationElementOutput);
 	}
 
 	public void setValue(String value) {

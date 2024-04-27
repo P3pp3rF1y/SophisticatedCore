@@ -12,11 +12,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
@@ -32,10 +31,9 @@ import java.util.Optional;
 public class ClientEventHandler {
 	private ClientEventHandler() {}
 
-	public static void registerHandlers() {
-		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
-		IEventBus eventBus = MinecraftForge.EVENT_BUS;
+		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(ClientEventHandler::onPlayerJoinServer);
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
@@ -66,7 +64,7 @@ public class ClientEventHandler {
 				}
 
 				if (s == under) {
-					renderSpecialTooltip(event, mc, containerGui, event.getGuiGraphics(), stashResultAndTooltip.get());
+					renderSpecialTooltip(event, mc, event.getGuiGraphics(), stashResultAndTooltip.get());
 				} else {
 					renderStashSign(mc, containerGui, event.getGuiGraphics(), s, stack, stashResultAndTooltip.get().stashResult());
 				}
@@ -91,13 +89,13 @@ public class ClientEventHandler {
 		poseStack.popPose();
 	}
 
-	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, StashResultAndTooltip stashResultAndTooltip) {
+	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, Minecraft mc, GuiGraphics guiGraphics, StashResultAndTooltip stashResultAndTooltip) {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(0, 0, 100);
-		guiGraphics.renderTooltip(containerGui.font, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), stashResultAndTooltip.tooltip(), x, y);
+		guiGraphics.renderTooltip(mc.font, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), stashResultAndTooltip.tooltip(), x, y);
 		poseStack.popPose();
 	}
 

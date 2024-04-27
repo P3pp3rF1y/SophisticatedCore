@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -9,18 +8,14 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
 
 public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecipe<ShapedRecipe> {
-	public static final Set<ResourceLocation> REGISTERED_RECIPES = new LinkedHashSet<>();
 	private final ShapedRecipe compose;
 
 	public UpgradeNextTierRecipe(ShapedRecipe compose) {
-		super(compose.getId(), compose.getGroup(), compose.category(), compose.getRecipeWidth(), compose.getRecipeHeight(), compose.getIngredients(), compose.result);
+		super(compose.getGroup(), compose.category(), compose.pattern, compose.result);
 		this.compose = compose;
-		REGISTERED_RECIPES.add(compose.getId());
 	}
 
 	@Override

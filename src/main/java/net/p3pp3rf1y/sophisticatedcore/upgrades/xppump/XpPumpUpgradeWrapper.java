@@ -9,8 +9,8 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
@@ -37,14 +37,14 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	}
 
 	@Override
-	public void tick(@Nullable LivingEntity entity, Level world, BlockPos pos) {
-		if ((entity != null && !(entity instanceof Player)) || isInCooldown(world)) {
+	public void tick(@Nullable LivingEntity entity, Level level, BlockPos pos) {
+		if ((entity != null && !(entity instanceof Player)) || isInCooldown(level)) {
 			return;
 		}
 
 		if (entity == null) {
 			AABB searchBox = new AABB(pos).inflate(PLAYER_SEARCH_RANGE);
-			for (Player player : world.players()) {
+			for (Player player : level.players()) {
 				if (searchBox.contains(player.getX(), player.getY(), player.getZ())) {
 					interactWithPlayer(player);
 					mendItems(player);
@@ -56,7 +56,7 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 			mendItems(player);
 		}
 
-		setCooldown(world, COOLDOWN);
+		setCooldown(level, COOLDOWN);
 	}
 
 	private void mendItems(Player player) {

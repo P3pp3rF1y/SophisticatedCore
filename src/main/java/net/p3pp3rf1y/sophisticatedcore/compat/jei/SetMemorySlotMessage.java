@@ -1,18 +1,19 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.jei;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
-import javax.annotation.Nullable;
-import java.util.function.Supplier;
-
-public class SetMemorySlotMessage {
+public class SetMemorySlotMessage implements CustomPacketPayload {
+	public static final ResourceLocation ID = new ResourceLocation(SophisticatedCore.MOD_ID, "set_memory_slot");
 	private final ItemStack stack;
 	private final int slotNumber;
 
@@ -21,29 +22,33 @@ public class SetMemorySlotMessage {
 		this.slotNumber = slotNumber;
 	}
 
-	public static void encode(SetMemorySlotMessage msg, FriendlyByteBuf packetBuffer) {
-		packetBuffer.writeItem(msg.stack);
-		packetBuffer.writeShort(msg.slotNumber);
+	public SetMemorySlotMessage(FriendlyByteBuf buffer) {
+		this(buffer.readItem(), buffer.readShort());
 	}
 
-	public static SetMemorySlotMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SetMemorySlotMessage(packetBuffer.readItem(), packetBuffer.readShort());
+	public void handle(PlayPayloadContext context) {
+		context.workHandler().execute(() -> context.player().ifPresent(this::handlePacket));
 	}
 
-	static void onMessage(SetMemorySlotMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context context = contextSupplier.get();
-		context.enqueueWork(() -> handleMessage(msg, context.getSender()));
-		context.setPacketHandled(true);
-	}
-
-	private static void handleMessage(SetMemorySlotMessage msg, @Nullable ServerPlayer sender) {
-		if (sender == null || !(sender.containerMenu instanceof SettingsContainerMenu<?> settingsContainerMenu)) {
+	private void handlePacket(Player player) {
+		if (!(player.containerMenu instanceof SettingsContainerMenu<?> settingsContainerMenu)) {
 			return;
 		}
 		IStorageWrapper storageWrapper = settingsContainerMenu.getStorageWrapper();
-		storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).setFilter(msg.slotNumber, msg.stack);
-		storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(msg.slotNumber);
-		storageWrapper.getInventoryHandler().onSlotFilterChanged(msg.slotNumber);
+		storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).setFilter(slotNumber, stack);
+		storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(slotNumber);
+		storageWrapper.getInventoryHandler().onSlotFilterChanged(slotNumber);
 		settingsContainerMenu.sendAdditionalSlotInfo();
+	}
+
+	@Override
+	public void write(FriendlyByteBuf buffer) {
+		buffer.writeItem(stack);
+		buffer.writeShort(slotNumber);
+	}
+
+	@Override
+	public ResourceLocation id() {
+		return ID;
 	}
 }

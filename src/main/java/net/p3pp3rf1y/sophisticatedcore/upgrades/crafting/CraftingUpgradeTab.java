@@ -83,7 +83,7 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 			@Override
 			public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 				if (visible && isMouseOver(mouseX, mouseY)) {
-					guiGraphics.renderTooltip(screen.font, getTooltip().stream().map(Component::getVisualOrderText).toList(), LEFT_SIDE_TOOLTIP_POSITIONER, mouseX, mouseY);
+					guiGraphics.renderTooltip(minecraft.font, getTooltip().stream().map(Component::getVisualOrderText).toList(), LEFT_SIDE_TOOLTIP_POSITIONER, mouseX, mouseY);
 				}
 			}
 		};
@@ -279,7 +279,7 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 			List<ItemStack> matchedCraftingResults = getContainer().getMatchedCraftingResults();
 			if (i < matchedCraftingResults.size()) {
 				ItemStack stack = matchedCraftingResults.get(i);
-				guiGraphics.renderTooltip(screen.font, stack, mouseX, mouseY);
+				guiGraphics.renderTooltip(minecraft.font, stack, mouseX, mouseY);
 			}
 		});
 		guiGraphics.pose().popPose();

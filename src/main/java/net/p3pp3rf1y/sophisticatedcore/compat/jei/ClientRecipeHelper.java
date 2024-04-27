@@ -7,20 +7,18 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 
 public class ClientRecipeHelper {
 	private ClientRecipeHelper() {}
 
-	public static Optional<? extends Recipe<?>> getRecipeByKey(ResourceLocation recipeKey) {
+	public static Optional<RecipeHolder<?>> getRecipeByKey(ResourceLocation recipeKey) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel world = minecraft.level;
 		if (world == null) {
@@ -29,28 +27,38 @@ public class ClientRecipeHelper {
 		return world.getRecipeManager().byKey(recipeKey);
 	}
 
-	public static <T extends Recipe<?>, U extends Recipe<?>> List<T> getAndTransformAvailableRecipes(Set<ResourceLocation> recipeKeys, Class<U> originalRecipeClass, Function<U, T> transformRecipe) {
-		List<T> ret = new ArrayList<>();
-		recipeKeys.forEach(key -> getRecipeByKey(key).ifPresent(r -> {
-			if (originalRecipeClass.isInstance(r)) {
-				ret.add(transformRecipe.apply(originalRecipeClass.cast(r)));
-			}
-		}));
-		return ret;
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<?>> List<RecipeHolder<T>> transformAllRecipesOfType(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, T> transformRecipe) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			return Collections.emptyList();
+		}
+
+		return level.getRecipeManager()
+				.getAllRecipesFor(recipeType)
+				.stream()
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> new RecipeHolder<>(r.id(), transformRecipe.apply(filterRecipeClass.cast(r.value()))))
+				.toList();
 	}
 
-	public static <T extends Recipe<?>, U extends Recipe<?>> List<T> getAndTransformAvailableItemGroupRecipes(Set<ResourceLocation> recipeKeys, Class<U> originalRecipeClass, Function<U, List<T>> getTransformedRecipes) {
-		List<T> ret = new ArrayList<>();
-		recipeKeys.forEach(key -> getRecipeByKey(key).ifPresent(r -> {
-			if (originalRecipeClass.isInstance(r)) {
-				ret.addAll(getTransformedRecipes.apply(originalRecipeClass.cast(r)));
-			}
-		}));
-		return ret;
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<?>> List<RecipeHolder<T>> transformAllRecipesOfTypeIntoMultiple(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<RecipeHolder<T>>> transformRecipe) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			return Collections.emptyList();
+		}
+
+		return level.getRecipeManager()
+				.getAllRecipesFor(recipeType)
+				.stream()
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r.value())))
+				.collect(ArrayList::new, List::addAll, List::addAll);
 	}
 
 	public static CraftingRecipe copyShapedRecipe(ShapedRecipe recipe) {
-		return new ShapedRecipe(recipe.getId(), "", recipe.category(), recipe.getRecipeWidth(), recipe.getRecipeHeight(), recipe.getIngredients(), RecipeUtil.getResultItem(recipe));
+		return new ShapedRecipe("", recipe.category(), recipe.pattern, RecipeUtil.getResultItem(recipe));
 	}
 
 	public static <C extends Container> ItemStack assemble(Recipe<C> recipe, C container) {

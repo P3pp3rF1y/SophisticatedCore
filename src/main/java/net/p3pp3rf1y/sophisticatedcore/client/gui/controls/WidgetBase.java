@@ -50,7 +50,7 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 
 	@Override
 	public NarrationPriority narrationPriority() {
-		return isHovered ? NarratableEntry.NarrationPriority.HOVERED : NarratableEntry.NarrationPriority.NONE;
+		return isHovered ? NarrationPriority.HOVERED : NarrationPriority.NONE;
 	}
 
 	protected abstract void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY);

@@ -3,14 +3,10 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.BlastingRecipe;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraft.world.item.crafting.SmokingRecipe;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
@@ -50,12 +46,12 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 		inputFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.inputFilterSlots.get(),
 				s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), "inputFilter");
 		fuelFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.fuelFilterSlots.get(),
-				s -> ForgeHooks.getBurnTime(s, recipeType) > 0, "fuelFilter");
+				s -> CommonHooks.getBurnTime(s, recipeType) > 0, "fuelFilter");
 		fuelFilterLogic.setAllowByDefault(true);
 		fuelFilterLogic.setEmptyAllowListMatchesEverything();
 
 		isValidInput = s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent() && inputFilterLogic.matchesFilter(s);
-		isValidFuel = s -> ForgeHooks.getBurnTime(s, recipeType) > 0 && fuelFilterLogic.matchesFilter(s);
+		isValidFuel = s -> CommonHooks.getBurnTime(s, recipeType) > 0 && fuelFilterLogic.matchesFilter(s);
 		cookingLogic = new CookingLogic<>(upgrade, upgradeSaveHandler, isValidFuel, isValidInput, autoCookingUpgradeConfig, recipeType, burnTimeModifier);
 	}
 
@@ -94,25 +90,25 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 		}
 
 		ItemStack fuel = cookingLogic.getFuel();
-		if (!fuel.isEmpty() && ForgeHooks.getBurnTime(fuel, recipeType) <= 0 && inventory.insertItem(fuel, true).getCount() < fuel.getCount()) {
+		if (!fuel.isEmpty() && CommonHooks.getBurnTime(fuel, recipeType) <= 0 && inventory.insertItem(fuel, true).getCount() < fuel.getCount()) {
 			ItemStack ret = inventory.insertItem(fuel, false);
 			cookingLogic.getCookingInventory().extractItem(CookingLogic.FUEL_SLOT, fuel.getCount() - ret.getCount(), false);
 		}
 	}
 
 	@Override
-	public void tick(@Nullable LivingEntity entity, Level world, BlockPos pos) {
-		if (isInCooldown(world)) {
+	public void tick(@Nullable LivingEntity entity, Level level, BlockPos pos) {
+		if (isInCooldown(level)) {
 			return;
 		}
 		tryPushingOutput();
 		tryPullingFuel();
 		tryPullingInput();
 
-		if (!cookingLogic.tick(world) && outputCooldown <= 0 && fuelCooldown <= 0 && inputCooldown <= 0) {
-			setCooldown(world, NOTHING_TO_DO_COOLDOWN);
+		if (!cookingLogic.tick(level) && outputCooldown <= 0 && fuelCooldown <= 0 && inputCooldown <= 0) {
+			setCooldown(level, NOTHING_TO_DO_COOLDOWN);
 		}
-		boolean isBurning = cookingLogic.isBurning(world);
+		boolean isBurning = cookingLogic.isBurning(level);
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
 		if (renderInfo.getUpgradeRenderData(CookingUpgradeRenderData.TYPE).map(CookingUpgradeRenderData::isBurning).orElse(false) != isBurning) {
 			if (isBurning) {

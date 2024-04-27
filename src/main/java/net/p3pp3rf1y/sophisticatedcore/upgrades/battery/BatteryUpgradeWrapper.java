@@ -4,10 +4,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedBatteryUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IStackableContentsUpgrade;
@@ -130,7 +130,17 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	}
 
 	private boolean isValidEnergyItem(ItemStack stack, boolean isOutput) {
-		return stack.getCapability(ForgeCapabilities.ENERGY).map(energyStorage -> isOutput || energyStorage.getEnergyStored() > 0).orElse(false);
+		IEnergyStorage energyStorage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+
+		if (energyStorage == null) {
+			return false;
+		}
+
+		if (isOutput) {
+			return energyStorage.canReceive();
+		} else {
+			return energyStorage.canExtract() && energyStorage.getEnergyStored() > 0;
+		}
 	}
 
 	@Override
@@ -141,18 +151,24 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	@Override
 	public void forceUpdateBatteryRenderInfo() {
 		BatteryRenderInfo batteryRenderInfo = new BatteryRenderInfo(1f);
-		batteryRenderInfo.setChargeRatio((float) Math.round((float) energyStored / getMaxEnergyStored() * 4) / 4);
+		batteryRenderInfo.setChargeRatio((float) energyStored / getMaxEnergyStored());
 		updateTankRenderInfoCallback.accept(batteryRenderInfo);
 	}
 
 	@Override
-	public void tick(@Nullable LivingEntity entity, Level world, BlockPos pos) {
+	public void tick(@Nullable LivingEntity entity, Level level, BlockPos pos) {
 		if (energyStored < getMaxEnergyStored()) {
-			inventory.getStackInSlot(INPUT_SLOT).getCapability(ForgeCapabilities.ENERGY).ifPresent(this::receiveFromStorage);
+			IEnergyStorage energyStorage = inventory.getStackInSlot(INPUT_SLOT).getCapability(Capabilities.EnergyStorage.ITEM);
+			if (energyStorage != null) {
+				receiveFromStorage(energyStorage);
+			}
 		}
 
 		if (energyStored > 0) {
-			inventory.getStackInSlot(OUTPUT_SLOT).getCapability(ForgeCapabilities.ENERGY).ifPresent(this::extractToStorage);
+			IEnergyStorage energyStorage = inventory.getStackInSlot(OUTPUT_SLOT).getCapability(Capabilities.EnergyStorage.ITEM);
+			if (energyStorage != null) {
+				extractToStorage(energyStorage);
+			}
 		}
 	}
 

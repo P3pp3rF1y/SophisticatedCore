@@ -2,12 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui.utils;
 
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.datafixers.util.Either;
 import com.mojang.math.Axis;
 import net.minecraft.CrashReport;
@@ -26,6 +21,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
@@ -34,21 +30,15 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.event.RenderTooltipEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -228,10 +218,9 @@ public class GuiHelper {
 		BufferBuilder builder = Tesselator.getInstance().getBuilder();
 		builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
 
-		float u1 = sprite.getU0();
-		float v1 = sprite.getV0();
+		float u0 = sprite.getU0();
+		float v0 = sprite.getV0();
 		int spriteHeight = sprite.contents().height();
-		int spriteWidth = sprite.contents().width();
 		int startY = y;
 		float red = (color >> 16 & 255) / 255.0F;
 		float green = (color >> 8 & 255) / 255.0F;
@@ -239,15 +228,15 @@ public class GuiHelper {
 		do {
 			int renderHeight = Math.min(spriteHeight, height);
 			height -= renderHeight;
-			float v2 = sprite.getV((16f * renderHeight) / spriteHeight);
+			float v1 = sprite.getV((float)renderHeight / spriteHeight);
 
 			// we need to draw the quads per width too
 			Matrix4f matrix = guiGraphics.pose().last().pose();
-			float u2 = sprite.getU((16f * 16) / spriteWidth);
-			builder.vertex(matrix, x, (float) startY + renderHeight, 100).uv(u1, v2).color(red, green, blue, 1).endVertex();
-			builder.vertex(matrix, (float) x + 16, (float) startY + renderHeight, 100).uv(u2, v2).color(red, green, blue, 1).endVertex();
-			builder.vertex(matrix, (float) x + 16, startY, 100).uv(u2, v1).color(red, green, blue, 1).endVertex();
-			builder.vertex(matrix, x, startY, 100).uv(u1, v1).color(red, green, blue, 1).endVertex();
+			float u1 = sprite.getU1();
+			builder.vertex(matrix, x, (float) startY + renderHeight, 100).uv(u0, v1).color(red, green, blue, 1).endVertex();
+			builder.vertex(matrix, (float) x + 16, (float) startY + renderHeight, 100).uv(u1, v1).color(red, green, blue, 1).endVertex();
+			builder.vertex(matrix, (float) x + 16, startY, 100).uv(u1, v0).color(red, green, blue, 1).endVertex();
+			builder.vertex(matrix, x, startY, 100).uv(u0, v0).color(red, green, blue, 1).endVertex();
 
 			startY += renderHeight;
 		} while (height > 0);
@@ -279,7 +268,7 @@ public class GuiHelper {
 				CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering item");
 				CrashReportCategory crashreportcategory = crashreport.addCategory("Item being rendered");
 				crashreportcategory.setDetail("Item Type", () -> String.valueOf(stack.getItem()));
-				crashreportcategory.setDetail("Registry Name", () -> String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem())));
+				crashreportcategory.setDetail("Registry Name", () -> String.valueOf(BuiltInRegistries.ITEM.getKey(stack.getItem())));
 				crashreportcategory.setDetail("Item Damage", () -> String.valueOf(stack.getDamageValue()));
 				crashreportcategory.setDetail("Item NBT", () -> String.valueOf(stack.getTag()));
 				crashreportcategory.setDetail("Item Foil", () -> String.valueOf(stack.hasFoil()));
@@ -326,13 +315,13 @@ public class GuiHelper {
 
 	//copy of ForgeHooksClient.gatherTooltipComponents with splitting always called so that new lines in translation are properly wrapped
 	public static List<ClientTooltipComponent> gatherTooltipComponents(List<? extends FormattedText> textElements, int mouseX, int screenWidth, int screenHeight, Font fallbackFont) {
-		Font font = ForgeHooksClient.getTooltipFont(ItemStack.EMPTY, fallbackFont);
+		Font font = ClientHooks.getTooltipFont(ItemStack.EMPTY, fallbackFont);
 		List<Either<FormattedText, TooltipComponent>> elements = textElements.stream()
 				.map((Function<FormattedText, Either<FormattedText, TooltipComponent>>) Either::left)
 				.collect(Collectors.toCollection(ArrayList::new));
 
 		var event = new RenderTooltipEvent.GatherComponents(ItemStack.EMPTY, screenWidth, screenHeight, elements, -1);
-		MinecraftForge.EVENT_BUS.post(event);
+		NeoForge.EVENT_BUS.post(event);
 		if (event.isCanceled()) {
 			return List.of();
 		}

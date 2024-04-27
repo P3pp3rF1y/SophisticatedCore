@@ -13,12 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.List;
 import java.util.Map;
@@ -73,8 +68,8 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 		addHideableChild(new Button(new Position(x + 3, y + currentYOffset), TAKE_ALL, button -> upgradeContainer.takeAllExperience()));
 		takeButton = new Button(new Position(x + 21, y + currentYOffset), TAKE, button -> upgradeContainer.takeLevels()) {
 			@Override
-			public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-				upgradeContainer.setLevelsToTake(upgradeContainer.getLevelsToTake() + (delta > 0 ? 1 : -1));
+			public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+				upgradeContainer.setLevelsToTake(upgradeContainer.getLevelsToTake() + (scrollY > 0 ? 1 : -1));
 				setTakeTooltip();
 				return true;
 			}
@@ -83,8 +78,8 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 		addHideableChild(takeButton);
 		storeButton = new Button(new Position(x + 39, y + currentYOffset), STORE, button -> upgradeContainer.storeLevels()) {
 			@Override
-			public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-				upgradeContainer.setLevelsToStore(upgradeContainer.getLevelsToStore() + (delta > 0 ? 1 : -1));
+			public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+				upgradeContainer.setLevelsToStore(upgradeContainer.getLevelsToStore() + (scrollY > 0 ? 1 : -1));
 				setStoreTooltip();
 				return true;
 			}
@@ -151,13 +146,13 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 		}
 
 		@Override
-		public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
-			onScroll.accept(pDelta);
+		public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+			onScroll.accept(scrollY);
 			return true;
 		}
 
 		@Override
-		public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+		public void updateNarration(NarrationElementOutput narrationElementOutput) {
 			//TODO narration
 		}
 	}

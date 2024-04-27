@@ -11,9 +11,9 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Map;
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class StorageSoundHandler {
 	public static void stopStorageSound(UUID storageUuid) {
 		if (storageSounds.containsKey(storageUuid)) {
 			Minecraft.getInstance().getSoundManager().stop(storageSounds.remove(storageUuid));
-			PacketHandler.INSTANCE.sendToServer(new SoundStopNotificationMessage(storageUuid));
+			PacketDistributor.SERVER.noArg().send(new SoundStopNotificationPacket(storageUuid));
 		}
 	}
 
@@ -45,7 +45,7 @@ public class StorageSoundHandler {
 			lastPlaybackChecked = event.level.getGameTime();
 			storageSounds.entrySet().removeIf(entry -> {
 				if (!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())) {
-					PacketHandler.INSTANCE.sendToServer(new SoundStopNotificationMessage(entry.getKey()));
+					PacketDistributor.SERVER.noArg().send(new SoundStopNotificationPacket(entry.getKey()));
 					return true;
 				}
 				return false;

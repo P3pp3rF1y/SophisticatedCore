@@ -24,7 +24,7 @@ public class ContentsFilterLogicContainer extends FilterLogicContainer<ContentsF
 	}
 
 	@Override
-	public boolean handleMessage(CompoundTag data) {
+	public boolean handlePacket(CompoundTag data) {
 		if (isDifferentFilterLogicsData(data)) {
 			return false;
 		}
@@ -32,7 +32,7 @@ public class ContentsFilterLogicContainer extends FilterLogicContainer<ContentsF
 		if (data.contains(DATA_CONTENTS_FILTER_TYPE)) {
 			setFilterType(ContentsFilterType.fromName(data.getString(DATA_CONTENTS_FILTER_TYPE)));
 		}
-		return super.handleMessage(data);
+		return super.handlePacket(data);
 	}
 
 	public ContentsFilterType getFilterType() {

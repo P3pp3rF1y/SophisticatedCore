@@ -3,11 +3,12 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
+import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 
 import java.util.function.Supplier;
 
@@ -36,13 +37,12 @@ public class FluidFilterContainer {
 		CompoundTag ret = new CompoundTag();
 		CompoundTag fluidNbt = new CompoundTag();
 		fluidNbt.putInt("index", index);
-		//noinspection ConstantConditions
 		fluidNbt.put("fluid", fluid.writeToNBT(new CompoundTag()));
 		ret.put(DATA_FLUID, fluidNbt);
 		return ret;
 	}
 
-	public boolean handleMessage(CompoundTag data) {
+	public boolean handlePacket(CompoundTag data) {
 		if (data.contains(DATA_FLUID)) {
 			CompoundTag fluidData = data.getCompound(DATA_FLUID);
 			FluidStack fluid = FluidStack.loadFluidStackFromNBT(data.getCompound("fluid"));
@@ -65,7 +65,7 @@ public class FluidFilterContainer {
 			return;
 		}
 
-		carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).ifPresent(itemFluidHandler -> {
+		CapabilityHelper.runOnCapability(carried, Capabilities.FluidHandler.ITEM, null, itemFluidHandler -> {
 			FluidStack containedFluid = itemFluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
 			if (!containedFluid.isEmpty()) {
 				setFluid(index, containedFluid);

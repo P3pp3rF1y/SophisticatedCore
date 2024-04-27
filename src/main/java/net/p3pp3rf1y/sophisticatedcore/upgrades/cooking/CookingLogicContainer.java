@@ -54,8 +54,8 @@ public class CookingLogicContainer<T extends AbstractCookingRecipe> {
 		return supplyCoookingLogic.get().isCooking();
 	}
 
-	public boolean isBurning(Level world) {
-		return supplyCoookingLogic.get().isBurning(world);
+	public boolean isBurning(Level level) {
+		return supplyCoookingLogic.get().isBurning(level);
 	}
 
 	public List<Slot> getCookingSlots() {

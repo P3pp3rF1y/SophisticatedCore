@@ -15,7 +15,7 @@ public abstract class CookingUpgradeTab<R extends AbstractCookingRecipe, W exten
 
 	protected CookingUpgradeTab(CookingUpgradeContainer<R, W> upgradeContainer, Position position, StorageScreenBase<?> screen, String tabLabel, String closedTooltip) {
 		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade(tabLabel), TranslationHelper.INSTANCE.translUpgradeTooltip(closedTooltip));
-		cookingLogicControl = addHideableChild(new CookingLogicControl<R>(new Position(x + 3, y + 24), getContainer().getSmeltingLogicContainer()));
+		cookingLogicControl = addHideableChild(new CookingLogicControl<>(new Position(x + 3, y + 24), getContainer().getSmeltingLogicContainer()));
 	}
 
 	@Override

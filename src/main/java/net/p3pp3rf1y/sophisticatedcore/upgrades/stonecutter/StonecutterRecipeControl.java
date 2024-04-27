@@ -10,15 +10,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.List;
 
@@ -74,14 +71,14 @@ public class StonecutterRecipeControl extends WidgetBase {
 	}
 
 	private void drawRecipesItems(GuiGraphics guiGraphics, int listInnerLeftX, int top, int recipeIndexOffsetMax) {
-		List<StonecutterRecipe> list = container.getRecipeList();
+		List<RecipeHolder<StonecutterRecipe>> list = container.getRecipeList();
 
 		for (int i = recipeIndexOffset; i < recipeIndexOffsetMax && i < container.getRecipeList().size(); ++i) {
 			int j = i - recipeIndexOffset;
 			int k = listInnerLeftX + j % 4 * 16;
 			int l = j / 4;
 			int i1 = top + l * 18 + 2;
-			GuiHelper.renderItemInGUI(guiGraphics, minecraft, list.get(i).getResultItem(minecraft.level.registryAccess()), k, i1);
+			GuiHelper.renderItemInGUI(guiGraphics, minecraft, list.get(i).value().getResultItem(minecraft.level.registryAccess()), k, i1);
 		}
 
 	}
@@ -127,14 +124,14 @@ public class StonecutterRecipeControl extends WidgetBase {
 		if (hasItemsInInputSlot) {
 			int listTopY = getListTopY();
 			int k = recipeIndexOffset + 12;
-			List<StonecutterRecipe> list = container.getRecipeList();
+			List<RecipeHolder<StonecutterRecipe>> list = container.getRecipeList();
 
 			for (int recipeIndex = recipeIndexOffset; recipeIndex < k && recipeIndex < list.size(); ++recipeIndex) {
 				int inviewRecipeIndex = recipeIndex - recipeIndexOffset;
 				int recipeLeftX = x + inviewRecipeIndex % 4 * 16;
 				int k1 = listTopY + inviewRecipeIndex / 4 * 18 + 2;
 				if (mouseX >= recipeLeftX && mouseX < recipeLeftX + 16 && mouseY >= k1 && mouseY < k1 + 18) {
-					renderTooltip(guiGraphics, list.get(recipeIndex).getResultItem(minecraft.level.registryAccess()), mouseX, mouseY);
+					renderTooltip(guiGraphics, list.get(recipeIndex).value().getResultItem(minecraft.level.registryAccess()), mouseX, mouseY);
 				}
 			}
 		}
@@ -199,9 +196,9 @@ public class StonecutterRecipeControl extends WidgetBase {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
 		if (canScroll()) {
-			scrollRecipesByDelta(delta);
+			scrollRecipesByDelta(scrollY);
 		}
 		return true;
 	}
@@ -218,7 +215,7 @@ public class StonecutterRecipeControl extends WidgetBase {
 	}
 
 	@Override
-	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
+	public void updateNarration(NarrationElementOutput narrationElementOutput) {
 		//TODO narration - probably just copy from stonecutter screen
 	}
 }

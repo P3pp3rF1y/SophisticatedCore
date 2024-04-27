@@ -3,22 +3,22 @@ package net.p3pp3rf1y.sophisticatedcore;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.p3pp3rf1y.sophisticatedcore.client.ClientEventHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.CommonEventHandler;
+import net.p3pp3rf1y.sophisticatedcore.compat.CompatRegistry;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.apache.logging.log4j.LogManager;
@@ -31,19 +31,20 @@ public class SophisticatedCore {
 	public final CommonEventHandler commonEventHandler = new CommonEventHandler();
 
 	@SuppressWarnings("java:S1118") //needs to be public for mod to work
-	public SophisticatedCore() {
+	public SophisticatedCore(IEventBus modBus) {
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
 		ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
-		commonEventHandler.registerHandlers();
+		commonEventHandler.registerHandlers(modBus);
+		ModCompat.register();
 		if (FMLEnvironment.dist == Dist.CLIENT) {
-			ClientEventHandler.registerHandlers();
+			ClientEventHandler.registerHandlers(modBus);
 		}
-		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		Config.COMMON.initListeners(modBus);
+		modBus.addListener((FMLConstructModEvent event) -> construct(event, modBus));
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);
 
-		IEventBus eventBus = MinecraftForge.EVENT_BUS;
+		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(SophisticatedCore::serverStarted);
 		eventBus.addListener(SophisticatedCore::onResourceReload);
 	}
@@ -55,9 +56,12 @@ public class SophisticatedCore {
 		}
 	}
 
+	private static void construct(FMLConstructModEvent event, IEventBus modBus) {
+		event.enqueueWork(() -> CompatRegistry.initCompats(modBus));
+	}
+
 	private static void setup(FMLCommonSetupEvent event) {
-		PacketHandler.INSTANCE.init();
-		ModCompat.initCompats();
+		event.enqueueWork(CompatRegistry::setupCompats);
 	}
 
 	private static void onResourceReload(AddReloadListenerEvent event) {

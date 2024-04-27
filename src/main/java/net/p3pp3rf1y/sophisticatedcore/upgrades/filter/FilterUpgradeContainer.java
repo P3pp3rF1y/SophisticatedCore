@@ -32,8 +32,8 @@ public class FilterUpgradeContainer extends UpgradeContainerBase<FilterUpgradeWr
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
-		if (filterLogicContainer.handleMessage(data)) {
+	public void handlePacket(CompoundTag data) {
+		if (filterLogicContainer.handlePacket(data)) {
 			return;
 		}
 

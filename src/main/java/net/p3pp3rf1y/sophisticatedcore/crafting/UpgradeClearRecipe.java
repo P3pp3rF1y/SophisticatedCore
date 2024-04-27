@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -12,8 +11,8 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 
 public class UpgradeClearRecipe extends CustomRecipe {
-	public UpgradeClearRecipe(ResourceLocation registryName, CraftingBookCategory category) {
-		super(registryName, category);
+	public UpgradeClearRecipe(CraftingBookCategory category) {
+		super(category);
 	}
 
 	@Override

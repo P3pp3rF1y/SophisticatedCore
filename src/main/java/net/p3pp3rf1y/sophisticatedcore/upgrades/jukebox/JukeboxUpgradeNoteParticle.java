@@ -1,14 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.particle.*;
 import net.minecraft.util.Mth;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 
@@ -33,8 +27,8 @@ public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
 	}
 
 	@Override
-	public float getQuadSize(float pScaleFactor) {
-		return quadSize * Mth.clamp((age + pScaleFactor) / lifetime * 32.0F, 0.0F, 1.0F);
+	public float getQuadSize(float scaleFactor) {
+		return quadSize * Mth.clamp((age + scaleFactor) / lifetime * 32.0F, 0.0F, 1.0F);
 	}
 
 	@Override
@@ -57,7 +51,6 @@ public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public static class Factory implements ParticleProvider<JukeboxUpgradeNoteParticleData> {
 		private final SpriteSet spriteSet;
 
@@ -67,7 +60,7 @@ public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
 
 		@Nullable
 		@Override
-		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double pXSpeed, double pYSpeed, double pZSpeed) {
+		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
 			JukeboxUpgradeNoteParticle particle = new JukeboxUpgradeNoteParticle(level, x, y, z);
 			particle.pickSprite(spriteSet);
 			return particle;

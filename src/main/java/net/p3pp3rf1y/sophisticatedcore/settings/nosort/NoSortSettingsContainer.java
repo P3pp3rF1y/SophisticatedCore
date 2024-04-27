@@ -19,7 +19,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 	}
 
 	@Override
-	public void handleMessage(CompoundTag data) {
+	public void handlePacket(CompoundTag data) {
 		if (data.contains(ACTION_TAG)) {
 			switch (data.getString(ACTION_TAG)) {
 				case SELECT_ALL_ACTION -> selectAllSlots();

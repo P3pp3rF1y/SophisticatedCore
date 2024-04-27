@@ -4,8 +4,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataMessage;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataPacket;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
@@ -61,14 +61,14 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 		}
 		CompoundTag data = supplyData.get();
 		data.putInt("containerId", upgradeContainerId);
-		PacketHandler.INSTANCE.sendToServer(new SyncContainerClientDataMessage(data));
+		PacketDistributor.SERVER.noArg().send(new SyncContainerClientDataPacket(data));
 	}
 
 	public void onInit() {
 		//noop by default
 	}
 
-	public abstract void handleMessage(CompoundTag data);
+	public abstract void handlePacket(CompoundTag data);
 
 	public ItemStack getUpgradeStack() {
 		return upgradeWrapper.getUpgradeStack();

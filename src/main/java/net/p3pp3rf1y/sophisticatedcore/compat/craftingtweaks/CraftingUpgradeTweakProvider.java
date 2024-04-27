@@ -7,6 +7,7 @@ import net.blay09.mods.craftingtweaks.api.CraftingGrid;
 import net.blay09.mods.craftingtweaks.api.CraftingGridBuilder;
 import net.blay09.mods.craftingtweaks.api.CraftingGridProvider;
 import net.blay09.mods.craftingtweaks.api.GridTransferHandler;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -14,7 +15,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
@@ -197,7 +197,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 					int slotIndex = menu.getSlot(i).getContainerSlot();
 					ItemStack itemStack = craftMatrix.getItem(slotIndex);
 					if (!itemStack.isEmpty() && itemStack.getMaxStackSize() > 1) {
-						ResourceLocation registryName = ForgeRegistries.ITEMS.getKey(itemStack.getItem());
+						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
 
 						String key = Objects.toString(registryName);
 						if (itemStack.getTag() != null) {

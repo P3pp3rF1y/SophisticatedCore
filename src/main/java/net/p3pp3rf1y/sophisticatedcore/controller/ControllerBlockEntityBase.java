@@ -12,15 +12,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.wrapper.EmptyHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.wrapper.EmptyHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.CachedFailedInsertInventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
@@ -53,11 +49,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private Set<BlockPos> linkedBlocks = new TreeSet<>(distanceComparator);
 	private Set<BlockPos> connectingBlocks = new TreeSet<>(distanceComparator);
 	private Set<BlockPos> nonConnectingBlocks = new TreeSet<>(distanceComparator);
-
-	@Nullable
-	private LazyOptional<IItemHandler> itemHandlerCap;
-	@Nullable
-	private LazyOptional<IItemHandler> noSideItemHandlerCap;
 
 	public boolean addLinkedBlock(BlockPos linkedPos) {
 		if (level != null && !level.isClientSide() && isWithinRange(linkedPos) && !linkedBlocks.contains(linkedPos) && !storagePositions.contains(linkedPos)) {
@@ -509,38 +500,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	protected ControllerBlockEntityBase(BlockEntityType<?> blockEntityType, BlockPos pos, BlockState state) {
 		super(blockEntityType, pos, state);
-	}
-
-	@Nonnull
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER) {
-			if (side == null) {
-				if (noSideItemHandlerCap == null) {
-					noSideItemHandlerCap = LazyOptional.of(() -> this).cast();
-				}
-				return noSideItemHandlerCap.cast();
-			} else {
-				if (itemHandlerCap == null) {
-					itemHandlerCap = LazyOptional.of(() -> new CachedFailedInsertInventoryHandler(() -> this, () -> level != null ? level.getGameTime() : 0));
-				}
-				return itemHandlerCap.cast();
-			}
-		}
-		return super.getCapability(cap, side);
-	}
-
-	@Override
-	public void invalidateCaps() {
-		super.invalidateCaps();
-		if (itemHandlerCap != null) {
-			itemHandlerCap.invalidate();
-			itemHandlerCap = null;
-		}
-		if (noSideItemHandlerCap != null) {
-			noSideItemHandlerCap.invalidate();
-			noSideItemHandlerCap = null;
-		}
 	}
 
 	@Override

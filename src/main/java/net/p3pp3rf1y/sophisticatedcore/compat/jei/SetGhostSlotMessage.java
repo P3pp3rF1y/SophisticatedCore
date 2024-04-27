@@ -1,15 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.jei;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
-import javax.annotation.Nullable;
-import java.util.function.Supplier;
-
-public class SetGhostSlotMessage {
+public class SetGhostSlotMessage implements CustomPacketPayload {
+	public static final ResourceLocation ID = new ResourceLocation(SophisticatedCore.MOD_ID, "set_ghost_slot");
 	private final ItemStack stack;
 	private final int slotNumber;
 
@@ -18,25 +19,29 @@ public class SetGhostSlotMessage {
 		this.slotNumber = slotNumber;
 	}
 
-	public static void encode(SetGhostSlotMessage msg, FriendlyByteBuf packetBuffer) {
-		packetBuffer.writeItem(msg.stack);
-		packetBuffer.writeShort(msg.slotNumber);
+	public SetGhostSlotMessage(FriendlyByteBuf buffer) {
+		this(buffer.readItem(), buffer.readShort());
 	}
 
-	public static SetGhostSlotMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SetGhostSlotMessage(packetBuffer.readItem(), packetBuffer.readShort());
+	public void handle(PlayPayloadContext context) {
+		context.workHandler().execute(() -> context.player().ifPresent(this::handlePacket));
 	}
 
-	static void onMessage(SetGhostSlotMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context context = contextSupplier.get();
-		context.enqueueWork(() -> handleMessage(msg, context.getSender()));
-		context.setPacketHandled(true);
-	}
-
-	private static void handleMessage(SetGhostSlotMessage msg, @Nullable ServerPlayer sender) {
-		if (sender == null || !(sender.containerMenu instanceof StorageContainerMenuBase<?>)) {
+	private void handlePacket(Player player) {
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?>)) {
 			return;
 		}
-		sender.containerMenu.getSlot(msg.slotNumber).set(msg.stack);
+		player.containerMenu.getSlot(slotNumber).set(stack);
+	}
+
+	@Override
+	public void write(FriendlyByteBuf buffer) {
+		buffer.writeItem(stack);
+		buffer.writeShort(slotNumber);
+	}
+
+	@Override
+	public ResourceLocation id() {
+		return ID;
 	}
 }

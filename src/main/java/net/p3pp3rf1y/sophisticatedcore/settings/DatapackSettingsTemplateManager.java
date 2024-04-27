@@ -11,11 +11,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import org.apache.commons.io.IOUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
@@ -69,11 +65,11 @@ public class DatapackSettingsTemplateManager {
 
 		private Loader() {}
 		@Override
-		protected Map<ResourceLocation, CompoundTag> prepare(ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+		protected Map<ResourceLocation, CompoundTag> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
 			Map<ResourceLocation, CompoundTag> map = Maps.newHashMap();
 			int i = DIRECTORY.length() + 1;
 
-			pResourceManager.listResources(DIRECTORY, fileName -> fileName.getPath().endsWith(SUFFIX)).forEach((resourcelocation, resource) -> {
+			resourceManager.listResources(DIRECTORY, fileName -> fileName.getPath().endsWith(SUFFIX)).forEach((resourcelocation, resource) -> {
 				String s = resourcelocation.getPath();
 				ResourceLocation resourceLocationWithoutSuffix = new ResourceLocation(resourcelocation.getNamespace(), s.substring(i, s.length() - PATH_SUFFIX_LENGTH));
 
@@ -97,7 +93,7 @@ public class DatapackSettingsTemplateManager {
 		}
 
 		@Override
-		protected void apply(Map<ResourceLocation, CompoundTag> templates, ResourceManager pResourceManager, ProfilerFiller pProfiler) {
+		protected void apply(Map<ResourceLocation, CompoundTag> templates, ResourceManager resourceManager, ProfilerFiller profiler) {
 			templates.forEach((resourceLocation, tag) -> {
 				String datapackName = resourceLocation.getNamespace();
 				String templateName = resourceLocation.getPath().substring(resourceLocation.getPath().lastIndexOf('/') + 1);

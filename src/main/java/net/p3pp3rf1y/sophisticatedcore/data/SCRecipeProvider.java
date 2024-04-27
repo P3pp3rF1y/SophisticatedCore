@@ -1,13 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.data;
 
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
-import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
-
-import java.util.function.Consumer;
+import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeClearRecipe;
 
 public class SCRecipeProvider extends RecipeProvider {
 	public SCRecipeProvider(PackOutput packOutput) {
@@ -15,7 +13,7 @@ public class SCRecipeProvider extends RecipeProvider {
 	}
 
 	@Override
-	protected void buildRecipes(Consumer<FinishedRecipe> consumer) {
-		SpecialRecipeBuilder.special(ModRecipes.UPGRADE_CLEAR_SERIALIZER.get()).save(consumer, SophisticatedCore.getRegistryName("upgrade_clear"));
+	protected void buildRecipes(RecipeOutput recipeOutput) {
+		SpecialRecipeBuilder.special(UpgradeClearRecipe::new).save(recipeOutput, SophisticatedCore.getRegistryName("upgrade_clear"));
 	}
 }
