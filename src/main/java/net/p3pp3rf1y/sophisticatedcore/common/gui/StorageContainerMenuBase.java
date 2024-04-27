@@ -81,6 +81,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private boolean slotsChangedSinceStartOfClick = false;
 	private boolean tryingToMergeUpgrade = false;
+	private boolean initialBroadcast = true;
 
 	protected StorageContainerMenuBase(MenuType<?> pMenuType, int pContainerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		super(pMenuType, pContainerId);
@@ -385,9 +386,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				int k2 = dragType == 0 ? Math.min(slotStack.getCount(), slotStack.getMaxStackSize()) : Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
 				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) slotStack.getItem();
 				int columnsTaken = upgradeItem.getInventoryColumnsTaken();
+				slot.wasEmpty = false; // slot was not empty when this was reached and need to force onTake below to trigger slot position recalculation if slots are refreshed when columns taken changes
 				if (clickType == ClickType.QUICK_MOVE) {
 					quickMoveStack(player, slotId);
-					slot.wasEmpty = false; // slot was not empty when this was reached and need to force onTake below to trigger slot position recalculation if slots are refreshed when columns taken changes
 				} else {
 					setCarried(upgradeItem.getCleanedUpgradeStack(slot.remove(k2)));
 				}
@@ -797,7 +798,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			}
 
-			if (isUpgradeSettingsSlot(slot.index)) {
+			if (!initialBroadcast && isUpgradeSettingsSlot(slot.index)) {
 				slot.setChanged(); //updating slots in upgrade tabs to trigger related logic like updating recipe result on another player's screen
 			}
 		}
@@ -1431,6 +1432,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			sendStorageSettingsToClient();
 			refreshInventorySlotsIfNeeded();
 		}
+
+		initialBroadcast = false;
 	}
 
 
