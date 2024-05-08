@@ -629,7 +629,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private ItemStack insertIntoStoragesThatMatchItem(ItemStack remaining, boolean simulate) {
 		if (!emptySlotsStorages.isEmpty() && itemStackKeys.containsKey(remaining.getItem())) {
-			for (ItemStackKey key : itemStackKeys.get(remaining.getItem())) {
+			Set<ItemStackKey> matchingStackKeys = itemStackKeys.get(remaining.getItem());
+			if (remaining.getCount() > remaining.getMaxStackSize()) {
+				matchingStackKeys = new LinkedHashSet<>(matchingStackKeys); //to prevent CME when larger than maxStackSize stack causes new key to be added to set which then continues to be iterated on
+			}
+
+			for (ItemStackKey key : matchingStackKeys) {
 				if (stackStorages.containsKey(key)) {
 					Set<BlockPos> positions = stackStorages.get(key);
 					remaining = insertIntoStorages(positions, remaining, simulate, true);
