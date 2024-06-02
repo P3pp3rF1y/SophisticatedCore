@@ -38,7 +38,7 @@ public interface IControllableStorage extends IControllerBoundable {
 			BlockPos pos = getStorageBlockPos();
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getNormal());
-				WorldHelper.getBlockEntity(level, offsetPos, IControllableStorage.class).ifPresentOrElse(
+				WorldHelper.getBlockEntity(level, offsetPos, IControllerBoundable.class).ifPresentOrElse(
 						s -> {
 							if (s.canConnectStorages()) {
 								s.getControllerPos().ifPresent(controllerPos -> addToController(level, pos, controllerPos));
@@ -59,13 +59,16 @@ public interface IControllableStorage extends IControllerBoundable {
 
 	default void registerController(ControllerBlockEntityBase controllerBlockEntity) {
 		setControllerPos(controllerBlockEntity.getBlockPos());
-		registerListeners();
+		if (controllerBlockEntity.getLevel() != null && !controllerBlockEntity.getLevel().isClientSide()) {
+			registerListeners();
+		}
 	}
 
 	default void unregisterController() {
 		removeControllerPos();
 		getStorageWrapper().getInventoryForInputOutput().unregisterStackKeyListeners();
 		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unregisterListeners();
+		getStorageWrapper().getInventoryHandler().unregisterFilterItemsChangeListener();
 	}
 
 	private void registerListeners() {
@@ -75,6 +78,9 @@ public interface IControllableStorage extends IControllerBoundable {
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i)),
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedStack(getStorageBlockPos(), i)),
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedStack(getStorageBlockPos(), i))
+		);
+		getStorageWrapper().getInventoryHandler().registerFilterItemsChangeListener(
+				items -> runOnController(getStorageBlockLevel(), controller -> controller.setStorageFilterItems(getStorageBlockPos(), items))
 		);
 	}
 
@@ -92,7 +98,15 @@ public interface IControllableStorage extends IControllerBoundable {
 			Level level = getStorageBlockLevel();
 			if (!level.isClientSide()) {
 				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class)
-						.ifPresent(controller -> controller.addStorageStacksAndRegisterListeners(getStorageBlockPos()));
+						.ifPresent(controller -> {
+									if (controller.isStorageConnected(getStorageBlockPos())) {
+										controller.addStorageStacksAndRegisterListeners(getStorageBlockPos());
+									} else {
+										removeControllerPos();
+										tryToAddToController();
+									}
+								}
+						);
 			}
 		});
 	}

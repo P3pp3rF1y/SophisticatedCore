@@ -6,7 +6,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.util.thread.SidedThreadGroups;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.FilterItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
@@ -27,6 +26,10 @@ public class FilterLogic extends FilterLogicBase {
 
 	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount) {
 		this(upgrade, saveHandler, filterSlotCount, s -> true, "");
+	}
+
+	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, String parentTagKey) {
+		this(upgrade, saveHandler, filterSlotCount, s -> true, parentTagKey);
 	}
 
 	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Predicate<ItemStack> isItemValid) {
@@ -117,13 +120,7 @@ public class FilterLogic extends FilterLogicBase {
 
 		@Override
 		public void deserializeNBT(CompoundTag nbt) {
-			int size = NBTHelper.getInt(nbt, "Size").orElse(filterSlotCount);
-			if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && filterSlotCount > size) {
-				NBTHelper.putInt(nbt, "Size", filterSlotCount);
-				save();
-				size = filterSlotCount;
-			}
-			setSize(size);
+			setSize(filterSlotCount);
 			ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
 			for (int i = 0; i < tagList.size(); i++) {
 				CompoundTag itemTags = tagList.getCompound(i);

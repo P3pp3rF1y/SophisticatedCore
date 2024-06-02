@@ -2,8 +2,8 @@ package net.p3pp3rf1y.sophisticatedcore.compat.quark;
 
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import vazkii.quark.base.module.ModuleLoader;
 import vazkii.quark.content.management.module.EasyTransferingModule;
 
@@ -15,6 +15,6 @@ public class QuarkCompat implements ICompat {
 				QuarkButtonManager.addButtons();
 			}
 		});
-		SophisticatedCore.PACKET_HANDLER.registerMessage(TransferMessage.class, TransferMessage::encode, TransferMessage::decode, TransferMessage::onMessage);
+		PacketHandler.INSTANCE.registerMessage(TransferMessage.class, TransferMessage::encode, TransferMessage::decode, TransferMessage::onMessage);
 	}
 }

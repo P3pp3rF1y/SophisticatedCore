@@ -16,6 +16,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
@@ -232,45 +233,38 @@ public class InventoryHelper {
 	}
 
 	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted) {
-		transfer(handlerA, handlerB, onInserted, s -> true);
-	}
-
-	public static void transfer(IItemHandler handlerA, IItemHandler handlerB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
-		transfer(handlerA, handlerB, -1, onInserted, canTransferStack);
-	}
-
-	private static void transfer(IItemHandler handlerA, IItemHandler handlerB, int slotB, Consumer<Supplier<ItemStack>> onInserted, Predicate<ItemStack> canTransferStack) {
 		int slotsA = handlerA.getSlots();
 		for (int slot = 0; slot < slotsA; slot++) {
 			ItemStack slotStack = handlerA.getStackInSlot(slot);
-			if (slotStack.isEmpty() || !canTransferStack.test(slotStack)) {
+			if (slotStack.isEmpty()) {
 				continue;
 			}
 
-			ItemStack resultStack;
-			if (slotB == -1) {
-				resultStack = insertIntoInventory(slotStack, handlerB, true);
-			} else {
-				resultStack = handlerB.insertItem(slotB, slotStack, true);
-			}
-			int countToExtract = slotStack.getCount() - resultStack.getCount();
-			if (countToExtract > 0 && handlerA.extractItem(slot, countToExtract, true).getCount() == countToExtract) {
-				if (slotB == -1) {
-					insertIntoInventory(handlerA.extractItem(slot, countToExtract, false), handlerB, false);
-				} else {
-					handlerB.insertItem(slotB, handlerA.extractItem(slot, countToExtract, false), false);
+			int countToTransfer = slotStack.getCount();
+			while (countToTransfer > 0) {
+				ItemStack toInsert = slotStack.copy();
+				toInsert.setCount(Math.min(slotStack.getMaxStackSize(), countToTransfer));
+				ItemStack remainingAfterInsert = insertIntoInventory(toInsert, handlerB, true);
+				if (remainingAfterInsert.getCount() == toInsert.getCount()) {
+					break;
 				}
+				int toExtract = toInsert.getCount() - remainingAfterInsert.getCount();
+
+				ItemStack extractedStack = handlerA.extractItem(slot, toExtract, true);
+				if (extractedStack.isEmpty()) {
+					break;
+				}
+
+				insertIntoInventory(handlerA.extractItem(slot, extractedStack.getCount(), false), handlerB, false);
+
 				onInserted.accept(() -> {
 					ItemStack copiedStack = slotStack.copy();
-					copiedStack.setCount(countToExtract);
+					copiedStack.setCount(extractedStack.getCount());
 					return copiedStack;
 				});
+				countToTransfer -= extractedStack.getCount();
 			}
 		}
-	}
-
-	public static void transferIntoSlot(IItemHandler handlerA, IItemHandler handlerB, int slotB, Predicate<ItemStack> canTransferStack) {
-		transfer(handlerA, handlerB, slotB, s -> {}, canTransferStack);
 	}
 
 	public static boolean isEmpty(IItemHandler itemHandler) {
@@ -313,7 +307,7 @@ public class InventoryHelper {
 			if (stack.isEmpty() || ignoreSlots.contains(slot)) {
 				return;
 			}
-			ItemStackKey itemStackKey = new ItemStackKey(stack);
+			ItemStackKey itemStackKey = ItemStackKey.of(stack);
 			ret.put(itemStackKey, ret.computeIfAbsent(itemStackKey, fs -> 0) + stack.getCount());
 		});
 		return ret;
@@ -339,7 +333,7 @@ public class InventoryHelper {
 			if (stack.isEmpty()) {
 				return;
 			}
-			ItemStackKey itemStackKey = new ItemStackKey(stack);
+			ItemStackKey itemStackKey = ItemStackKey.of(stack);
 			uniqueStacks.add(itemStackKey);
 		});
 		return uniqueStacks;
@@ -399,19 +393,24 @@ public class InventoryHelper {
 
 	public static void dropItems(ItemStackHandler inventoryHandler, Level level, double x, double y, double z) {
 		iterate(inventoryHandler, (slot, stack) -> {
-			while(!stack.isEmpty()) {
-				Containers.dropItemStack(level, x, y, z, stack.split(Math.min(stack.getCount(), stack.getMaxStackSize())));
-				inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
+			if (stack.isEmpty()) {
+				return;
 			}
+			ItemStack extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
+			while (!extractedStack.isEmpty()) {
+				Containers.dropItemStack(level, x, y, z, extractedStack);
+				extractedStack = inventoryHandler.extractItem(slot, stack.getMaxStackSize(), false);
+			}
+			inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 		});
 	}
 
-	public static int getAnalogOutputSignal(IItemHandler handler) {
+	public static int getAnalogOutputSignal(ITrackedContentsItemHandler handler) {
 		AtomicDouble totalFilled = new AtomicDouble(0);
 		AtomicBoolean isEmpty = new AtomicBoolean(true);
 		iterate(handler, (slot, stack) -> {
 			if (!stack.isEmpty()) {
-				int slotLimit = handler.getSlotLimit(slot);
+				int slotLimit = handler.getInternalSlotLimit(slot);
 				totalFilled.addAndGet(stack.getCount() / (slotLimit / ((float) 64 / stack.getMaxStackSize())));
 				isEmpty.set(false);
 			}

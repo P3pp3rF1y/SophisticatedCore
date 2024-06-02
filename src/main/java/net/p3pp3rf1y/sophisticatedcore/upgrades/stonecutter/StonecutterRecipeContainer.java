@@ -14,6 +14,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
@@ -84,7 +85,7 @@ public class StonecutterRecipeContainer {
 		selectedRecipe.set(-1);
 		outputSlot.set(ItemStack.EMPTY);
 		if (!stack.isEmpty()) {
-			recipes = RecipeHelper.getStonecuttingRecipes(inventory);
+			recipes = RecipeHelper.getRecipesOfType(RecipeType.STONECUTTING, inventory);
 			getLastSelectedRecipeId.get().ifPresent(id -> {
 				for (int i = 0; i < recipes.size(); i++) {
 					if (recipes.get(i).getId().equals(id)) {

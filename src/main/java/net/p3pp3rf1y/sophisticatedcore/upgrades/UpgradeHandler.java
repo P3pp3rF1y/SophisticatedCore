@@ -3,6 +3,8 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.util.thread.SidedThreadGroups;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
@@ -18,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 public class UpgradeHandler extends ItemStackHandler {
 	public static final String UPGRADE_INVENTORY_TAG = "upgradeInventory";
@@ -35,7 +38,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	@Nullable
 	private IUpgradeWrapperAccessor wrapperAccessor = null;
 	private boolean persistent = true;
-
+	private final Map<Class<? extends IUpgradeWrapper>, Consumer<? extends IUpgradeWrapper>> upgradeDefaultsHandlers = new HashMap<>();
 	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
 		super(numberOfUpgradeSlots);
 		this.contentsNbt = contentsNbt;
@@ -43,6 +46,13 @@ public class UpgradeHandler extends ItemStackHandler {
 		this.contentsSaveHandler = contentsSaveHandler;
 		this.onInvalidateUpgradeCaches = onInvalidateUpgradeCaches;
 		deserializeNBT(contentsNbt.getCompound(UPGRADE_INVENTORY_TAG));
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderInfo().getUpgradeItems().size() != getSlots()) {
+			setRenderUpgradeItems();
+		}
+	}
+
+	public <T extends IUpgradeWrapper> void registerUpgradeDefaultsHandler(Class<T> upgradeClass, Consumer<T> defaultsHandler) {
+		upgradeDefaultsHandlers.put(upgradeClass, defaultsHandler);
 	}
 
 	@Override
@@ -59,7 +69,14 @@ public class UpgradeHandler extends ItemStackHandler {
 		}
 		if (!justSavingNbtChange) {
 			refreshUpgradeWrappers();
+			setRenderUpgradeItems();
 		}
+	}
+
+	public void setRenderUpgradeItems() {
+		List<ItemStack> upgradeItems = new ArrayList<>();
+		InventoryHelper.iterate(this, (upgradeSlot, upgrade) -> upgradeItems.add(ItemHandlerHelper.copyStackWithSize(upgrade, 1)));
+		storageWrapper.getRenderInfo().setUpgradeItems(upgradeItems);
 	}
 
 	@Override
@@ -104,19 +121,65 @@ public class UpgradeHandler extends ItemStackHandler {
 				setStackInSlot(slot, upgradeStack);
 				justSavingNbtChange = false;
 			});
+			setUpgradeDefaults(wrapper);
 			slotWrappers.put(slot, wrapper);
 		});
 
 		initRenderInfoCallbacks(false);
 	}
 
+	@Nonnull
+	@Override
+	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+		ItemStack result = super.insertItem(slot, stack, simulate);
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && result.isEmpty() && !stack.isEmpty()) {
+			onUpgradeAdded(slot);
+		}
+
+		return result;
+	}
+
+	private void onUpgradeAdded(int slot) {
+		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+		if (wrappers.containsKey(slot)) {
+			wrappers.get(slot).onAdded();
+		}
+	}
+
+	private void setUpgradeDefaults(IUpgradeWrapper wrapper) {
+		getUpgradeDefaultsHandler(wrapper).accept(wrapper);
+	}
+
+	private <T extends IUpgradeWrapper> Consumer<T> getUpgradeDefaultsHandler(T wrapper) {
+		//noinspection unchecked
+		return (Consumer<T>) upgradeDefaultsHandlers.getOrDefault(wrapper.getClass(), w -> {});
+	}
+
+	@Override
+	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
+		ItemStack originalStack = getStackInSlot(slot);
+		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+		boolean itemsDiffer = !ItemHandlerHelper.canItemStacksStack( originalStack, stack);
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer && wrappers.containsKey(slot)) {
+			wrappers.get(slot).onBeforeRemoved();
+		}
+
+		super.setStackInSlot(slot, stack);
+
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer) {
+			onUpgradeAdded(slot);
+		}
+	}
+
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		ItemStack slotStack = getStackInSlot(slot);
-		if (persistent && !slotStack.isEmpty() && amount == 1) {
-			Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
-			if (wrappers.containsKey(slot)) {
-				wrappers.get(slot).onBeforeRemoved();
+		if (!simulate && Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
+			ItemStack slotStack = getStackInSlot(slot);
+			if (persistent && !slotStack.isEmpty() && amount == 1) {
+				Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
+				if (wrappers.containsKey(slot)) {
+					wrappers.get(slot).onBeforeRemoved();
+				}
 			}
 		}
 		return super.extractItem(slot, amount, simulate);
@@ -275,6 +338,12 @@ public class UpgradeHandler extends ItemStackHandler {
 			stacks.set(slot, previousStacks.get(slot));
 		}
 		saveInventory();
+		setRenderUpgradeItems();
+	}
+
+	@Override
+	public int getSlotLimit(int slot) {
+		return 1;
 	}
 
 	private static class Accessor implements IUpgradeWrapperAccessor {

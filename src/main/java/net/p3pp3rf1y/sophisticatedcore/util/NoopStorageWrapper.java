@@ -1,7 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -16,192 +17,215 @@ import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@SuppressWarnings("java:S4144") //this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
+@SuppressWarnings("java:S4144")
+//this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
 public class NoopStorageWrapper implements IStorageWrapper {
-	public static final NoopStorageWrapper INSTANCE = new NoopStorageWrapper();
+    public static final NoopStorageWrapper INSTANCE = new NoopStorageWrapper();
 
-	private final UpgradeHandler upgradeHandler = new UpgradeHandler(0, this, new CompoundTag(), () -> {}, () -> {});
-	private final InventoryHandler inventoryHandler = new InventoryHandler(0, this, new CompoundTag(), () -> {}, 64, new StackUpgradeConfig(new ForgeConfigSpec.Builder())) {
-		@Override
-		protected boolean isAllowed(ItemStack stack) {
-			return true;
-		}
-	};
-	private final RenderInfo renderInfo = new RenderInfo(() -> () -> {}) {
+    @Nullable
+    private UpgradeHandler upgradeHandler;
+    @Nullable
+    private InventoryHandler inventoryHandler;
+    @Nullable
+    private RenderInfo renderInfo;
+    @Nullable
+    private SettingsHandler settingsHandler;
 
-		@Override
-		protected void serializeRenderInfo(CompoundTag renderInfo) {
-			//noop
-		}
+    protected NoopStorageWrapper() {
+    }
 
-		@Override
-		protected Optional<CompoundTag> getRenderInfoTag() {
-			return Optional.empty();
-		}
-	};
-	private final SettingsHandler settingsHandler = new SettingsHandler(new CompoundTag(), () -> {}, () -> inventoryHandler, () -> renderInfo) {
-		@Override
-		protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
-			return contentsNbt;
-		}
+    @Override
+    public void setSaveHandler(Runnable saveHandler) {
+        //noop
+    }
 
-		@Override
-		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
-			//noop
-		}
+    @Override
+    public ITrackedContentsItemHandler getInventoryForUpgradeProcessing() {
+        return getInventoryHandler();
+    }
 
-		@Override
-		public String getGlobalSettingsCategoryName() {
-			return "";
-		}
+    @Override
+    public InventoryHandler getInventoryHandler() {
+        if (inventoryHandler == null) {
+            inventoryHandler = new InventoryHandler(0, this, new CompoundTag(), () -> {
+            }, 64, new StackUpgradeConfig(new ForgeConfigSpec.Builder())) {
+                @Override
+                protected boolean isAllowed(ItemStack stack) {
+                    return true;
+                }
+            };
+        }
+        return inventoryHandler;
+    }
 
-		@Override
-		public ISettingsCategory instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
-			return new MainSettingsCategory(categoryNbt, saveNbt, "");
-		}
+    @Override
+    public ITrackedContentsItemHandler getInventoryForInputOutput() {
+        return getInventoryHandler();
+    }
 
-		@Override
-		protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
-			//noop
-		}
-	};
+    @Override
+    public SettingsHandler getSettingsHandler() {
+        if (settingsHandler == null) {
+            settingsHandler = new SettingsHandler(new CompoundTag(), () -> {
+            }, this::getInventoryHandler, this::getRenderInfo) {
+                @Override
+                protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
+                    return contentsNbt;
+                }
 
-	protected NoopStorageWrapper() {}
+                @Override
+                protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
+                    //noop
+                }
 
-	@Override
-	public void setSaveHandler(Runnable saveHandler) {
-		//noop
-	}
+                @Override
+                public String getGlobalSettingsCategoryName() {
+                    return "";
+                }
 
-	@Override
-	public ITrackedContentsItemHandler getInventoryForUpgradeProcessing() {
-		return inventoryHandler;
-	}
+                @Override
+                public ISettingsCategory<?> instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
+                    return new MainSettingsCategory<>(categoryNbt, saveNbt, "");
+                }
 
-	@Override
-	public InventoryHandler getInventoryHandler() {
-		return inventoryHandler;
-	}
+                @Override
+                protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
+                    //noop
+                }
+            };
+        }
+        return settingsHandler;
+    }
 
-	@Override
-	public ITrackedContentsItemHandler getInventoryForInputOutput() {
-		return inventoryHandler;
-	}
+    @Override
+    public UpgradeHandler getUpgradeHandler() {
+        if (upgradeHandler == null) {
+            upgradeHandler = new UpgradeHandler(0, this, new CompoundTag(), () -> {
+            }, () -> {
+            });
+        }
 
-	@Override
-	public SettingsHandler getSettingsHandler() {
-		return settingsHandler;
-	}
+        return upgradeHandler;
+    }
 
-	@Override
-	public UpgradeHandler getUpgradeHandler() {
-		return upgradeHandler;
-	}
+    @Override
+    public Optional<UUID> getContentsUuid() {
+        return Optional.empty();
+    }
 
-	@Override
-	public Optional<UUID> getContentsUuid() {
-		return Optional.empty();
-	}
+    @Override
+    public int getMainColor() {
+        return -1;
+    }
 
-	@Override
-	public int getMainColor() {
-		return -1;
-	}
+    @Override
+    public int getAccentColor() {
+        return -1;
+    }
 
-	@Override
-	public int getAccentColor() {
-		return -1;
-	}
+    @Override
+    public Optional<Integer> getOpenTabId() {
+        return Optional.empty();
+    }
 
-	@Override
-	public Optional<Integer> getOpenTabId() {
-		return Optional.empty();
-	}
+    @Override
+    public void setOpenTabId(int openTabId) {
+        //noop
+    }
 
-	@Override
-	public void setOpenTabId(int openTabId) {
-		//noop
-	}
+    @Override
+    public void removeOpenTabId() {
+        //noop
+    }
 
-	@Override
-	public void removeOpenTabId() {
-		//noop
-	}
+    @Override
+    public void setColors(int mainColor, int accentColor) {
+        //noop
+    }
 
-	@Override
-	public void setColors(int mainColor, int accentColor) {
-		//noop
-	}
+    @Override
+    public void setSortBy(SortBy sortBy) {
+        //noop
+    }
 
-	@Override
-	public void setSortBy(SortBy sortBy) {
-		//noop
-	}
+    @Override
+    public SortBy getSortBy() {
+        return SortBy.NAME;
+    }
 
-	@Override
-	public SortBy getSortBy() {
-		return SortBy.NAME;
-	}
+    @Override
+    public void sort() {
+        //noop
+    }
 
-	@Override
-	public void sort() {
-		//noop
-	}
+    @Override
+    public void onContentsNbtUpdated() {
+        //noop
+    }
 
-	@Override
-	public void onContentsNbtUpdated() {
-		//noop
-	}
+    @Override
+    public void refreshInventoryForUpgradeProcessing() {
+        //noop
+    }
 
-	@Override
-	public void refreshInventoryForUpgradeProcessing() {
-		//noop
-	}
+    @Override
+    public void refreshInventoryForInputOutput() {
+        //noop
+    }
 
-	@Override
-	public void refreshInventoryForInputOutput() {
-		//noop
-	}
+    @Override
+    public void setPersistent(boolean persistent) {
+        //noop
+    }
 
-	@Override
-	public void setPersistent(boolean persistent) {
-		//noop
-	}
+    @Override
+    public void fillWithLoot(Player playerEntity) {
+        //noop
+    }
 
-	public void setSlotNumbers(int numberOfInventorySlots, int numberOfUpgradeSlots) {
-		//noop
-	}
+    @Override
+    public RenderInfo getRenderInfo() {
+        if (renderInfo == null) {
+            renderInfo = new RenderInfo(() -> () -> {
+            }) {
 
-	public void setLoot(ResourceLocation lootTableName, float lootPercentage) {
-		//noop
-	}
+                @Override
+                protected void serializeRenderInfo(CompoundTag renderInfo) {
+                    //noop
+                }
 
-	@Override
-	public void fillWithLoot(Player playerEntity) {
-		//noop
-	}
+                @Override
+                protected Optional<CompoundTag> getRenderInfoTag() {
+                    return Optional.empty();
+                }
+            };
+        }
+        return renderInfo;
+    }
 
-	public void setContentsUuid(UUID storageUuid) {
-		//noop
-	}
+    @Override
+    public void setColumnsTaken(int columnsTaken, boolean hasChanged) {
+        //noop
+    }
 
-	@Override
-	public RenderInfo getRenderInfo() {
-		return renderInfo;
-	}
+    @Override
+    public int getColumnsTaken() {
+        return 0;
+    }
 
-	@Override
-	public void setColumnsTaken(int columnsTaken, boolean hasChanged) {
-		//noop
-	}
+    @Override
+    public String getStorageType() {
+        return "";
+    }
 
-	@Override
-	public int getColumnsTaken() {
-		return 0;
-	}
+    @Override
+    public Component getDisplayName() {
+        return TextComponent.EMPTY;
+    }
 }

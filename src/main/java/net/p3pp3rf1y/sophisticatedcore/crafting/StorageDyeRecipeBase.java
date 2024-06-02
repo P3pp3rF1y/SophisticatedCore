@@ -4,7 +4,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CustomRecipe;
@@ -30,13 +29,12 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 			if (slotStack.isEmpty()) {
 				continue;
 			}
-			Item item = slotStack.getItem();
-			if (isStorageItem(item)) {
+			if (isDyeableStorageItem(slotStack)) {
 				if (storagePresent) {
 					return false;
 				}
 				storagePresent = true;
-			} else if (item instanceof DyeItem) {
+			} else if (slotStack.is(Tags.Items.DYES)) {
 				dyePresent = true;
 			} else {
 				return false;
@@ -57,7 +55,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 			}
 			Item item = slotStack.getItem();
 			int column = slot % inv.getWidth();
-			if (isStorageItem(item)) {
+			if (isDyeableStorageItem(slotStack)) {
 				if (columnStorage != null) {
 					return ItemStack.EMPTY;
 				}
@@ -86,7 +84,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 		return coloredStorage;
 	}
 
-	protected abstract boolean isStorageItem(Item item);
+	protected abstract boolean isDyeableStorageItem(ItemStack stack);
 
 	private void applyTintColors(Map<Integer, List<DyeColor>> columnDyes, ItemStack coloredStorage, int storageColumn) {
 		List<DyeColor> mainDyes = new ArrayList<>();

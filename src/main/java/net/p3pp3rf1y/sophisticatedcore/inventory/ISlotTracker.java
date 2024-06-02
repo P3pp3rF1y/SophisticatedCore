@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Collections;
@@ -15,6 +16,8 @@ public interface ISlotTracker {
 	Set<ItemStackKey> getFullStacks();
 
 	Set<ItemStackKey> getPartialStacks();
+
+	Set<Item> getItems();
 
 	void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack);
 
@@ -49,6 +52,11 @@ public interface ISlotTracker {
 
 		@Override
 		public Set<ItemStackKey> getPartialStacks() {
+			return Collections.emptySet();
+		}
+
+		@Override
+		public Set<Item> getItems() {
 			return Collections.emptySet();
 		}
 

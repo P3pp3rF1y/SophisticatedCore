@@ -20,11 +20,15 @@ public class ContentsFilterLogicContainer extends FilterLogicContainer<ContentsF
 
 	public void setFilterType(ContentsFilterType depositFilterType) {
 		filterLogic.get().setDepositFilterType(depositFilterType);
-		serverUpdater.sendDataToServer(() -> NBTHelper.putEnumConstant(new CompoundTag(), DATA_CONTENTS_FILTER_TYPE, depositFilterType));
+		sendDataToServer(() -> NBTHelper.putEnumConstant(new CompoundTag(), DATA_CONTENTS_FILTER_TYPE, depositFilterType));
 	}
 
 	@Override
 	public boolean handleMessage(CompoundTag data) {
+		if (isDifferentFilterLogicsData(data)) {
+			return false;
+		}
+
 		if (data.contains(DATA_CONTENTS_FILTER_TYPE)) {
 			setFilterType(ContentsFilterType.fromName(data.getString(DATA_CONTENTS_FILTER_TYPE)));
 		}

@@ -16,7 +16,6 @@ public abstract class WidgetBase extends GuiComponent implements Widget, GuiEven
 	protected final int x;
 
 	protected final int y;
-	protected int zOffset;
 	protected final Minecraft minecraft;
 	protected final Font font;
 	private int height;
@@ -44,16 +43,9 @@ public abstract class WidgetBase extends GuiComponent implements Widget, GuiEven
 		}
 
 		isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-		if (zOffset != 0) {
-			matrixStack.pushPose();
-			matrixStack.translate(0, 0, zOffset);
-		}
 		RenderSystem.enableDepthTest();
 		renderBg(matrixStack, minecraft, mouseX, mouseY);
 		renderWidget(matrixStack, mouseX, mouseY, partialTicks);
-		if (zOffset != 0) {
-			matrixStack.popPose();
-		}
 	}
 
 	@Override
@@ -83,10 +75,6 @@ public abstract class WidgetBase extends GuiComponent implements Widget, GuiEven
 		return mouseX >= x && mouseX < x + getWidth() && mouseY >= y && mouseY < y + getHeight();
 	}
 
-	public void setZOffset(int zOffset) {
-		this.zOffset = zOffset;
-	}
-
 	public int getX() {
 		return x;
 	}
@@ -100,6 +88,10 @@ public abstract class WidgetBase extends GuiComponent implements Widget, GuiEven
 	}
 
 	public void renderTooltip(Screen screen, PoseStack poseStack, int mouseX, int mouseY) {
+		//noop
+	}
+
+	public void setFocus(boolean focused) {
 		//noop
 	}
 }

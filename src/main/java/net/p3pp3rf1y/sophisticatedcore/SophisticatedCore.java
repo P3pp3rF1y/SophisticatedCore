@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,8 +34,6 @@ import org.apache.logging.log4j.Logger;
 public class SophisticatedCore {
 	public static final String MOD_ID = "sophisticatedcore";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
-	public static final PacketHandler PACKET_HANDLER = new PacketHandler(MOD_ID);
-
 	public final CommonEventHandler commonEventHandler = new CommonEventHandler();
 
 	@SuppressWarnings("java:S1118") //needs to be public for mod to work
@@ -46,6 +45,7 @@ public class SophisticatedCore {
 			ClientEventHandler.registerHandlers();
 		}
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+		Config.COMMON.initListeners(modBus);
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);
 		modBus.addGenericListener(RecipeSerializer.class, this::registerRecipeSerializers);
@@ -70,10 +70,11 @@ public class SophisticatedCore {
 
 	private static void onResourceReload(AddReloadListenerEvent event) {
 		UpgradeNextTierRecipe.REGISTERED_RECIPES.clear();
+		event.addListener(DatapackSettingsTemplateManager.Loader.INSTANCE);
 	}
 
 	private static void setup(FMLCommonSetupEvent event) {
-		PACKET_HANDLER.init();
+		PacketHandler.INSTANCE.init();
 		ModCompat.initCompats();
 	}
 
