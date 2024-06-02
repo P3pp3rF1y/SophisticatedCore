@@ -55,4 +55,8 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 		save();
 		storageWrapper.getUpgradeHandler().refreshWrappersThatImplementAndTypeWrappers();
 	}
+
+	public IStorageWrapper getStorageWrapper() {
+		return storageWrapper;
+	}
 }

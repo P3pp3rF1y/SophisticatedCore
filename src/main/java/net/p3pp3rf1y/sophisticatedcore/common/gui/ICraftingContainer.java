@@ -9,4 +9,6 @@ public interface ICraftingContainer {
 	List<Slot> getRecipeSlots();
 
 	Container getCraftMatrix();
+
+	boolean shouldRefillCraftingGrid();
 }
