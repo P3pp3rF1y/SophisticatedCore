@@ -7,22 +7,19 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
-public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContainer> {
+public class AdvancedCraftingUpgradeTab extends UpgradeSettingsTab<AdvancedCraftingUpgradeContainer> {
 	private static final TextureBlitData ARROW = new TextureBlitData(GuiHelper.GUI_CONTROLS, new UV(97, 216), new Dimension(15, 8));
 
 	private final ICraftingUIPart craftingUIAddition;
 
-	public CraftingUpgradeTab(CraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton) {
+	public AdvancedCraftingUpgradeTab(AdvancedCraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<CraftingRefillType> refillCraftingGridButton) {
 		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("crafting"), TranslationHelper.INSTANCE.translUpgradeTooltip("crafting"));
 		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton, button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()),
 				getContainer()::shouldShiftClickIntoStorage));
+		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), refillCraftingGridButton, button -> getContainer().setRefillCraftingGrid(getContainer().shouldRefillCraftingGrid().next()),
+				getContainer()::shouldRefillCraftingGrid));
 		craftingUIAddition = screen.getCraftingUIAddition();
 		openTabDimension = new Dimension(63 + craftingUIAddition.getWidth(), 142);
 	}

@@ -10,10 +10,10 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWrapper, CraftingUpgradeItem> {
+public class AdvancedCraftingUpgradeWrapper extends UpgradeWrapperBase<AdvancedCraftingUpgradeWrapper, AdvancedCraftingUpgradeItem> {
 	private final ItemStackHandler inventory;
 
-	public CraftingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
+	public AdvancedCraftingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
 		inventory = new ItemStackHandler(9) {
@@ -46,6 +46,18 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 	}
 
 	public CraftingRefillType shouldReplenish() {
-		return CraftingRefillType.DisableRefill;
+		CraftingRefillType value;
+		value = NBTHelper.getEnumConstant(upgrade, "refillCraftingGrid", new Function<String, CraftingRefillType>() {
+			@Override
+			public CraftingRefillType apply(String s) {
+				return CraftingRefillType.fromName(s);
+			}
+		}).orElse(CraftingRefillType.RefillFromStorageThenPlayer);
+		return value;
+	}
+
+	public void setReplenish(CraftingRefillType refillCraftingGrid) {
+		NBTHelper.setEnumConstant(upgrade, "refillCraftingGrid", refillCraftingGrid);
+		save();
 	}
 }

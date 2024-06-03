@@ -34,6 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingRefillType;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 
 import javax.annotation.Nonnull;
@@ -1011,7 +1012,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					quickMoveStack(this.player, slotId).copy();
 				} else {
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					if (getOpenOrFirstCraftingContainer().map(ICraftingContainer::shouldReplenish).orElse(false)) {
+					if (getOpenOrFirstCraftingContainer().map(ICraftingContainer::shouldRefillCraftingGrid).get() == CraftingRefillType.RefillFromStorage) {
 						int i = 1;
 						int maxStackSize = itemstack8.getMaxStackSize();
 						while (!itemstack8.isEmpty() && ItemStack.isSame(slot6.getItem(), itemstack8) && i < maxStackSize) {
