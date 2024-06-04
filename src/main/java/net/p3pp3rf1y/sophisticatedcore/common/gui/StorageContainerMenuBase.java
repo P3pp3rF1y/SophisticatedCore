@@ -33,6 +33,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingRefillType;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.jetbrains.annotations.NotNull;
 
@@ -1028,8 +1029,17 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					quickMoveStack(this.player, slotId).copy();
 				} else {
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					while (!slotsChangedSinceStartOfClick && !itemstack8.isEmpty() && ItemStack.isSameItem(slot6.getItem(), itemstack8)) {
-						itemstack8 = quickMoveStack(this.player, slotId);
+					if (getOpenOrFirstCraftingContainer().map(ICraftingContainer::shouldRefillCraftingGrid).get() == CraftingRefillType.RefillFromStorage) {
+						int i = 1;
+						int maxStackSize = itemstack8.getMaxStackSize();
+						while (!itemstack8.isEmpty() && ItemStack.isSameItem(slot6.getItem(), itemstack8) && i < maxStackSize) {
+							itemstack8 = quickMoveStack(this.player, slotId);
+							i++;
+						}
+					} else {
+						while (!slotsChangedSinceStartOfClick && !itemstack8.isEmpty() && ItemStack.isSameItem(slot6.getItem(), itemstack8)) {
+							itemstack8 = quickMoveStack(this.player, slotId);
+						}
 					}
 				}
 			} else {
