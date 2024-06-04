@@ -1029,7 +1029,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					quickMoveStack(this.player, slotId).copy();
 				} else {
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					if (getOpenOrFirstCraftingContainer().map(ICraftingContainer::shouldRefillCraftingGrid).get() == CraftingRefillType.RefillFromStorage) {
+					Optional<CraftingRefillType> shouldRefillCraftingGridEnum = getOpenOrFirstCraftingContainer().map(ICraftingContainer::shouldRefillCraftingGrid);
+
+					if (!shouldRefillCraftingGridEnum.isEmpty() && shouldRefillCraftingGridEnum.get() == CraftingRefillType.RefillFromStorage) {
 						int i = 1;
 						int maxStackSize = itemstack8.getMaxStackSize();
 						while (!itemstack8.isEmpty() && ItemStack.isSameItem(slot6.getItem(), itemstack8) && i < maxStackSize) {
