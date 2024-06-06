@@ -43,12 +43,12 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 		save();
 	}
 
-	public boolean shouldReplenish() {
-		return NBTHelper.getBoolean(upgrade, "replenish").orElse(false);
+	public boolean shouldRefillCraftingGridNBT() {
+		return NBTHelper.getBoolean(upgrade, "refill_crafting_grid").orElse(false);
 	}
 
-	public void setReplenish(boolean replenish) {
-		NBTHelper.setBoolean(upgrade, "replenish", replenish);
+	public void setRefillCraftingGridNBT(boolean replenish) {
+		NBTHelper.setBoolean(upgrade, "refill_crafting_grid", replenish);
 		save();
 	}
 }

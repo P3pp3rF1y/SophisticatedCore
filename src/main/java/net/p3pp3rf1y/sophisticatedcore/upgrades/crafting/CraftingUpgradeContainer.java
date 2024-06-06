@@ -28,7 +28,7 @@ import java.util.Optional;
 
 public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgradeWrapper, CraftingUpgradeContainer> implements ICraftingContainer {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
-	private static final String DATA_REPLENISH = "replenish";
+	private static final String DATA_REFILL_CRAFTING_GRID = "refill_crafting_grid";
 	private final ResultContainer craftResult = new ResultContainer();
 	private final CraftingItemHandler craftMatrix;
 	private final ResultSlot craftingResultSlot;
@@ -66,11 +66,11 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					ItemStack itemstack = craftMatrix.getItem(i);
 					ItemStack itemstack1 = nonnulllist.get(i);
 					if (!itemstack.isEmpty()) {
-						if (shouldReplenish()) {
-							if (InventoryHelper.extractFromInventory(itemstack.getItem(), 1, upgradeWrapper.getStorageWrapper().getInventoryHandler(), false).isEmpty()) {
-								craftMatrix.removeItem(i, 1);
-							} else {
+						if (shouldRefillCraftingGrid()) {
+							if (extractFromStorage(itemstack) || extractFromPlayer(itemstack)) {
 								onCraftMatrixChanged(craftMatrix);
+							} else {
+								craftMatrix.removeItem(i, 1);
 							}
 						} else {
 							craftMatrix.removeItem(i, 1);
@@ -97,6 +97,19 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				if (!remainingStack.isEmpty()) {
 					player.drop(remainingStack, false);
 				}
+			}
+
+			private boolean extractFromPlayer(ItemStack itemstack) {
+				int playerInvMatchingIndex = player.getInventory().findSlotMatchingItem(itemstack);
+				if (playerInvMatchingIndex >= 0) {
+					player.getInventory().removeItem(playerInvMatchingIndex, 1);
+					return true;
+				}
+				return false;
+			}
+
+			private boolean extractFromStorage(ItemStack itemstack) {
+				return !InventoryHelper.extractFromInventory(itemstack.getItem(), 1, upgradeWrapper.getStorageWrapper().getInventoryHandler(), false).isEmpty();
 			}
 		};
 		slots.add(craftingResultSlot);
@@ -144,8 +157,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (data.contains(DATA_SHIFT_CLICK_INTO_STORAGE)) {
 			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
 		}
-		if (data.contains(DATA_REPLENISH)) {
-			setReplenish(data.getBoolean(DATA_REPLENISH));
+		if (data.contains(DATA_REFILL_CRAFTING_GRID)) {
+			setRefillCraftingGrid(data.getBoolean(DATA_REFILL_CRAFTING_GRID));
 		}
 	}
 
@@ -178,13 +191,13 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage));
 	}
 
-	public boolean shouldReplenish() {
-		return upgradeWrapper.shouldReplenish();
+	public boolean shouldRefillCraftingGrid() {
+		return upgradeWrapper.shouldRefillCraftingGridNBT();
 	}
 
-	public void setReplenish(boolean replenish) {
-		upgradeWrapper.setReplenish(replenish);
-		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_REPLENISH, replenish));
+	public void setRefillCraftingGrid(boolean replenish) {
+		upgradeWrapper.setRefillCraftingGridNBT(replenish);
+		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_REFILL_CRAFTING_GRID, replenish));
 	}
 
 	@Override

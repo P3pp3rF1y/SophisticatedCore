@@ -10,5 +10,5 @@ public interface ICraftingContainer {
 
 	Container getCraftMatrix();
 
-	boolean shouldReplenish();
+	boolean shouldRefillCraftingGrid();
 }
