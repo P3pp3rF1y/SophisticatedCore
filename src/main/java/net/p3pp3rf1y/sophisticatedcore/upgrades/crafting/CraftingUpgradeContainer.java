@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
@@ -109,7 +110,13 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			}
 
 			private boolean extractFromStorage(ItemStack itemstack) {
-				return !InventoryHelper.extractFromInventory(itemstack.getItem(), 1, upgradeWrapper.getStorageWrapper().getInventoryHandler(), false).isEmpty();
+				IItemHandler storageInv = upgradeWrapper.getStorageWrapper().getInventoryHandler();
+				int storageInvMatchingIndex = InventoryHelper.findMatchingItemInInventory(itemstack, storageInv);
+				if (storageInvMatchingIndex >= 0) {
+					storageInv.extractItem(storageInvMatchingIndex, 1, false);
+					return true;
+				}
+				return false;
 			}
 		};
 		slots.add(craftingResultSlot);
