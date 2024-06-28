@@ -4,7 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TransferRecipeMessage implements CustomPacketPayload {
-	public static final ResourceLocation ID = new ResourceLocation(SophisticatedCore.MOD_ID, "transfer_recipe");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "transfer_recipe");
 	private final Map<Integer, Integer> matchingItems;
 	private final List<Integer> craftingSlotIndexes;
 	private final List<Integer> inventorySlotIndexes;
@@ -33,7 +33,7 @@ public class TransferRecipeMessage implements CustomPacketPayload {
 				buffer.readBoolean());
 	}
 
-	public void handle(PlayPayloadContext context) {
+	public void handle(IPayloadContext context) {
 		context.workHandler().execute(() -> context.player().ifPresent(this::handlePacket));
 	}
 

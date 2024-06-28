@@ -99,7 +99,7 @@ public class Config {
 				for (String itemEnabled : itemsEnableList.get()) {
 					String[] data = itemEnabled.split("\\|");
 					if (data.length == 2) {
-						enabledMap.put(new ResourceLocation(data[0]), Boolean.valueOf(data[1]));
+						enabledMap.put(ResourceLocation.fromNamespaceAndPath(data[0]), Boolean.valueOf(data[1]));
 					} else {
 						SophisticatedCore.LOGGER.error("Wrong data for enabledItems - expected registry name|true/false when {} was provided", itemEnabled);
 					}

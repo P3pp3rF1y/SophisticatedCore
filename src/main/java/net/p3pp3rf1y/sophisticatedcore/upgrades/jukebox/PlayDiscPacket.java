@@ -7,13 +7,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.RecordItem;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.UUID;
 
 public class PlayDiscPacket implements CustomPacketPayload {
-	public static final ResourceLocation ID = new ResourceLocation(SophisticatedCore.MOD_ID, "play_disc");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "play_disc");
 	private final boolean blockStorage;
 	private final UUID storageUuid;
 	private final int musicDiscItemId;
@@ -41,7 +41,7 @@ public class PlayDiscPacket implements CustomPacketPayload {
 		return new PlayDiscPacket(buffer.readUUID(), buffer.readInt(), buffer.readInt());
 	}
 
-	public void handle(PlayPayloadContext context) {
+	public void handle(IPayloadContext context) {
 		context.workHandler().execute(this::handlePacket);
 	}
 

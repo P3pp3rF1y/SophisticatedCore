@@ -97,7 +97,7 @@ public class FilterLogicBase {
 
 	protected void initTags() {
 		tagKeys = NBTHelper.getCollection(upgrade, parentTagKey, "tags", Tag.TAG_STRING,
-						elementNbt -> Optional.of(TagKey.create(Registries.ITEM, new ResourceLocation(elementNbt.getAsString()))), () -> new TreeSet<>(Comparator.comparing(TagKey::location)))
+						elementNbt -> Optional.of(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(elementNbt.getAsString()))), () -> new TreeSet<>(Comparator.comparing(TagKey::location)))
 				.orElse(new TreeSet<>(Comparator.comparing(TagKey::location)));
 	}
 

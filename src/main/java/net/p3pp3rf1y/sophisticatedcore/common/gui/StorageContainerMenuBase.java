@@ -47,7 +47,7 @@ import java.util.function.Supplier;
 
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends AbstractContainerMenu implements IAdditionalSlotInfoMenu {
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
-	public static final ResourceLocation EMPTY_UPGRADE_SLOT_BACKGROUND = new ResourceLocation(SophisticatedCore.MOD_ID, "item/empty_upgrade_slot");
+	public static final ResourceLocation EMPTY_UPGRADE_SLOT_BACKGROUND = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "item/empty_upgrade_slot");
 	public static final Pair<ResourceLocation, ResourceLocation> INACCESSIBLE_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedCore.getRL("item/inaccessible_slot"));
 	protected static final String UPGRADE_ENABLED_TAG = "upgradeEnabled";
 	protected static final String UPGRADE_SLOT_TAG = "upgradeSlot";

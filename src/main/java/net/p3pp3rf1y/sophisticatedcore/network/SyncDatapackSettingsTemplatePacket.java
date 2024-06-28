@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
@@ -13,7 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import javax.annotation.Nullable;
 
 public class SyncDatapackSettingsTemplatePacket implements CustomPacketPayload {
-	public static final ResourceLocation ID = new ResourceLocation(SophisticatedCore.MOD_ID, "sync_datapack_settings_template");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "sync_datapack_settings_template");
 	private final String datapack;
 	private final String templateName;
 	private final CompoundTag settingsNbt;
@@ -28,7 +28,7 @@ public class SyncDatapackSettingsTemplatePacket implements CustomPacketPayload {
 		this(buffer.readUtf(), buffer.readUtf(), buffer.readNbt());
 	}
 
-	public void handle(PlayPayloadContext context) {
+	public void handle(IPayloadContext context) {
 		context.workHandler().execute(() -> context.player().ifPresent(this::handlePacket));
 	}
 

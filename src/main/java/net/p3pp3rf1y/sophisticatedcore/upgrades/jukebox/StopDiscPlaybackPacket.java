@@ -3,13 +3,13 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.PlayPayloadContext;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.UUID;
 
 public class StopDiscPlaybackPacket implements CustomPacketPayload {
-	public static final ResourceLocation ID = new ResourceLocation(SophisticatedCore.MOD_ID, "stop_disc_playback");
+	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "stop_disc_playback");
 	private final UUID storageUuid;
 
 	public StopDiscPlaybackPacket(UUID storageUuid) {
@@ -20,7 +20,7 @@ public class StopDiscPlaybackPacket implements CustomPacketPayload {
 		this(buffer.readUUID());
 	}
 
-	public void handle(PlayPayloadContext context) {
+	public void handle(IPayloadContext context) {
 		context.workHandler().execute(this::handlePacket);
 	}
 

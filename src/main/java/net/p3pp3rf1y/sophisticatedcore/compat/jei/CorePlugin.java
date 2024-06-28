@@ -14,7 +14,7 @@ import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 public class CorePlugin implements IModPlugin {
 	@Override
 	public ResourceLocation getPluginUid() {
-		return new ResourceLocation(SophisticatedCore.MOD_ID, "default");
+		return ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "default");
 	}
 
 	@Override

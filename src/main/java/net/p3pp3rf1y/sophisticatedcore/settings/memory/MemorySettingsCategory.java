@@ -47,7 +47,7 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	private void deserialize() {
 		NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG,
 						Integer::valueOf,
-						(k, v) -> BuiltInRegistries.ITEM.getOptional(new ResourceLocation(v.getAsString())))
+						(k, v) -> BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath(v.getAsString())))
 				.ifPresent(map -> map.forEach(this::addSlotItem));
 
 		NBTHelper.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG,

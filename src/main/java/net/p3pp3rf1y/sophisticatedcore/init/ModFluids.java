@@ -24,7 +24,7 @@ public class ModFluids {
 		return new BaseFlowingFluid.Properties(XP_FLUID_TYPE, XP_STILL, XP_FLOWING);
 	}
 
-	public static final ResourceLocation EXPERIENCE_TAG_NAME = new ResourceLocation("forge:experience");
+	public static final ResourceLocation EXPERIENCE_TAG_NAME = ResourceLocation.fromNamespaceAndPath("c", "experience");
 
 	public static final TagKey<Fluid> EXPERIENCE_TAG = TagKey.create(Registries.FLUID, EXPERIENCE_TAG_NAME);
 	public static final DeferredRegister<Fluid> FLUIDS = DeferredRegister.create(Registries.FLUID, SophisticatedCore.MOD_ID);
@@ -37,8 +37,8 @@ public class ModFluids {
 		@Override
 		public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
 			consumer.accept(new IClientFluidTypeExtensions() {
-				private static final ResourceLocation XP_STILL_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_still");
-				private static final ResourceLocation XP_FLOWING_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_flowing");
+				private static final ResourceLocation XP_STILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still");
+				private static final ResourceLocation XP_FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
 				@Override
 				public ResourceLocation getStillTexture() {

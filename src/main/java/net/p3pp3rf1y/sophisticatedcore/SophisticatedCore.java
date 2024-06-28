@@ -69,7 +69,7 @@ public class SophisticatedCore {
 	}
 
 	public static ResourceLocation getRL(String regName) {
-		return new ResourceLocation(getRegistryName(regName));
+		return ResourceLocation.fromNamespaceAndPath(getRegistryName(regName));
 	}
 
 	public static String getRegistryName(String regName) {

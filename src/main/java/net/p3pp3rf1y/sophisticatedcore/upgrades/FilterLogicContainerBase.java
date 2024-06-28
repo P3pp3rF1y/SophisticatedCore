@@ -229,11 +229,11 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 					return true;
 				}
 				case DATA_ADD_TAG_NAME -> {
-					addTagName(TagKey.create(Registries.ITEM, new ResourceLocation(data.getString(DATA_ADD_TAG_NAME))));
+					addTagName(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(data.getString(DATA_ADD_TAG_NAME))));
 					return true;
 				}
 				case DATA_REMOVE_TAG_NAME -> {
-					removeSelectedTag(TagKey.create(Registries.ITEM, new ResourceLocation(data.getString(DATA_REMOVE_TAG_NAME))));
+					removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(data.getString(DATA_REMOVE_TAG_NAME))));
 					return true;
 				}
 				case DATA_MATCH_ANY_TAG -> {
