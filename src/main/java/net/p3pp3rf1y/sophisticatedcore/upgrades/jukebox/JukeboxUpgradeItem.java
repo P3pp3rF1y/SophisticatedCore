@@ -1,18 +1,18 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.ComponentItemHandler;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -24,8 +24,8 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapp
 	public static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
 	public JukeboxUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
-    }
+		super(upgradeTypeLimitConfig);
+	}
 
 	@Override
 	public UpgradeType<Wrapper> getType() {
@@ -39,27 +39,30 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapp
 
 	public static class Wrapper extends UpgradeWrapperBase<Wrapper, JukeboxUpgradeItem> implements ITickableUpgrade {
 		private static final int KEEP_ALIVE_SEND_INTERVAL = 5;
-		private final ItemStackHandler discInventory;
+		private final ComponentItemHandler discInventory;
 		private long lastKeepAliveSendTime = 0;
 		private boolean isPlaying;
 
 		protected Wrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 			super(storageWrapper, upgrade, upgradeSaveHandler);
-			discInventory = new ItemStackHandler(1) {
+			discInventory = new ComponentItemHandler(upgrade, DataComponents.CONTAINER, 1) {
 				@Override
-				protected void onContentsChanged(int slot) {
-					super.onContentsChanged(slot);
-					upgrade.addTagElement("discInventory", serializeNBT());
+				protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
+					super.onContentsChanged(slot, oldStack, newStack);
 					save();
 				}
 
 				@Override
 				public boolean isItemValid(int slot, ItemStack stack) {
-					return stack.getItem() instanceof RecordItem;
+					return stack.isEmpty() || stack.has(DataComponents.JUKEBOX_PLAYABLE);
+				}
+
+				@Override
+				public int getSlotLimit(int slot) {
+					return 64;
 				}
 			};
-			NBTHelper.getCompound(upgrade, "discInventory").ifPresent(discInventory::deserializeNBT);
-			isPlaying = NBTHelper.getBoolean(upgrade, "isPlaying").orElse(false);
+			isPlaying = upgrade.getOrDefault(ModCoreDataComponents.IS_PLAYING, false);
 		}
 
 		public void setDisc(ItemStack disc) {
@@ -71,14 +74,13 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapp
 		}
 
 		public void play(Level level, BlockPos pos) {
-			play(level, (serverLevel, storageUuid) ->
-					ServerStorageSoundHandler.startPlayingDisc(serverLevel, pos, storageUuid, Item.getId(getDisc().getItem()), () -> setIsPlaying(false)));
+			play(level, (serverLevel, storageUuid) -> JukeboxSong.fromStack(level.registryAccess(), getDisc())
+							.ifPresent(song -> ServerStorageSoundHandler.startPlayingDisc(serverLevel, pos, storageUuid, song, () -> setIsPlaying(false))));
 		}
 
 		public void play(LivingEntity entity) {
-			play(entity.level(), (world, storageUuid) ->
-					ServerStorageSoundHandler.startPlayingDisc(world, entity.position(), storageUuid, entity.getId(),
-							Item.getId(getDisc().getItem()), () -> setIsPlaying(false)));
+			play(entity.level(), (world, storageUuid) -> JukeboxSong.fromStack(entity.level().registryAccess(), getDisc())
+							.ifPresent(song -> ServerStorageSoundHandler.startPlayingDisc(world, entity.position(), storageUuid, entity.getId(), song, () -> setIsPlaying(false))));
 		}
 
 		private void play(Level level, BiConsumer<ServerLevel, UUID> play) {
@@ -91,7 +93,7 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeItem.Wrapp
 
 		private void setIsPlaying(boolean playing) {
 			isPlaying = playing;
-			NBTHelper.setBoolean(upgrade, "isPlaying", playing);
+			upgrade.set(ModCoreDataComponents.IS_PLAYING, playing);
 			if (isPlaying) {
 				storageWrapper.getRenderInfo().setUpgradeRenderData(JukeboxUpgradeRenderData.TYPE, new JukeboxUpgradeRenderData(true));
 			} else {

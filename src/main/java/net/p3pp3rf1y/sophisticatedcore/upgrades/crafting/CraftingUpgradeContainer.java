@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,11 +11,11 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -50,39 +51,57 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					updateCraftingResult(player.level(), player, craftMatrix, craftResult, craftingResultSlot);
 					craftMatrix.setChanged();
 				}
+
+				@Override
+				public boolean mayPickup(Player player) {
+					return getItem().isEmpty() || super.mayPickup(player); // allow taking empty slots so that JEI slot validation would be cool with these slots
+				}
 			});
 		}
 		craftMatrix = new CraftingItemHandler(upgradeWrapper::getInventory, this::onCraftMatrixChanged);
 		craftingResultSlot = new ResultSlot(player, craftMatrix, craftResult, slot, -100, -100) {
 			@Override
 			public void onTake(Player thePlayer, ItemStack stack) {
+				if (thePlayer.level().isClientSide()) {
+					return;
+				}
+
 				ItemStack remainingStack = getItem();
 				checkTakeAchievements(stack);
 				net.neoforged.neoforge.common.CommonHooks.setCraftingPlayer(thePlayer);
-				List<ItemStack> items;
-				if (lastRecipe != null && lastRecipe.value().matches(craftMatrix, player.level())) {
-					items = lastRecipe.value().getRemainingItems(craftMatrix);
+				List<ItemStack> remainingItems;
+				if (lastRecipe != null && lastRecipe.value().matches(craftMatrix.asCraftInput(), player.level())) {
+					remainingItems = lastRecipe.value().getRemainingItems(craftMatrix.asCraftInput());
 				} else {
-					items = craftMatrix.getItems();
+					remainingItems = NonNullList.withSize(craftMatrix.getContainerSize(), ItemStack.EMPTY);
 				}
-				net.neoforged.neoforge.common.CommonHooks.setCraftingPlayer(null);
-				for (int i = 0; i < items.size(); ++i) {
-					ItemStack itemstack = craftMatrix.getItem(i);
-					ItemStack itemstack1 = items.get(i);
-					if (!itemstack.isEmpty()) {
-						craftMatrix.removeItem(i, 1);
-						itemstack = craftMatrix.getItem(i);
-					}
 
-					if (!itemstack1.isEmpty()) {
-						if (itemstack.isEmpty()) {
-							craftMatrix.setItem(i, itemstack1);
-						} else if (ItemStack.isSameItemSameTags(itemstack, itemstack1)) {
-							itemstack1.grow(itemstack.getCount());
-							craftMatrix.setItem(i, itemstack1);
-						} else if (!player.getInventory().add(itemstack1)) {
-							player.drop(itemstack1, false);
+				net.neoforged.neoforge.common.CommonHooks.setCraftingPlayer(null);
+				CraftingInput.Positioned craftingInput = craftMatrix.asPositionedCraftInput();
+				int remaininItemsIndex = 0;
+				for (int row = craftingInput.top(); row < craftingInput.top() + craftingInput.input().height(); row++) {
+					for (int col = craftingInput.left(); col < craftingInput.left() + craftingInput.input().width(); col++) {
+						int i = row * craftMatrix.getWidth() + col;
+
+
+						ItemStack recipeInputStack = craftMatrix.getItem(i);
+						ItemStack remainingItemStack = remainingItems.get(remaininItemsIndex);
+						if (!recipeInputStack.isEmpty()) {
+							craftMatrix.removeItem(i, 1);
+							recipeInputStack = craftMatrix.getItem(i);
 						}
+
+						if (!remainingItemStack.isEmpty()) {
+							if (recipeInputStack.isEmpty()) {
+								craftMatrix.setItem(i, remainingItemStack);
+							} else if (ItemStack.isSameItemSameComponents(recipeInputStack, remainingItemStack)) {
+								remainingItemStack.grow(recipeInputStack.getCount());
+								craftMatrix.setItem(i, remainingItemStack);
+							} else if (!player.getInventory().add(remainingItemStack)) {
+								player.drop(remainingItemStack, false);
+							}
+						}
+						remaininItemsIndex++;
 					}
 				}
 
@@ -98,12 +117,12 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					matchedCraftingRecipes.clear();
 					matchedCraftingResults.clear();
 					if (!getItem().isEmpty()) {
-						matchedCraftingRecipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, craftMatrix, player.level());
+						matchedCraftingRecipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, craftMatrix.asCraftInput(), player.level());
 						int resultIndex = 0;
 						for (RecipeHolder<CraftingRecipe> craftingRecipe : matchedCraftingRecipes) {
-							ItemStack result = craftingRecipe.value().assemble(craftMatrix, player.level().registryAccess());
+							ItemStack result = craftingRecipe.value().assemble(craftMatrix.asCraftInput(), player.level().registryAccess());
 							matchedCraftingResults.add(result);
-							if (ItemHandlerHelper.canItemStacksStack(getItem(), result)) {
+							if (ItemStack.isSameItemSameComponents(getItem(), result)) {
 								selectedCraftingResultIndex = resultIndex;
 							}
 							resultIndex++;
@@ -129,10 +148,10 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (!level.isClientSide) {
 			ServerPlayer serverplayerentity = (ServerPlayer) player;
 			ItemStack itemstack = ItemStack.EMPTY;
-			if (lastRecipe != null && lastRecipe.value().matches(inventory, level)) {
-				itemstack = lastRecipe.value().assemble(inventory, level.registryAccess());
+			if (lastRecipe != null && lastRecipe.value().matches(inventory.asCraftInput(), level)) {
+				itemstack = lastRecipe.value().assemble(inventory.asCraftInput(), level.registryAccess());
 			} else {
-				List<RecipeHolder<CraftingRecipe>> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, inventory, level);
+				List<RecipeHolder<CraftingRecipe>> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, inventory.asCraftInput(), level);
 				if (!recipes.isEmpty()) {
 					matchedCraftingRecipes = recipes;
 					matchedCraftingResults.clear();
@@ -140,13 +159,13 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					RecipeHolder<CraftingRecipe> craftingRecipe = matchedCraftingRecipes.get(0);
 					if (inventoryResult.setRecipeUsed(level, serverplayerentity, craftingRecipe)) {
 						lastRecipe = craftingRecipe;
-						itemstack = lastRecipe.value().assemble(inventory, level.registryAccess());
+						itemstack = lastRecipe.value().assemble(inventory.asCraftInput(), level.registryAccess());
 						matchedCraftingResults.add(itemstack.copy());
 					} else {
 						lastRecipe = null;
 					}
 					for (int i = 1; i < matchedCraftingRecipes.size(); i++) {
-						matchedCraftingResults.add(matchedCraftingRecipes.get(i).value().assemble(inventory, level.registryAccess()));
+						matchedCraftingResults.add(matchedCraftingRecipes.get(i).value().assemble(inventory.asCraftInput(), level.registryAccess()));
 					}
 				}
 			}

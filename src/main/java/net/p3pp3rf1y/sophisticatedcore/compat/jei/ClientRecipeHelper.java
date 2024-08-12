@@ -4,30 +4,18 @@ import mezz.jei.library.util.RecipeUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 public class ClientRecipeHelper {
 	private ClientRecipeHelper() {}
 
-	public static Optional<RecipeHolder<?>> getRecipeByKey(ResourceLocation recipeKey) {
-		Minecraft minecraft = Minecraft.getInstance();
-		ClientLevel world = minecraft.level;
-		if (world == null) {
-			return Optional.empty();
-		}
-		return world.getRecipeManager().byKey(recipeKey);
-	}
-
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<?>> List<RecipeHolder<T>> transformAllRecipesOfType(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, T> transformRecipe) {
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>> List<RecipeHolder<T>> transformAllRecipesOfType(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, T> transformRecipe) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {
@@ -42,7 +30,7 @@ public class ClientRecipeHelper {
 				.toList();
 	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<?>> List<RecipeHolder<T>> transformAllRecipesOfTypeIntoMultiple(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<RecipeHolder<T>>> transformRecipe) {
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>> List<RecipeHolder<T>> transformAllRecipesOfTypeIntoMultiple(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<RecipeHolder<T>>> transformRecipe) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {
@@ -61,7 +49,7 @@ public class ClientRecipeHelper {
 		return new ShapedRecipe("", recipe.category(), recipe.pattern, RecipeUtil.getResultItem(recipe));
 	}
 
-	public static <C extends Container> ItemStack assemble(Recipe<C> recipe, C container) {
+	public static <I extends RecipeInput> ItemStack assemble(Recipe<I> recipe, I container) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {

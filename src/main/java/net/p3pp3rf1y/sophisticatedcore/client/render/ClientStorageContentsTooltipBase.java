@@ -2,14 +2,12 @@ package net.p3pp3rf1y.sophisticatedcore.client.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -175,7 +173,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 				} else {
 					tooltipLines.add(Component.translatable(getFluidTooltipTranslation(),
 							Component.literal(CountAbbreviator.abbreviate(fluid.getAmount())).withStyle(ChatFormatting.WHITE),
-							Component.translatable(fluid.getTranslationKey()).withStyle(ChatFormatting.BLUE)
+							Component.translatable(fluid.getFluidType().getDescriptionId(fluid)).withStyle(ChatFormatting.BLUE)
 
 					));
 				}
@@ -247,9 +245,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(0.0D, 0.0D, 200.0F);
-		MultiBufferSource.BufferSource renderTypeBuffer = MultiBufferSource.immediate(Tesselator.getInstance().getBuilder());
-		font.drawInBatch(tooltip, leftX, topY, 16777215, true, poseStack.last().pose(), renderTypeBuffer, Font.DisplayMode.NORMAL, 0, 15728880);
-		renderTypeBuffer.endBatch();
+		guiGraphics.drawString(font, tooltip, leftX, topY, 16777215);
 		poseStack.translate(0.0D, 0.0D, -200.0F);
 		poseStack.popPose();
 		return topY + 10;

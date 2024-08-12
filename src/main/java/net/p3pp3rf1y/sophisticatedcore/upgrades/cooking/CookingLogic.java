@@ -8,9 +8,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.CommonHooks;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.neoforged.neoforge.items.ComponentItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
@@ -23,7 +22,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private final ItemStack upgrade;
 	private final Consumer<ItemStack> saveHandler;
 
-	private ItemStackHandler cookingInventory = null;
+	private ComponentItemHandler cookingInventory = null;
 	public static final int COOK_INPUT_SLOT = 0;
 	public static final int COOK_OUTPUT_SLOT = 2;
 	public static final int FUEL_SLOT = 1;
@@ -256,7 +255,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	}
 
 	private static <T extends AbstractCookingRecipe> int getBurnTime(ItemStack fuel, RecipeType<T> recipeType, float burnTimeModifier) {
-		return (int) (CommonHooks.getBurnTime(fuel, recipeType) * burnTimeModifier);
+		return (int) (fuel.getBurnTime(recipeType) * burnTimeModifier);
 	}
 
 	public ItemStack getCookOutput() {
@@ -275,13 +274,12 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		getCookingInventory().setStackInSlot(FUEL_SLOT, fuel);
 	}
 
-	public ItemStackHandler getCookingInventory() {
+	public ComponentItemHandler getCookingInventory() {
 		if (cookingInventory == null) {
-			cookingInventory = new ItemStackHandler(3) {
+			cookingInventory = new ComponentItemHandler(upgrade, ModCoreDataComponents.COOKING_INVENTORY.get(), 3) {
 				@Override
-				protected void onContentsChanged(int slot) {
-					super.onContentsChanged(slot);
-					upgrade.addTagElement("cookingInventory", serializeNBT());
+				protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
+					super.onContentsChanged(slot, oldStack, newStack);
 					save();
 					if (slot == COOK_INPUT_SLOT) {
 						cookingRecipeInitialized = false;
@@ -290,63 +288,68 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 				@Override
 				public boolean isItemValid(int slot, ItemStack stack) {
+					if (stack.isEmpty() || ItemStack.isSameItemSameComponents(getStackInSlot(slot), stack)) {
+						return true;
+					}
+
 					return switch (slot) {
 						case COOK_INPUT_SLOT -> isInput.test(stack);
 						case FUEL_SLOT -> isFuel.test(stack);
 						default -> true;
 					};
 				}
-			};
 
-			//TODO in the future remove use of this legacy smeltingInventory load as it should no longer be required
-			NBTHelper.getCompound(upgrade, "smeltingInventory").ifPresentOrElse(cookingInventory::deserializeNBT,
-					() -> NBTHelper.getCompound(upgrade, "cookingInventory").ifPresent(cookingInventory::deserializeNBT));
+				@Override
+				public int getSlotLimit(int slot) {
+					return 64;
+				}
+			};
 		}
 		return cookingInventory;
 	}
 
 	public long getBurnTimeFinish() {
-		return NBTHelper.getLong(upgrade, "burnTimeFinish").orElse(0L);
+		return upgrade.getOrDefault(ModCoreDataComponents.BURN_TIME_FINISH, 0L);
 	}
 
 	private void setBurnTimeFinish(long burnTimeFinish) {
-		NBTHelper.setLong(upgrade, "burnTimeFinish", burnTimeFinish);
+		upgrade.set(ModCoreDataComponents.BURN_TIME_FINISH, burnTimeFinish);
 		save();
 	}
 
 	public int getBurnTimeTotal() {
-		return NBTHelper.getInt(upgrade, "burnTimeTotal").orElse(0);
+		return upgrade.getOrDefault(ModCoreDataComponents.BURN_TIME_TOTAL, 0);
 	}
 
 	private void setBurnTimeTotal(int burnTimeTotal) {
-		NBTHelper.setInteger(upgrade, "burnTimeTotal", burnTimeTotal);
+		upgrade.set(ModCoreDataComponents.BURN_TIME_TOTAL, burnTimeTotal);
 		save();
 	}
 
 	public long getCookTimeFinish() {
-		return NBTHelper.getLong(upgrade, "cookTimeFinish").orElse(-1L);
+		return upgrade.getOrDefault(ModCoreDataComponents.COOK_TIME_FINISH, -1L);
 	}
 
 	private void setCookTimeFinish(long cookTimeFinish) {
-		NBTHelper.setLong(upgrade, "cookTimeFinish", cookTimeFinish);
+		upgrade.set(ModCoreDataComponents.COOK_TIME_FINISH, cookTimeFinish);
 		save();
 	}
 
 	public int getCookTimeTotal() {
-		return NBTHelper.getInt(upgrade, "cookTimeTotal").orElse(0);
+		return upgrade.getOrDefault(ModCoreDataComponents.COOK_TIME_TOTAL, 0);
 	}
 
 	private void setCookTimeTotal(int cookTimeTotal) {
-		NBTHelper.setInteger(upgrade, "cookTimeTotal", cookTimeTotal);
+		upgrade.set(ModCoreDataComponents.COOK_TIME_TOTAL, cookTimeTotal);
 		save();
 	}
 
 	public boolean isCooking() {
-		return NBTHelper.getBoolean(upgrade, "isCooking").orElse(false);
+		return upgrade.getOrDefault(ModCoreDataComponents.IS_COOKING, false);
 	}
 
 	private void setIsCooking(boolean isCooking) {
-		NBTHelper.setBoolean(upgrade, "isCooking", isCooking);
+		upgrade.set(ModCoreDataComponents.IS_COOKING, isCooking);
 		save();
 	}
 }

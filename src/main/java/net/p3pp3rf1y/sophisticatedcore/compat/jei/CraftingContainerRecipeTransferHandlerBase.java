@@ -109,13 +109,13 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 				openOrFirstCraftingContainer.setIsOpen(true);
 				container.setOpenTabId(openOrFirstCraftingContainer.getUpgradeContainerId());
 			}
-			TransferRecipeMessage packet = new TransferRecipeMessage(
+			TransferRecipePayload packet = new TransferRecipePayload(
 					recipe.id(),
 					toMap(transferOperations.results, container),
 					craftingSlotIndexes,
 					inventorySlotIndexes,
 					maxTransfer);
-			PacketDistributor.SERVER.noArg().send(packet);
+			PacketDistributor.sendToServer(packet);
 		}
 
 		return null;

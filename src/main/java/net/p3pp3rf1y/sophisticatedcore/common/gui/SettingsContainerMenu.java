@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 import com.google.common.base.Suppliers;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -18,7 +19,10 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.*;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncAdditionalSlotInfoPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncEmptySlotIconsPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncTemplateSettingsPayload;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
@@ -69,7 +73,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 		addStorageInventorySlots();
 		addSettingsContainers();
-		templatePersistanceContainer = new TemplatePersistanceContainer(this);
+		templatePersistanceContainer = new TemplatePersistanceContainer(this, player.level().registryAccess());
 	}
 
 	public int getNumberOfStorageInventorySlots() {
@@ -183,7 +187,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 		if (player instanceof ServerPlayer serverPlayer) {
 			SettingsTemplateStorage settingsTemplateStorage = SettingsTemplateStorage.get();
-			PacketHelper.sendToPlayer(new SyncTemplateSettingsPacket(settingsTemplateStorage.getPlayerTemplates(serverPlayer), settingsTemplateStorage.getPlayerNamedTemplates(serverPlayer)), serverPlayer);
+			PacketDistributor.sendToPlayer(serverPlayer, new SyncTemplateSettingsPayload(settingsTemplateStorage.getPlayerTemplates(serverPlayer), settingsTemplateStorage.getPlayerNamedTemplates(serverPlayer)));
 		}
 
 		sendEmptySlotIcons();
@@ -323,7 +327,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			return;
 		}
 		CompoundTag data = supplyData.get();
-		PacketDistributor.SERVER.noArg().send(new SyncContainerClientDataPacket(data));
+		PacketDistributor.sendToServer(new SyncContainerClientDataPayload(data));
 	}
 
 	protected boolean isServer() {
@@ -336,21 +340,21 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		}
 		Set<Integer> inaccessibleSlots = new HashSet<>();
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
-		Map<Integer, Item> slotFilterItems = new HashMap<>();
+		Map<Integer, Holder<Item>> slotFilterItems = new HashMap<>();
 		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
 			if (!inventoryHandler.isSlotAccessible(slot)) {
 				inaccessibleSlots.add(slot);
 			}
 
 			if (inventoryHandler.getFilterItem(slot) != Items.AIR) {
-				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot));
+				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot).builtInRegistryHolder());
 			}
 		}
-		PacketHelper.sendToPlayer(new SyncAdditionalSlotInfoPacket(inaccessibleSlots, Map.of(), slotFilterItems), serverPlayer);
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncAdditionalSlotInfoPayload(inaccessibleSlots, Map.of(), slotFilterItems));
 	}
 
 	@Override
-	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Map<Integer, Item> slotFilterItems) {
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Map<Integer, Holder<Item>> slotFilterItems) {
 		this.inaccessibleSlots.clear();
 		this.inaccessibleSlots.addAll(inaccessibleSlots);
 
@@ -385,7 +389,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 				noItemSlotTextures.computeIfAbsent(noItemIcon.getSecond(), rl -> new HashSet<>()).add(slot);
 			}
 		}
-		PacketHelper.sendToPlayer(new SyncEmptySlotIconsPacket(noItemSlotTextures), serverPlayer);
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncEmptySlotIconsPayload(noItemSlotTextures));
 	}
 
 	public ItemStack getSlotFilterItem(int slot) {

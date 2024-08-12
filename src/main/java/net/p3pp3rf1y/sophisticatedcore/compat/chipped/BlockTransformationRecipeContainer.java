@@ -16,12 +16,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -43,8 +44,9 @@ public class BlockTransformationRecipeContainer {
 	private final DataSlot selectedRecipe = DataSlot.standalone();
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
-	private Runnable inventoryUpdateListener = () -> {};
-	private final Supplier<Optional<ItemStack>> getLastSelectedResult;
+	private Runnable inventoryUpdateListener = () -> {
+	};
+	private final Supplier<Optional<SimpleItemContent>> getLastSelectedResult;
 	private final Consumer<ItemStack> setLastSelectedResult;
 	private long lastOnTake = -1;
 
@@ -92,13 +94,14 @@ public class BlockTransformationRecipeContainer {
 		selectedRecipe.set(-1);
 		outputSlot.set(ItemStack.EMPTY);
 		if (!stack.isEmpty()) {
-			RecipeHelper.getRecipesOfType(recipeType, inventory).stream().findFirst().ifPresent(r -> {
+			ItemStack inputStack = inventory.getItem(0);
+			RecipeHelper.getRecipesOfType(recipeType, new SingleRecipeInput(inputStack)).stream().findFirst().ifPresent(r -> {
 				recipe = r;
-				results = Suppliers.memoize(() -> recipe.value().getResults(inventory.getItem(0)).toList());
+				results = Suppliers.memoize(() -> recipe.value().getResults(inputStack).toList());
 				getLastSelectedResult.get().ifPresent(lastSelectedResult -> {
 					int i = 0;
 					for (ItemStack result : results.get()) {
-						if (ItemHandlerHelper.canItemStacksStack(result, lastSelectedResult)) {
+						if (lastSelectedResult.isSameItemSameComponents(result)) {
 							selectedRecipe.set(i);
 							updateRecipeResultSlot();
 							return;
@@ -152,7 +155,7 @@ public class BlockTransformationRecipeContainer {
 
 	private void updateRecipeResultSlot() {
 		if (recipe != null && isIndexInRecipeBounds(selectedRecipe.get())) {
-			recipe.value().getResults(inputInventory.getItem(0)).skip(selectedRecipe.get()).findFirst().ifPresent(outputSlot::set);
+			recipe.value().getResults(inputInventory.getItem(0)).skip(selectedRecipe.get()).findFirst().ifPresent(stack -> outputSlot.set(stack.copy()));
 			resultInventory.setRecipeUsed(recipe);
 		} else {
 			outputSlot.set(ItemStack.EMPTY);

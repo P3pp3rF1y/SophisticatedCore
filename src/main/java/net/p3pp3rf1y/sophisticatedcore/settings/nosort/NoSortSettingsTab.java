@@ -8,15 +8,9 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ImageButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.settings.ColorToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTab;
-import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 
 import java.util.Optional;
 
@@ -53,10 +47,10 @@ public class NoSortSettingsTab extends SettingsTab<NoSortSettingsContainer> {
 		if (templateLoadHovered) {
 			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(NoSortSettingsCategory.class)
 					.filter(c -> c.isSlotSelected(slotNumber))
-					.map(category -> ColorHelper.getColor(category.getColor().getTextureDiffuseColors()) | (80 << 24));
+					.map(category -> category.getColor().getTextureDiffuseColor() & 0x00_FFFFFF | (80 << 24));
 		}
 
-		return getSettingsContainer().isSlotSelected(slotNumber) ? Optional.of(ColorHelper.getColor(getSettingsContainer().getColor().getTextureDiffuseColors()) | (80 << 24)) : Optional.empty();
+		return getSettingsContainer().isSlotSelected(slotNumber) ? Optional.of(getSettingsContainer().getColor().getTextureDiffuseColor() | (80 << 24)) : Optional.empty();
 	}
 
 	@Override

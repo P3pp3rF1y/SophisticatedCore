@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
@@ -14,13 +15,13 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IFilteredUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +35,8 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	public FeedingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), ItemStack::isEdible);
+		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), s -> s.has(DataComponents.FOOD),
+				ModCoreDataComponents.FILTER_ATTRIBUTES);
 	}
 
 	@Override
@@ -96,11 +98,11 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	private static boolean isEdible(ItemStack stack, LivingEntity player) {
-		if (!stack.isEdible()) {
+		if (!stack.has(DataComponents.FOOD)) {
 			return false;
 		}
 		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
-		return foodProperties != null && foodProperties.getNutrition() >= 1;
+		return foodProperties != null && foodProperties.nutrition() >= 1;
 	}
 
 	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack, Player player) {
@@ -114,7 +116,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 			return true;
 		}
 
-		int nutrition = foodProperties.getNutrition();
+		int nutrition = foodProperties.nutrition();
 		return (feedAtHungerLevel == HungerLevel.HALF ? (nutrition / 2) : nutrition) <= hungerLevel;
 	}
 
@@ -124,20 +126,20 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	public HungerLevel getFeedAtHungerLevel() {
-		return NBTHelper.getEnumConstant(upgrade, "feedAtHungerLevel", HungerLevel::fromName).orElse(HungerLevel.HALF);
+		return upgrade.getOrDefault(ModCoreDataComponents.FEED_AT_HUNGER_LEVEL, HungerLevel.HALF);
 	}
 
 	public void setFeedAtHungerLevel(HungerLevel hungerLevel) {
-		NBTHelper.setEnumConstant(upgrade, "feedAtHungerLevel", hungerLevel);
+		upgrade.set(ModCoreDataComponents.FEED_AT_HUNGER_LEVEL, hungerLevel);
 		save();
 	}
 
 	public boolean shouldFeedImmediatelyWhenHurt() {
-		return NBTHelper.getBoolean(upgrade, "feedImmediatelyWhenHurt").orElse(true);
+		return upgrade.getOrDefault(ModCoreDataComponents.FEED_IMMEDIATELY_WHEN_HURT, true);
 	}
 
 	public void setFeedImmediatelyWhenHurt(boolean feedImmediatelyWhenHurt) {
-		NBTHelper.setBoolean(upgrade, "feedImmediatelyWhenHurt", feedImmediatelyWhenHurt);
+		upgrade.set(ModCoreDataComponents.FEED_IMMEDIATELY_WHEN_HURT, feedImmediatelyWhenHurt);
 		save();
 	}
 }

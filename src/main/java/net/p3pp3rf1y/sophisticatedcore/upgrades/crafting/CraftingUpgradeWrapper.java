@@ -1,31 +1,35 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ComponentItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.function.Consumer;
 
 public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWrapper, CraftingUpgradeItem> {
-	private final ItemStackHandler inventory;
+	private final ComponentItemHandler inventory;
 
 	public CraftingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
-		inventory = new ItemStackHandler(9) {
+		inventory = new ComponentItemHandler(upgrade, DataComponents.CONTAINER, 9) {
 			@Override
-			protected void onContentsChanged(int slot) {
-				super.onContentsChanged(slot);
-				upgrade.addTagElement("craftingInventory", serializeNBT());
+			protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
+				super.onContentsChanged(slot, oldStack, newStack);
 				save();
 			}
+
+			@Override
+			public int getSlotLimit(int slot) {
+				return 64;
+			}
 		};
-		NBTHelper.getCompound(upgrade, "craftingInventory").ifPresent(inventory::deserializeNBT);
 	}
 
-	public ItemStackHandler getInventory() {
+	public ComponentItemHandler getInventory() {
 		return inventory;
 	}
 
@@ -35,11 +39,11 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 	}
 
 	public boolean shouldShiftClickIntoStorage() {
-		return NBTHelper.getBoolean(upgrade, "shiftClickIntoStorage").orElse(true);
+		return upgrade.getOrDefault(ModCoreDataComponents.SHIFT_CLICK_INTO_STORAGE, true);
 	}
 
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
-		NBTHelper.setBoolean(upgrade, "shiftClickIntoStorage", shiftClickIntoStorage);
+		upgrade.set(ModCoreDataComponents.SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage);
 		save();
 	}
 }

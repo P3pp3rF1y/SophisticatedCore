@@ -1,12 +1,14 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.TickEvent;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHelper;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -21,20 +23,19 @@ public class ServerStorageSoundHandler {
 	private static final Map<ResourceKey<Level>, Long> lastWorldCheck = new HashMap<>();
 	private static final Map<ResourceKey<Level>, Map<UUID, KeepAliveInfo>> worldStorageSoundKeepAlive = new HashMap<>();
 
-	public static void tick(TickEvent.LevelTickEvent event) {
-		if (event.phase != TickEvent.Phase.END || event.level.isClientSide()) {
+	public static void tick(LevelTickEvent.Post event) {
+		if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
 			return;
 		}
-		ServerLevel world = (ServerLevel) event.level;
-		ResourceKey<Level> dim = world.dimension();
-		if (lastWorldCheck.computeIfAbsent(dim, key -> world.getGameTime()) > world.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL || !worldStorageSoundKeepAlive.containsKey(dim)) {
+		ResourceKey<Level> dim = serverLevel.dimension();
+		if (lastWorldCheck.computeIfAbsent(dim, key -> serverLevel.getGameTime()) > serverLevel.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL || !worldStorageSoundKeepAlive.containsKey(dim)) {
 			return;
 		}
-		lastWorldCheck.put(dim, world.getGameTime());
+		lastWorldCheck.put(dim, serverLevel.getGameTime());
 
 		worldStorageSoundKeepAlive.get(dim).entrySet().removeIf(entry -> {
-			if (entry.getValue().getLastKeepAliveTime() < world.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL) {
-				sendStopMessage(world, entry.getValue().getLastPosition(), entry.getKey());
+			if (entry.getValue().getLastKeepAliveTime() < serverLevel.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL) {
+				sendStopMessage(serverLevel, entry.getValue().getLastPosition(), entry.getKey());
 				return true;
 			}
 			return false;
@@ -88,14 +89,14 @@ public class ServerStorageSoundHandler {
 		}
 	}
 
-	public static void startPlayingDisc(ServerLevel serverLevel, BlockPos position, UUID storageUuid, int discItemId, Runnable onStopHandler) {
+	public static void startPlayingDisc(ServerLevel serverLevel, BlockPos position, UUID storageUuid, Holder<JukeboxSong> song, Runnable onStopHandler) {
 		Vec3 pos = Vec3.atCenterOf(position);
-		PacketHelper.sendToAllNear(new PlayDiscPacket(storageUuid, discItemId, position), serverLevel.dimension(), pos, 128);
+		PacketDistributor.sendToPlayersNear(serverLevel, null, pos.x, pos.y, pos.z, 128, new PlayDiscPayload(storageUuid, song, position));
 		putKeepAliveInfo(serverLevel, storageUuid, onStopHandler, pos);
 	}
 
-	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, int discItemId, Runnable onStopHandler) {
-		PacketHelper.sendToAllNear(new PlayDiscPacket(storageUuid, discItemId, entityId), serverLevel.dimension(), position, 128);
+	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, Holder<JukeboxSong> song, Runnable onStopHandler) {
+		PacketDistributor.sendToPlayersNear(serverLevel, null, position.x(), position.y(), position.z(), 128, new PlayDiscPayload(storageUuid, song, entityId));
 		putKeepAliveInfo(serverLevel, storageUuid, onStopHandler, position);
 	}
 
@@ -116,6 +117,8 @@ public class ServerStorageSoundHandler {
 	}
 
 	private static void sendStopMessage(Level level, Vec3 position, UUID storageUuid) {
-		PacketHelper.sendToAllNear(new StopDiscPlaybackPacket(storageUuid), level.dimension(), position, 128);
+		if (level instanceof ServerLevel serverLevel) {
+			PacketDistributor.sendToPlayersNear(serverLevel, null, position.x(), position.y(), position.z(), 128, new StopDiscPlaybackPayload(storageUuid));
+		}
 	}
 }

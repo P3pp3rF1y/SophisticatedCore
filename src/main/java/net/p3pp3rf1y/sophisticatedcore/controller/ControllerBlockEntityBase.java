@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.controller;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.LongTag;
@@ -14,7 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.wrapper.EmptyHandler;
+import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
@@ -332,7 +333,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	protected boolean isMemorizedItem(ItemStack stack) {
-		return memorizedItemStorages.containsKey(stack.getItem()) || memorizedStackStorages.containsKey(ItemStackKey.getHashCode(stack));
+		return memorizedItemStorages.containsKey(stack.getItem()) || memorizedStackStorages.containsKey(ItemStack.hashItemAndComponents(stack));
 	}
 
 	protected boolean isFilterItem(Item item) {
@@ -522,9 +523,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	protected IItemHandlerModifiable getHandlerFromIndex(int index) {
 		if (index < 0 || index >= storagePositions.size()) {
-			return (IItemHandlerModifiable) EmptyHandler.INSTANCE;
+			return (IItemHandlerModifiable) EmptyItemHandler.INSTANCE;
 		}
-		return getWrapperValueFromHolder(storagePositions.get(index), wrapper -> (IItemHandlerModifiable) wrapper.getInventoryForInputOutput()).orElse((IItemHandlerModifiable) EmptyHandler.INSTANCE);
+		return getWrapperValueFromHolder(storagePositions.get(index), wrapper -> (IItemHandlerModifiable) wrapper.getInventoryForInputOutput()).orElse((IItemHandlerModifiable) EmptyItemHandler.INSTANCE);
 	}
 
 	protected int getSlotFromIndex(int slot, int index) {
@@ -740,8 +741,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 
 		saveData(tag);
 	}
@@ -758,8 +759,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 
 		storagePositions = NBTHelper.getCollection(tag, "storagePositions", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), ArrayList::new).orElseGet(ArrayList::new);
 		connectingBlocks = NBTHelper.getCollection(tag, "connectingBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
@@ -770,8 +771,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	@Override
-	public CompoundTag getUpdateTag() {
-		return saveData(super.getUpdateTag());
+	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+		return saveData(super.getUpdateTag(registries));
 	}
 
 	@Nullable

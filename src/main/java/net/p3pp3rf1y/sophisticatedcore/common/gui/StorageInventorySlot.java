@@ -44,7 +44,7 @@ public class StorageInventorySlot extends SlotSuppliedHandler {
 			int i = Math.min(Math.min(maxCount, stack.getCount()), getMaxStackSize(stack) - itemstack.getCount());
 			if (itemstack.isEmpty()) {
 				set(stack.split(i));
-			} else if (ItemStack.isSameItemSameTags(itemstack, stack)) {
+			} else if (ItemStack.isSameItemSameComponents(itemstack, stack)) {
 				stack.shrink(i);
 				ItemStack copy = itemstack.copy();
 				copy.grow(i);

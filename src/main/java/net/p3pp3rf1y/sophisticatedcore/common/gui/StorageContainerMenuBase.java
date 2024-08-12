@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntComparators;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +24,10 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.*;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncAdditionalSlotInfoPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncEmptySlotIconsPayload;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncSlotChangeErrorPayload;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
@@ -498,7 +502,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 
 		if (!errorSlots.isEmpty()) {
-			updateSlotChangeError(new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.needs_occupied_inventory_slots", slotsToCheck, cursorStack.getHoverName()), Collections.emptySet(), errorSlots, Collections.emptySet()));
+			updateSlotChangeError(UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.needs_occupied_inventory_slots", slotsToCheck, cursorStack.getHoverName()), Collections.emptySet(), errorSlots, Collections.emptySet()));
 			return true;
 		}
 		return false;
@@ -521,7 +525,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	protected void sendToServer(Consumer<CompoundTag> addData) {
 		CompoundTag data = new CompoundTag();
 		addData.accept(data);
-		PacketDistributor.SERVER.noArg().send(new SyncContainerClientDataPacket(data));
+		PacketDistributor.sendToServer(new SyncContainerClientDataPayload(data));
 	}
 
 	public void setUpgradeEnabled(int upgradeSlot, boolean enabled) {
@@ -837,7 +841,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				noItemSlotTextures.computeIfAbsent(noItemIcon.getSecond(), rl -> new HashSet<>()).add(slot);
 			}
 		}
-		PacketHelper.sendToPlayer(new SyncEmptySlotIconsPacket(noItemSlotTextures), serverPlayer);
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncEmptySlotIconsPayload(noItemSlotTextures));
 	}
 
 	private void sendAdditionalSlotInfo() {
@@ -847,7 +851,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> inaccessibleSlots = new HashSet<>();
 		Map<Integer, Integer> slotLimitOverrides = new HashMap<>();
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
-		Map<Integer, Item> slotFilterItems = new HashMap<>();
+		Map<Integer, Holder<Item>> slotFilterItems = new HashMap<>();
 		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
 			if (!inventoryHandler.isSlotAccessible(slot)) {
 				inaccessibleSlots.add(slot);
@@ -858,10 +862,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				slotLimitOverrides.put(slot, stackLimit);
 			}
 			if (inventoryHandler.getFilterItem(slot) != Items.AIR) {
-				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot));
+				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot).builtInRegistryHolder());
 			}
 		}
-		PacketHelper.sendToPlayer(new SyncAdditionalSlotInfoPacket(inaccessibleSlots, slotLimitOverrides, slotFilterItems), serverPlayer);
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncAdditionalSlotInfoPayload(inaccessibleSlots, slotLimitOverrides, slotFilterItems));
 	}
 
 	@Override
@@ -1054,14 +1058,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								slot7.onTake(player, p_150421_);
 							});
 						} else if (slot7.mayPlace(carriedStack)) {
-							if (ItemStack.isSameItemSameTags(slotStack, carriedStack)) {
+							if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
 								int j3 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
 								setCarried(slot7.safeInsert(carriedStack, j3));
 							} else if (carriedStack.getCount() <= slot7.getMaxStackSize(carriedStack) && slotStack.getCount() <= slotStack.getMaxStackSize()) {
 								slot7.set(carriedStack);
 								setCarried(slotStack);
 							}
-						} else if (ItemStack.isSameItemSameTags(slotStack, carriedStack)) {
+						} else if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
 							Optional<ItemStack> optional = slot7.tryRemove(slotStack.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(), player);
 							optional.ifPresent((p_150428_) -> {
 								carriedStack.grow(p_150428_.getCount());
@@ -1228,7 +1232,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				Slot slot = getSlot(i);
 				if (slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
 					ItemStack destStack = slot.getItem();
-					if (!destStack.isEmpty() && ItemStack.isSameItemSameTags(result, destStack)) {
+					if (!destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack)) {
 						int j = destStack.getCount() + toTransfer;
 						int maxSize = slot.getMaxStackSize(result);
 						if (j <= maxSize) {
@@ -1306,7 +1310,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				if (itemstack1.isEmpty() && destSlot.mayPlace(result) && !(destSlot instanceof IFilterSlot)) {
 					boolean errorMerging = false;
 					if (toTransfer > destSlot.getMaxStackSize()) {
-						if (runOverflowLogic && processOverflowIfSlotWithSameItemFound(i, result, s -> {})) {
+						if (runOverflowLogic && processOverflowIfSlotWithSameItemFound(i, result, s -> {
+						})) {
 							result.shrink(result.getCount());
 						} else {
 							if (isUpgradeSlot(i)) {
@@ -1333,7 +1338,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								errorMerging = true;
 							}
 						} else {
-							if (runOverflowLogic && processOverflowIfSlotWithSameItemFound(i, result, s -> {})) {
+							if (runOverflowLogic && processOverflowIfSlotWithSameItemFound(i, result, s -> {
+							})) {
 								result.shrink(result.getCount());
 							} else {
 								destSlot.set(result.split(toTransfer));
@@ -1381,7 +1387,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public static boolean canItemQuickReplace(@Nullable Slot slot, ItemStack stack) {
 		boolean flag = slot == null || !slot.hasItem();
-		if (!flag && ItemStack.isSameItemSameTags(stack, slot.getItem())) {
+		if (!flag && ItemStack.isSameItemSameComponents(stack, slot.getItem())) {
 			return slot.getItem().getCount() <= slot.getMaxStackSize(stack);
 		} else {
 			return flag;
@@ -1540,7 +1546,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	@Override
-	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Map<Integer, Item> slotFilterItems) {
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Map<Integer, Holder<Item>> slotFilterItems) {
 		this.inaccessibleSlots.clear();
 		this.inaccessibleSlots.addAll(inaccessibleSlots);
 
@@ -1567,13 +1573,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private void showUpgradeSlotChangeError() {
-		if (errorUpgradeSlotChangeResult == null || errorUpgradeSlotChangeResult.isSuccessful() || tryingToMergeUpgrade) {
+		if (errorUpgradeSlotChangeResult == null || errorUpgradeSlotChangeResult.successful() || tryingToMergeUpgrade) {
 			return;
 		}
 		if (player.level().isClientSide()) {
 			errorResultExpirationTime = player.level().getGameTime() + 60;
 		} else {
-			PacketHelper.sendToPlayer(new SyncSlotChangeErrorPacket(errorUpgradeSlotChangeResult), player);
+			if (player instanceof ServerPlayer serverPlayer) {
+				PacketDistributor.sendToPlayer(serverPlayer, new SyncSlotChangeErrorPayload(errorUpgradeSlotChangeResult));
+			}
 		}
 	}
 
@@ -1624,7 +1632,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 
 			updateSlotChangeError(result);
-			return result.isSuccessful();
+			return result.successful();
 		}
 
 		@Override
@@ -1636,7 +1644,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.level().isClientSide());
 			updateSlotChangeError(result);
-			return result.isSuccessful();
+			return result.successful();
 		}
 
 		private boolean updateWrappersAndCheckForReloadNeeded() {

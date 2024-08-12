@@ -25,7 +25,7 @@ import java.util.function.IntConsumer;
 
 import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.*;
 
-public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extends Slot, C extends FilterLogicContainerBase<F, S>>
+public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Slot, C extends FilterLogicContainerBase<F, S>>
 		extends CompositeWidgetBase<WidgetBase> {
 	public static final int TAG_FONT_COLOR = 16383998;
 	public static final int MORE_TAGS_FONT_COLOR = 13882323;

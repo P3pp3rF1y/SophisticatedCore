@@ -52,7 +52,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	@Override
 	public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide) {
 		if (isClientSide) {
-			return new UpgradeSlotChangeResult.Success();
+			return UpgradeSlotChangeResult.success();
 		}
 
 		double currentInventoryMultiplier = getInventorySlotLimit(storageWrapper) / 64D;
@@ -63,12 +63,12 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	@Override
 	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
 		UpgradeSlotChangeResult result = super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
-		if (!result.isSuccessful()) {
+		if (!result.successful()) {
 			return result;
 		}
 
 		if (isClientSide) {
-			return new UpgradeSlotChangeResult.Success();
+			return UpgradeSlotChangeResult.success();
 		}
 
 		if (!(upgradeStackToPut.getItem() instanceof StackUpgradeItem otherStackUpgradeItem)) {
@@ -76,7 +76,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		}
 
 		if (otherStackUpgradeItem.stackSizeMultiplier >= stackSizeMultiplier) {
-			return new UpgradeSlotChangeResult.Success();
+			return UpgradeSlotChangeResult.success();
 		}
 
 		int currentInventoryMultiplier = getInventorySlotLimit(storageWrapper) / 64;
@@ -105,10 +105,10 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		});
 
 		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty()) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", multiplier), Collections.emptySet(), slotsOverMultiplier, errorInventoryParts);
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", multiplier), Collections.emptySet(), slotsOverMultiplier, errorInventoryParts);
 		}
 
-		return new UpgradeSlotChangeResult.Success();
+		return UpgradeSlotChangeResult.success();
 	}
 
 	@Override

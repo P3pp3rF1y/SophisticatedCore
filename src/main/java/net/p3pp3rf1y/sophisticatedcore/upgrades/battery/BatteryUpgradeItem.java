@@ -45,10 +45,10 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide) {
 		int multiplierRequired = (int) Math.ceil((float) BatteryUpgradeWrapper.getEnergyStored(upgradeStack) / getMaxEnergyStored(storageWrapper));
 		if (multiplierRequired > 1) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.battery_energy_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.battery_energy_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 		}
 
-		return new UpgradeSlotChangeResult.Success();
+		return UpgradeSlotChangeResult.success();
 	}
 
 	public int getMaxEnergyStored(IStorageWrapper storageWrapper) {

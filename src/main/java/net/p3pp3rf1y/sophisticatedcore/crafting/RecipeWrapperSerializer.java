@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
@@ -11,7 +11,9 @@ import java.util.function.Function;
 
 public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & IWrapperRecipe<T>> implements RecipeSerializer<R> {
 	@Nullable
-	private Codec<R> codec;
+	private MapCodec<R> codec;
+	@Nullable
+	private StreamCodec<RegistryFriendlyByteBuf, R> streamCodec;
 	private final Function<T, R> initialize;
 	private final RecipeSerializer<T> recipeSerializer;
 
@@ -21,23 +23,32 @@ public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & 
 	}
 
 	@Override
-	public Codec<R> codec() {
+	public MapCodec<R> codec() {
 		if (this.codec == null) {
-			this.codec = ((MapCodec.MapCodecCodec<T>) recipeSerializer.codec()).codec().xmap(initialize, IWrapperRecipe::getCompose).codec();
+			this.codec = recipeSerializer.codec().xmap(initialize, IWrapperRecipe::getCompose);
 		}
 
 		return this.codec;
 	}
 
 	@Override
-	public R fromNetwork(FriendlyByteBuf buffer) {
-		T compose = recipeSerializer.fromNetwork(buffer);
-		return compose == null ? null : initialize.apply(compose);
-	}
+	public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+		if (this.streamCodec == null) {
+			this.streamCodec = new StreamCodec<>() {
+				@Override
+				public R decode(RegistryFriendlyByteBuf buffer) {
+					T compose = recipeSerializer.streamCodec().decode(buffer);
+					return compose == null ? null : initialize.apply(compose);
+				}
 
-	@Override
-	public void toNetwork(FriendlyByteBuf buffer, R recipe) {
-		recipeSerializer.toNetwork(buffer, recipe.getCompose());
+				@Override
+				public void encode(RegistryFriendlyByteBuf pBuffer, R pValue) {
+					recipeSerializer.streamCodec().encode(pBuffer, pValue.getCompose());
+				}
+			};
+		}
+
+		return this.streamCodec;
 	}
 }
 

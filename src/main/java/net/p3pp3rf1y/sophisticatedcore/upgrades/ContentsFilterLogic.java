@@ -1,10 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -14,14 +15,8 @@ public class ContentsFilterLogic extends FilterLogic {
 	private final Supplier<InventoryHandler> getInventoryHandler;
 	private final MemorySettingsCategory memorySettings;
 
-	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler, MemorySettingsCategory memorySettings, String parentTagKey) {
-		super(upgrade, saveHandler, filterSlotCount, parentTagKey);
-		this.getInventoryHandler = getInventoryHandler;
-		this.memorySettings = memorySettings;
-	}
-
-	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler, MemorySettingsCategory memorySettings) {
-		super(upgrade, saveHandler, filterSlotCount);
+	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler, MemorySettingsCategory memorySettings, DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
+		super(upgrade, saveHandler, filterSlotCount, filterAttributesComponent);
 		this.getInventoryHandler = getInventoryHandler;
 		this.memorySettings = memorySettings;
 	}
@@ -70,11 +65,11 @@ public class ContentsFilterLogic extends FilterLogic {
 	}
 
 	private void setFilterByStorage(boolean filterByStorage) {
-		NBTHelper.setBoolean(upgrade, parentTagKey, "filterByStorage", filterByStorage);
+		setAttributes(attributes -> attributes.setFilterByStorage(filterByStorage));
 		save();
 	}
 
 	private boolean shouldFilterByStorage() {
-		return NBTHelper.getBoolean(upgrade, parentTagKey, "filterByStorage").orElse(false);
+		return getAttributes().filterByStorage();
 	}
 }

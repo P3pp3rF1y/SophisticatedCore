@@ -8,13 +8,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.*;
@@ -82,7 +80,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		for (int slotIndex : slotIndexes) {
 			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
 
-			if (ItemStackKey.getHashCode(newItem) != ItemStackKey.getHashCode(previousDisplayItems.get(i).getItem())
+			ItemStack stack = previousDisplayItems.get(i).getItem();
+			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack)
 					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandlerSupplier.get().isSlotAccessible(slotIndex))) {
 				return true;
 			}
@@ -246,7 +245,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	@Override
 	public Optional<Integer> getSlotColor(int slotNumber) {
-		return slotIndexes.contains(slotNumber) ? Optional.of(ColorHelper.getColor(color.getTextureDiffuseColors())) : Optional.empty();
+		return slotIndexes.contains(slotNumber) ? Optional.of(color.getTextureDiffuseColor()) : Optional.empty();
 	}
 
 	/**

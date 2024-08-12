@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -47,7 +48,7 @@ public class SettingsTemplateStorage extends SavedData {
 	}
 
 	@Override
-	public CompoundTag save(CompoundTag tag) {
+	public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
 		NBTHelper.putMap(tag, "playerTemplates", playerTemplates, UUID::toString, slotTemplates -> NBTHelper.putMap(new CompoundTag(), "slotTemplates", slotTemplates, String::valueOf, settingsTag -> settingsTag));
 		NBTHelper.putMap(tag, "playerNamedTemplates", playerNamedTemplates, UUID::toString, namedTemplates -> NBTHelper.putMap(new CompoundTag(), "namedTemplates", namedTemplates, v -> v, settingsTag -> settingsTag));
 		return tag;
@@ -66,7 +67,7 @@ public class SettingsTemplateStorage extends SavedData {
 		return clientStorageCopy;
 	}
 
-	private static SettingsTemplateStorage load(CompoundTag tag) {
+	private static SettingsTemplateStorage load(CompoundTag tag, HolderLookup.Provider registries) {
 		return new SettingsTemplateStorage(
 				NBTHelper.getMap(tag, "playerTemplates", UUID::fromString,
 						(key, playerTemplatesTag) -> NBTHelper.getMap((CompoundTag) playerTemplatesTag, "slotTemplates", Integer::valueOf, (k, settingsTag) -> Optional.of((CompoundTag) settingsTag))

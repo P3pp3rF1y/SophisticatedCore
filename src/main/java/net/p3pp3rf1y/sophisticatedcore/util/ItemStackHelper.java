@@ -1,6 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
@@ -9,36 +11,36 @@ import java.util.Objects;
 public class ItemStackHelper {
 	private ItemStackHelper() {}
 
-	public static boolean areItemStackTagsEqualIgnoreDurability(ItemStack stackA, ItemStack stackB) {
+	public static boolean areItemStackComponentsEqualIgnoreDurability(ItemStack stackA, ItemStack stackB) {
 		if (stackA.isEmpty() && stackB.isEmpty()) {
 			return true;
 		} else if (!stackA.isEmpty() && !stackB.isEmpty()) {
-			if (stackA.getTag() == null && stackB.getTag() != null) {
+			if (stackA.getComponents().isEmpty() && !stackB.getComponents().isEmpty()) {
 				return false;
 			} else {
-				return (stackA.getTag() == null || areTagsEqualIgnoreDurability(stackA.getTag(), stackB.getTag())) && stackA.areAttachmentsCompatible(stackB);
+				return (stackA.getComponents().isEmpty() || areComponentsEqualIgnoreDurability(stackA.getComponents(), stackB.getComponents()));
 			}
 		} else {
 			return false;
 		}
 	}
 
-	public static boolean areTagsEqualIgnoreDurability(CompoundTag tagA, @Nullable CompoundTag tagB) {
-		if (tagA == tagB) {
+	public static boolean areComponentsEqualIgnoreDurability(DataComponentMap componentsA, @Nullable DataComponentMap componentsB) {
+		if (componentsA == componentsB) {
 			return true;
 		}
-		if (tagB == null || tagA.size() != tagB.size()) {
+		if (componentsB == null || componentsA.size() != componentsB.size()) {
 			return false;
 		}
 
-		for (String key : tagA.getAllKeys()) {
-			if (!tagB.contains(key)) {
+		for (TypedDataComponent<?> typedDataComponent : componentsA) {
+			if (!componentsB.has(typedDataComponent.type())) {
 				return false;
 			}
-			if (key.equals("Damage")) {
+			if (typedDataComponent.type().equals(DataComponents.DAMAGE)) {
 				continue;
 			}
-			if (!Objects.equals(tagA.get(key), tagB.get(key))) {
+			if (!Objects.equals(typedDataComponent.value(), componentsB.get(typedDataComponent.type()))) {
 				return false;
 			}
 		}

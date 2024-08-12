@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -9,7 +9,7 @@ import net.neoforged.neoforge.common.conditions.ICondition;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 
 public record ItemEnabledCondition(ResourceLocation itemRegistryName) implements ICondition {
-	public static final Codec<ItemEnabledCondition> CODEC = RecordCodecBuilder.create(
+	public static final MapCodec<ItemEnabledCondition> CODEC = RecordCodecBuilder.mapCodec(
 			builder -> builder
 					.group(
 							ResourceLocation.CODEC.fieldOf("itemRegistryName").forGetter(ItemEnabledCondition::itemRegistryName))
@@ -25,7 +25,7 @@ public record ItemEnabledCondition(ResourceLocation itemRegistryName) implements
 	}
 
 	@Override
-	public Codec<? extends ICondition> codec() {
+	public MapCodec<? extends ICondition> codec() {
 		return CODEC;
 	}
 }

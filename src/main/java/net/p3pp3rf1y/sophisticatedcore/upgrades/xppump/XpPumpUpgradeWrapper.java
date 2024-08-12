@@ -1,26 +1,24 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.xppump;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.XpHelper;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.function.Consumer;
 
 public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrapper, XpPumpUpgradeItem> implements ITickableUpgrade {
@@ -64,21 +62,21 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 			return;
 		}
 
-		Map.Entry<EquipmentSlot, ItemStack> entry = EnchantmentHelper.getRandomItemWith(Enchantments.MENDING, player, ItemStack::isDamaged);
-		if (entry != null) {
-			ItemStack itemStack = entry.getValue();
-			if (!itemStack.isEmpty() && itemStack.isDamaged() && itemStack.getXpRepairRatio() > 0) {
-				float xpToTryDrain = Math.min(xpPumpUpgradeConfig.maxXpPointsPerMending.get(), itemStack.getDamageValue() / itemStack.getXpRepairRatio());
-				if (xpToTryDrain > 0) {
-					storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
-						FluidStack drained = fluidHandler.drain(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(xpToTryDrain), IFluidHandler.FluidAction.EXECUTE, false);
-						float xpDrained = XpHelper.liquidToExperience(drained.getAmount());
-						int durationToRepair = (int) (xpDrained * itemStack.getXpRepairRatio());
-						itemStack.setDamageValue(itemStack.getDamageValue() - durationToRepair);
-					});
-				}
-			}
-		}
+		EnchantmentHelper.getRandomItemWith(EnchantmentEffectComponents.REPAIR_WITH_XP, player, ItemStack::isDamaged)
+				.ifPresent(item -> {
+					ItemStack itemStack = item.itemStack();
+					if (!itemStack.isEmpty() && itemStack.isDamaged() && itemStack.getXpRepairRatio() > 0) {
+						float xpToTryDrain = Math.min(xpPumpUpgradeConfig.maxXpPointsPerMending.get(), itemStack.getDamageValue() / itemStack.getXpRepairRatio());
+						if (xpToTryDrain > 0) {
+							storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
+								FluidStack drained = fluidHandler.drain(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(xpToTryDrain), IFluidHandler.FluidAction.EXECUTE, false);
+								float xpDrained = XpHelper.liquidToExperience(drained.getAmount());
+								int durationToRepair = (int) (xpDrained * itemStack.getXpRepairRatio());
+								itemStack.setDamageValue(itemStack.getDamageValue() - durationToRepair);
+							});
+						}
+					}
+				});
 	}
 
 	private void interactWithPlayer(Player player) {
@@ -142,47 +140,47 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	}
 
 	public AutomationDirection getDirection() {
-		return NBTHelper.getEnumConstant(upgrade, "direction", AutomationDirection::fromName).orElse(AutomationDirection.INPUT);
+		return upgrade.getOrDefault(ModCoreDataComponents.AUTOMATION_DIRECTION, AutomationDirection.INPUT);
 	}
 
 	public void setDirection(AutomationDirection direction) {
-		NBTHelper.setEnumConstant(upgrade, "direction", direction);
+		upgrade.set(ModCoreDataComponents.AUTOMATION_DIRECTION, direction);
 		save();
 	}
 
 	public void setLevel(int level) {
-		NBTHelper.setInteger(upgrade, "level", level);
+		upgrade.set(ModCoreDataComponents.LEVEL, level);
 		save();
 	}
 
 	public int getLevel() {
-		return NBTHelper.getInt(upgrade, "level").orElse(DEFAULT_LEVEL);
+		return upgrade.getOrDefault(ModCoreDataComponents.LEVEL, DEFAULT_LEVEL);
 	}
 
-	public void setLevelsToStore(int levelsToTake) {
-		NBTHelper.setInteger(upgrade, "levelsToStore", levelsToTake);
+	public void setLevelsToStore(int levelsToStore) {
+		upgrade.set(ModCoreDataComponents.LEVELS_TO_STORE, levelsToStore);
 		save();
 	}
 
 	public int getLevelsToStore() {
-		return NBTHelper.getInt(upgrade, "levelsToStore").orElse(1);
+		return upgrade.getOrDefault(ModCoreDataComponents.LEVELS_TO_STORE, 1);
 	}
 
-	public void setLevelsToTake(int levelsToGive) {
-		NBTHelper.setInteger(upgrade, "levelsToTake", levelsToGive);
+	public void setLevelsToTake(int levelsToTake) {
+		upgrade.set(ModCoreDataComponents.LEVELS_TO_TAKE, levelsToTake);
 		save();
 	}
 
 	public int getLevelsToTake() {
-		return NBTHelper.getInt(upgrade, "levelsToTake").orElse(1);
+		return upgrade.getOrDefault(ModCoreDataComponents.LEVELS_TO_TAKE, 1);
 	}
 
 	public boolean shouldMendItems() {
-		return NBTHelper.getBoolean(upgrade, "mendItems").orElse(true);
+		return upgrade.getOrDefault(ModCoreDataComponents.MEND_ITEMS, true);
 	}
 
 	public void setMendItems(boolean mendItems) {
-		NBTHelper.setBoolean(upgrade, "mendItems", mendItems);
+		upgrade.set(ModCoreDataComponents.MEND_ITEMS, mendItems);
 		save();
 	}
 }

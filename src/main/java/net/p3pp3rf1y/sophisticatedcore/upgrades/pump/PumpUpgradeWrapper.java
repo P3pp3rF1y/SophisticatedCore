@@ -15,16 +15,14 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.IFluidBlock;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
-import net.neoforged.neoforge.fluids.capability.wrappers.FluidBlockWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
@@ -184,12 +182,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 			BlockState state = level.getBlockState(pos);
 			Block block = state.getBlock();
 			IFluidHandler targetFluidHandler;
-			if (block instanceof IFluidBlock fluidBlock) {
-				targetFluidHandler = new FluidBlockWrapper(fluidBlock, level, pos);
-			} else if (block instanceof BucketPickup bucketPickup) {
+			if (block instanceof BucketPickup bucketPickup) {
 				targetFluidHandler = new BucketPickupHandlerWrapper(player, bucketPickup, level, pos);
 			} else {
-				return false;
+				Optional<IFluidHandler> fluidHandler = FluidUtil.getFluidHandler(level, pos, null);
+				if (fluidHandler.isEmpty()) {
+					return false;
+				}
+				targetFluidHandler = fluidHandler.get();
 			}
 			return fillFromFluidHandler(targetFluidHandler, storageFluidHandler);
 		}
@@ -241,7 +241,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 			FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
 			if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
-					&& !FluidUtil.tryFluidTransfer(fluidHandler, storageFluidHandler, new FluidStack(tankFluid, maxFill), true).isEmpty()) {
+					&& !FluidUtil.tryFluidTransfer(fluidHandler, storageFluidHandler, new FluidStack(tankFluid.getFluid(), maxFill), true).isEmpty()) {
 				ret = true;
 				break;
 			}
@@ -270,12 +270,12 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	public void setIsInput(boolean input) {
-		NBTHelper.setBoolean(upgrade, "input", input);
+		upgrade.set(ModCoreDataComponents.IS_INPUT, input);
 		save();
 	}
 
 	public boolean isInput() {
-		return NBTHelper.getBoolean(upgrade, "input").orElse(true);
+		return upgrade.getOrDefault(ModCoreDataComponents.IS_INPUT, true);
 	}
 
 	public FluidFilterLogic getFluidFilterLogic() {
@@ -283,20 +283,20 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	public void setInteractWithHand(boolean interactWithHand) {
-		NBTHelper.setBoolean(upgrade, "interactWithHand", interactWithHand);
+		upgrade.set(ModCoreDataComponents.INTERACT_WITH_HAND, interactWithHand);
 		save();
 	}
 
 	public boolean shouldInteractWithHand() {
-		return NBTHelper.getBoolean(upgrade, "interactWithHand").orElse(upgradeItem.getInteractWithHandDefault());
+		return upgrade.getOrDefault(ModCoreDataComponents.INTERACT_WITH_HAND, upgradeItem.getInteractWithHandDefault());
 	}
 
 	public void setInteractWithWorld(boolean interactWithWorld) {
-		NBTHelper.setBoolean(upgrade, "interactWithWorld", interactWithWorld);
+		upgrade.set(ModCoreDataComponents.INTERACT_WITH_WORLD, interactWithWorld);
 		save();
 	}
 
 	public boolean shouldInteractWithWorld() {
-		return NBTHelper.getBoolean(upgrade, "interactWithWorld").orElse(upgradeItem.getInteractWithWorldDefault());
+		return upgrade.getOrDefault(ModCoreDataComponents.INTERACT_WITH_WORLD, upgradeItem.getInteractWithWorldDefault());
 	}
 }

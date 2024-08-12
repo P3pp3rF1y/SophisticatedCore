@@ -54,6 +54,7 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		int i = 0;
 		for (int color : colors) {
 			int yOffset = i * stripeHeight;
+			color = (color & 0x00_FFFFFF) | 0x50_000000;
 			overlayRenderer.renderSlotOverlay(guiGraphics, slot.x, slot.y + yOffset, i == colors.size() - 1 ? 16 - yOffset : stripeHeight, color);
 			i++;
 		}
@@ -81,7 +82,7 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		for (SettingsTab<?> tab : settingsTabs) {
 			int rotation = tab.getItemRotation(slot.index, templateLoadHovered);
 			if (rotation != 0) {
-				GuiHelper.tryRenderGuiItem(itemRenderer, minecraft.player, itemstack, slot.x, slot.y, rotation);
+				GuiHelper.tryRenderGuiItem(guiGraphics, itemRenderer, minecraft.player, itemstack, slot.x, slot.y, rotation);
 				return true;
 			}
 		}

@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.Tags;
@@ -21,10 +21,10 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	}
 
 	@Override
-	public boolean matches(CraftingContainer inv, Level worldIn) {
+	public boolean matches(CraftingInput inv, Level worldIn) {
 		boolean storagePresent = false;
 		boolean dyePresent = false;
-		for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+		for (int slot = 0; slot < inv.size(); slot++) {
 			ItemStack slotStack = inv.getItem(slot);
 			if (slotStack.isEmpty()) {
 				continue;
@@ -44,16 +44,16 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
+	public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
 		Map<Integer, List<DyeColor>> columnDyes = new HashMap<>();
 		Tuple<Integer, ItemStack> columnStorage = null;
 
-		for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+		for (int slot = 0; slot < inv.size(); slot++) {
 			ItemStack slotStack = inv.getItem(slot);
 			if (slotStack.isEmpty()) {
 				continue;
 			}
-			int column = slot % inv.getWidth();
+			int column = slot % inv.width();
 			if (isDyeableStorageItem(slotStack)) {
 				if (columnStorage != null) {
 					return ItemStack.EMPTY;

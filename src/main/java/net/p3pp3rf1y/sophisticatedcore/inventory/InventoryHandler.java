@@ -1,23 +1,28 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ISlotLimitUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
+import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,13 +35,12 @@ import java.util.function.IntConsumer;
 public abstract class InventoryHandler extends ItemStackHandler implements ITrackedContentsItemHandler {
 	public static final String INVENTORY_TAG = "inventory";
 	private static final String PARTITIONER_TAG = "partitioner";
-	private static final String REAL_COUNT_TAG = "realCount";
 	protected final IStorageWrapper storageWrapper;
 	private final CompoundTag contentsNbt;
 	private final Runnable saveHandler;
 	private final List<IntConsumer> onContentsChangedListeners = new ArrayList<>();
 	private boolean persistent = true;
-	private final Map<Integer, CompoundTag> stackNbts = new LinkedHashMap<>();
+	private final Map<Integer, Tag> stackNbts = new LinkedHashMap<>();
 
 	private ISlotTracker slotTracker = new ISlotTracker.Noop();
 
@@ -46,7 +50,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private boolean isInitializing;
 	private final StackUpgradeConfig stackUpgradeConfig;
 	private final InventoryPartitioner inventoryPartitioner;
-	private Consumer<Set<Item>> filterItemsChangeListener = s -> {};
+	private Consumer<Set<Item>> filterItemsChangeListener = s -> {
+	};
 	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
 	private boolean slotLimitInitialized = false;
@@ -59,7 +64,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		this.contentsNbt = contentsNbt;
 		this.saveHandler = saveHandler;
 		setBaseSlotLimit(baseSlotLimit);
-		deserializeNBT(contentsNbt.getCompound(INVENTORY_TAG));
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> deserializeNBT(registryAccess, contentsNbt.getCompound(INVENTORY_TAG)));
 		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompound(PARTITIONER_TAG), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		initStackNbts();
 
@@ -111,7 +116,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 				return true;
 			}
 		} else {
-			CompoundTag itemTag = getSlotsStackNbt(slot, slotStack);
+			Tag itemTag = getSlotsStackNbt(slot, slotStack);
 			if (!stackNbts.containsKey(slot) || !stackNbts.get(slot).equals(itemTag)) {
 				stackNbts.put(slot, itemTag);
 				return true;
@@ -120,31 +125,33 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		return false;
 	}
 
-	private CompoundTag getSlotsStackNbt(int slot, ItemStack slotStack) {
+	private Tag getSlotsStackNbt(int slot, ItemStack slotStack) {
 		CompoundTag itemTag = new CompoundTag();
 		itemTag.putInt("Slot", slot);
-		itemTag.putInt(REAL_COUNT_TAG, slotStack.getCount());
-		slotStack.save(itemTag);
-		return itemTag;
+		return RegistryHelper.getRegistryAccess().map(registryAccess -> CodecHelper.OVERSIZED_ITEM_STACK_CODEC.encode(slotStack, registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag).getOrThrow()).orElse(itemTag);
+	}
+
+	private Optional<ItemStack> getStackFromNbt(Tag itemTag, RegistryAccess registryAccess) {
+		return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
+				.resultOrPartial(itemName -> SophisticatedCore.LOGGER.error("Tried to load invalid item: '{}'", itemName));
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag nbt) {
+	public void deserializeNBT(HolderLookup.Provider registries, CompoundTag nbt) {
 		slotTracker.clear();
 		setSize(nbt.contains("Size", Tag.TAG_INT) ? nbt.getInt("Size") : stacks.size());
 		ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
-		for (int i = 0; i < tagList.size(); i++) {
-			CompoundTag itemTags = tagList.getCompound(i);
-			int slot = itemTags.getInt("Slot");
-
-			if (slot >= 0 && slot < stacks.size()) {
-				ItemStack slotStack = ItemStack.of(itemTags);
-				if (itemTags.contains(REAL_COUNT_TAG)) {
-					slotStack.setCount(itemTags.getInt(REAL_COUNT_TAG));
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
+			for (int i = 0; i < tagList.size(); i++) {
+				CompoundTag itemTag = tagList.getCompound(i);
+				int slot = itemTag.getInt("Slot");
+				if (slot >= 0 && slot < stacks.size()) {
+					getStackFromNbt(itemTag, registryAccess).ifPresent(stack -> {
+						stacks.set(slot, stack);
+					});
 				}
-				stacks.set(slot, slotStack);
 			}
-		}
+		});
 		slotTracker.refreshSlotIndexesFrom(this);
 		onLoad();
 	}
@@ -173,11 +180,11 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		if (!stackUpgradeConfig.canStackItem(stack.getItem())) {
 			return stack.getMaxStackSize();
 		}
-
-		int limit = MathHelper.intMaxCappedMultiply(stack.getMaxStackSize(), (baseSlotLimit / 64));
+		int maxStackSize = stack.isEmpty() ? getBaseSlotLimit() : stack.getMaxStackSize();
+		int limit = MathHelper.intMaxCappedMultiply(maxStackSize, (baseSlotLimit / 64));
 		int remainder = baseSlotLimit % 64;
 		if (remainder > 0) {
-			limit = MathHelper.intMaxCappedAddition(limit, remainder * stack.getMaxStackSize() / 64);
+			limit = MathHelper.intMaxCappedAddition(limit, remainder * maxStackSize / 64);
 		}
 		return limit;
 	}
@@ -242,10 +249,10 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			}
 		} else {
 			if (!simulate) {
-				setSlotStack(slot, ItemHandlerHelper.copyStackWithSize(existing, existing.getCount() - toExtract));
+				setSlotStack(slot, existing.copyWithCount(existing.getCount() - toExtract));
 			}
 
-			return ItemHandlerHelper.copyStackWithSize(existing, toExtract);
+			return existing.copyWithCount(toExtract);
 		}
 	}
 
@@ -280,7 +287,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	@Nonnull
 	public ItemStack insertItemOnlyToSlot(int slot, ItemStack stack, boolean simulate) {
 		initSlotTracker();
-		if (ItemHandlerHelper.canItemStacksStack(getStackInSlot(slot), stack)) {
+		if (ItemStack.isSameItemSameComponents(getStackInSlot(slot), stack)) {
 			return triggerOverflowUpgrades(insertItemInternal(slot, stack, simulate));
 		}
 
@@ -368,7 +375,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	protected abstract boolean isAllowed(ItemStack stack);
 
 	public void saveInventory() {
-		contentsNbt.put(INVENTORY_TAG, serializeNBT());
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(INVENTORY_TAG, serializeNBT(registryAccess)));
 		if (inventoryPartitioner != null) {
 			//inventory parts may affect inventory slots during their initialization in Inventory Partitioner deserialize,
 			// but there's no reason to serialize partitioner at that point as its nbt can't during init/deserialization.
@@ -395,7 +402,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	@Override
-	public CompoundTag serializeNBT() {
+	public CompoundTag serializeNBT(HolderLookup.Provider registries) {
 		ListTag nbtTagList = new ListTag();
 		nbtTagList.addAll(stackNbts.values());
 		CompoundTag nbt = new CompoundTag();
@@ -470,7 +477,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void unregisterFilterItemsChangeListener() {
-		filterItemsChangeListener = s -> {};
+		filterItemsChangeListener = s -> {
+		};
 	}
 
 	public void initFilterItems() {

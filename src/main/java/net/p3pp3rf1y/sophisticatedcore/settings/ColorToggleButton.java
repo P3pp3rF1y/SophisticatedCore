@@ -14,7 +14,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 
 import java.util.List;
 import java.util.Optional;
@@ -74,7 +73,7 @@ public class ColorToggleButton extends ButtonBase {
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		RenderSystem.disableDepthTest();
 		RenderSystem.colorMask(true, true, true, false);
-		int color = ColorHelper.getColor(getColor.get().getTextureDiffuseColors()) | (200 << 24);
+		int color = getColor.get().getTextureDiffuseColor() | (200 << 24);
 		guiGraphics.fillGradient(x + 3, y + 3, x + 15, y + 15, color, color);
 		RenderSystem.colorMask(true, true, true, true);
 		RenderSystem.enableDepthTest();

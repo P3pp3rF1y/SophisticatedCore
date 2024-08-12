@@ -189,7 +189,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 				return;
 			}
 			getCraftMatrix(storageContainer).ifPresent(craftMatrix -> {
-				ArrayListMultimap<String, ItemStack> itemMap = ArrayListMultimap.create();
+				ArrayListMultimap<String, Integer> itemMap = ArrayListMultimap.create();
 				Multiset<String> itemCount = HashMultiset.create();
 				int start = getCraftingGridStart(storageContainer);
 				int size = getCraftingGridSize(storageContainer);
@@ -200,28 +200,30 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
 
 						String key = Objects.toString(registryName);
-						if (itemStack.getTag() != null) {
-							key = key + "@" + itemStack.getTag();
-						}
-						itemMap.put(key, itemStack);
+						key = key + "@" + itemStack.getComponentsPatch();
+						itemMap.put(key, slotIndex);
 						itemCount.add(key, itemStack.getCount());
 					}
 				}
 
 				for (String key : itemMap.keySet()) {
-					List<ItemStack> balanceList = itemMap.get(key);
+					List<Integer> balanceList = itemMap.get(key);
 					int totalCount = itemCount.count(key);
 					int countPerStack = totalCount / balanceList.size();
 					int restCount = totalCount % balanceList.size();
-					for (ItemStack itemStack : balanceList) {
+					for (int slotIndex : balanceList) {
+						ItemStack itemStack = craftMatrix.getItem(slotIndex);
 						itemStack.setCount(countPerStack);
+						craftMatrix.setItem(slotIndex, itemStack);
 					}
 
 					int idx = 0;
 					while (restCount > 0) {
-						ItemStack itemStack = balanceList.get(idx);
+						int slotIndex = balanceList.get(idx);
+						ItemStack itemStack = craftMatrix.getItem(slotIndex);
 						if (itemStack.getCount() < itemStack.getMaxStackSize()) {
 							itemStack.grow(1);
+							craftMatrix.setItem(slotIndex, itemStack);
 							restCount--;
 						}
 						idx++;
@@ -244,6 +246,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 				while (true) {
 					ItemStack biggestSlotStack = null;
 					int biggestSlotSize = 1;
+					int biggestSlotIndex = -1;
 					int start = getCraftingGridStart(storageContainer);
 					int size = getCraftingGridSize(storageContainer);
 					for (int i = start; i < start + size; i++) {
@@ -252,6 +255,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 						if (!itemStack.isEmpty() && itemStack.getCount() > biggestSlotSize) {
 							biggestSlotStack = itemStack;
 							biggestSlotSize = itemStack.getCount();
+							biggestSlotIndex = slotIndex;
 						}
 					}
 
@@ -266,6 +270,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 						if (itemStack.isEmpty()) {
 							if (biggestSlotStack.getCount() > 1) {
 								craftMatrix.setItem(slotIndex, biggestSlotStack.split(1));
+								craftMatrix.setItem(biggestSlotIndex, biggestSlotStack);
 							} else {
 								emptyBiggestSlot = true;
 							}
@@ -291,7 +296,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			return getCraftMatrix(storageContainer).map(craftMatrix -> {
 				ItemStack craftStack = craftMatrix.getItem(slotId);
 				if (!craftStack.isEmpty()) {
-					if (ItemStack.isSameItemSameTags(craftStack, itemStack)) {
+					if (ItemStack.isSameItemSameComponents(craftStack, itemStack)) {
 						int spaceLeft = Math.min(craftMatrix.getMaxStackSize(), craftStack.getMaxStackSize()) - craftStack.getCount();
 						if (spaceLeft > 0) {
 							ItemStack splitStack = itemStack.split(Math.min(spaceLeft, itemStack.getCount()));
@@ -328,7 +333,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 						int slotIndex = menu.getSlot(i).getContainerSlot();
 						ItemStack craftStack = craftMatrix.getItem(slotIndex);
 						if (!craftStack.isEmpty()) {
-							if (ItemStack.isSameItemSameTags(craftStack, itemStack)) {
+							if (ItemStack.isSameItemSameComponents(craftStack, itemStack)) {
 								int spaceLeft = Math.min(craftMatrix.getMaxStackSize(), craftStack.getMaxStackSize()) - craftStack.getCount();
 								if (spaceLeft > 0) {
 									ItemStack splitStack = itemStack.split(Math.min(spaceLeft, itemStack.getCount()));

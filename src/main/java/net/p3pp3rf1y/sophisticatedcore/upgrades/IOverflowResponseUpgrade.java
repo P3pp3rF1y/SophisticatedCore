@@ -17,7 +17,7 @@ public interface IOverflowResponseUpgrade {
 			return false;
 		}
 
-		return !getFilterLogic().shouldMatchNbt() || ItemStackHelper.areItemStackTagsEqualIgnoreDurability(stack, filterStack);
+		return !getFilterLogic().shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack, filterStack);
 	}
 
 	FilterLogic getFilterLogic();

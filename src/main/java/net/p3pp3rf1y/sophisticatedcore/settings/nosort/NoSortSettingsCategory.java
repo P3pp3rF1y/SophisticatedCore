@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
-import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.HashSet;
@@ -89,7 +88,7 @@ public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsC
 
 	@Override
 	public Optional<Integer> getSlotColor(int slotNumber) {
-		return selectedSlots.contains(slotNumber) ? Optional.of(ColorHelper.getColor(color.getTextureDiffuseColors())) : Optional.empty();
+		return selectedSlots.contains(slotNumber) ? Optional.of(color.getTextureDiffuseColor()) : Optional.empty();
 	}
 
 	public Set<Integer> getNoSortSlots() {

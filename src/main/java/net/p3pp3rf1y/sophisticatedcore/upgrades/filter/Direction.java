@@ -1,7 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.filter;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.Map;
 
@@ -9,6 +13,9 @@ public enum Direction implements StringRepresentable {
 	BOTH("both"),
 	INPUT("input"),
 	OUTPUT("output");
+
+	public static final Codec<Direction> CODEC = StringRepresentable.fromEnum(Direction::values);
+	public static final StreamCodec<FriendlyByteBuf, Direction> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(Direction.class);
 
 	private final String name;
 

@@ -6,7 +6,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 
@@ -118,7 +117,7 @@ public class InventorySorter {
 
 				for(int slot : noSortSlots) {
 					ItemStack slotStack = handler.getStackInSlot(slot);
-					if (ItemHandlerHelper.canItemStacksStack(slotStack, current.getStack())) {
+					if (ItemStack.isSameItemSameComponents(slotStack, current.getStack())) {
 						int placedCount = placeStack(handler, current, count, slot, true);
 						count -= placedCount;
 						entry.setValue(count);

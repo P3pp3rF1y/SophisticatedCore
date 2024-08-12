@@ -1,21 +1,19 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.stonecutter;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpgradeWrapper, StonecutterUpgradeItem> {
-	private static final String RECIPE_ID_TAG = "recipeId";
 	private final IItemHandlerModifiable inputInventory;
 
 	protected StonecutterUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
@@ -26,12 +24,12 @@ public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpg
 			protected void onContentsChanged(int slot) {
 				super.onContentsChanged(slot);
 				if (slot == 0) {
-					upgrade.addTagElement("input", getStackInSlot(0).save(new CompoundTag()));
+					upgrade.set(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.copyOf(getStackInSlot(0)));
 				}
 				save();
 			}
 		};
-		NBTHelper.getCompound(upgrade, "input").ifPresent(tag -> inputInventory.setStackInSlot(0, ItemStack.of(tag)));
+		inputInventory.setStackInSlot(0, upgrade.getOrDefault(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.EMPTY).copy());
 	}
 
 	public IItemHandlerModifiable getInputInventory() {
@@ -40,15 +38,15 @@ public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpg
 
 	public void setRecipeId(@Nullable ResourceLocation recipeId) {
 		if (recipeId == null) {
-			NBTHelper.removeTag(upgrade, RECIPE_ID_TAG);
+			upgrade.remove(ModCoreDataComponents.RECIPE_ID);
 			return;
 		}
-		upgrade.addTagElement(RECIPE_ID_TAG, StringTag.valueOf(recipeId.toString()));
+		upgrade.set(ModCoreDataComponents.RECIPE_ID, recipeId);
 		save();
 	}
 
 	public Optional<ResourceLocation> getRecipeId() {
-		return NBTHelper.getString(upgrade, RECIPE_ID_TAG).map(ResourceLocation::new);
+		return Optional.ofNullable(upgrade.get(ModCoreDataComponents.RECIPE_ID));
 	}
 
 	@Override
@@ -57,11 +55,11 @@ public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpg
 	}
 
 	public boolean shouldShiftClickIntoStorage() {
-		return NBTHelper.getBoolean(upgrade, "shiftClickIntoStorage").orElse(true);
+		return upgrade.getOrDefault(ModCoreDataComponents.SHIFT_CLICK_INTO_STORAGE, true);
 	}
 
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
-		NBTHelper.setBoolean(upgrade, "shiftClickIntoStorage", shiftClickIntoStorage);
+		upgrade.set(ModCoreDataComponents.SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage);
 		save();
 	}
 }

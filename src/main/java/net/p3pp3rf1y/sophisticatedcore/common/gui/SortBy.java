@@ -1,7 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.Map;
 
@@ -10,6 +14,9 @@ public enum SortBy implements StringRepresentable {
 	MOD("mod"),
 	COUNT("count"),
 	TAGS("tags");
+
+	public static final Codec<SortBy> CODEC = StringRepresentable.fromEnum(SortBy::values);
+	public static final StreamCodec<FriendlyByteBuf, SortBy> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(SortBy.class);
 
 	private final String name;
 

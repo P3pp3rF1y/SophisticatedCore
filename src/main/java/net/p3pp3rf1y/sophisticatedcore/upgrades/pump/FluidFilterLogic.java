@@ -1,13 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -26,19 +25,10 @@ public class FluidFilterLogic {
 	}
 
 	private void deserializeFluidFilters() {
-		NBTHelper.getTagValue(upgrade, "", "fluidFilters", (c, n1) -> c.getList(n1, Tag.TAG_COMPOUND)).ifPresent(listNbt -> {
-			int i = 0;
-			for (Tag elementNbt : listNbt) {
-				FluidStack value = FluidStack.loadFluidStackFromNBT((CompoundTag) elementNbt);
-				if (value != null) {
-					fluidFilters.set(i, value);
-				}
-				i++;
-				if (i >= fluidFilters.size()) {
-					break;
-				}
-			}
-		});
+		List<SimpleFluidContent> deserializedFilters = upgrade.getOrDefault(ModCoreDataComponents.FLUID_FILTERS, Collections.emptyList());
+		for (int i = 0; i < deserializedFilters.size() && i < fluidFilters.size(); i++) {
+			fluidFilters.set(i, deserializedFilters.get(i).copy());
+		}
 	}
 
 	private void updateNoFilter() {
@@ -57,7 +47,7 @@ public class FluidFilterLogic {
 
 	private boolean matchesFluidFilter(FluidStack fluid) {
 		for (FluidStack fluidFilter : fluidFilters) {
-			if (fluidFilter.isFluidEqual(fluid)) {
+			if (FluidStack.isSameFluidSameComponents(fluidFilter, fluid)) {
 				return true;
 			}
 		}
@@ -84,8 +74,6 @@ public class FluidFilterLogic {
 	}
 
 	private void serializeFluidFilters() {
-		ListTag fluids = new ListTag();
-		fluidFilters.forEach(f -> fluids.add(f.writeToNBT(new CompoundTag())));
-		upgrade.getOrCreateTag().put("fluidFilters", fluids);
+		upgrade.set(ModCoreDataComponents.FLUID_FILTERS, fluidFilters.stream().map(SimpleFluidContent::copyOf).toList());
 	}
 }

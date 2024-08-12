@@ -13,8 +13,8 @@ public interface IStorageFluidHandler extends IFluidHandlerItem {
 	default int fill(TagKey<Fluid> fluidTag, int maxFill, Fluid fallbackFluid, FluidAction action, boolean ignoreInOutLimit) {
 		for (int tank = 0; tank < getTanks(); tank++) {
 			FluidStack tankFluid = getFluidInTank(tank);
-			if (tankFluid.getFluid().is(fluidTag)) {
-				return fill(new FluidStack(tankFluid, maxFill), action, ignoreInOutLimit);
+			if (tankFluid.is(fluidTag)) {
+				return fill(new FluidStack(tankFluid.getFluid(), maxFill), action, ignoreInOutLimit);
 			}
 		}
 		return fill(new FluidStack(fallbackFluid, maxFill), action, ignoreInOutLimit);

@@ -211,7 +211,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				// Check that the slot's contents are stackable with this stack
 				if (!inventoryStack.isEmpty() &&
 						inventoryStack.isStackable() &&
-						ItemStack.isSameItemSameTags(inventoryStack, stack)) {
+						ItemStack.isSameItemSameComponents(inventoryStack, stack)) {
 					final int remain = stack.getCount() - added;
 					final int maxStackSize = slot.getMaxStackSize(inventoryStack);
 					final int space = maxStackSize - inventoryStack.getCount();
@@ -266,7 +266,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 			if (slotNumber >= 0 && slotNumber < getTotalSlotsSize(container)) {
 				Slot slot = container.getSlot(slotNumber);
 				ItemStack slotStack = slot.getItem();
-				if (ItemStack.isSameItemSameTags(itemStack, slotStack)) {
+				if (ItemStack.isSameItemSameComponents(itemStack, slotStack)) {
 					return slot;
 				}
 			}

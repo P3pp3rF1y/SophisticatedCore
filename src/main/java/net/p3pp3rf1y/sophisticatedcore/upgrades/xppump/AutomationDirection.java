@@ -1,7 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.xppump;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.Map;
 
@@ -9,6 +13,9 @@ public enum AutomationDirection implements StringRepresentable {
 	INPUT("input"),
 	OUTPUT("output"),
 	OFF("off");
+
+	public static final Codec<AutomationDirection> CODEC = StringRepresentable.fromEnum(AutomationDirection::values);
+	public static final StreamCodec<FriendlyByteBuf, AutomationDirection> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(AutomationDirection.class);
 
 	private final String name;
 

@@ -17,7 +17,7 @@ public class SCFluidTagsProvider extends FluidTagsProvider {
 	}
 
 	@Override
-	protected void addTags(HolderLookup.Provider provider) {
+	protected void addTags(HolderLookup.Provider registries) {
 		tag(ModFluids.EXPERIENCE_TAG).add(ModFluids.XP_STILL.get());
 	}
 }

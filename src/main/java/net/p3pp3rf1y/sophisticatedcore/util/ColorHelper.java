@@ -7,14 +7,6 @@ import java.util.List;
 public class ColorHelper {
 	private ColorHelper() {}
 
-	public static int getColor(float[] colorComponents) {
-		int red = (int) (colorComponents[0] * 255);
-		int green = (int) (colorComponents[1] * 255);
-		int blue = (int) (colorComponents[2] * 255);
-
-		return red << 16 | green << 8 | blue;
-	}
-
 	public static int calculateColor(int baseColor, int defaultColor, List<DyeColor> dyes) {
 		if (dyes.isEmpty()) {
 			return baseColor;
@@ -35,10 +27,10 @@ public class ColorHelper {
 		}
 
 		for (DyeColor dye : dyes) {
-			float[] dyeRgb = dye.getTextureDiffuseColors();
-			int dyeRed = (int) (dyeRgb[0] * 255.0F);
-			int dyeGreen = (int) (dyeRgb[1] * 255.0F);
-			int dyeBlue = (int) (dyeRgb[2] * 255.0F);
+			int dyeRgb = dye.getTextureDiffuseColor();
+			int dyeRed = (dyeRgb >> 16) & 255;
+			int dyeGreen = (dyeRgb >> 8) & 255;
+			int dyeBlue = dyeRgb & 255;
 			sumMaxComponent += Math.max(dyeRed, Math.max(dyeGreen, dyeBlue));
 			rgb[0] += dyeRed;
 			rgb[1] += dyeGreen;
@@ -57,6 +49,6 @@ public class ColorHelper {
 		int finalColor = (avgRed << 8) + avgGreen;
 		finalColor = (finalColor << 8) + avgBlue;
 
-		return finalColor;
+		return 0xFF_000000 | finalColor;
 	}
 }

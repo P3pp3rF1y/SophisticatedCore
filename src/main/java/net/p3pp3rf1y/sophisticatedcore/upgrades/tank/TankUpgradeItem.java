@@ -49,10 +49,10 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide) {
 		int multiplierRequired = (int) Math.ceil((float) TankUpgradeWrapper.getContents(upgradeStack).getAmount() / getTankCapacity(storageWrapper));
 		if (multiplierRequired > 1) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 		}
 
-		return new UpgradeSlotChangeResult.Success();
+		return UpgradeSlotChangeResult.success();
 	}
 
 	@Override

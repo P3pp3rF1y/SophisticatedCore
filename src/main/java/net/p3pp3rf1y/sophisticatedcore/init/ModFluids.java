@@ -6,14 +6,12 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.BaseFlowingFluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ModFluids {
@@ -33,25 +31,7 @@ public class ModFluids {
 	public static final Supplier<FlowingFluid> XP_STILL = FLUIDS.register("xp_still", () -> new BaseFlowingFluid.Source(fluidProperties()));
 
 	public static final Supplier<FlowingFluid> XP_FLOWING = FLUIDS.register("xp_flowing", () -> new BaseFlowingFluid.Flowing(fluidProperties()));
-	public static final Supplier<FluidType> XP_FLUID_TYPE = FLUID_TYPES.register("experience", () -> new FluidType(FluidType.Properties.create().lightLevel(10).density(800).viscosity(1500)) {
-		@Override
-		public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-			consumer.accept(new IClientFluidTypeExtensions() {
-				private static final ResourceLocation XP_STILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still");
-				private static final ResourceLocation XP_FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing");
-
-				@Override
-				public ResourceLocation getStillTexture() {
-					return XP_STILL_TEXTURE;
-				}
-
-				@Override
-				public ResourceLocation getFlowingTexture() {
-					return XP_FLOWING_TEXTURE;
-				}
-			});
-		}
-	});
+	public static final Supplier<FluidType> XP_FLUID_TYPE = FLUID_TYPES.register("experience", () -> new FluidType(FluidType.Properties.create().lightLevel(10).density(800).viscosity(1500)));
 
 	public static void registerHandlers(IEventBus modBus) {
 		FLUIDS.register(modBus);

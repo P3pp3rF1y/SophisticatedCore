@@ -1,16 +1,15 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
-import com.mojang.brigadier.StringReader;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 
 public class JukeboxUpgradeNoteParticleData extends ParticleType<JukeboxUpgradeNoteParticleData> implements ParticleOptions {
 	public JukeboxUpgradeNoteParticleData() {
-		super(false, DESERIALIZER);
+		super(false);
 	}
 
 	@Override
@@ -18,34 +17,16 @@ public class JukeboxUpgradeNoteParticleData extends ParticleType<JukeboxUpgradeN
 		return ModParticles.JUKEBOX_NOTE.get();
 	}
 
-	@Override
-	public void writeToNetwork(FriendlyByteBuf buffer) {
-		//noop
-	}
+	private final MapCodec<JukeboxUpgradeNoteParticleData> codec = MapCodec.unit(this::getType);
+	private final StreamCodec<RegistryFriendlyByteBuf, JukeboxUpgradeNoteParticleData> streamCodec = StreamCodec.unit(this);
 
 	@Override
-	public String writeToString() {
-		//noinspection ConstantConditions
-		return BuiltInRegistries.PARTICLE_TYPE.getKey(ModParticles.JUKEBOX_NOTE.get()).toString();
-	}
-
-	@SuppressWarnings("deprecation")
-	public static final Deserializer<JukeboxUpgradeNoteParticleData> DESERIALIZER = new Deserializer<>() {
-		@Override
-		public JukeboxUpgradeNoteParticleData fromCommand(ParticleType<JukeboxUpgradeNoteParticleData> particleType, StringReader reader) {
-			return (JukeboxUpgradeNoteParticleData) particleType;
-		}
-
-		@Override
-		public JukeboxUpgradeNoteParticleData fromNetwork(ParticleType<JukeboxUpgradeNoteParticleData> particleType, FriendlyByteBuf buffer) {
-			return (JukeboxUpgradeNoteParticleData) particleType;
-		}
-	};
-
-	private final Codec<JukeboxUpgradeNoteParticleData> codec = Codec.unit(this::getType);
-
-	@Override
-	public Codec<JukeboxUpgradeNoteParticleData> codec() {
+	public MapCodec<JukeboxUpgradeNoteParticleData> codec() {
 		return codec;
+	}
+
+	@Override
+	public StreamCodec<? super RegistryFriendlyByteBuf, JukeboxUpgradeNoteParticleData> streamCodec() {
+		return streamCodec;
 	}
 }

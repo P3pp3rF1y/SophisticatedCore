@@ -31,7 +31,7 @@ public class StorageGhostIngredientHandler<S extends StorageScreenBase<?>> imple
 
 							@Override
 							public void accept(I i) {
-								PacketDistributor.SERVER.noArg().send(new SetGhostSlotMessage(ghostStack, s.index));
+								PacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index));
 							}
 						});
 					}

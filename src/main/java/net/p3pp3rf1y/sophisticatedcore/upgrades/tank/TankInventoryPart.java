@@ -71,7 +71,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 			return false;
 		}
 
-		PacketDistributor.SERVER.noArg().send(new TankClickPacket(upgradeSlot));
+		PacketDistributor.sendToServer(new TankClickPayload(upgradeSlot));
 
 		return true;
 	}
@@ -94,7 +94,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		if (mouseX >= screenX && mouseX < screenX + 16 && mouseY >= screenY && mouseY < screenY + height - 2) {
 			List<Component> tooltip = new ArrayList<>();
 			if (!contents.isEmpty()) {
-				tooltip.add(contents.getDisplayName());
+				tooltip.add(contents.getHoverName());
 			}
 			tooltip.add(getContentsTooltip(contents, capacity));
 			guiGraphics.renderTooltip(screen.font, tooltip, Optional.empty(), mouseX, mouseY);

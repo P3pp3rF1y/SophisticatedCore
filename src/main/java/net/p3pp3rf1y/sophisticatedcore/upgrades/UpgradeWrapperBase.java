@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 
 import java.util.function.Consumer;
 
@@ -46,12 +46,12 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 
 	@Override
 	public boolean isEnabled() {
-		return NBTHelper.getBoolean(upgrade, "enabled").orElse(true);
+		return upgrade.getOrDefault(ModCoreDataComponents.ENABLED, true);
 	}
 
 	@Override
 	public void setEnabled(boolean enabled) {
-		NBTHelper.setBoolean(upgrade, "enabled", enabled);
+		upgrade.set(ModCoreDataComponents.ENABLED, enabled);
 		save();
 		storageWrapper.getUpgradeHandler().refreshWrappersThatImplementAndTypeWrappers();
 	}

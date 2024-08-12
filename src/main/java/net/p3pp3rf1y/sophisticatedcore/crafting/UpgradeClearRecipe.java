@@ -1,9 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -16,12 +16,12 @@ public class UpgradeClearRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public boolean matches(CraftingContainer inventory, Level level) {
+	public boolean matches(CraftingInput inventory, Level level) {
 		boolean upgradePresent = false;
-		for (int i = 0; i < inventory.getContainerSize(); i++) {
+		for (int i = 0; i < inventory.size(); i++) {
 			ItemStack stack = inventory.getItem(i);
 			if (!stack.isEmpty()) {
-				if (stack.getItem() instanceof UpgradeItemBase && stack.hasTag() && !upgradePresent) {
+				if (stack.getItem() instanceof UpgradeItemBase && !stack.getComponents().isEmpty() && !upgradePresent) {
 					upgradePresent = true;
 				} else {
 					return false;
@@ -33,18 +33,15 @@ public class UpgradeClearRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inventory, RegistryAccess registryAccess) {
+	public ItemStack assemble(CraftingInput inventory, HolderLookup.Provider registries) {
 		ItemStack upgrade = ItemStack.EMPTY;
-		for (int i = 0; i < inventory.getContainerSize(); i++) {
+		for (int i = 0; i < inventory.size(); i++) {
 			ItemStack stack = inventory.getItem(i);
 			if (!stack.isEmpty() && stack.getItem() instanceof UpgradeItemBase) {
 				upgrade = stack;
 			}
 		}
-		ItemStack copy = upgrade.copy();
-		copy.setCount(1);
-		copy.setTag(null);
-		return copy;
+		return new ItemStack(upgrade.getItem(), upgrade.getCount());
 	}
 
 	@Override

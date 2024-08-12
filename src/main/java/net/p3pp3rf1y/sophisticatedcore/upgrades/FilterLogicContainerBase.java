@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot> {
+public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	private static final String DATA_IS_ALLOW_LIST = "isAllowList";
 	private static final String DATA_MATCH_DURABILITY = "matchDurability";
 	private static final String DATA_MATCH_NBT = "matchNbt";
@@ -25,7 +25,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 	private static final String DATA_ADD_TAG_NAME = "addTagName";
 	private static final String DATA_REMOVE_TAG_NAME = "removeTagName";
 	private static final String DATA_MATCH_ANY_TAG = "matchAnyTag";
-	private static final String DATA_PARENT_TAG_KEY = "parentTagKey";
+	private static final String DATA_COMPONENT_KEY = "parentTagKey";
 
 	protected final List<S> filterSlots = new ArrayList<>();
 	protected final IServerUpdater serverUpdater;
@@ -144,7 +144,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 	}
 
 	public boolean shouldMatchNbt() {
-		return filterLogic.get().shouldMatchNbt();
+		return filterLogic.get().shouldMatchComponents();
 	}
 
 	public PrimaryMatch getPrimaryMatch() {
@@ -161,28 +161,20 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 	}
 
 	private void sendBooleanToServer(String dataId, boolean value) {
-		if (filterLogic.get().getParentTagKey().isEmpty()) {
-			serverUpdater.sendBooleanToServer(dataId, value);
-		} else {
-			serverUpdater.sendDataToServer(() -> {
-				CompoundTag tag = new CompoundTag();
-				tag.putBoolean(dataId, value);
-				tag.putString(DATA_PARENT_TAG_KEY, filterLogic.get().getParentTagKey());
-				return tag;
-			});
-		}
+		serverUpdater.sendDataToServer(() -> {
+			CompoundTag tag = new CompoundTag();
+			tag.putBoolean(dataId, value);
+			tag.putString(DATA_COMPONENT_KEY, filterLogic.get().getAttributesComponent().getKey().location().toString());
+			return tag;
+		});
 	}
 
 	protected void sendDataToServer(Supplier<CompoundTag> dataSupplier) {
-		if (filterLogic.get().getParentTagKey().isEmpty()) {
-			serverUpdater.sendDataToServer(dataSupplier);
-		} else {
-			serverUpdater.sendDataToServer(() -> {
-				CompoundTag tag = dataSupplier.get();
-				tag.putString(DATA_PARENT_TAG_KEY, filterLogic.get().getParentTagKey());
-				return tag;
-			});
-		}
+		serverUpdater.sendDataToServer(() -> {
+			CompoundTag tag = dataSupplier.get();
+			tag.putString(DATA_COMPONENT_KEY, filterLogic.get().getAttributesComponent().getKey().location().toString());
+			return tag;
+		});
 	}
 
 	public void setMatchDurability(boolean matchDurability) {
@@ -191,7 +183,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 	}
 
 	public void setMatchNbt(boolean matchNbt) {
-		filterLogic.get().setMatchNbt(matchNbt);
+		filterLogic.get().setMatchComponents(matchNbt);
 		sendBooleanToServer(DATA_MATCH_NBT, matchNbt);
 	}
 
@@ -229,11 +221,11 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 					return true;
 				}
 				case DATA_ADD_TAG_NAME -> {
-					addTagName(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(data.getString(DATA_ADD_TAG_NAME))));
+					addTagName(TagKey.create(Registries.ITEM, ResourceLocation.parse(data.getString(DATA_ADD_TAG_NAME))));
 					return true;
 				}
 				case DATA_REMOVE_TAG_NAME -> {
-					removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(data.getString(DATA_REMOVE_TAG_NAME))));
+					removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.parse(data.getString(DATA_REMOVE_TAG_NAME))));
 					return true;
 				}
 				case DATA_MATCH_ANY_TAG -> {
@@ -249,12 +241,13 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 	}
 
 	protected boolean isDifferentFilterLogicsData(CompoundTag data) {
-		return data.contains(DATA_PARENT_TAG_KEY) && !filterLogic.get().getParentTagKey().equals(data.getString(DATA_PARENT_TAG_KEY));
+		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getString(DATA_COMPONENT_KEY));
 	}
 
 	public class TagSelectionSlot extends Slot implements IFilterSlot {
 		private ItemStack stack = ItemStack.EMPTY;
-		private Runnable onUpdate = () -> {};
+		private Runnable onUpdate = () -> {
+		};
 
 		public TagSelectionSlot() {
 			super(new SimpleContainer(0), 0, -1, -1);

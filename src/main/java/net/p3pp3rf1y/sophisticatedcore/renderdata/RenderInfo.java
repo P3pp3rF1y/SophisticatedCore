@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
@@ -10,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedTankUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeRenderData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeRenderData;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -49,6 +51,7 @@ public abstract class RenderInfo {
 	protected RenderInfo(Supplier<Runnable> getSaveHandler) {
 		this.getSaveHandler = getSaveHandler;
 		itemDisplayRenderInfo = new ItemDisplayRenderInfo();
+
 	}
 
 	public ItemDisplayRenderInfo getItemDisplayRenderInfo() {
@@ -66,7 +69,7 @@ public abstract class RenderInfo {
 		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
 		ListTag upgradeItemsTag = new ListTag();
 		for (ItemStack upgradeItem : upgradeItems) {
-			upgradeItemsTag.add(upgradeItem.save(new CompoundTag()));
+			upgradeItemsTag.add(RegistryHelper.getRegistryAccess().map(upgradeItem::saveOptional).orElse(new CompoundTag()));
 		}
 		renderInfo.put(UPGRADE_ITEMS_TAG, upgradeItemsTag);
 		serializeRenderInfo(renderInfo);
@@ -133,9 +136,11 @@ public abstract class RenderInfo {
 	private void deserializeUpgradeItems(CompoundTag renderInfoTag) {
 		ListTag upgradeItemsTag = renderInfoTag.getList(UPGRADE_ITEMS_TAG, Tag.TAG_COMPOUND);
 		upgradeItems.clear();
-		for (int i = 0; i < upgradeItemsTag.size(); i++) {
-			upgradeItems.add(ItemStack.of(upgradeItemsTag.getCompound(i)));
-		}
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
+			for (int i = 0; i < upgradeItemsTag.size(); i++) {
+				upgradeItems.add(ItemStack.parseOptional(registryAccess, upgradeItemsTag.getCompound(i)));
+			}
+		});
 	}
 
 	private void deserializeItemDisplay(CompoundTag renderInfoTag) {
@@ -168,7 +173,7 @@ public abstract class RenderInfo {
 		return getRenderInfoTag().orElse(new CompoundTag());
 	}
 
-	public void deserializeFrom(CompoundTag renderInfoNbt) {
+	public void deserializeFrom(HolderLookup.Provider registries, CompoundTag renderInfoNbt) {
 		resetUpgradeInfo(false);
 		upgradeData.clear();
 		serializeRenderInfo(renderInfoNbt);
@@ -325,7 +330,7 @@ public abstract class RenderInfo {
 		}
 
 		private CompoundTag serialize(CompoundTag tag) {
-			tag.put(ITEM_TAG, item.save(new CompoundTag()));
+			tag.put(ITEM_TAG, RegistryHelper.getRegistryAccess().map(item::saveOptional).orElse(new CompoundTag()));
 			tag.putInt(ROTATION_TAG, rotation);
 			tag.putInt(SLOT_INDEX_TAG, slotIndex);
 			tag.putString(DISPLAY_SIDE_TAG, displaySide.getSerializedName());
@@ -333,7 +338,8 @@ public abstract class RenderInfo {
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
-			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG), DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)));
+			return new DisplayItem(RegistryHelper.getRegistryAccess().map(registryAccess -> ItemStack.parseOptional(registryAccess, tag.getCompound(ITEM_TAG))).orElse(ItemStack.EMPTY),
+					tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG), DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)));
 		}
 
 		public ItemStack getItem() {

@@ -14,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
@@ -120,7 +119,7 @@ public class InventoryHelper {
 		int slots = inventory.getSlots();
 		for (int slot = 0; slot < slots && ret.getCount() < count; slot++) {
 			ItemStack slotStack = inventory.getStackInSlot(slot);
-			if (slotStack.getItem() == item && (ret.isEmpty() || ItemHandlerHelper.canItemStacksStack(ret, slotStack))) {
+			if (slotStack.getItem() == item && (ret.isEmpty() || ItemStack.isSameItemSameComponents(ret, slotStack))) {
 				int toExtract = Math.min(slotStack.getCount(), count - ret.getCount());
 				ItemStack extractedStack = inventory.extractItem(slot, toExtract, simulate);
 				if (ret.isEmpty()) {
@@ -138,7 +137,7 @@ public class InventoryHelper {
 		int slots = inventory.getSlots();
 		for (int slot = 0; slot < slots && extractedCount < stack.getCount(); slot++) {
 			ItemStack slotStack = inventory.getStackInSlot(slot);
-			if (ItemHandlerHelper.canItemStacksStack(stack, slotStack)) {
+			if (ItemStack.isSameItemSameComponents(stack, slotStack)) {
 				int toExtract = Math.min(slotStack.getCount(), stack.getCount() - extractedCount);
 				extractedCount += inventory.extractItem(slot, toExtract, simulate).getCount();
 			}
@@ -199,7 +198,7 @@ public class InventoryHelper {
 	public static int getCountMissingInHandler(IItemHandler itemHandler, ItemStack filter, int expectedCount) {
 		MutableInt missingCount = new MutableInt(expectedCount);
 		iterate(itemHandler, (slot, stack) -> {
-			if (ItemHandlerHelper.canItemStacksStack(stack, filter)) {
+			if (ItemStack.isSameItemSameComponents(stack, filter)) {
 				missingCount.subtract(Math.min(stack.getCount(), missingCount.getValue()));
 			}
 		}, () -> missingCount.getValue() == 0);

@@ -1,7 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.Map;
 
@@ -10,9 +14,14 @@ public enum HungerLevel implements StringRepresentable {
 	HALF("half"),
 	FULL("full");
 
+	public static final Codec<HungerLevel> CODEC = StringRepresentable.fromEnum(HungerLevel::values);
+	public static final StreamCodec<FriendlyByteBuf, HungerLevel> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(HungerLevel.class);
+
 	private final String name;
 
-	HungerLevel(String name) {this.name = name;}
+	HungerLevel(String name) {
+		this.name = name;
+	}
 
 	@Override
 	public String getSerializedName() {

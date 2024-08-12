@@ -62,7 +62,7 @@ public class StackUpgradeConfig {
 		if (nonStackableItems == null) {
 			nonStackableItems = new HashSet<>();
 			nonStackableItemsList.get().forEach(name -> {
-				ResourceLocation registryName = ResourceLocation.fromNamespaceAndPath(name);
+				ResourceLocation registryName = ResourceLocation.parse(name);
 				if (BuiltInRegistries.ITEM.containsKey(registryName)) {
 					nonStackableItems.add(BuiltInRegistries.ITEM.get(registryName));
 				} else {

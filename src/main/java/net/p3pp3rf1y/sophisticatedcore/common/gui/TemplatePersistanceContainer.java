@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.structures.NbtToSnbt;
 import net.minecraft.nbt.CompoundTag;
@@ -11,11 +12,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.network.PacketHelper;
-import net.p3pp3rf1y.sophisticatedcore.network.SyncDatapackSettingsTemplatePacket;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncDatapackSettingsTemplatePayload;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
@@ -47,6 +48,7 @@ public class TemplatePersistanceContainer {
 	private static final String LOAD_SLOT_TAG = "loadSlot";
 	static final String TEMPLATE_PERSISTANCE_TAG = "templatePersistance";
 	private final SettingsContainerMenu<?> settingsContainer;
+	private final RegistryAccess registryAccess;
 
 	private final List<IPersistanceSlot> saveSlots = new ArrayList<>();
 	private int saveSlotIndex = 0;
@@ -57,8 +59,9 @@ public class TemplatePersistanceContainer {
 	private Runnable onSlotsRefreshed = () -> {
 	};
 
-	public TemplatePersistanceContainer(SettingsContainerMenu<?> settingsContainer) {
+	public TemplatePersistanceContainer(SettingsContainerMenu<?> settingsContainer, RegistryAccess registryAccess) {
 		this.settingsContainer = settingsContainer;
+		this.registryAccess = registryAccess;
 
 		initSlots();
 	}
@@ -207,7 +210,7 @@ public class TemplatePersistanceContainer {
 	private void updateSelectedTemplate() {
 		if (loadSlotIndex > -1 && loadSlotIndex < loadSlots.size()) {
 			CompoundTag settingsTag = loadSlots.get(loadSlotIndex).getSettingsNbt(getPlayer(), SettingsTemplateStorage.get());
-			selectedTemplate = new TemplateSettingsHandler(settingsTag) {
+			selectedTemplate = new TemplateSettingsHandler(settingsTag, registryAccess) {
 				@Override
 				protected SettingsHandler getCurrentSettingsHandler() {
 					return settingsContainer.getStorageWrapper().getSettingsHandler();
@@ -291,7 +294,7 @@ public class TemplatePersistanceContainer {
 
 			DatapackSettingsTemplateManager.putTemplate(playersFolder, fileName, settingsNbt);
 
-			PacketHelper.sendToPlayer(new SyncDatapackSettingsTemplatePacket(playersFolder, fileName, settingsNbt), serverPlayer);
+			PacketDistributor.sendToPlayer(serverPlayer, new SyncDatapackSettingsTemplatePayload(playersFolder, fileName, settingsNbt));
 
 			initSlots();
 
@@ -353,7 +356,7 @@ public class TemplatePersistanceContainer {
 
 	public abstract static class TemplateSettingsHandler extends SettingsHandler {
 
-		protected TemplateSettingsHandler(CompoundTag contentsNbt) {
+		protected TemplateSettingsHandler(CompoundTag contentsNbt, RegistryAccess registryAccess) {
 			super(contentsNbt, () -> {
 			}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderInfo);
 		}

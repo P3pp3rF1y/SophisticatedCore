@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
@@ -75,11 +76,11 @@ public class StonecutterRecipeContainer {
 		onCraftMatrixChanged(inputInventory);
 	}
 
-	private void onCraftMatrixChanged(Container inventoryIn) {
+	private void onCraftMatrixChanged(Container inventory) {
 		ItemStack itemstack = inputSlot.getItem();
 		if (itemstack.getItem() != inputItem) {
 			inputItem = itemstack.getItem();
-			updateAvailableRecipes(inventoryIn, itemstack);
+			updateAvailableRecipes(inventory, itemstack);
 		}
 		inventoryUpdateListener.run();
 	}
@@ -89,7 +90,7 @@ public class StonecutterRecipeContainer {
 		selectedRecipe.set(-1);
 		outputSlot.set(ItemStack.EMPTY);
 		if (!stack.isEmpty()) {
-			recipes = RecipeHelper.getRecipesOfType(RecipeType.STONECUTTING, inventory);
+			recipes = RecipeHelper.getRecipesOfType(RecipeType.STONECUTTING, new SingleRecipeInput(inventory.getItem(0)));
 			getLastSelectedRecipeId.get().ifPresent(id -> {
 				for (int i = 0; i < recipes.size(); i++) {
 					if (recipes.get(i).id().equals(id)) {
@@ -143,7 +144,7 @@ public class StonecutterRecipeContainer {
 		if (!recipes.isEmpty() && isIndexInRecipeBounds(selectedRecipe.get())) {
 			RecipeHolder<StonecutterRecipe> stonecuttingrecipe = recipes.get(selectedRecipe.get());
 			resultInventory.setRecipeUsed(stonecuttingrecipe);
-			outputSlot.set(stonecuttingrecipe.value().assemble(inputInventory, level.registryAccess()));
+			outputSlot.set(stonecuttingrecipe.value().assemble(new SingleRecipeInput(inputInventory.getItem(0)), level.registryAccess()));
 		} else {
 			outputSlot.set(ItemStack.EMPTY);
 		}

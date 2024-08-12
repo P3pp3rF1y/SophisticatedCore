@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
@@ -24,14 +24,14 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	}
 
 	@Override
-	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
-		ItemStack nextTier = super.assemble(inv, registryAccess);
-		getUpgrade(inv).ifPresent(upgrade -> nextTier.setTag(upgrade.getTag()));
+	public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+		ItemStack nextTier = super.assemble(inv, registries);
+		getUpgrade(inv).ifPresent(upgrade -> nextTier.components.setAll(upgrade.getComponents()));
 		return nextTier;
 	}
 
-	private Optional<ItemStack> getUpgrade(CraftingContainer inv) {
-		for (int slot = 0; slot < inv.getContainerSize(); slot++) {
+	private Optional<ItemStack> getUpgrade(CraftingInput inv) {
+		for (int slot = 0; slot < inv.size(); slot++) {
 			ItemStack slotStack = inv.getItem(slot);
 			if (slotStack.getItem() instanceof IUpgradeItem) {
 				return Optional.of(slotStack);

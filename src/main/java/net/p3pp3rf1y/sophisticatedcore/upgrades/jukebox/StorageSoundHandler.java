@@ -11,8 +11,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Map;
@@ -36,16 +36,16 @@ public class StorageSoundHandler {
 	public static void stopStorageSound(UUID storageUuid) {
 		if (storageSounds.containsKey(storageUuid)) {
 			Minecraft.getInstance().getSoundManager().stop(storageSounds.remove(storageUuid));
-			PacketDistributor.SERVER.noArg().send(new SoundStopNotificationPacket(storageUuid));
+			PacketDistributor.sendToServer(new SoundStopNotificationPayload(storageUuid));
 		}
 	}
 
-	public static void tick(TickEvent.LevelTickEvent event) {
-		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.level.getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
-			lastPlaybackChecked = event.level.getGameTime();
+	public static void tick(LevelTickEvent.Post event) {
+		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.getLevel().getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
+			lastPlaybackChecked = event.getLevel().getGameTime();
 			storageSounds.entrySet().removeIf(entry -> {
 				if (!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())) {
-					PacketDistributor.SERVER.noArg().send(new SoundStopNotificationPacket(entry.getKey()));
+					PacketDistributor.sendToServer(new SoundStopNotificationPayload(entry.getKey()));
 					return true;
 				}
 				return false;
@@ -54,7 +54,7 @@ public class StorageSoundHandler {
 	}
 
 	public static void playStorageSound(SoundEvent soundEvent, UUID storageUuid, BlockPos pos) {
-		playStorageSound(storageUuid, SimpleSoundInstance.forRecord(soundEvent, Vec3.atCenterOf(pos)));
+		playStorageSound(storageUuid, SimpleSoundInstance.forJukeboxSong(soundEvent, Vec3.atCenterOf(pos)));
 	}
 
 	public static void playStorageSound(SoundEvent soundEvent, UUID storageUuid, int entityId) {

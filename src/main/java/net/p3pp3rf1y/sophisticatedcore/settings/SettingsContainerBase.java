@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings;
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
-import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataPacket;
+import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataPayload;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.function.Supplier;
@@ -53,7 +53,7 @@ public abstract class SettingsContainerBase<C extends ISettingsCategory<?>> {
 		}
 		CompoundTag data = supplyData.get();
 		data.putString("categoryName", categoryName);
-		PacketDistributor.SERVER.noArg().send(new SyncContainerClientDataPacket(data));
+		PacketDistributor.sendToServer(new SyncContainerClientDataPayload(data));
 	}
 
 	protected boolean isServer() {
