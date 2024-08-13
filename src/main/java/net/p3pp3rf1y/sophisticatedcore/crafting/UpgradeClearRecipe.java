@@ -41,7 +41,7 @@ public class UpgradeClearRecipe extends CustomRecipe {
 				upgrade = stack;
 			}
 		}
-		return new ItemStack(upgrade.getItem(), upgrade.getCount());
+		return new ItemStack(upgrade.getItem(), 1);
 	}
 
 	@Override
