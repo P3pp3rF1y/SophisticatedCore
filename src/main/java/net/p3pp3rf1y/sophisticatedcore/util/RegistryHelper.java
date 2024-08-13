@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.Validate;
@@ -27,7 +28,7 @@ public class RegistryHelper {
 	}
 
 	public static Optional<RegistryAccess> getRegistryAccess() {
-		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) {
+		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER && FMLEnvironment.dist.isClient()) {
 			return ClientRegistryHelper.getRegistryAccess();
 		}
 
