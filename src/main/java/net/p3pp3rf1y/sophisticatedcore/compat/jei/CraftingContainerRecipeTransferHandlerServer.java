@@ -67,7 +67,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				continue;
 			}
 			if (craftingSlot.hasItem()) {
-				ItemStack craftingItem = craftingSlot.remove(Integer.MAX_VALUE);
+				ItemStack craftingItem = craftingSlot.remove(craftingSlot.getItem().getCount());
 				clearedCraftingItems.add(craftingItem);
 			}
 			ItemStack transferItem = toTransfer.get(craftingSlotNumberIndex);
