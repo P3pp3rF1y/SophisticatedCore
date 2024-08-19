@@ -18,9 +18,10 @@ public class JeiCompat implements ICompat {
 	}
 
 	private void registerPackets(final RegisterPayloadHandlersEvent event) {
+
 		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned("1.0");
-		registrar.playToServer(TransferRecipePayload.TYPE, TransferRecipePayload.STREAM_CODEC, TransferRecipePayload::handlePayload);
-		registrar.playToServer(SetGhostSlotPayload.TYPE, SetGhostSlotPayload.STREAM_CODEC, SetGhostSlotPayload::handlePayload);
-		registrar.playToServer(SetMemorySlotPayload.TYPE, SetMemorySlotPayload.STREAM_CODEC, SetMemorySlotPayload::handlePayload);
+		registrar.optional().playToServer(TransferRecipePayload.TYPE, TransferRecipePayload.STREAM_CODEC, TransferRecipePayload::handlePayload);
+		registrar.optional().playToServer(SetGhostSlotPayload.TYPE, SetGhostSlotPayload.STREAM_CODEC, SetGhostSlotPayload::handlePayload);
+		registrar.optional().playToServer(SetMemorySlotPayload.TYPE, SetMemorySlotPayload.STREAM_CODEC, SetMemorySlotPayload::handlePayload);
 	}
 }
