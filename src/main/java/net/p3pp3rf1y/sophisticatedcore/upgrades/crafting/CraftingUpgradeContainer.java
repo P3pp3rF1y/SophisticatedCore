@@ -16,6 +16,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -82,7 +83,10 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				for (int row = craftingInput.top(); row < craftingInput.top() + craftingInput.input().height(); row++) {
 					for (int col = craftingInput.left(); col < craftingInput.left() + craftingInput.input().width(); col++) {
 						int i = row * craftMatrix.getWidth() + col;
-
+						if (remaininItemsIndex >= 9) {
+							logErrorAndDropRemainingItems(remaininItemsIndex, remainingItems);
+							break;
+						}
 
 						ItemStack recipeInputStack = craftMatrix.getItem(i);
 						ItemStack remainingItemStack = remainingItems.get(remaininItemsIndex);
@@ -108,6 +112,16 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				if (!remainingStack.isEmpty()) {
 					player.drop(remainingStack, false);
 				}
+			}
+
+			private void logErrorAndDropRemainingItems(int remaininItemsIndex, List<ItemStack> remainingItems) {
+				for (int j = remaininItemsIndex; j < remainingItems.size(); j++) {
+					ItemStack remaining = remainingItems.get(j);
+					if (!remaining.isEmpty()) {
+						player.drop(remaining, false);
+					}
+				}
+				SophisticatedCore.LOGGER.error("Recipe " + (lastRecipe != null ? lastRecipe.id() : "[unknown]") + " returned more than 9 remaining items, ignoring the rest!");
 			}
 
 			@Override

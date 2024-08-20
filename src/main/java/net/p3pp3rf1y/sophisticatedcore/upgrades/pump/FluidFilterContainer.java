@@ -28,7 +28,7 @@ public class FluidFilterContainer {
 		return fluidFilterLogic.get().getFluid(index);
 	}
 
-	private void setFluid(int index, FluidStack fluid) {
+	public void setFluid(int index, FluidStack fluid) {
 		fluidFilterLogic.get().setFluid(index, fluid);
 		serverUpdater.sendDataToServer(() -> serializeSetFluidData(index, fluid));
 	}

@@ -26,6 +26,11 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 			public int getSlotLimit(int slot) {
 				return 64;
 			}
+
+			@Override
+			public boolean isItemValid(int slot, ItemStack stack) {
+				return true;
+			}
 		};
 	}
 
