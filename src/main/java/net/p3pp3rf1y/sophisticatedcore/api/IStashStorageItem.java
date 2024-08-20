@@ -7,7 +7,6 @@ import java.util.Optional;
 
 public interface IStashStorageItem {
 	Optional<TooltipComponent> getInventoryTooltip(ItemStack stack);
-	ItemStack stash(ItemStack storageStack, ItemStack stack);
 	StashResult getItemStashable(ItemStack storageStack, ItemStack stack);
 
 	enum StashResult {
