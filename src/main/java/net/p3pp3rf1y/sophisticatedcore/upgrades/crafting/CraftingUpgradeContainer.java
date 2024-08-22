@@ -14,6 +14,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -66,6 +67,11 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				}
 				net.minecraftforge.common.ForgeHooks.setCraftingPlayer(null);
 				for (int i = 0; i < items.size(); ++i) {
+					if (i >= 9) {
+						logErrorAndDropRemainingItems(i, items);
+						break;
+					}
+
 					ItemStack itemstack = craftMatrix.getItem(i);
 					ItemStack itemstack1 = items.get(i);
 					if (!itemstack.isEmpty()) {
@@ -88,6 +94,16 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				if (!remainingStack.isEmpty()) {
 					player.drop(remainingStack, false);
 				}
+			}
+
+			private void logErrorAndDropRemainingItems(int i, List<ItemStack> items) {
+				for (int j = i; j < items.size(); j++) {
+					ItemStack remaining = items.get(j);
+					if (!remaining.isEmpty()) {
+						player.drop(remaining, false);
+					}
+				}
+				SophisticatedCore.LOGGER.error("Recipe " + (lastRecipe != null ? lastRecipe.getId() : "[unknown]") + " returned more than 9 remaining items, dropping the rest!");
 			}
 
 			@Override
