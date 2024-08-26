@@ -12,8 +12,6 @@ git submodule update
 - Run getIntellijRuns in forgegradle runs
 - Runs get created but they don't have module selected so when running it for the first time just select `.main` module of the project that's being run
 - `workspace ...` runs run minecraft with all the mods in workspace
-
-
 # Additional mods setup
 Modify settings.gradle as well as workspace/build.gradle for all your mods.
 Inside the mods/build.gradle you should have the following construct to make sure the mods are still compilable standalone as well as inside the multi-project:
