@@ -228,9 +228,11 @@ task generateChangelog {
                 "bash", "-c", "git log --pretty=format:%B ${firstParent}..${secondParent}"
         ]
         commitMessages = gitLogCommand.execute().text.split('\n\n')  // Split by two newlines for each commit
+        println("Merge commit, ran git log command: ${gitLogCommand.join(' ')} and got ${commitMessages}")
     } else {
         // Single commit log
         commitMessages = "git log -1 --pretty=%B".execute().text.split('\n\n')  // Split by two newlines for each commit
+        println("Single commit, ran git log command: git log -1 --pretty=%B and got ${commitMessages}");
     }
 
     def features = []
