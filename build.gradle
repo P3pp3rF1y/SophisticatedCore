@@ -184,7 +184,7 @@ task generateChangelog {
 
     // Function to remove characters with Unicode code points 129 or higher
     def removeHighUnicodeChars = { text ->
-        text.replaceAll(/[\u0081-\uFFFF]/, '')
+        text.replaceAll(/[\u0081-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/, '')
     }
 
     // Function to format commit messages with nesting
