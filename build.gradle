@@ -184,12 +184,10 @@ task generateChangelog {
     doLast {
         // Function to remove characters with Unicode code points 129 or higher
         def removeHighUnicodeChars = { text ->
-            text.each { character ->
-                def codePoint = character.codePointAt(0)
-                println "Character: '${character}' -> Unicode code point: ${Integer.toHexString(codePoint)}"
-            }
-
-            text.replaceAll(/[\u0081-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]/, '')
+            text.codePoints()
+                    .filter { codePoint -> codePoint <= 0x007F }  // Keep only ASCII characters (U+0000 to U+007F)
+                    .collect { codePoint -> new String(Character.toChars(codePoint)) }
+                    .join('')
         }
 
         // Function to format commit messages with nesting
