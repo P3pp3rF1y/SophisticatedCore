@@ -265,7 +265,6 @@ task generateChangelog {
 task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     dependsOn 'generateChangelog'
 
-    debugMode = true
     apiToken = System.getenv("CURSEFORGE_TOkEN")
     def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
     mainFile.changelogType = 'markdown'
@@ -276,12 +275,6 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     "${release_versions}".split(',').each {
         mainFile.addGameVersion("${it}")
     }
-/*
-    mainFile.addOptional('configured')
-    mainFile.addOptional('catalogue')
-    mainFile.addOptional('serene-seasons')
-    */
-
     onlyIf { !project.ext.changelog.isEmpty() }
 }
 
