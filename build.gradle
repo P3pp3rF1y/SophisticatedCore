@@ -274,7 +274,7 @@ task generateChangelog {
 task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     dependsOn 'generateChangelog'
 
-    apiToken = System.getenv("CURSEFORGE_TOkEN")
+    apiToken = System.getenv("CURSEFORGE_TOKEN")
     def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
     mainFile.changelogType = 'markdown'
     mainFile.changelog = project.ext.changelog
