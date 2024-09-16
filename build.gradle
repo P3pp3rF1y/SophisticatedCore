@@ -216,9 +216,11 @@ task generateChangelog {
 
     // Get the latest commit hash
     def latestCommitHash = "git rev-parse HEAD".execute().text.trim()
+    latestCommitHash = "74767721e81ab22544c74954e36dfb7cfac98360" //TODO remove test hash
 
     // Check if the latest commit is a merge commit
     def parentCommits = "git rev-list --parents -n 1 ${latestCommitHash}".execute().text.split()
+    println("Parent commits: ${parentCommits}")
 
     def commitMessages = []
     if (parentCommits.size() > 2) { // Merge commit has more than 2 parents
