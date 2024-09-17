@@ -41,9 +41,10 @@ public interface IRenderedTankUpgrade {
 
 		public static TankRenderInfo deserialize(CompoundTag tag) {
 			if (tag.contains(FLUID_TAG)) {
-				return new TankRenderInfo(
-						RegistryHelper.getRegistryAccess().map(registryAccess -> FluidStack.parseOptional(registryAccess, tag.getCompound(FLUID_TAG))).orElse(FluidStack.EMPTY),
-						tag.getFloat(FILL_RATIO_TAG));
+				FluidStack fluidStack = RegistryHelper.getRegistryAccess().map(registryAccess -> FluidStack.parseOptional(registryAccess, tag.getCompound(FLUID_TAG))).orElse(FluidStack.EMPTY);
+				if (!fluidStack.isEmpty()) {
+					return new TankRenderInfo(fluidStack, tag.getFloat(FILL_RATIO_TAG));
+				}
 			}
 
 			return new TankRenderInfo();
