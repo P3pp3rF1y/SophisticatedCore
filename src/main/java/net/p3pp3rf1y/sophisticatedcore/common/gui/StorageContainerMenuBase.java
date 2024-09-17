@@ -338,7 +338,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected boolean isUpgradeSettingsSlot(int index) {
-		return index >= getNumberOfStorageInventorySlots() + getNumberOfUpgradeSlots() + StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS;
+		return index >= getNumberOfStorageInventorySlots() + getNumberOfUpgradeSlots() + StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS && index < getTotalSlotsNumber();
 	}
 
 	public boolean isStorageInventorySlot(int index) {
@@ -943,6 +943,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	//complexity here is brutal, but it's something that's in vanilla and need to keep this as close to it as possible for easier ports
 	@Override
 	protected void doClick(int slotId, int dragType, ClickType clickType, Player player) {
+		if (slotId >= getTotalSlotsNumber()) {
+			return;
+		}
 		slotsChangedSinceStartOfClick = false;
 		Inventory inventory = player.getInventory();
 		if (clickType == ClickType.QUICK_CRAFT) {

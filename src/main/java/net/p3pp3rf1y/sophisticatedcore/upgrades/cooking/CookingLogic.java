@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -22,7 +23,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private final ItemStack upgrade;
 	private final Consumer<ItemStack> saveHandler;
 
-	private ComponentItemHandler cookingInventory = null;
+	private CookingComponentItemHandler cookingInventory = null;
 	public static final int COOK_INPUT_SLOT = 0;
 	public static final int COOK_OUTPUT_SLOT = 2;
 	public static final int FUEL_SLOT = 1;
@@ -216,7 +217,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 			setBurnTime(level, (int) (getBurnTime(fuel, recipeType, burnTimeModifier) * fuelEfficiencyMultiplier / cookingSpeedMultiplier));
 			if (isBurning(level)) {
 				if (fuel.hasCraftingRemainingItem()) {
-					setFuel(fuel.getCraftingRemainingItem());
+					setFuelWithoutValidation(fuel.getCraftingRemainingItem());
 				} else if (!fuel.isEmpty()) {
 					fuel.shrink(1);
 					setFuel(fuel);
@@ -274,36 +275,13 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		getCookingInventory().setStackInSlot(FUEL_SLOT, fuel);
 	}
 
-	public ComponentItemHandler getCookingInventory() {
+	private void setFuelWithoutValidation(ItemStack fuel) {
+		getCookingInventory().setStackInSlotWithoutValidation(FUEL_SLOT, fuel);
+	}
+
+	public CookingComponentItemHandler getCookingInventory() {
 		if (cookingInventory == null) {
-			cookingInventory = new ComponentItemHandler(upgrade, ModCoreDataComponents.COOKING_INVENTORY.get(), 3) {
-				@Override
-				protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
-					super.onContentsChanged(slot, oldStack, newStack);
-					save();
-					if (slot == COOK_INPUT_SLOT) {
-						cookingRecipeInitialized = false;
-					}
-				}
-
-				@Override
-				public boolean isItemValid(int slot, ItemStack stack) {
-					if (stack.isEmpty() || ItemStack.isSameItemSameComponents(getStackInSlot(slot), stack)) {
-						return true;
-					}
-
-					return switch (slot) {
-						case COOK_INPUT_SLOT -> isInput.test(stack);
-						case FUEL_SLOT -> isFuel.test(stack);
-						default -> true;
-					};
-				}
-
-				@Override
-				public int getSlotLimit(int slot) {
-					return 64;
-				}
-			};
+			cookingInventory = new CookingComponentItemHandler();
 		}
 		return cookingInventory;
 	}
@@ -351,5 +329,46 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private void setIsCooking(boolean isCooking) {
 		upgrade.set(ModCoreDataComponents.IS_COOKING, isCooking);
 		save();
+	}
+
+	public class CookingComponentItemHandler extends ComponentItemHandler {
+		public CookingComponentItemHandler() {
+			super(CookingLogic.this.upgrade, ModCoreDataComponents.COOKING_INVENTORY.get(), 3);
+		}
+
+		@Override
+		protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
+			super.onContentsChanged(slot, oldStack, newStack);
+			save();
+			if (slot == COOK_INPUT_SLOT) {
+				cookingRecipeInitialized = false;
+			}
+		}
+
+		@Override
+		public boolean isItemValid(int slot, ItemStack stack) {
+			if (stack.isEmpty() || ItemStack.isSameItemSameComponents(getStackInSlot(slot), stack)) {
+				return true;
+			}
+
+			return switch (slot) {
+				case COOK_INPUT_SLOT -> isInput.test(stack);
+				case FUEL_SLOT -> isFuel.test(stack);
+				default -> true;
+			};
+		}
+
+		@Override
+		public int getSlotLimit(int slot) {
+			return 64;
+		}
+
+		public void setStackInSlotWithoutValidation(int slot, ItemStack stack) {
+			ItemContainerContents contents = getContents();
+			ItemStack existing = getStackFromContents(contents, slot);
+			if (!ItemStack.matches(stack, existing)) {
+				updateContents(contents, stack, slot);
+			}
+		}
 	}
 }
