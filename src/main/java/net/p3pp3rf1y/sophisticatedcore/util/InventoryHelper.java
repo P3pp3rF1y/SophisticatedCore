@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
@@ -163,9 +164,11 @@ public class InventoryHelper {
 
 		for (IPickupResponseUpgrade pickupUpgrade : pickupUpgrades) {
 			int countBeforePickup = remainingStack.getCount();
+			Item item = remainingStack.getItem();
 			remainingStack = pickupUpgrade.pickup(level, remainingStack, simulate);
 			if (!simulate && player != null && remainingStack.getCount() != countBeforePickup) {
 				playPickupSound(level, player);
+				player.awardStat(Stats.ITEM_PICKED_UP.get(item), countBeforePickup - remainingStack.getCount());
 			}
 
 			if (remainingStack.isEmpty()) {
