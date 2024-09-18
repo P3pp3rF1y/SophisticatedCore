@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class InventorySorter {
 	private InventorySorter() {}
 
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getHoverName().getString());
+	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getHoverName().getString().toLowerCase());
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
 			Comparator
 					.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
