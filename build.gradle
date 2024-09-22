@@ -5,6 +5,7 @@ plugins {
     id 'net.neoforged.moddev' version '1.0.14'
     id "org.sonarqube" version "5.0.0.4638"
     id "net.darkhax.curseforgegradle" version "1.1.15"
+    id "com.modrinth.minotaur" version "2.+"
 }
 
 idea {
@@ -310,13 +311,25 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     apiToken = System.getenv("CURSEFORGE_TOKEN")
     def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
     mainFile.changelogType = 'markdown'
-    mainFile.changelog = {project.ext.changelog}
+    mainFile.changelog = { project.ext.changelog }
     mainFile.addModLoader('NeoForge')
     mainFile.releaseType = "${release_type}"
     "${release_versions}".split(',').each {
         mainFile.addGameVersion("${it}")
     }
     onlyIf { !project.ext.changelog.isEmpty() }
+}
+
+tasks.modrinth.dependsOn(tasks.generateChangelog)
+tasks.modrinth.onlyIf { !project.ext.changelog.isEmpty() }
+modrinth {
+    token = System.getenv("MODRINTH_TOKEN")
+    projectId = "${modrinth_project_id}"
+    versionType = "${release_type}"
+    uploadFile = jar
+    gameVersions = "${release_versions}".split(',').collect {e -> e}
+    loaders = ["neoforge"]
+    changelog = "${ project.ext.changelog }"
 }
 
 task printVersionName {
