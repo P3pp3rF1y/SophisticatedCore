@@ -127,7 +127,8 @@ tasks.withType(ProcessResources).configureEach {
             neo_version         : neo_version, neo_version_range: neo_version_range,
             loader_version_range: loader_version_range,
             mod_id              : mod_id, mod_version: mod_version,
-            mod_full_version    : "${project.mod_version}.${getBuildNumber()}${getStable()}"
+            mod_full_version    : "${project.mod_version}.${getBuildNumber()}${getStable()}",
+            jei_version_range    : jei_version_range
     ]
     inputs.properties replaceProperties
 

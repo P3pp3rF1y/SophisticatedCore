@@ -56,3 +56,11 @@ versionRange="${neo_version_range}" #mandatory
 ordering="NONE"
 # Side this dependency is applied on - BOTH, CLIENT or SERVER
 side="BOTH"
+
+
+[[dependencies.sophisticatedcore]]
+modId="jei"
+mandatory = false
+versionRange="${jei_version_range}"
+ordering="NONE"
+side="CLIENT"
