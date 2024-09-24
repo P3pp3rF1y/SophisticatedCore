@@ -19,10 +19,12 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 
 	private final ICraftingUIPart craftingUIAddition;
 
-	public CraftingUpgradeTab(CraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton) {
+	public CraftingUpgradeTab(CraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillCraftingGridButton) {
 		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("crafting"), TranslationHelper.INSTANCE.translUpgradeTooltip("crafting"));
 		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton, button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()),
 				getContainer()::shouldShiftClickIntoStorage));
+		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), refillCraftingGridButton, button -> getContainer().setRefillCraftingGrid(!getContainer().shouldRefillCraftingGrid()),
+				getContainer()::shouldRefillCraftingGrid));
 		craftingUIAddition = screen.getCraftingUIAddition();
 		openTabDimension = new Dimension(63 + craftingUIAddition.getWidth(), 142);
 	}

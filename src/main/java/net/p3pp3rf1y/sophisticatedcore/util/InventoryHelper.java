@@ -167,6 +167,18 @@ public class InventoryHelper {
 		return result;
 	}
 
+	public static int findMatchingItemInInventory(ItemStack pStack, IItemHandler inventory) {
+		int slots = inventory.getSlots();
+		for(int slot = 0; slot < slots; slot++) {
+			ItemStack slotStack = inventory.getStackInSlot(slot);
+			if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(pStack, slotStack)) {
+				return slot;
+			}
+		}
+
+		return -1;
+	}
+
 	public static ItemStack runPickupOnPickupResponseUpgrades(Level world, UpgradeHandler upgradeHandler, ItemStack remainingStack, boolean simulate) {
 		return runPickupOnPickupResponseUpgrades(world, null, upgradeHandler, remainingStack, simulate);
 	}
