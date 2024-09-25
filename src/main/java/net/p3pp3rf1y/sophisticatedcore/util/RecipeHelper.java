@@ -394,7 +394,7 @@ public class RecipeHelper {
 	}
 
 	private static class RecipeChangeListenerList {
-		private final List<WeakReference<Runnable>> list = new ArrayList<>();
+		private final List<WeakReference<Runnable>> list = Collections.synchronizedList(new ArrayList<>());
 
 		public void add(Runnable runnable) {
 			list.add(new WeakReference<>(runnable));
