@@ -60,7 +60,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public static final int DISABLED_SLOT_X_POS = -1000;
 	static final int SLOTS_Y_OFFSET = 17;
 	static final int SLOTS_X_OFFSET = 7;
-	public static final int ERROR_SLOT_COLOR = (DyeColor.RED.getTextureDiffuseColor() & 0x00_FFFFFF)  | 0xAA000000;
+	public static final int ERROR_SLOT_COLOR = (DyeColor.RED.getTextureDiffuseColor() & 0x00_FFFFFF) | 0xAA000000;
 	private static final int ERROR_TEXT_COLOR = DyeColor.RED.getTextureDiffuseColor();
 	public static final int HEIGHT_WITHOUT_STORAGE_SLOTS = 114;
 
