@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +30,7 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 			return result;
 		}
 
-		return checkExtraInsertConditions(upgradeStack, storageWrapper, isClientSide);
+		return checkExtraInsertConditions(upgradeStack, storageWrapper, isClientSide, null);
 	}
 
 	private UpgradeSlotChangeResult checkForConflictingUpgrades(IStorageWrapper storageWrapper, List<UpgradeConflictDefinition> upgradeConflicts, int excludeUpgradeSlot) {
@@ -122,13 +123,13 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 			if (!result.isSuccessful()) {
 				return result;
 			}
-			return upgradeToPut.checkExtraInsertConditions(upgradeStackToPut, storageWrapper, isClientSide);
+			return upgradeToPut.checkExtraInsertConditions(upgradeStackToPut, storageWrapper, isClientSide, this);
 		}
 
 		return new UpgradeSlotChangeResult.Success();
 	}
 
-	default UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide) {
+	default UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, @Nullable IUpgradeItem<?> upgradeInSlot) {
 		return new UpgradeSlotChangeResult.Success();
 	}
 
