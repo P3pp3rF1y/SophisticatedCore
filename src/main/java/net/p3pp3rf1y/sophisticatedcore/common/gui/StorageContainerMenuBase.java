@@ -38,6 +38,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.DummySlot;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.jetbrains.annotations.NotNull;
 
@@ -1400,7 +1401,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public Slot getSlot(int slotId) {
 		if (slotId >= getInventorySlotsSize()) {
-			return upgradeSlots.get(slotId - getInventorySlotsSize());
+			int upgradeSlotId = slotId - getInventorySlotsSize();
+			return upgradeSlots.size() > upgradeSlotId ? upgradeSlots.get(upgradeSlotId) : DummySlot.INSTANCE;
 		} else {
 			return realInventorySlots.get(slotId);
 		}
