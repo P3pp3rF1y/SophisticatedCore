@@ -5,9 +5,13 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeItem;
 
+import javax.annotation.Nullable;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,14 +30,14 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 		return tankUpgradeConfig.capacityPerSlotRow.get() * storageWrapper.getNumberOfSlotRows();
 	}
 
-	public int getAdjustedStackMultiplier(IStorageWrapper storageWrapper) {
-		return 1 + (int) (tankUpgradeConfig.stackMultiplierRatio.get() * (storageWrapper.getInventoryHandler().getStackSizeMultiplier() - 1));
+	public double getAdjustedStackMultiplier(IStorageWrapper storageWrapper) {
+		return 1 + (tankUpgradeConfig.stackMultiplierRatio.get() * (storageWrapper.getInventoryHandler().getStackSizeMultiplier() - 1));
 	}
 
 	public int getTankCapacity(IStorageWrapper storageWrapper) {
-		int stackMultiplier = getAdjustedStackMultiplier(storageWrapper);
+		double stackMultiplier = getAdjustedStackMultiplier(storageWrapper);
 		int baseCapacity = getBaseCapacity(storageWrapper);
-		return Integer.MAX_VALUE / stackMultiplier < baseCapacity ? Integer.MAX_VALUE : baseCapacity * stackMultiplier;
+		return Integer.MAX_VALUE / stackMultiplier < baseCapacity ? Integer.MAX_VALUE : (int) (baseCapacity * stackMultiplier);
 	}
 
 	public TankUpgradeConfig getTankUpgradeConfig() {
@@ -46,10 +50,13 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	}
 
 	@Override
-	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide) {
-		int multiplierRequired = (int) Math.ceil((float) TankUpgradeWrapper.getContents(upgradeStack).getAmount() / getTankCapacity(storageWrapper));
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, @Nullable IUpgradeItem<?> upgradeInSlot) {
+		int capacityAfter = (int) (getTankCapacity(storageWrapper) / (upgradeInSlot instanceof StackUpgradeItem stackUpgrade ? stackUpgrade.getStackSizeMultiplier() : 1));
+		double multiplierRequired = (double) TankUpgradeWrapper.getContents(upgradeStack).getAmount() / capacityAfter;
 		if (multiplierRequired > 1) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", multiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+			DecimalFormat multiplierFormat = new DecimalFormat("0.#");
+			String formattedMultiplierRequired = multiplierFormat.format(Math.ceil(10 * multiplierRequired) / 10);
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", formattedMultiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 		}
 
 		return UpgradeSlotChangeResult.success();
