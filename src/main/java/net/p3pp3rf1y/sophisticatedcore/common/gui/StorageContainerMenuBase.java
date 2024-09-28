@@ -383,6 +383,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 				updateColumnsTaken(columnsToRemove);
 				slot.setChanged();
+				if (columnsToRemove != 0 && player.level().isClientSide()) {
+					onUpgradesChanged(); // need to trigger onUpgradesChanged again so that screen can react to this with updating slot positions after slots were refreshed as part of columns update
+				}
 			} else if (getCarried().isEmpty() && !slotStack.isEmpty() && slot.mayPickup(player)) {
 				int k2 = dragType == 0 ? Math.min(slotStack.getCount(), slotStack.getMaxStackSize()) : Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
 				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) slotStack.getItem();
