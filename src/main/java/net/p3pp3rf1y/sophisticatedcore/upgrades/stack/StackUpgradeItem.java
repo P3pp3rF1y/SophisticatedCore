@@ -45,7 +45,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		return List.of();
 	}
 
-	double getStackSizeMultiplier() {
+	public double getStackSizeMultiplier() {
 		return stackSizeMultiplier;
 	}
 
