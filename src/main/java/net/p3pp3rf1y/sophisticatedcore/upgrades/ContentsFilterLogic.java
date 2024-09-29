@@ -74,7 +74,7 @@ public class ContentsFilterLogic extends FilterLogic {
 		save();
 	}
 
-	private boolean shouldFilterByStorage() {
+	protected boolean shouldFilterByStorage() {
 		return NBTHelper.getBoolean(upgrade, parentTagKey, "filterByStorage").orElse(false);
 	}
 }
