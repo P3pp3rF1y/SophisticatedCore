@@ -69,7 +69,7 @@ public class ContentsFilterLogic extends FilterLogic {
 		save();
 	}
 
-	private boolean shouldFilterByStorage() {
+	protected boolean shouldFilterByStorage() {
 		return getAttributes().filterByStorage();
 	}
 }
