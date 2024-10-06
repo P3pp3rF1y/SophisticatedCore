@@ -331,6 +331,7 @@ modrinth {
         project.ext.changelog
     }
 }
+
 tasks.modrinth {
     dependsOn(tasks.generateChangelog)
     onlyIf { !project.ext.changelog.isEmpty() }
