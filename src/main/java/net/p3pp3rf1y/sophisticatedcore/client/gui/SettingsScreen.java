@@ -125,15 +125,14 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		int y = (height - imageHeight) / 2;
 		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, storageBackgroundProperties.getTextureName(), imageWidth, getStorageInventoryHeight(getNumberOfVisibleRows()));
 		if (inventoryScrollPanel == null) {
-			drawSlotBg(guiGraphics, x, y);
+			drawSlotBg(guiGraphics, x, y, getMenu().getStorageInventorySlots().size());
 		}
 	}
 
-	protected void drawSlotBg(GuiGraphics guiGraphics, int x, int y) {
-		int inventorySlots = getMenu().getStorageInventorySlots().size();
+	protected void drawSlotBg(GuiGraphics guiGraphics, int x, int y, int visibleSlotsCount) {
 		int slotsOnLine = getSlotsOnLine();
-		int slotRows = inventorySlots / slotsOnLine;
-		int remainingSlots = inventorySlots % slotsOnLine;
+		int slotRows = visibleSlotsCount / slotsOnLine;
+		int remainingSlots = visibleSlotsCount % slotsOnLine;
 		GuiHelper.renderSlotsBackground(guiGraphics, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
 	}
 
@@ -288,8 +287,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	@Override
-	public void drawSlotBg(GuiGraphics guiGraphics) {
-		drawSlotBg(guiGraphics, (width - imageWidth) / 2, (height - imageHeight) / 2);
+	public void drawSlotBg(GuiGraphics guiGraphics, int visibleSlotsCount) {
+		drawSlotBg(guiGraphics, (width - imageWidth) / 2, (height - imageHeight) / 2, visibleSlotsCount);
 	}
 
 	@Override

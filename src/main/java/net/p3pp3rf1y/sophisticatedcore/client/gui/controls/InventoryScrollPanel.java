@@ -16,6 +16,9 @@ public class InventoryScrollPanel extends ScrollPanel {
 	private final int firstSlotIndex;
 	private final int numberOfSlots;
 	private final int slotsInARow;
+
+	private int visibleSlotsCount = 0;
+
 	public InventoryScrollPanel(Minecraft client, IInventoryScreen screen, int firstSlotIndex, int numberOfSlots, int slotsInARow, int height, int top, int left) {
 		super(client, slotsInARow * 18 + 6, height, top, left, 0);
 		this.screen = screen;
@@ -37,7 +40,7 @@ public class InventoryScrollPanel extends ScrollPanel {
 
 	@Override
 	protected void drawBackground(GuiGraphics guiGraphics, Tesselator tess, float partialTick) {
-		screen.drawSlotBg(guiGraphics);
+		screen.drawSlotBg(guiGraphics, visibleSlotsCount);
 	}
 
 	@Override
@@ -67,8 +70,10 @@ public class InventoryScrollPanel extends ScrollPanel {
 	public interface IInventoryScreen {
 		void renderInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover);
 
-		boolean isMouseOverSlot(Slot pSlot, double pMouseX, double pMouseY);
-		void drawSlotBg(GuiGraphics guiGraphics);
+		boolean isMouseOverSlot(Slot slot, double mouseX, double mouseY);
+
+		void drawSlotBg(GuiGraphics guiGraphics, int visibleSlotsCount);
+
 		int getTopY();
 
 		int getLeftX();
@@ -109,10 +114,13 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	public void updateSlotsYPosition() {
+		visibleSlotsCount = 0;
 		for (int i = firstSlotIndex, row = 0; i < firstSlotIndex + numberOfSlots; i++, row = i / slotsInARow) {
 			int newY = top - screen.getTopY() - (int) scrollDistance / 18 * 18 + row * 18 + TOP_Y_OFFSET;
-			if (newY < -17 || newY > height) {
+			if (newY < 1 || newY > height) {
 				newY = -100;
+			} else {
+				visibleSlotsCount++;
 			}
 			screen.getSlot(i).y = newY;
 		}
