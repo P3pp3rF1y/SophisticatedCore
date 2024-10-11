@@ -586,17 +586,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int y = (height - imageHeight) / 2;
 		drawInventoryBg(guiGraphics, x, y, storageBackgroundProperties.getTextureName());
 		if (inventoryScrollPanel == null) {
-			drawSlotBg(guiGraphics, x, y);
+			drawSlotBg(guiGraphics, x, y, getMenu().getNumberOfStorageInventorySlots());
 			drawSlotOverlays(guiGraphics);
 		}
 		drawUpgradeBackground(guiGraphics);
 	}
 
-	protected void drawSlotBg(GuiGraphics guiGraphics, int x, int y) {
-		int inventorySlots = getMenu().getNumberOfStorageInventorySlots();
+	protected void drawSlotBg(GuiGraphics guiGraphics, int x, int y, int visibleSlotsCount) {
 		int slotsOnLine = getSlotsOnLine();
-		int slotRows = inventorySlots / slotsOnLine;
-		int remainingSlots = inventorySlots % slotsOnLine;
+		int slotRows = visibleSlotsCount / slotsOnLine;
+		int remainingSlots = visibleSlotsCount % slotsOnLine;
 		GuiHelper.renderSlotsBackground(guiGraphics, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
 	}
 
@@ -1000,8 +999,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void drawSlotBg(GuiGraphics guiGraphics) {
-		drawSlotBg(guiGraphics, (width - imageWidth) / 2, (height - imageHeight) / 2);
+	public void drawSlotBg(GuiGraphics guiGraphics, int visibleSlotsCount) {
+		drawSlotBg(guiGraphics, (width - imageWidth) / 2, (height - imageHeight) / 2, visibleSlotsCount);
 		drawSlotOverlays(guiGraphics);
 	}
 
