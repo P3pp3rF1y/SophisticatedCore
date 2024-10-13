@@ -4,16 +4,15 @@ import net.neoforged.bus.api.IEventBus;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CompatRegistry {
-	private static final Map<CompatInfo, List<Supplier<Function<IEventBus, ICompat>>>> compatFactories = new HashMap<>();
-	private static final Map<CompatInfo, List<ICompat>> loadedCompats = new HashMap<>();
-
+	private static final Map<CompatInfo, List<Supplier<Function<IEventBus, ICompat>>>> compatFactories = new ConcurrentHashMap<>();
+	private static final Map<CompatInfo, List<ICompat>> loadedCompats = new ConcurrentHashMap<>();
 
 	public static void registerCompat(CompatInfo info, Supplier<Function<IEventBus, ICompat>> factory) {
 		compatFactories.computeIfAbsent(info, k -> new ArrayList<>()).add(factory);
