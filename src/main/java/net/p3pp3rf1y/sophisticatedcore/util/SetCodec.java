@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import com.mojang.datafixers.util.Pair;
@@ -31,7 +29,7 @@ public record SetCodec<E>(Codec<E> elementCodec) implements Codec<Set<E>> {
 
     @Override
     public String toString() {
-        return "ListCodec[" + elementCodec + ']';
+        return "SetCodec[" + elementCodec + ']';
     }
 
     private class DecoderState<T> {

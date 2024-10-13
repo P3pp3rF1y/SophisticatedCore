@@ -44,7 +44,7 @@ public class ModFluids {
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB.location(), SophisticatedCore.MOD_ID);
 	public static final Supplier<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () ->
 			CreativeModeTab.builder().icon(() -> new ItemStack(XP_BUCKET.get()))
-					.title(Component.translatable("itemGroup.sophisticatedbackpacks"))
+					.title(Component.translatable("itemGroup.sophisticatedcore"))
 					.displayItems((featureFlags, output) -> output.accept(new ItemStack(XP_BUCKET.get())))
 					.build());
 
