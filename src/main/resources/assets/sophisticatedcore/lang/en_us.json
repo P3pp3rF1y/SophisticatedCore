@@ -1,4 +1,5 @@
 {
+  "itemGroup.sophisticatedcore": "Sophisticated Core",
   "item.sophisticatedcore.xp_bucket": "Bucket of Experience",
   "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "Right Click To Add",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "Stack Size Multiplier: %s",
