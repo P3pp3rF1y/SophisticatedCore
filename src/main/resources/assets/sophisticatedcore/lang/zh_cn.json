@@ -195,7 +195,7 @@
   "gui.sophisticatedcore.settings.buttons.keep_tab_open.off.tooltip": "关闭背包/容器时关闭所有标签页",
   "gui.sophisticatedcore.settings.buttons.keep_search_phrase.on": "保留搜索内容：开",
   "gui.sophisticatedcore.settings.buttons.keep_search_phrase.off": "保留搜索内容：关",
-  "gui.sophisticatedcore.settings.buttons.keep_search_phrase.on.tooltip": "背包/容器GUI会保留搜索内容，，重新打开时会自动填充并根据搜索词过滤物品",
+  "gui.sophisticatedcore.settings.buttons.keep_search_phrase.on.tooltip": "背包/容器GUI会保留搜索内容，重新打开时会自动填充并根据搜索词过滤物品",
   "gui.sophisticatedcore.settings.buttons.keep_search_phrase.off.tooltip": "关闭背包/容器GUI后将清空搜索内容，重新打开时显示所有未过滤的物品",
   "gui.sophisticatedcore.settings.buttons.save_template": "保存设置至栏位%s",
   "gui.sophisticatedcore.settings.buttons.save_template.controls": "用滚轮改变栏位",
