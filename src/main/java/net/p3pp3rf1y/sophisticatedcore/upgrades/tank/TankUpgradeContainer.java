@@ -67,6 +67,11 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 		public boolean mayPlace(ItemStack stack) {
 			return itemHandlerSupplier.get().isItemValid(getSlotIndex(), stack);
 		}
+
+		@Override
+		public int getMaxStackSize(ItemStack stack) {
+			return Math.min(stack.getMaxStackSize(), getMaxStackSize());
+		}
 	}
 
 	private static class TakeOnlySlot extends SlotSuppliedHandler {
