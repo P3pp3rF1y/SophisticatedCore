@@ -73,7 +73,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
 			FluidStack fluidInTank = fluidHandler.getFluidInTank(tank);
 			if (isOutput && fluidInTank.getAmount() < fluidHandler.getTankCapacity(tank) &&
-					(fluidInTank.isEmpty() || (!tankEmpty && fluidInTank.isFluidEqual(contents)))) {
+					(fluidInTank.isEmpty() || tankEmpty || fluidInTank.isFluidEqual(contents))) {
 				return true;
 			}
 			if (!isOutput && !fluidInTank.isEmpty() && (tankEmpty || fluidInTank.isFluidEqual(contents))) {
