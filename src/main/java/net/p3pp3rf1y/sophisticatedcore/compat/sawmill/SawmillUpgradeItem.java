@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.upgrades.stonecutter;
+package net.p3pp3rf1y.sophisticatedcore.compat.sawmill;
 
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -9,10 +9,10 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterUpg
 
 import java.util.function.Consumer;
 
-public class StonecutterUpgradeItem extends BlockConverterUpgradeItem<StonecutterUpgradeItem, StonecutterUpgradeItem.Wrapper> {
+public class SawmillUpgradeItem extends BlockConverterUpgradeItem<SawmillUpgradeItem, SawmillUpgradeItem.Wrapper> {
 	private static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
-	public StonecutterUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+	public SawmillUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
         super(upgradeTypeLimitConfig);
     }
 
@@ -21,7 +21,7 @@ public class StonecutterUpgradeItem extends BlockConverterUpgradeItem<Stonecutte
 		return TYPE;
 	}
 
-	public static class Wrapper extends BlockConverterUpgradeWrapper<StonecutterUpgradeItem, Wrapper> {
+	public static class Wrapper extends BlockConverterUpgradeWrapper<SawmillUpgradeItem, Wrapper> {
 		protected Wrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 			super(storageWrapper, upgrade, upgradeSaveHandler);
 		}
