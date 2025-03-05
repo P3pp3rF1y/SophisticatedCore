@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.p3pp3rf1y.sophisticatedcore.HelperAssertions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,8 +20,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.function.BiPredicate;
-
-import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
 
 class InventoryHelperTest {
 
@@ -188,19 +187,10 @@ class InventoryHelperTest {
 		for (int slot = 0; slot < handler.getSlots(); slot++) {
 			ItemStack stackInSlot = handler.getStackInSlot(slot);
 			if (expectedStacksInHandler.containsKey(slot)) {
-				assertStackEquals(expectedStacksInHandler.get(slot), stackInSlot, "Expected different stack in handler");
+				HelperAssertions.assertStackEquals(expectedStacksInHandler.get(slot), stackInSlot, "Expected different stack in handler");
 			} else if (!stackInSlot.isEmpty()) {
 				Assertions.fail("Non empty stack found in slot " + slot + " where there's supposed to be empty");
 			}
-		}
-	}
-
-	private static void assertStackEquals(ItemStack expected, ItemStack actual, Object message) {
-		if (!ItemStack.matches(expected, actual)) {
-			assertionFailure().message(message)
-					.expected(expected)
-					.actual(actual)
-					.buildAndThrow();
 		}
 	}
 
