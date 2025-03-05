@@ -614,6 +614,15 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			return stack;
 		}
 
+		if (simulate) {
+			int handlerIndex = getIndexForSlot(slot);
+			IItemHandlerModifiable handler = getHandlerFromIndex(handlerIndex);
+			slot = getSlotFromIndex(slot, handlerIndex);
+			if (validateHandlerSlotIndex(handler, handlerIndex, slot, "insertItem")) {
+				return handler.insertItem(slot, stack, true);
+			}
+		}
+
 		return insertItem(stack, simulate, true);
 	}
 
