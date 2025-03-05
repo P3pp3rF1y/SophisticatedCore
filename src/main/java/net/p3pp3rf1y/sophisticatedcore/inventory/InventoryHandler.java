@@ -494,6 +494,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void onFilterItemsChanged() {
+		slotTracker.refreshSlotIndexesFrom(this);
 		if (inventoryPartitioner == null) {
 			return;
 		}
