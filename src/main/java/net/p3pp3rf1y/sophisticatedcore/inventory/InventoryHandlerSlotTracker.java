@@ -366,6 +366,12 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 					}
 					slot = it.next();
 				}
+				while (filterItemSlots.containsSlot(slot)) {
+					if (!it.hasNext()) {
+						return remainingStack;
+					}
+					slot = it.next();
+				}
 
 				remainingStack = inserter.insertItem(slot, remainingStack, simulate);
 				if (remainingStack.isEmpty()) {
