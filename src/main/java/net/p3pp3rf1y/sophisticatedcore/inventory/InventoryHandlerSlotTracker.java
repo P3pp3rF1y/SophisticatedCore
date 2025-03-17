@@ -263,7 +263,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		if (simulate) {
 			if (fullSlotStacks.containsKey(slot)) {
 				return handleOverflow(overflowHandler, ItemStackKey.of(stack), stack);
-			} else if (emptySlots.contains(slot)) {
+			} else if (shouldInsertIntoEmpty.getAsBoolean() && emptySlots.contains(slot)) {
 				if ((memorySettings.isSlotSelected(slot) && !memorySettings.matchesFilter(slot, stack))
 						|| filterItemSlots.containsSlotAndDoesNotMatch(slot, stack.getItem())) {
 					return handleOverflow(overflowHandler, stack, hasOneFullStackOfItem(ItemStackKey.of(stack)));
