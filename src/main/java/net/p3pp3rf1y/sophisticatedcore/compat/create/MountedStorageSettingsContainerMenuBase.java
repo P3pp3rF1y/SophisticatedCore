@@ -28,7 +28,7 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 		if (!(level.getEntity(contraptionEntityId) instanceof AbstractContraptionEntity contraptionEntity)) {
 			return NoopStorageWrapper.INSTANCE;
 		}
-		MountedItemStorage itemStorage = contraptionEntity.getContraption().getStorage().getAllItemStorages().get(localPos);
+		MountedItemStorage itemStorage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(localPos);
 		if (!(itemStorage instanceof MountedStorageBase mountedStorage)) {
 			return NoopStorageWrapper.INSTANCE;
 		}

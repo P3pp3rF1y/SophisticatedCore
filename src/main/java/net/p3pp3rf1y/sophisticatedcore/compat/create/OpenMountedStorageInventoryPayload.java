@@ -31,7 +31,7 @@ public record OpenMountedStorageInventoryPayload(int contraptionEntityId, BlockP
 		Player player = context.player();
 		Entity entity = player.level().getEntity(payload.contraptionEntityId());
 		if (entity instanceof AbstractContraptionEntity contraptionEntity) {
-			MountedItemStorage storage = contraptionEntity.getContraption().getStorage().getAllItemStorages().get(payload.localPos());
+			MountedItemStorage storage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(payload.localPos());
 			if (storage instanceof MountedStorageBase mountedStorage && player instanceof ServerPlayer serverPlayer) {
 				mountedStorage.openMenu(serverPlayer, contraptionEntity.getId(), payload.localPos());
 			}

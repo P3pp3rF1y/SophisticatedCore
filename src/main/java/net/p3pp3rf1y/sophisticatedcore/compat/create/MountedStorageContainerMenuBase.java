@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
-import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -23,7 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.Optional;
 
 public abstract class MountedStorageContainerMenuBase extends StorageContainerMenuBase<IStorageWrapper> {
-	protected final WeakReference<Contraption> contraption;
+	protected final WeakReference<AbstractContraptionEntity> contraptionEntity;
 	protected final BlockPos localPos;
 
 	@Nullable
@@ -35,9 +34,9 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 		if (!(player.level().getEntity(contraptionEntityId) instanceof AbstractContraptionEntity contraptionEntity)) {
 			throw new IllegalArgumentException("Incorrect entity with id " + contraptionEntityId + " expected to find AbstractContraptionEntity");
 		}
-		contraption = new WeakReference<>(contraptionEntity.getContraption());
+		this.contraptionEntity = new WeakReference<>(contraptionEntity);
 		this.localPos = localPos;
-		MountedItemStorage itemStorage = contraptionEntity.getContraption().getStorage().getAllItemStorages().get(localPos);
+		MountedItemStorage itemStorage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(localPos);
 		if (!(itemStorage instanceof MountedStorageBase)) {
 			throw new IllegalArgumentException("Incorrect storage type at " + localPos + " expected to find MountedStorageBase");
 		}
@@ -45,18 +44,18 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 	}
 
 	protected Optional<MountedStorageBase> getMountedStorage() {
-		Contraption c = contraption.get();
+		AbstractContraptionEntity c = contraptionEntity.get();
 		if (c == null) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable((MountedStorageBase) c.getStorage().getAllItemStorages().get(localPos));
+		return Optional.ofNullable((MountedStorageBase) ContraptionHelper.getStorage(c).getAllItemStorages().get(localPos));
 	}
 
 	private static IStorageWrapper getWrapper(Level level, int contraptionEntityId, BlockPos localPos) {
 		if (!(level.getEntity(contraptionEntityId) instanceof AbstractContraptionEntity contraptionEntity)) {
 			return NoopStorageWrapper.INSTANCE;
 		}
-		MountedItemStorage itemStorage = contraptionEntity.getContraption().getStorage().getAllItemStorages().get(localPos);
+		MountedItemStorage itemStorage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(localPos);
 		if (!(itemStorage instanceof MountedStorageBase mountedStorageBase)) {
 			return NoopStorageWrapper.INSTANCE;
 		}
@@ -64,8 +63,8 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 		return mountedStorageBase.getStorageWrapper();
 	}
 
-	public Optional<Contraption> getContraption() {
-		return Optional.ofNullable(contraption.get());
+	public Optional<AbstractContraptionEntity> getContraptionEntity() {
+		return Optional.ofNullable(contraptionEntity.get());
 	}
 
 	public BlockPos getLocalPos() {
@@ -75,10 +74,10 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 	@Override
 	public void removed(Player player) {
 		super.removed(player);
-		getContraption().ifPresent(contraption -> {
+		getContraptionEntity().ifPresent(c -> {
 			Vec3 localPosVec = Vec3.atCenterOf(localPos);
-			Vec3 newPos = contraption.entity.toGlobalVector(localPosVec, 0);
-			MountedItemStorage mountedStorage = contraption.getStorage().getAllItemStorages().get(localPos);
+			Vec3 newPos = c.toGlobalVector(localPosVec, 0);
+			MountedItemStorage mountedStorage = ContraptionHelper.getStorage(c).getAllItemStorages().get(localPos);
 			if (mountedStorage instanceof MountedStorageBase mountedStorageBase) {
 				mountedStorageBase.onClose(player, newPos);
 			}
@@ -92,7 +91,7 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 
 	@Override
 	public Optional<Entity> getEntity() {
-		return getContraption().map(c -> c.entity);
+		return getContraptionEntity().map(c -> c);
 	}
 
 	@Override
@@ -101,10 +100,10 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 			sendToServer(data -> data.putString(ACTION_TAG, "openSettings"));
 			return;
 		}
-		getContraption().ifPresent(contraption ->
-				player.openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, contraption.entity.getId(), localPos),
+		getContraptionEntity().ifPresent(c ->
+				player.openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, c.getId(), localPos),
 						Component.translatable(getSettingsTitleKey()), false), buffer -> {
-					buffer.writeInt(contraption.entity.getId());
+					buffer.writeInt(c.getId());
 					buffer.writeBlockPos(localPos);
 				})
 		);
@@ -139,10 +138,10 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 
 	@Override
 	public boolean stillValid(Player player) {
-		return getContraption().map(contraption -> {
+		return getContraptionEntity().map(c -> {
 			Vec3 localPosVec = Vec3.atCenterOf(localPos);
-			Vec3 currentPos = contraption.entity.toGlobalVector(localPosVec, 0);
-			return contraption.entity.isAlive() && player.distanceToSqr(currentPos) < (8 * 8);
+			Vec3 currentPos = c.toGlobalVector(localPosVec, 0);
+			return c.isAlive() && player.distanceToSqr(currentPos) < (8 * 8);
 		}).orElse(false);
 	}
 
