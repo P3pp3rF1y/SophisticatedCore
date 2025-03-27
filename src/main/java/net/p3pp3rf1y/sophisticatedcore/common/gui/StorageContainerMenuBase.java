@@ -34,10 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.DummySlot;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -554,6 +551,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return false;
 		}
 		return slotWrappers.get(upgradeSlot).isEnabled();
+	}
+
+	public boolean isUpgradeRunnable(int upgradeSlot) {
+		Map<Integer, IUpgradeWrapper> slotWrappers = storageWrapper.getUpgradeHandler().getSlotWrappers();
+		if (!slotWrappers.containsKey(upgradeSlot)) {
+			return false;
+		}
+		IUpgradeWrapper upgradeWrapper = slotWrappers.get(upgradeSlot);
+		return !(upgradeWrapper instanceof ITickableUpgrade) || storageWrapper.isUpgradeRunnable(upgradeWrapper.getUpgradeStack());
 	}
 
 	public boolean canDisableUpgrade(int upgradeSlot) {

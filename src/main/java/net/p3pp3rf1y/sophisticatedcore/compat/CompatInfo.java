@@ -6,6 +6,10 @@ import org.apache.maven.artifact.versioning.VersionRange;
 import javax.annotation.Nullable;
 
 public record CompatInfo(String modId, @Nullable VersionRange supportedVersionRange) {
+	public CompatInfo(String modId) {
+		this(modId, null);
+	}
+
 	public boolean isLoaded() {
 		return ModList.get().getModContainerById(modId())
 				.map(container -> supportedVersionRange() == null || supportedVersionRange().containsVersion(container.getModInfo().getVersion()))

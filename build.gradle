@@ -35,6 +35,12 @@ repositories {
             includeGroup 'top.theillusivec4.curios'
         }
     }
+    maven {
+        url = "https://maven.createmod.net"
+        content {
+            includeGroup "com.simibubi.create"
+        }
+    }
 }
 
 base {
@@ -120,6 +126,9 @@ dependencies {
     localRuntime "curse.maven:sawmill-964817:${sawmill_cf_file_id}"
     compileOnly "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"
     localRuntime "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"
+    compileOnly("com.simibubi.create:create-${create_mc_version}:${create_version}") {
+        transitive = false
+    }
 /*
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly "curse.maven:quark-243121:${quark_cf_file_id}")
