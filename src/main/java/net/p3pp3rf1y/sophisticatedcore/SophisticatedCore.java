@@ -1,12 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -45,15 +44,14 @@ public class SophisticatedCore {
 		modBus.addListener(DataGenerators::gatherData);
 
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
-		eventBus.addListener(SophisticatedCore::serverStarted);
+		eventBus.addListener(SophisticatedCore::overworldLoaded);
 		eventBus.addListener(SophisticatedCore::serverStopped);
 		eventBus.addListener(SophisticatedCore::onResourceReload);
 	}
 
-	private static void serverStarted(ServerStartedEvent event) {
-		ServerLevel world = event.getServer().getLevel(Level.OVERWORLD);
-		if (world != null) {
-			RecipeHelper.setLevel(world);
+	private static void overworldLoaded(LevelEvent.Load event) {
+		if (event.getLevel() instanceof Level level && level.dimension().equals(Level.OVERWORLD)) {
+			RecipeHelper.setLevel(level);
 		}
 	}
 
