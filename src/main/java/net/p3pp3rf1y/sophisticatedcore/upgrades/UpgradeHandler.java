@@ -13,12 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -196,7 +191,7 @@ public class UpgradeHandler extends ItemStackHandler {
 		slotWrappers.values().forEach(wrapper -> {
 			if (wrapper.getUpgradeStack().getItem() instanceof IUpgradeItem<?> upgradeItem) {
 				UpgradeType<?> type = upgradeItem.getType();
-				if (wrapper.isEnabled()) {
+				if (wrapper.isEnabled() && (!(wrapper instanceof ITickableUpgrade) || storageWrapper.isUpgradeRunnable(wrapper.getUpgradeStack()))) {
 					addTypeWrapper(type, wrapper);
 				}
 			}

@@ -40,12 +40,16 @@ public class Button extends ButtonBase {
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			hovered = true;
-			if (hoveredBackgroundTexture != null) {
-				GuiHelper.blit(guiGraphics, x, y, hoveredBackgroundTexture);
-			}
+			renderHoveredBackground(guiGraphics);
 		} else {
 			hovered = false;
 			GuiHelper.blit(guiGraphics, x, y, backgroundTexture);
+		}
+	}
+
+	protected void renderHoveredBackground(GuiGraphics guiGraphics) {
+		if (hoveredBackgroundTexture != null) {
+			GuiHelper.blit(guiGraphics, x, y, hoveredBackgroundTexture);
 		}
 	}
 

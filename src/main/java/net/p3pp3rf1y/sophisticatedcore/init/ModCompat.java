@@ -5,6 +5,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatModIds;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.craftingtweaks.CraftingTweaksCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.create.CreateCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
@@ -26,6 +27,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.INVENTORY_SORTER, () -> InventorySorterCompat::new);
 		compatFactories.put(CompatModIds.ITEM_BORDERS, () -> ItemBordersCompat::new);
 		compatFactories.put(CompatModIds.CURIOS, () -> CuriosCompat::new);
+		compatFactories.put(CompatModIds.CREATE, () -> CreateCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 

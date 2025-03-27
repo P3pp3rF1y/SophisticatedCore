@@ -10,4 +10,5 @@ public class CompatModIds {
 	public static final String ITEM_BORDERS = "itemborders";
 	public static final String CHIPPED = "chipped";
 	public static final String CURIOS = "curios";
+	public static final String CREATE = "create";
 }
