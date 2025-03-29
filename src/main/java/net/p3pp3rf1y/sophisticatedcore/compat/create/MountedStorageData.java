@@ -107,6 +107,11 @@ public class MountedStorageData extends SavedData implements IStorageSavedData {
 		setDirty();
 	}
 
+	@Override
+	public void markChanged() {
+		setDirty();
+	}
+
 	public boolean removeUpdatedStorageSettingsFlag(UUID backpackUuid) {
 		return updatedStorageSettingsFlags.remove(backpackUuid);
 	}

@@ -5,5 +5,5 @@ import net.minecraft.nbt.CompoundTag;
 public interface IStorageSavedData {
 	CompoundTag getContents();
 	void setContents(CompoundTag contents);
-	void setDirty();
+	void markChanged();
 }
