@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.upgrades.stonecutter;
+package net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -13,11 +13,12 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpgradeWrapper, StonecutterUpgradeItem> {
+public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgradeItem<U, W>, W extends BlockConverterUpgradeWrapper<U, W>> extends UpgradeWrapperBase<W, U> {
 	private final IItemHandlerModifiable inputInventory;
 
-	protected StonecutterUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
+	public BlockConverterUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
+
 
 		inputInventory = new ItemStackHandler(1) {
 			@Override
@@ -31,6 +32,7 @@ public class StonecutterUpgradeWrapper extends UpgradeWrapperBase<StonecutterUpg
 		};
 		inputInventory.setStackInSlot(0, upgrade.getOrDefault(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.EMPTY).copy());
 	}
+
 
 	public IItemHandlerModifiable getInputInventory() {
 		return inputInventory;

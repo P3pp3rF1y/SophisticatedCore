@@ -14,7 +14,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -26,7 +25,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
-import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -41,7 +39,6 @@ public class ClientEventHandler {
 		modBus.addListener(ModParticles::registerFactories);
 		modBus.addListener(ClientEventHandler::registerFluidClientExtension);
 		IEventBus eventBus = NeoForge.EVENT_BUS;
-		eventBus.addListener(ClientEventHandler::onPlayerJoinServer);
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
@@ -128,11 +125,6 @@ public class ClientEventHandler {
 
 	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult,
 										 Optional<TooltipComponent> tooltip) {
-	}
-
-	private static void onPlayerJoinServer(ClientPlayerNetworkEvent.LoggingIn evt) {
-		//noinspection ConstantConditions - by the time player is joining the world is not null
-		RecipeHelper.setLevel(Minecraft.getInstance().level);
 	}
 
 	private static void registerFluidClientExtension(RegisterClientExtensionsEvent event) {

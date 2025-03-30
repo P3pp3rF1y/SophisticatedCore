@@ -193,7 +193,7 @@ public class UpgradeHandler extends ItemStackHandler {
 		slotWrappers.values().forEach(wrapper -> {
 			if (wrapper.getUpgradeStack().getItem() instanceof IUpgradeItem<?> upgradeItem) {
 				UpgradeType<?> type = upgradeItem.getType();
-				if (wrapper.isEnabled()) {
+				if (wrapper.isEnabled() && (!(wrapper instanceof ITickableUpgrade) || storageWrapper.isUpgradeRunnable(wrapper.getUpgradeStack()))) {
 					addTypeWrapper(type, wrapper);
 				}
 			}

@@ -20,10 +20,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ISlotLimitUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
-import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,7 +50,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private final InventoryPartitioner inventoryPartitioner;
 	private Consumer<Set<Item>> filterItemsChangeListener = s -> {
 	};
-	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
+	private final SlotValueMap<Item> filterItemSlots = new SlotValueMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
 	private boolean slotLimitInitialized = false;
 
@@ -493,15 +490,16 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void initFilterItems() {
-		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
+		inventoryPartitioner.getFilterItems().forEach((item, slots) -> slots.forEach(slot -> filterItemSlots.add(slot, item)));
 	}
 
 	public void onFilterItemsChanged() {
+		slotTracker.refreshSlotIndexesFrom(this);
 		if (inventoryPartitioner == null) {
 			return;
 		}
 		filterItemSlots.clear();
-		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
+		inventoryPartitioner.getFilterItems().forEach((item, slots) -> slots.forEach(slot -> filterItemSlots.add(slot, item)));
 
 		filterItemsChangeListener.accept(filterItemSlots.keySet());
 	}

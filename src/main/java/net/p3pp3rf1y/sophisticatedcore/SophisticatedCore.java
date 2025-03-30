@@ -12,6 +12,7 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.p3pp3rf1y.sophisticatedcore.client.ClientEventHandler;
@@ -48,15 +49,21 @@ public class SophisticatedCore {
 		modBus.addListener(DataGenerators::gatherData);
 
 		IEventBus eventBus = NeoForge.EVENT_BUS;
+		eventBus.addListener(SophisticatedCore::overworldLoaded);
 		eventBus.addListener(SophisticatedCore::serverStarted);
 		eventBus.addListener(SophisticatedCore::serverStopped);
 		eventBus.addListener(SophisticatedCore::onResourceReload);
 	}
 
+	private static void overworldLoaded(LevelEvent.Load event) {
+		if (event.getLevel() instanceof Level level && level.dimension().equals(Level.OVERWORLD)) {
+			RecipeHelper.setLevel(level);
+		}
+	}
+
 	private static void serverStarted(ServerStartedEvent event) {
 		ServerLevel world = event.getServer().getLevel(Level.OVERWORLD);
 		if (world != null) {
-			RecipeHelper.setLevel(world);
 			StorageWrapperRepository.clearCache();
 			Config.COMMON.saveIfChanged();
 		}

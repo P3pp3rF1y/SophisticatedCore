@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface IStorageWrapper extends ITintable {
+	String SETTINGS_TAG = "settings";
 
 	void setContentsChangeHandler(Runnable contentsChangeHandler);
 
@@ -92,4 +93,8 @@ public interface IStorageWrapper extends ITintable {
 	String getStorageType();
 
 	Component getDisplayName();
+
+	default boolean isUpgradeRunnable(ItemStack upgrade) {
+		return true;
+	}
 }

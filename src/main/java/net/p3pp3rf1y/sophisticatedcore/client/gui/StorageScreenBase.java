@@ -394,7 +394,36 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			if (menu.canDisableUpgrade(slot)) {
 				int finalSlot = slot;
 				ToggleButton<Boolean> upgradeSwitch = new ToggleButton<>(new Position(leftPos - 22, switchTop), ButtonDefinitions.UPGRADE_SWITCH,
-						button -> getMenu().setUpgradeEnabled(finalSlot, !getMenu().getUpgradeEnabled(finalSlot)), () -> getMenu().getUpgradeEnabled(finalSlot));
+						button -> getMenu().setUpgradeEnabled(finalSlot, !getMenu().getUpgradeEnabled(finalSlot)), () -> getMenu().getUpgradeEnabled(finalSlot)) {
+					@Override
+					protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+						if (menu.isUpgradeRunnable(finalSlot)) {
+							super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+						} else {
+							GuiHelper.blit(guiGraphics, x, y, ButtonDefinitions.UPGRADE_SWITCH_INACTIVE.getForegroundTexture());
+						}
+					}
+
+					@Override
+					public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+						if (menu.isUpgradeRunnable(finalSlot)) {
+							super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+						} else {
+							if (isMouseOver(mouseX, mouseY)) {
+								GuiHelper.renderTooltip(screen, guiGraphics, ButtonDefinitions.UPGRADE_SWITCH_INACTIVE.getTooltip(), mouseX, mouseY);
+							}
+						}
+					}
+
+					@Override
+					protected void renderHoveredBackground(GuiGraphics guiGraphics) {
+						if (menu.isUpgradeRunnable(finalSlot)) {
+							super.renderHoveredBackground(guiGraphics);
+						} else {
+							GuiHelper.blit(guiGraphics, x, y, ButtonDefinitions.UPGRADE_SWITCH_INACTIVE.getBackgroundTexture());
+						}
+					}
+				};
 				addWidget(upgradeSwitch);
 				upgradeSwitches.add(upgradeSwitch);
 			}
@@ -772,6 +801,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (searchBox != null) {
 			searchBox.renderTooltip(this, guiGraphics, x, y);
 		}
+		upgradeSwitches.forEach(us -> us.renderTooltip(this, guiGraphics, x, y));
 	}
 
 	@Override
