@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
-import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -28,12 +27,12 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 		if (!(level.getEntity(contraptionEntityId) instanceof AbstractContraptionEntity contraptionEntity)) {
 			return NoopStorageWrapper.INSTANCE;
 		}
-		MountedItemStorage itemStorage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(localPos);
-		if (!(itemStorage instanceof MountedStorageBase mountedStorage)) {
+		MountedStorageBase itemStorage = ContraptionHelper.getMountedStorage(contraptionEntity, localPos);
+		if (itemStorage == null) {
 			return NoopStorageWrapper.INSTANCE;
 		}
 
-		return mountedStorage.getStorageWrapper();
+		return itemStorage.getStorageWrapper();
 	}
 
 

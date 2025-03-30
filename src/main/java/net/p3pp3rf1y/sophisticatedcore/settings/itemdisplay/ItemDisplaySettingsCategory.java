@@ -18,12 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -97,6 +92,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 			i++;
 		}
 
+		return i != previousDisplayItems.size();
+	}
+
+	private boolean haveCountsOrFillRatiosChanged(InventoryHandler inventoryHandler) {
 		if (renderInfoSupplier.get().showsCountsAndFillRatios()) {
 			List<Integer> previousSlotCounts = renderInfoSupplier.get().getItemDisplayRenderInfo().getSlotCounts();
 			List<Float> previousSlotFillRatios = renderInfoSupplier.get().getItemDisplayRenderInfo().getSlotFillRatios();
@@ -118,26 +117,27 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 				}
 			}
 		}
-
-		return i != previousDisplayItems.size();
+		return false;
 	}
 
 	private void updateFullRenderInfo() {
 		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
 		List<Integer> inaccessibleSlots = new ArrayList<>();
 		InventoryHandler inventoryHandler = inventoryHandlerSupplier.get();
-		for (int slotIndex : slotIndexes) {
-			displayItems.add(new RenderInfo.DisplayItem(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), slotRotations.getOrDefault(slotIndex, 0), slotIndex, displaySide));
-			if (!inventoryHandler.isSlotAccessible(slotIndex)) {
-				inaccessibleSlots.add(slotIndex);
-			}
-		}
+		collectDisplayItemsAndInaccessibleSlots(displayItems, inventoryHandler, inaccessibleSlots);
 
 		List<Integer> slotCounts = new ArrayList<>();
 		List<Float> slotFillRatios = new ArrayList<>();
 		List<Integer> infiniteSlots = new ArrayList<>();
 
-		if (renderInfoSupplier.get().showsCountsAndFillRatios()) {
+		RenderInfo renderInfo = renderInfoSupplier.get();
+		collectSlotCountsSlotFillRatiosAndInfiniteSlots(renderInfo, inventoryHandler, slotCounts, slotFillRatios, infiniteSlots);
+
+		renderInfo.refreshItemDisplayRenderInfo(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
+	}
+
+	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderInfo renderInfo, InventoryHandler inventoryHandler, List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
+		if (renderInfo.showsCountsAndFillRatios()) {
 			for (int slotIndex = 0; slotIndex < inventoryHandler.getSlots(); slotIndex++) {
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
 				slotCounts.add(stack.getCount());
@@ -147,8 +147,32 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 				}
 			}
 		}
+	}
 
-		renderInfoSupplier.get().refreshItemDisplayRenderInfo(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
+	private void collectDisplayItemsAndInaccessibleSlots(List<RenderInfo.DisplayItem> displayItems, InventoryHandler inventoryHandler, List<Integer> inaccessibleSlots) {
+		for (int slotIndex : slotIndexes) {
+			displayItems.add(new RenderInfo.DisplayItem(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), slotRotations.getOrDefault(slotIndex, 0), slotIndex, displaySide));
+			if (!inventoryHandler.isSlotAccessible(slotIndex)) {
+				inaccessibleSlots.add(slotIndex);
+			}
+		}
+	}
+
+	private void updateDisplayItemsAndInaccessibleSlots() {
+		List<RenderInfo.DisplayItem> displayItems = new ArrayList<>();
+		List<Integer> inaccessibleSlots = new ArrayList<>();
+		InventoryHandler inventoryHandler = inventoryHandlerSupplier.get();
+		collectDisplayItemsAndInaccessibleSlots(displayItems, inventoryHandler, inaccessibleSlots);
+		renderInfoSupplier.get().refreshDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots);
+	}
+
+	private void updateCountsFillRatiosAndInfiniteSlots() {
+		List<Integer> slotCounts = new ArrayList<>();
+		List<Float> slotFillRatios = new ArrayList<>();
+		List<Integer> infiniteSlots = new ArrayList<>();
+		RenderInfo renderInfo = renderInfoSupplier.get();
+		collectSlotCountsSlotFillRatiosAndInfiniteSlots(renderInfo, inventoryHandlerSupplier.get(), slotCounts, slotFillRatios, infiniteSlots);
+		renderInfo.refreshSlotCountsFillRatiosAndInfiniteSlots(slotCounts, slotFillRatios, infiniteSlots);
 	}
 
 	private static float calculateSlotFillRatio(ItemStack stack, InventoryHandler inventoryHandler, int slotIndex) {
@@ -282,13 +306,19 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		}
 
 		if (haveRenderedItemsChanged()) {
-			updateFullRenderInfo();
+			updateDisplayItemsAndInaccessibleSlots();
+		}
+		if (haveCountsOrFillRatiosChanged(inventoryHandlerSupplier.get())) {
+			updateCountsFillRatiosAndInfiniteSlots();
 		}
 	}
 
 	public void itemsChanged() {
 		if (haveRenderedItemsChanged()) {
-			updateFullRenderInfo();
+			updateDisplayItemsAndInaccessibleSlots();
+		}
+		if (haveCountsOrFillRatiosChanged(inventoryHandlerSupplier.get())) {
+			updateCountsFillRatiosAndInfiniteSlots();
 		}
 	}
 

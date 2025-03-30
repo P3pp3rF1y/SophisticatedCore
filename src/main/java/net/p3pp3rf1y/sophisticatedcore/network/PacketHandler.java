@@ -5,11 +5,13 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.PlayDiscMessage;
@@ -62,6 +64,10 @@ public class PacketHandler {
 
 	public <M> void sendToClient(ServerPlayer player, M message) {
 		networkWrapper.sendTo(message, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+	}
+
+	public <M> void sendToAllTracking(M message, Entity entity) {
+		networkWrapper.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
 	}
 
 	public <M> void sendToAllNear(ServerLevel world, ResourceKey<Level> dimension, Vec3 position, int range, M message) {

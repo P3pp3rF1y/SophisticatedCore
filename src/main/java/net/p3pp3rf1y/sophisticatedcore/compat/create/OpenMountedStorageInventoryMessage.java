@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
-import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -27,16 +26,16 @@ public record OpenMountedStorageInventoryMessage(int contraptionEntityId, BlockP
 		context.setPacketHandled(true);
 	}
 
-	public static void handleMessage(@Nullable ServerPlayer player, OpenMountedStorageInventoryMessage payload) {
+	public static void handleMessage(@Nullable ServerPlayer player, OpenMountedStorageInventoryMessage msg) {
 		if (player == null) {
 			return;
 		}
 
-		Entity entity = player.level().getEntity(payload.contraptionEntityId());
+		Entity entity = player.level().getEntity(msg.contraptionEntityId());
 		if (entity instanceof AbstractContraptionEntity contraptionEntity) {
-			MountedItemStorage storage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(payload.localPos());
-			if (storage instanceof MountedStorageBase mountedStorage) {
-				mountedStorage.openMenu(player, contraptionEntity.getId(), payload.localPos());
+			MountedStorageBase storage = ContraptionHelper.getMountedStorage(contraptionEntity, msg.localPos);
+			if (storage != null) {
+				storage.openMenu(player, contraptionEntity.getId(), msg.localPos());
 			}
 		}
 	}

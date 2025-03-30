@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
-import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -37,11 +36,11 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 		}
 		this.contraptionEntity = new WeakReference<>(cEntity);
 		this.localPos = localPos;
-		MountedItemStorage itemStorage = ContraptionHelper.getStorage(cEntity).getAllItemStorages().get(localPos);
-		if (!(itemStorage instanceof MountedStorageBase)) {
+		MountedStorageBase itemStorage = ContraptionHelper.getMountedStorage(cEntity, localPos);
+		if (itemStorage == null) {
 			throw new IllegalArgumentException("Incorrect storage type at " + localPos + " expected to find MountedStorageBase");
 		}
-		mountedStorage = (MountedStorageBase) itemStorage;
+		mountedStorage = itemStorage;
 	}
 
 	protected Optional<MountedStorageBase> getMountedStorage() {
@@ -49,19 +48,19 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 		if (c == null) {
 			return Optional.empty();
 		}
-		return Optional.ofNullable((MountedStorageBase) ContraptionHelper.getStorage(c).getAllItemStorages().get(localPos));
+		return Optional.ofNullable(ContraptionHelper.getMountedStorage(c, localPos));
 	}
 
 	private static IStorageWrapper getWrapper(Level level, int contraptionEntityId, BlockPos localPos) {
 		if (!(level.getEntity(contraptionEntityId) instanceof AbstractContraptionEntity contraptionEntity)) {
 			return NoopStorageWrapper.INSTANCE;
 		}
-		MountedItemStorage itemStorage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(localPos);
-		if (!(itemStorage instanceof MountedStorageBase mountedStorageBase)) {
+		MountedStorageBase itemStorage = ContraptionHelper.getMountedStorage(contraptionEntity, localPos);
+		if (itemStorage == null) {
 			return NoopStorageWrapper.INSTANCE;
 		}
 
-		return mountedStorageBase.getStorageWrapper();
+		return itemStorage.getStorageWrapper();
 	}
 
 	public Optional<AbstractContraptionEntity> getContraptionEntity() {
@@ -78,9 +77,9 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 		getContraptionEntity().ifPresent(c -> {
 			Vec3 localPosVec = Vec3.atCenterOf(localPos);
 			Vec3 newPos = c.toGlobalVector(localPosVec, 0);
-			MountedItemStorage mountedStorage = ContraptionHelper.getStorage(c).getAllItemStorages().get(localPos);
-			if (mountedStorage instanceof MountedStorageBase mountedStorageBase) {
-				mountedStorageBase.onClose(player, newPos);
+			MountedStorageBase mountedStorage = ContraptionHelper.getMountedStorage(c, localPos);
+			if (mountedStorage != null) {
+				mountedStorage.onClose(player, newPos);
 			}
 		});
 	}
