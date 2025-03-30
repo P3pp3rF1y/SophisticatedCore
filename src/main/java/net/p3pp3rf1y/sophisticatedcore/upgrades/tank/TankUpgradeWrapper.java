@@ -73,7 +73,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
 			FluidStack fluidInTank = fluidHandler.getFluidInTank(tank);
 			if (isOutput && fluidInTank.getAmount() < fluidHandler.getTankCapacity(tank) &&
-					(fluidInTank.isEmpty() || (!tankEmpty && fluidInTank.isFluidEqual(contents)))) {
+					(fluidInTank.isEmpty() || tankEmpty || fluidInTank.isFluidEqual(contents))) {
 				return true;
 			}
 			if (!isOutput && !fluidInTank.isEmpty() && (tankEmpty || fluidInTank.isFluidEqual(contents))) {
@@ -87,7 +87,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		boolean tankEmpty = contents.isEmpty();
 		for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
 			FluidStack fluidInTank = fluidHandler.getFluidInTank(tank);
-			if (!tankEmpty && fluidInTank.getFluid() == contents.getFluid()) {
+			if (!tankEmpty && fluidInTank.isFluidEqual(contents)) {
 				return false;
 			} else if (!fluidInTank.isEmpty()) {
 				return false;
@@ -103,7 +103,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			int tankCapacity = fluidHandler.getTankCapacity(tank);
 			if (tankEmpty && fluidInTank.getAmount() < tankCapacity) {
 				return false;
-			} else if (contents.getFluid() == fluidInTank.getFluid() && fluidInTank.getAmount() < tankCapacity) {
+			} else if (fluidInTank.isFluidEqual(contents) && fluidInTank.getAmount() < tankCapacity) {
 				return false;
 			}
 		}
@@ -299,7 +299,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 	private Boolean isFullAfterFillButUnableToInsertIntoResult(ItemStack containerCopy) {
 		return getFluidHandler(containerCopy).map(copyFluidHandler -> {
-			copyFluidHandler.fill(new FluidStack(contents.getFluid(), Math.min(FluidType.BUCKET_VOLUME, contents.getAmount())), IFluidHandler.FluidAction.EXECUTE);
+			copyFluidHandler.fill(new FluidStack(contents, Math.min(FluidType.BUCKET_VOLUME, contents.getAmount())), IFluidHandler.FluidAction.EXECUTE);
 			int tank = getMatchingTank(copyFluidHandler, contents);
 			if (tank < 0) {
 				return true;
@@ -316,7 +316,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		if (isValidFluidHandler(fluidHandler, false)) {
 			FluidStack extracted = contents.isEmpty() ?
 					fluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE) :
-					fluidHandler.drain(new FluidStack(contents.getFluid(), Math.min(FluidType.BUCKET_VOLUME, getTankCapacity() - contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
+					fluidHandler.drain(new FluidStack(contents, Math.min(FluidType.BUCKET_VOLUME, getTankCapacity() - contents.getAmount())), IFluidHandler.FluidAction.SIMULATE);
 
 			if (extracted.isEmpty()) {
 				return false;

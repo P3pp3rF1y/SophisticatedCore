@@ -87,6 +87,10 @@ public class ButtonDefinitions {
 			false, getButtonStateData(new UV(0, 128), Dimension.RECTANGLE_4_10, new Position(1, 1), TranslationHelper.INSTANCE.translColoredButton("upgrade_switch_disabled", ChatFormatting.RED))
 	), UPGRADE_SWITCH_HOVERED_BACKGROUND);
 
+	private static final TextureBlitData UPGRADE_SWITCH_INACTIVE_FOREGROUND = new TextureBlitData(ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(8, 128), Dimension.RECTANGLE_4_10);
+	public static final ButtonDefinition UPGRADE_SWITCH_INACTIVE = new ButtonDefinition(Dimension.RECTANGLE_6_12, UPGRADE_SWITCH_BACKGROUND, UPGRADE_SWITCH_BACKGROUND, UPGRADE_SWITCH_INACTIVE_FOREGROUND,
+			TranslationHelper.INSTANCE.translColoredButton("upgrade_switch_inactive", ChatFormatting.GRAY));
+
 	public static final ButtonDefinition.Toggle<Boolean> WORK_IN_GUI = createToggleButtonDefinition(
 			Map.of(
 					true, getButtonStateData(new UV(0, 48), TranslationHelper.INSTANCE.translUpgradeButton("works_in_gui"), Dimension.SQUARE_16, new Position(1, 1)),

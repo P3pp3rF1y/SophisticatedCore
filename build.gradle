@@ -27,6 +27,12 @@ repositories {
         }
     }
     maven { url "https://maven.blamejared.com/" }
+    maven {
+        url = "https://maven.createmod.net"
+        content {
+            includeGroup "com.simibubi.create"
+        }
+    }
 }
 
 group = mod_group_id
@@ -44,7 +50,6 @@ minecraft {
             workingDirectory project.file("run/${it.name}")
             property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
             property 'forge.logging.console.level', 'debug'
-            property "mixin.env.disableRefMap", "true"
 
             mods {
                 "${mod_id}" {
@@ -86,6 +91,10 @@ dependencies {
     compileOnly fg.deobf("curse.maven:chipped-456956:${chipped_cf_file_id}")
     compileOnly fg.deobf("curse.maven:resourcefullib-570073:${resourcefullib_cf_file_id}")
     compileOnly fg.deobf("curse.maven:athena-841890:${athena_cf_file_id}")
+    compileOnly fg.deobf("com.simibubi.create:create-${create_mc_version}:${create_version}:all") {
+        transitive = false
+    }
+
 /*
     compileOnly fg.deobf("curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly fg.deobf("curse.maven:quark-243121:${quark_cf_file_id}")

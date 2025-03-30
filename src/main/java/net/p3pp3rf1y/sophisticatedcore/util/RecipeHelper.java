@@ -101,7 +101,7 @@ public class RecipeHelper {
 	}
 
 	private static Optional<Level> getLevel() {
-		return getFromCache(cache -> Optional.ofNullable(cache.level.get()), Optional.empty());
+		return getFromCache(cache -> Optional.ofNullable(cache.level == null ? null : cache.level.get()), Optional.empty());
 	}
 
 	private static Set<CompactingShape> getCompactingShapes(ItemStack stack) {

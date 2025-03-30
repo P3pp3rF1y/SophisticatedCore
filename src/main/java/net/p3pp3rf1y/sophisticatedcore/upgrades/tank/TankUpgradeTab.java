@@ -27,10 +27,10 @@ public class TankUpgradeTab extends UpgradeSettingsTab<TankUpgradeContainer> {
 			GuiHelper.renderSlotsBackground(guiGraphics, x + 24, y + 24, 1, 1);
 			GuiHelper.renderSlotsBackground(guiGraphics, x + 3, y + 24 + 32, 1, 1);
 			GuiHelper.renderSlotsBackground(guiGraphics, x + 24, y + 24 + 32, 1, 1);
-		}
 
-		GuiHelper.blit(guiGraphics, x + 3 + 1, y + 24 + 18 + 3, ARROW);
-		GuiHelper.blit(guiGraphics, x + 24 + 1, y + 24 + 18 + 3, ARROW);
+			GuiHelper.blit(guiGraphics, x + 3 + 1, y + 24 + 18 + 3, ARROW);
+			GuiHelper.blit(guiGraphics, x + 24 + 1, y + 24 + 18 + 3, ARROW);
+		}
 	}
 
 	@Override

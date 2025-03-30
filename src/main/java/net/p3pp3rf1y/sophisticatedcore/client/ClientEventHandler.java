@@ -12,7 +12,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -22,7 +21,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
-import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -36,7 +34,6 @@ public class ClientEventHandler {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modBus.addListener(ModParticles::registerFactories);
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
-		eventBus.addListener(ClientEventHandler::onPlayerJoinServer);
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
@@ -122,9 +119,4 @@ public class ClientEventHandler {
 	}
 
 	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult, Optional<TooltipComponent> tooltip) {}
-
-	private static void onPlayerJoinServer(ClientPlayerNetworkEvent.LoggingIn evt) {
-		//noinspection ConstantConditions - by the time player is joining the world is not null
-		RecipeHelper.setLevel(Minecraft.getInstance().level);
-	}
 }

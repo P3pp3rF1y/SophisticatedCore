@@ -39,6 +39,10 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	@NotNull
 	@Override
 	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+		if (simulate) {
+			return wrappedHandlerGetter.get().insertItem(slot, stack, true);
+		}
+
 		if (currentCacheTime != timeSupplier.getAsLong()) {
 			failedInsertStacks.clear();
 			currentCacheTime = timeSupplier.getAsLong();
@@ -48,7 +52,7 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 			return stack;
 		}
 
-		ItemStack result = wrappedHandlerGetter.get().insertItem(slot, stack, simulate);
+		ItemStack result = wrappedHandlerGetter.get().insertItem(slot, stack, false);
 
 		if (result == stack) {
 			failedInsertStacks.add(stack); //only working with stack references because this logic is meant to handle the case where something tries to insert the same stack number of slots times
