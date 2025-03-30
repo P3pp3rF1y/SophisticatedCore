@@ -43,7 +43,7 @@ public abstract class RenderInfo {
 	@Nullable
 	private IRenderedBatteryUpgrade.BatteryRenderInfo batteryRenderInfo = null;
 
-	private Consumer<RenderInfo> changeListener = ri -> {
+	private Consumer<RenderInfo> displayItemsChangeListener = ri -> {
 	};
 
 	protected RenderInfo(Supplier<Runnable> getSaveHandler) {
@@ -104,17 +104,35 @@ public abstract class RenderInfo {
 		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
 		serializeRenderInfo(renderInfo);
 		save();
+		displayItemsChangeListener.accept(this);
 	}
 
-	public void setChangeListener(Consumer<RenderInfo> changeListener) {
-		this.changeListener = changeListener;
+	public void refreshDisplayItemsAndInaccessibleSlots(List<DisplayItem> displayItems, List<Integer> inaccessibleSlots) {
+		itemDisplayRenderInfo = new ItemDisplayRenderInfo(displayItems, inaccessibleSlots, itemDisplayRenderInfo.getInfiniteSlots(), itemDisplayRenderInfo.getSlotCounts(), itemDisplayRenderInfo.getSlotFillRatios());
+		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
+		serializeRenderInfo(renderInfo);
+		save();
+		displayItemsChangeListener.accept(this);
+	}
+
+	public void refreshSlotCountsFillRatiosAndInfiniteSlots(List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
+		itemDisplayRenderInfo = new ItemDisplayRenderInfo(itemDisplayRenderInfo.getDisplayItems(), itemDisplayRenderInfo.getInaccessibleSlots(), infiniteSlots, slotCounts, slotFillRatios);
+		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
+		serializeRenderInfo(renderInfo);
+		save();
+	}
+
+	public void setDisplayItemsChangeListener(Consumer<RenderInfo> displayItemsChangeListener) {
+		this.displayItemsChangeListener = displayItemsChangeListener;
 	}
 
 	protected void save(boolean triggerChangeListener) {
 		getSaveHandler.get().run();
 
 		if (triggerChangeListener) {
-			changeListener.accept(this);
+			displayItemsChangeListener.accept(this);
 		}
 	}
 
@@ -132,7 +150,6 @@ public abstract class RenderInfo {
 			deserializeTanks(renderInfoTag);
 			deserializeBattery(renderInfoTag);
 		});
-		changeListener.accept(this);
 	}
 
 	private void deserializeUpgradeItems(CompoundTag renderInfoTag) {

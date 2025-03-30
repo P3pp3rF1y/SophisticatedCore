@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
-import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
@@ -31,9 +30,9 @@ public record OpenMountedStorageInventoryPayload(int contraptionEntityId, BlockP
 		Player player = context.player();
 		Entity entity = player.level().getEntity(payload.contraptionEntityId());
 		if (entity instanceof AbstractContraptionEntity contraptionEntity) {
-			MountedItemStorage storage = ContraptionHelper.getStorage(contraptionEntity).getAllItemStorages().get(payload.localPos());
-			if (storage instanceof MountedStorageBase mountedStorage && player instanceof ServerPlayer serverPlayer) {
-				mountedStorage.openMenu(serverPlayer, contraptionEntity.getId(), payload.localPos());
+			MountedStorageBase storage = ContraptionHelper.getMountedStorage(contraptionEntity, payload.localPos());
+			if (storage != null && player instanceof ServerPlayer serverPlayer) {
+				storage.openMenu(serverPlayer, contraptionEntity.getId(), payload.localPos());
 			}
 		}
 	}
