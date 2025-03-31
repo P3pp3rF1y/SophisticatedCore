@@ -21,6 +21,6 @@ public class CreateCompat implements ICompat {
 		PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned("1.0");
 		registrar.playToClient(MountedStorageContentsPayload.TYPE, MountedStorageContentsPayload.STREAM_CODEC, MountedStorageContentsPayload::handlePayload);
 		registrar.playToServer(OpenMountedStorageInventoryPayload.TYPE, OpenMountedStorageInventoryPayload.STREAM_CODEC, OpenMountedStorageInventoryPayload::handlePayload);
-		registrar.playToClient(MountedStorageBlockUpdatedPayload.TYPE, MountedStorageBlockUpdatedPayload.STREAM_CODEC, MountedStorageBlockUpdatedPayload::handlePayload);
+		registrar.playToClient(MountedStorageUpdatePayload.TYPE, MountedStorageUpdatePayload.STREAM_CODEC, MountedStorageUpdatePayload::handlePayload);
 	}
 }
