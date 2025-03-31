@@ -8,6 +8,6 @@ public class CreateCompat implements ICompat {
 	public void setup() {
 		PacketHandler.INSTANCE.registerMessage(MountedStorageContentsMessage.class, MountedStorageContentsMessage::encode, MountedStorageContentsMessage::decode, MountedStorageContentsMessage::onMessage);
 		PacketHandler.INSTANCE.registerMessage(OpenMountedStorageInventoryMessage.class, OpenMountedStorageInventoryMessage::encode, OpenMountedStorageInventoryMessage::decode, OpenMountedStorageInventoryMessage::onMessage);
-		PacketHandler.INSTANCE.registerMessage(MountedStorageBlockUpdatedMessage.class, MountedStorageBlockUpdatedMessage::encode, MountedStorageBlockUpdatedMessage::decode, MountedStorageBlockUpdatedMessage::onMessage);
+		PacketHandler.INSTANCE.registerMessage(MountedStorageUpdateMessage.class, MountedStorageUpdateMessage::encode, MountedStorageUpdateMessage::decode, MountedStorageUpdateMessage::onMessage);
 	}
 }

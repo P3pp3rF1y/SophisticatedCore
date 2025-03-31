@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat.create;
 import com.simibubi.create.api.contraption.storage.SyncedMountedStorage;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
+import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,20 +25,6 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 		this.storageStack = storageStack;
 	}
 
-	@Override
-	public boolean isDirty() {
-		return dirty;
-	}
-
-	@Override
-	public void markClean() {
-		dirty = false;
-	}
-
-	protected void setDirty() {
-		dirty = true;
-	}
-
 	public ItemStack getStorageStack() {
 		return storageStack;
 	}
@@ -45,6 +32,29 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 	public void setStorageStack(ItemStack stack) {
 		storageStack = stack;
 	}
+
+	protected abstract void afterInitialSync();
+
+	@Override
+	public void afterSync(Contraption contraption, BlockPos localPos) {
+		afterInitialSync();
+	}
+
+	@Override
+	public void markClean() {
+		dirty = false;
+	}
+
+	@Override
+	public boolean isDirty() {
+		return dirty;
+	}
+
+	protected void setDirty() {
+		dirty = true;
+	}
+
+	public abstract void updateWithSyncedStorageStack(ItemStack storageStack, boolean refreshBlockRender);
 
 	public abstract IStorageWrapper getStorageWrapper();
 
