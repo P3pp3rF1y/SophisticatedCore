@@ -283,6 +283,10 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		templatePersistanceContainer.refreshTemplateSlots();
 	}
 
+	public boolean supportsItemDisplaySideSelection() {
+		return false;
+	}
+
 	private class ViewOnlyStorageInventorySlot extends SlotItemHandler {
 		public ViewOnlyStorageInventorySlot(IItemHandler inventoryHandler, int slotIndex) {
 			super(inventoryHandler, slotIndex, 0, 0);

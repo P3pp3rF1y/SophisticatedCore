@@ -115,4 +115,8 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 	public DisplaySide getDisplaySide() {
 		return getCategory().getDisplaySide();
 	}
+
+	public boolean supportsSideSelection() {
+		return getSettingsContainer().supportsItemDisplaySideSelection();
+	}
 }
