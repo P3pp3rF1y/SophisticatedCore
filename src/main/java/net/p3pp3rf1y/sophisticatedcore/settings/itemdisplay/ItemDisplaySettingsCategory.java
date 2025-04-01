@@ -314,6 +314,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	}
 
 	public void itemsChanged() {
+		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER) {
+			return;
+		}
+
 		if (haveRenderedItemsChanged()) {
 			updateDisplayItemsAndInaccessibleSlots();
 		}
