@@ -217,8 +217,8 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 	public void onMemorizedStackRemoved(int slotNumber) {
 		if (getSlot(slotNumber).getItem().isEmpty()) {
-			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(slotNumber);
 			storageWrapper.getInventoryHandler().onSlotFilterChanged(slotNumber);
+			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemChanged(slotNumber);
 			sendAdditionalSlotInfo();
 		}
 	}
