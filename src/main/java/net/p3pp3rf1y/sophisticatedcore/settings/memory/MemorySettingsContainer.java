@@ -5,6 +5,8 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
 
+import java.util.Set;
+
 public class MemorySettingsContainer extends SettingsContainerBase<MemorySettingsCategory> {
 	private static final String ACTION_TAG = "action";
 	private static final String SELECT_ALL_ACTION = "selectAll";
@@ -62,7 +64,9 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 
 	public void unselectAllSlots() {
 		if (isServer()) {
+			Set<Integer> selectedSlots = getCategory().getSlotIndexes();
 			getCategory().unselectAllSlots();
+			selectedSlots.forEach(slotNumber -> getSettingsContainer().onMemorizedStackRemoved(slotNumber));
 		} else {
 			sendStringToServer(ACTION_TAG, UNSELECT_ALL_ACTION);
 		}
