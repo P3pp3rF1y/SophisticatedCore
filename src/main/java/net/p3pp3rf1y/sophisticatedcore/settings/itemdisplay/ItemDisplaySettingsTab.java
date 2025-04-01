@@ -6,20 +6,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.level.block.state.BlockState;
-import net.p3pp3rf1y.sophisticatedcore.api.IDisplaySideStorage;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ImageButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.settings.ColorToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTab;
@@ -140,10 +129,6 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	}
 
 	private boolean showSideSelection() {
-		if (minecraft.level == null) {
-			return false;
-		}
-		BlockState state = minecraft.level.getBlockState(getSettingsContainer().getSettingsContainer().getBlockPosition());
-		return state.getBlock() instanceof IDisplaySideStorage displaySideStorage && displaySideStorage.canChangeDisplaySide(state);
+		return getSettingsContainer().supportsSideSelection();
 	}
 }

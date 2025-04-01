@@ -86,4 +86,9 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 	public BlockPos getLocalPos() {
 		return localPos;
 	}
+
+	@Override
+	public BlockPos getBlockPosition() {
+		return localPos;
+	}
 }
