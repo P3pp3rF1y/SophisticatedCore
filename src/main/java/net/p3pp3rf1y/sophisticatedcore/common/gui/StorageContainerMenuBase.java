@@ -46,6 +46,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends AbstractContainerMenu implements IAdditionalSlotInfoMenu {
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
@@ -1747,6 +1748,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 
 			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.level().isClientSide(), player);
+			Set<Integer> errorUpgradeSlots = upgradeContainers.get(slotIndex).getSlots()
+					.stream().filter(slot -> !(slot instanceof IFilterSlot) && shouldSlotItemBeDroppedFromStorage(slot))
+					.map(slot -> slot.getSlotIndex() + getNumberOfUpgradeSlots()).collect(Collectors.toSet());
+			if (!errorUpgradeSlots.isEmpty()) {
+				result = UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.banned_item"), errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
+			}
 			updateSlotChangeError(result);
 			return result.successful();
 		}
