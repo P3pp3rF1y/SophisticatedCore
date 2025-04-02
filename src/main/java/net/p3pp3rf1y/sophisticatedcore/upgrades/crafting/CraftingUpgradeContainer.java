@@ -110,7 +110,6 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			public void setChanged() {
 				super.setChanged();
 				if (player.level().isClientSide()) {
-					matchedCraftingRecipes.clear();
 					matchedCraftingResults.clear();
 					if (!getItem().isEmpty()) {
 						matchedCraftingRecipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, craftMatrix, player.level());
@@ -123,6 +122,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 							}
 							resultIndex++;
 						}
+					} else {
+						matchedCraftingRecipes = new ArrayList<>();
 					}
 				}
 			}
