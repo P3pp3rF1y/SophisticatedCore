@@ -1748,11 +1748,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 
 			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.level().isClientSide(), player);
-			Set<Integer> errorUpgradeSlots = upgradeContainers.get(slotIndex).getSlots()
-					.stream().filter(slot -> !(slot instanceof IFilterSlot) && shouldSlotItemBeDroppedFromStorage(slot))
-					.map(slot -> slot.getSlotIndex() + getNumberOfUpgradeSlots()).collect(Collectors.toSet());
-			if (!errorUpgradeSlots.isEmpty()) {
-				result = UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.banned_item"), errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
+			if (result.successful() && upgradeContainers.containsKey(slotIndex)) {
+				Set<Integer> errorUpgradeSlots = upgradeContainers.get(slotIndex).getSlots()
+						.stream().filter(slot -> !(slot instanceof IFilterSlot) && shouldSlotItemBeDroppedFromStorage(slot))
+						.map(slot -> slot.getSlotIndex() + getNumberOfUpgradeSlots()).collect(Collectors.toSet());
+				if (!errorUpgradeSlots.isEmpty()) {
+					result = UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.banned_item"), errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
+				}
 			}
 			updateSlotChangeError(result);
 			return result.successful();
