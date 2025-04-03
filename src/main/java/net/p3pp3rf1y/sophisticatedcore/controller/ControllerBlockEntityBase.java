@@ -31,7 +31,6 @@ import java.util.*;
 import java.util.function.Function;
 
 public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerSimpleInserter {
-	public static final int SEARCH_RANGE = 15;
 	private List<BlockPos> storagePositions = new ArrayList<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
 	private int totalSlots = 0;
@@ -192,8 +191,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private boolean isWithinRange(BlockPos pos) {
-		return Math.abs(pos.getX() - getBlockPos().getX()) <= SEARCH_RANGE && Math.abs(pos.getY() - getBlockPos().getY()) <= SEARCH_RANGE && Math.abs(pos.getZ() - getBlockPos().getZ()) <= SEARCH_RANGE;
+		return Math.abs(pos.getX() - getBlockPos().getX()) <= getSearchRange() && Math.abs(pos.getY() - getBlockPos().getY()) <= getSearchRange() && Math.abs(pos.getZ() - getBlockPos().getZ()) <= getSearchRange();
 	}
+
+	protected abstract int getSearchRange();
 
 	public void addStorage(BlockPos storagePos) {
 		if (storagePositions.contains(storagePos)) {
