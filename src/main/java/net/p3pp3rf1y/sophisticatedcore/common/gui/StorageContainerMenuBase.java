@@ -34,6 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.DummySlot;
+import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.jetbrains.annotations.NotNull;
 
@@ -1060,7 +1061,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								slotStackLimit = carriedCopy.getMaxStackSize();
 							}
 
-							int l = Math.min(getQuickCraftPlaceCount(slot1, this.quickcraftSlots.size(), this.quickcraftType, carriedCopy) + j, slotStackLimit);
+							int l = Math.min(MathHelper.intMaxCappedAddition(getQuickCraftPlaceCount(slot1, this.quickcraftSlots.size(), this.quickcraftType, carriedCopy), j), slotStackLimit);
 							j1 -= l - j;
 							slot1.setByPlayer(carriedCopy.copyWithCount(l));
 						}
@@ -1309,12 +1310,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				if (slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
 					ItemStack destStack = slot.getItem();
 					if (!destStack.isEmpty() && ItemStack.isSameItemSameTags(result, destStack)) {
-						int j = destStack.getCount() + toTransfer;
 						int maxSize = slot.getMaxStackSize(result);
-						if (j <= maxSize) {
+						if (destStack.getCount() <= maxSize - toTransfer) {
 							result.shrink(toTransfer);
 							ItemStack copy = destStack.copy();
-							copy.setCount(j);
+							copy.setCount(destStack.getCount() + toTransfer);
 							slot.set(copy);
 							toTransfer = 0;
 							slot.setChanged();
