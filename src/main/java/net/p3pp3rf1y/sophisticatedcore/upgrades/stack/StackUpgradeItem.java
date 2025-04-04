@@ -71,6 +71,10 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 
 	@Override
 	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot, @Nullable IUpgradeItem<?> upgradeInSlot) {
+		if (isClientSide) {
+			return new UpgradeSlotChangeResult.Success();
+		}
+
 		double multiplierWhenAdded = getInventorySlotLimit(storageWrapper) / 64D * stackSizeMultiplier;
 		UpgradeSlotChangeResult result = isMultiplierHighEnough(storageWrapper, multiplierWhenAdded, upgradeSlot);
 		if (!result.isSuccessful()) {
@@ -82,6 +86,10 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 
 	@Override
 	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (isClientSide) {
+			return new UpgradeSlotChangeResult.Success();
+		}
+
 		UpgradeSlotChangeResult result = super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
 		if (!result.isSuccessful()) {
 			return result;
