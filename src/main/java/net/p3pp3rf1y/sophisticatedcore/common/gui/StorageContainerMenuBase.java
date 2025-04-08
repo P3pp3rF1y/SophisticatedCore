@@ -1783,6 +1783,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						container.setUpgradeWrapper(slotWrapper.getValue());
 						checkedContainersCount++;
 					}
+				} else {
+					checkedContainersCount++;
 				}
 			}
 			return checkedContainersCount != upgradeContainers.size();

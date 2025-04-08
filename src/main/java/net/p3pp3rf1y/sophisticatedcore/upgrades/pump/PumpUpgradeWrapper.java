@@ -62,16 +62,12 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
-		if (entity == null) {
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
-			if (newCooldown.isPresent()) {
-				return newCooldown.get();
-			}
-		} else {
-			if (shouldInteractWithHand() && entity instanceof Player player && handleFluidContainerInHands(player, storageFluidHandler)) {
+		if (entity instanceof Player player) {
+			if (shouldInteractWithHand() && handleFluidContainerInHands(player, storageFluidHandler)) {
 				lastHandActionTime = level.getGameTime();
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
+		} else {
 			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
 			if (newCooldown.isPresent()) {
 				return newCooldown.get();
@@ -80,20 +76,20 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
 	}
 
-	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, Level world, BlockPos pos) {
-		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(world, pos, storageFluidHandler)) {
-			lastHandActionTime = world.getGameTime();
+	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, Level level, BlockPos pos) {
+		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
+			lastHandActionTime = level.getGameTime();
 			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
 		}
 
 		if (shouldInteractWithWorld()) {
-			Optional<Integer> newCooldown = interactWithWorld(world, pos, storageFluidHandler);
+			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler);
 			if (newCooldown.isPresent()) {
 				return newCooldown;
 			}
 		}
 
-		return interactWithAttachedFluidHandlers(world, pos, storageFluidHandler);
+		return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
 	}
 
 	private Optional<Integer> interactWithAttachedFluidHandlers(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
@@ -122,13 +118,13 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return 1 + (int) (pumpUpgradeConfig.stackMultiplierRatio.get() * (storageWrapper.getInventoryHandler().getStackSizeMultiplier() - 1));
 	}
 
-	private Optional<Integer> interactWithWorld(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
+	private Optional<Integer> interactWithWorld(Level level, BlockPos pos, IFluidHandler storageFluidHandler) {
 		if (isInput()) {
-			return fillFromBlockInRange(world, pos, storageFluidHandler);
+			return fillFromBlockInRange(level, pos, storageFluidHandler);
 		} else {
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getNormal());
-				if (placeFluidInWorld(world, storageFluidHandler, dir, offsetPos)) {
+				if (placeFluidInWorld(level, storageFluidHandler, dir, offsetPos)) {
 					return Optional.of(WORLD_INTERACTION_COOLDOWN_TIME);
 				}
 			}
@@ -154,14 +150,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return blockState.isAir() || (!blockState.getFluidState().isEmpty() && !blockState.getFluidState().isSource());
 	}
 
-	private Optional<Integer> fillFromBlockInRange(Level world, BlockPos basePos, IFluidHandler storageFluidHandler) {
+	private Optional<Integer> fillFromBlockInRange(Level level, BlockPos basePos, IFluidHandler storageFluidHandler) {
 		LinkedList<BlockPos> nextPositions = new LinkedList<>();
 		Set<BlockPos> searchedPositions = new HashSet<>();
 		nextPositions.add(basePos);
 
 		while (!nextPositions.isEmpty()) {
 			BlockPos pos = nextPositions.poll();
-			if (fillFromBlock(world, pos, storageFluidHandler)) {
+			if (fillFromBlock(level, pos, storageFluidHandler)) {
 				return Optional.of((int) (Math.max(1, Math.sqrt(basePos.distSqr(pos))) * WORLD_INTERACTION_COOLDOWN_TIME));
 			}
 

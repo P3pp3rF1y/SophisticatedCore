@@ -210,7 +210,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 		if (isPlaying && lastKeepAliveSendTime < level.getGameTime() - KEEP_ALIVE_SEND_INTERVAL) {
 			storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-					ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, entity != null ? entity.position() : Vec3.atCenterOf(pos), () -> setIsPlaying(false))
+					ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, Vec3.atCenterOf(pos), () -> setIsPlaying(false))
 			);
 			lastKeepAliveSendTime = level.getGameTime();
 		}

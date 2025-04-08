@@ -6,13 +6,10 @@ import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
 import com.simibubi.create.content.contraptions.Contraption;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.network.NetworkHooks;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 
 public abstract class MountedStorageBase extends MountedItemStorage implements SyncedMountedStorage {
@@ -103,17 +100,5 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 
 	protected void onOpen(ServerLevel level, Vec3 pos) {
 
-	}
-
-	public abstract MountedStorageContainerMenuBase createMenu(int id, Player pl, int contraptionEntityId, BlockPos localPos);
-
-	public void openMenu(ServerPlayer player, int contraptionEntityId, BlockPos localPos) {
-		NetworkHooks.openScreen(
-				player,
-				new SimpleMenuProvider((w, p, pl) -> createMenu(w, pl, contraptionEntityId, localPos), getStorageStack().getHoverName()),
-				buffer -> {
-					buffer.writeInt(contraptionEntityId);
-					buffer.writeBlockPos(localPos);
-				});
 	}
 }
