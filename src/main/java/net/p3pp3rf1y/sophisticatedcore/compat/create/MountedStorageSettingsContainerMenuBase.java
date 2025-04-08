@@ -1,53 +1,38 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
-import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
-import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
+
+import java.util.UUID;
 
 public abstract class MountedStorageSettingsContainerMenuBase extends SettingsContainerMenu<IStorageWrapper> {
 	private final int contraptionEntityId;
 	private final BlockPos localPos;
 	private CompoundTag lastSettingsNbt = null;
 
-	public MountedStorageSettingsContainerMenuBase(MenuType<?> menuType, int windowId, Player player, int contraptionEntityId, BlockPos localPos) {
-		super(menuType, windowId, player, getWrapper(player.level(), contraptionEntityId, localPos));
+	public MountedStorageSettingsContainerMenuBase(MenuType<?> menuType, int windowId, Player player, IStorageWrapper storageWrapper, int contraptionEntityId, BlockPos localPos) {
+		super(menuType, windowId, player, storageWrapper);
 		this.contraptionEntityId = contraptionEntityId;
 		this.localPos = localPos;
 	}
-
-	private static IStorageWrapper getWrapper(Level level, int contraptionEntityId, BlockPos localPos) {
-		if (!(level.getEntity(contraptionEntityId) instanceof AbstractContraptionEntity contraptionEntity)) {
-			return NoopStorageWrapper.INSTANCE;
-		}
-		MountedStorageBase itemStorage = ContraptionHelper.getMountedStorage(contraptionEntity, localPos);
-		if (itemStorage == null) {
-			return NoopStorageWrapper.INSTANCE;
-		}
-
-		return itemStorage.getStorageWrapper();
-	}
-
 
 	@Override
 	public void detectSettingsChangeAndReload() {
 		if (player.level().isClientSide) {
 			storageWrapper.getContentsUuid().ifPresent(uuid -> {
-				MountedStorageData storage = MountedStorageData.get(uuid);
-				if (storage.removeUpdatedStorageSettingsFlag(uuid)) {
-					CompoundTag contents = storage.getContents();
-					storageWrapper.getSettingsHandler().reloadFrom(getSettingsTag(contents));
-				}
+				updateFromContents(uuid);
 			});
 		}
 	}
+
+	protected abstract void updateFromContents(UUID uuid);
 
 	protected abstract CompoundTag getSettingsTag(CompoundTag contents);
 
@@ -69,12 +54,14 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(IStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						PacketDistributor.sendToPlayer(serverPlayer, new MountedStorageContentsPayload(uuid, settingsContents));
+						PacketDistributor.sendToPlayer(serverPlayer, instantiateSettingsPayload(uuid, settingsContents));
 					}
 				}
 			});
 		}
 	}
+
+	protected abstract CustomPacketPayload instantiateSettingsPayload(UUID uuid, CompoundTag settingsContents);
 
 	@Override
 	public void broadcastChanges() {

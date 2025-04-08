@@ -46,11 +46,14 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 
 	@Override
 	public void tick(@Nullable Entity entity, Level level, BlockPos pos) {
-		if ((entity != null && !(entity instanceof Player)) || isInCooldown(level)) {
+		if (isInCooldown(level)) {
 			return;
 		}
 
-		if (entity == null) {
+		if (entity instanceof Player player) {
+			interactWithPlayer(player);
+			mendItems(player);
+		} else {
 			AABB searchBox = new AABB(pos).inflate(PLAYER_SEARCH_RANGE);
 			for (Player player : level.players()) {
 				if (searchBox.contains(player.getX(), player.getY(), player.getZ())) {
@@ -58,10 +61,6 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 					mendItems(player);
 				}
 			}
-		} else {
-			Player player = entity instanceof Player ? (Player) entity : null;
-			interactWithPlayer(player);
-			mendItems(player);
 		}
 
 		setCooldown(level, COOLDOWN);

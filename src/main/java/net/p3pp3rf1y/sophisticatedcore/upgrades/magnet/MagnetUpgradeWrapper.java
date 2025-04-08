@@ -178,7 +178,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		}
 
 		CompoundTag data = pickedUpEntity.getPersistentData();
-		return entity != null ? data.contains(PREVENT_REMOTE_MOVEMENT) : data.contains(PREVENT_REMOTE_MOVEMENT) && !data.contains(ALLOW_MACHINE_MOVEMENT);
+		return entity instanceof Player ? data.contains(PREVENT_REMOTE_MOVEMENT) : data.contains(PREVENT_REMOTE_MOVEMENT) && !data.contains(ALLOW_MACHINE_MOVEMENT);
 	}
 
 	private boolean tryToInsertItem(@Nullable Player player, ItemEntity itemEntity) {

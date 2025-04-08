@@ -60,17 +60,13 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
-		if (entity == null) {
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, (Player) entity, level, pos);
-			if (newCooldown.isPresent()) {
-				return newCooldown.get();
-			}
-		} else {
-			if (shouldInteractWithHand() && entity instanceof Player player && handleFluidContainerInHands(player, storageFluidHandler)) {
+		if (entity instanceof Player player) {
+			if (shouldInteractWithHand() && handleFluidContainerInHands(player, storageFluidHandler)) {
 				lastHandActionTime = level.getGameTime();
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, (Player) entity, level, pos);
+		} else {
+			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, entity, level, pos);
 			if (newCooldown.isPresent()) {
 				return newCooldown.get();
 			}
@@ -78,14 +74,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
 	}
 
-	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, @Nullable Player player, Level level, BlockPos pos) {
+	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
 		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
 			lastHandActionTime = level.getGameTime();
 			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
 		}
 
 		if (shouldInteractWithWorld()) {
-			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler, player);
+			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler, entity);
 			if (newCooldown.isPresent()) {
 				return newCooldown;
 			}
@@ -120,9 +116,9 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return 1 + (int) (pumpUpgradeConfig.stackMultiplierRatio.get() * (storageWrapper.getInventoryHandler().getStackSizeMultiplier() - 1));
 	}
 
-	private Optional<Integer> interactWithWorld(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Player player) {
+	private Optional<Integer> interactWithWorld(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
 		if (isInput()) {
-			return fillFromBlockInRange(level, pos, storageFluidHandler, player);
+			return fillFromBlockInRange(level, pos, storageFluidHandler, entity);
 		} else {
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getNormal());
@@ -152,14 +148,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return blockState.isAir() || (!blockState.getFluidState().isEmpty() && !blockState.getFluidState().isSource());
 	}
 
-	private Optional<Integer> fillFromBlockInRange(Level level, BlockPos basePos, IFluidHandler storageFluidHandler, @Nullable Player player) {
+	private Optional<Integer> fillFromBlockInRange(Level level, BlockPos basePos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
 		LinkedList<BlockPos> nextPositions = new LinkedList<>();
 		Set<BlockPos> searchedPositions = new HashSet<>();
 		nextPositions.add(basePos);
 
 		while (!nextPositions.isEmpty()) {
 			BlockPos pos = nextPositions.poll();
-			if (fillFromBlock(level, pos, storageFluidHandler, player)) {
+			if (fillFromBlock(level, pos, storageFluidHandler, entity)) {
 				return Optional.of((int) (Math.max(1, Math.sqrt(basePos.distSqr(pos))) * WORLD_INTERACTION_COOLDOWN_TIME));
 			}
 
@@ -176,14 +172,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return Optional.empty();
 	}
 
-	private boolean fillFromBlock(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Player player) {
+	private boolean fillFromBlock(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
 		FluidState fluidState = level.getFluidState(pos);
 		if (!fluidState.isEmpty()) {
 			BlockState state = level.getBlockState(pos);
 			Block block = state.getBlock();
 			IFluidHandler targetFluidHandler;
 			if (block instanceof BucketPickup bucketPickup) {
-				targetFluidHandler = new BucketPickupHandlerWrapper(player, bucketPickup, level, pos);
+				targetFluidHandler = new BucketPickupHandlerWrapper(entity instanceof Player player ? player : null, bucketPickup, level, pos);
 			} else {
 				Optional<IFluidHandler> fluidHandler = FluidUtil.getFluidHandler(level, pos, null);
 				if (fluidHandler.isEmpty()) {

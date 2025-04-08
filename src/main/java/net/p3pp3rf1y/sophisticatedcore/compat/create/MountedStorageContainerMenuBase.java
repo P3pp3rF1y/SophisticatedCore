@@ -3,7 +3,9 @@ package net.p3pp3rf1y.sophisticatedcore.compat.create;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -19,6 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
+import java.util.UUID;
 
 public abstract class MountedStorageContainerMenuBase extends StorageContainerMenuBase<IStorageWrapper> {
 	protected final WeakReference<AbstractContraptionEntity> contraptionEntity;
@@ -29,7 +32,11 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 	protected final MountedStorageBase mountedStorage;
 
 	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {
-		super(menuType, containerId, player, getWrapper(player.level(), contraptionEntityId, localPos), parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot);
+		this(menuType, containerId, player, getWrapper(player.level(), contraptionEntityId, localPos), parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot, contraptionEntityId, localPos);
+	}
+
+	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper wrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {
+		super(menuType, containerId, player, wrapper, parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot);
 		if (!(player.level().getEntity(contraptionEntityId) instanceof AbstractContraptionEntity cEntity)) {
 			throw new IllegalArgumentException("Incorrect entity with id " + contraptionEntityId + " expected to find AbstractContraptionEntity");
 		}
@@ -101,12 +108,11 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 		}
 		getContraptionEntity().ifPresent(c ->
 				player.openMenu(new SophisticatedMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, c.getId(), localPos),
-						Component.translatable(getSettingsTitleKey()), false), buffer -> {
-					buffer.writeInt(c.getId());
-					buffer.writeBlockPos(localPos);
-				})
+						Component.translatable(getSettingsTitleKey()), false), this::writeSettingsContainerMenuExtraData)
 		);
 	}
+
+	protected abstract void writeSettingsContainerMenuExtraData(FriendlyByteBuf buffer);
 
 	protected abstract String getSettingsTitleKey();
 
@@ -159,10 +165,12 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 				if (!settingsNbt.isEmpty()) {
 					settingsContents.put(IStorageWrapper.SETTINGS_TAG, settingsNbt);
 					if (player instanceof ServerPlayer serverPlayer) {
-						PacketDistributor.sendToPlayer(serverPlayer, new MountedStorageContentsPayload(uuid, settingsContents));
+						PacketDistributor.sendToPlayer(serverPlayer, instantiateSettingsPayload(uuid, settingsContents));
 					}
 				}
 			});
 		}
 	}
+
+	protected abstract CustomPacketPayload instantiateSettingsPayload(UUID uuid, CompoundTag settingsContents);
 }
