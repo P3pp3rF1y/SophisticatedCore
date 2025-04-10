@@ -29,6 +29,10 @@ public class InventoryPartitioner {
 	private int getIndexForSlot(int slot) {
 		if (slot < 0) {return -1;}
 
+		if (baseIndexes.length == 1) {
+			return 0;
+		}
+
 		int i = 0;
 		for (; i < baseIndexes.length; i++) {
 			if (slot - baseIndexes[i] < 0) {

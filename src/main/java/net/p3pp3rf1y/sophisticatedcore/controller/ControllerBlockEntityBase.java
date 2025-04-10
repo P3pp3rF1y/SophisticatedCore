@@ -27,6 +27,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Function;
 
@@ -49,6 +50,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private Set<BlockPos> linkedBlocks = new TreeSet<>(distanceComparator);
 	private Set<BlockPos> connectingBlocks = new TreeSet<>(distanceComparator);
 	private Set<BlockPos> nonConnectingBlocks = new TreeSet<>(distanceComparator);
+
+	private WeakReference<IItemHandlerModifiable>[] cachedHandlers = new WeakReference[0];
 
 	public boolean addLinkedBlock(BlockPos linkedPos) {
 		if (level != null && !level.isClientSide() && isWithinRange(linkedPos) && !linkedBlocks.contains(linkedPos) && !storagePositions.contains(linkedPos)) {
@@ -165,6 +168,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			if (boundable instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
 				linkedBlocks.remove(posToCheck);
 				linkable.setNotLinked();
+				clearCachedHandlers();
 			} else if (boundable instanceof IControllableStorage storage && storage.hasStorageData()) {
 				addStorageData(posToCheck);
 			} else {
@@ -179,6 +183,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 				addUncheckedPositionsAround(positionsToCheck, positionsChecked, posToCheck);
 			}
 		}
+	}
+
+	private void clearCachedHandlers() {
+		cachedHandlers = new WeakReference[storagePositions.size()];
 	}
 
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
@@ -199,6 +207,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	public void addStorage(BlockPos storagePos) {
 		if (storagePositions.contains(storagePos)) {
 			removeStorageInventoryData(storagePos);
+			clearCachedHandlers();
 		}
 
 		if (isWithinRange(storagePos)) {
@@ -368,6 +377,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 		WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController);
 
+		clearCachedHandlers();
 		setChanged();
 		WorldHelper.notifyBlockUpdate(this);
 	}
@@ -466,6 +476,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			removeNonConnectingBlock(storagePos);
 			removeStorageInventoryDataAndUnregisterController(storagePos);
 		});
+
+		clearCachedHandlers();
 	}
 
 	private void verifyConnected(HashSet<BlockPos> toVerify, Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked) {
@@ -526,7 +538,21 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (index < 0 || index >= storagePositions.size()) {
 			return (IItemHandlerModifiable) EmptyItemHandler.INSTANCE;
 		}
-		return getWrapperValueFromHolder(storagePositions.get(index), wrapper -> (IItemHandlerModifiable) wrapper.getInventoryForInputOutput()).orElse((IItemHandlerModifiable) EmptyItemHandler.INSTANCE);
+		if (index >= cachedHandlers.length) {
+			cachedHandlers = Arrays.copyOf(cachedHandlers, index + 1);
+		}
+
+		if (cachedHandlers[index] != null) {
+			IItemHandlerModifiable handler = cachedHandlers[index].get();
+			if (handler != null) {
+				return handler;
+			}
+		}
+
+		IItemHandlerModifiable handler = getWrapperValueFromHolder(storagePositions.get(index), wrapper -> (IItemHandlerModifiable) wrapper.getInventoryForInputOutput()).orElse((IItemHandlerModifiable) EmptyItemHandler.INSTANCE);
+		cachedHandlers[index] = new WeakReference<>(handler);
+
+		return handler;
 	}
 
 	protected int getSlotFromIndex(int slot, int index) {
