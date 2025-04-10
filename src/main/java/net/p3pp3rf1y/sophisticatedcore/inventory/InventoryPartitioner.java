@@ -11,13 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class InventoryPartitioner {
@@ -33,6 +27,10 @@ public class InventoryPartitioner {
 
 	private int getIndexForSlot(int slot) {
 		if (slot < 0) {return -1;}
+
+		if (baseIndexes.length == 1) {
+			return 0;
+		}
 
 		int i = 0;
 		for (; i < baseIndexes.length; i++) {
