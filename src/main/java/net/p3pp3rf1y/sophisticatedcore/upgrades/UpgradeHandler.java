@@ -269,6 +269,10 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	public void refreshUpgradeWrappers() {
+		if (!wrappersInitialized && !typeWrappersInitialized) {
+			return;
+		}
+
 		wrappersInitialized = false;
 		typeWrappersInitialized = false;
 		if (wrapperAccessor != null) {
@@ -286,7 +290,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	private void initRenderInfoCallbacks(boolean forceUpdateRenderInfo) {
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
 		if (forceUpdateRenderInfo) {
-			renderInfo.resetUpgradeInfo(true);
+			renderInfo.resetUpgradeInfo(false);
 		}
 
 		initTankRenderInfoCallbacks(forceUpdateRenderInfo, renderInfo);
