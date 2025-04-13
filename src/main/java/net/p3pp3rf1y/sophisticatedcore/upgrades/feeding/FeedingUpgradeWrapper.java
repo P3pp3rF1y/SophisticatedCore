@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -36,7 +35,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	public FeedingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), s -> s.has(DataComponents.FOOD),
+		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), s -> s.getFoodProperties(null) != null,
 				ModCoreDataComponents.FILTER_ATTRIBUTES);
 	}
 
@@ -108,9 +107,6 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	private static boolean isEdible(ItemStack stack, LivingEntity player) {
-		if (!stack.has(DataComponents.FOOD)) {
-			return false;
-		}
 		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
 		return foodProperties != null && foodProperties.nutrition() >= 1;
 	}
