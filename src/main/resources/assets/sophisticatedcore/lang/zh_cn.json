@@ -246,6 +246,7 @@
     "gui.sophisticatedcore.error.add.any_upgrade_exists": "所有升级插槽必须为空",
     "gui.sophisticatedcore.error.add.no_upgrade_can_be_added": "无法加装升级",
     "gui.sophisticatedcore.error.remove.infinity_upgrade_only_admin": "只有管理员可移除无限升级",
+    "gui.sophisticatedcore.error.remove.banned_item": "移除升级前必须先移除该物品",
     "gui.sophisticatedcore.narrate.tab_button": "升级标签页开/关按钮",
     "gui.sophisticatedcore.narrate.context_button": "上下文切换设置为：%s",
     "gui.sophisticatedcore.narrate.context_button.usage": "单击以切换上下文",
