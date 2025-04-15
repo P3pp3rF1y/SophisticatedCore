@@ -34,6 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.DummySlot;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -482,7 +484,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	protected void updateColumnsTaken(int columnsChange) {
 		if (columnsChange != 0) {
-			storageWrapper.setColumnsTaken(Math.max(0, storageWrapper.getColumnsTaken() + columnsChange), true);
+			//when these get changed recalculate columns taken to fix columnsTaken out of sync issues
+			AtomicInteger columnsTaken = new AtomicInteger(0);
+			InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, upgradeStack) -> {
+				if (upgradeStack.getItem() instanceof UpgradeItemBase<?> upgradeItem) {
+					columnsTaken.addAndGet(upgradeItem.getInventoryColumnsTaken());
+				}
+			});
+			storageWrapper.setColumnsTaken(columnsTaken.get(), true);
 			storageWrapper.onContentsNbtUpdated();
 			refreshAllSlots();
 		}
