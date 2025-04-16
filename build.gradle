@@ -41,6 +41,12 @@ repositories {
             includeGroup "com.simibubi.create"
         }
     }
+    maven {
+        url = "https://maven.twelveiterations.com/repository/maven-public/"
+        content {
+            includeGroup "net.blay09.mods"
+        }
+    }
 }
 
 base {
@@ -126,6 +132,7 @@ dependencies {
     localRuntime "curse.maven:sawmill-964817:${sawmill_cf_file_id}"
     compileOnly "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"
     localRuntime "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"
+    compileOnly "net.blay09.mods:trashslot-neoforge:${trashslot_version}"
     compileOnly("com.simibubi.create:create-${create_mc_version}:${create_version}") {
         transitive = false
     }
