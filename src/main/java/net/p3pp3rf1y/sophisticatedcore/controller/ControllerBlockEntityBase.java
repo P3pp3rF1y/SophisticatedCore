@@ -36,6 +36,7 @@ import java.util.function.Function;
 
 public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerSimpleInserter {
 	private List<BlockPos> storagePositions = new ArrayList<>();
+	private final Map<BlockPos, Integer> storagePositionIndexes = new HashMap<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
 	private int totalSlots = 0;
 	private final Map<ItemStackKey, Set<BlockPos>> stackStorages = new HashMap<>();
@@ -197,6 +198,13 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		cachedHandlers = new WeakReference[storagePositions.size()];
 	}
 
+	public void clearCachedHandler(BlockPos storagePos) {
+		Integer index = storagePositionIndexes.get(storagePos);
+		if (index != null && index < cachedHandlers.length) {
+			cachedHandlers[index] = null;
+		}
+	}
+
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
 		for (Direction dir : Direction.values()) {
 			BlockPos pos = currentPos.offset(dir.getNormal());
@@ -227,7 +235,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private void addStorageData(BlockPos storagePos) {
 		storagePositions.add(storagePos);
-		totalSlots += getInventoryHandlerValueFromHolder(storagePos, IItemHandler::getSlots).orElse(0);
+		int index = storagePositions.size() - 1;
+		storagePositionIndexes.put(storagePos, index);
+		totalSlots += getHandlerFromIndex(index).getSlots();
 		baseIndexes.add(totalSlots);
 		addStorageStacksAndRegisterListeners(storagePos);
 
@@ -282,10 +292,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			memorizedStackStorages.remove(stackHash);
 		}
 		storageMemorizedStacks.remove(storagePos);
-	}
-
-	private <T> Optional<T> getInventoryHandlerValueFromHolder(BlockPos storagePos, Function<IItemHandlerSimpleInserter, T> valueGetter) {
-		return getWrapperValueFromHolder(storagePos, wrapper -> valueGetter.apply(wrapper.getInventoryForInputOutput()));
 	}
 
 	private <T> Optional<T> getWrapperValueFromHolder(BlockPos storagePos, Function<IStorageWrapper, T> valueGetter) {
@@ -399,7 +405,20 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		removeStorageWithEmptySlots(storagePos);
 		removeStorageFilterItems(storagePos);
 		storagePositions.remove(idx);
+		removeStoragePositionIndex(storagePos);
 		removeBaseIndexAt(idx);
+	}
+
+	private void removeStoragePositionIndex(BlockPos storagePos) {
+		Integer removedIndex = storagePositionIndexes.remove(storagePos);
+		if (removedIndex == null) return;
+
+		for (Map.Entry<BlockPos, Integer> entry : storagePositionIndexes.entrySet()) {
+			int index = entry.getValue();
+			if (index > removedIndex) {
+				entry.setValue(index - 1);
+			}
+		}
 	}
 
 	private void removeStorageFilterItems(BlockPos storagePos) {
@@ -740,8 +759,17 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private ItemStack insertIntoStorage(BlockPos storagePos, ItemStack remaining, boolean simulate) {
-		ItemStack finalRemaining = remaining;
-		remaining = getInventoryHandlerValueFromHolder(storagePos, ins -> ins.insertItem(finalRemaining, simulate)).orElse(remaining);
+		Integer idx = storagePositionIndexes.get(storagePos);
+		if (idx == null) {
+			return remaining;
+		}
+
+		IItemHandlerModifiable handler = getHandlerFromIndex(idx);
+
+		if (handler instanceof IItemHandlerSimpleInserter simpleInserter) {
+			return simpleInserter.insertItem(remaining, simulate);
+		}
+
 		return remaining;
 	}
 
@@ -839,11 +867,19 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		super.load(tag);
 
 		storagePositions = NBTHelper.getCollection(tag, "storagePositions", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), ArrayList::new).orElseGet(ArrayList::new);
+		setupStoragePositionIndexes();
 		connectingBlocks = NBTHelper.getCollection(tag, "connectingBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
 		nonConnectingBlocks = NBTHelper.getCollection(tag, "nonConnectingBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
 		baseIndexes = NBTHelper.getCollection(tag, "baseIndexes", Tag.TAG_INT, t -> Optional.of(((IntTag) t).getAsInt()), ArrayList::new).orElseGet(ArrayList::new);
 		totalSlots = tag.getInt("totalSlots");
 		linkedBlocks = NBTHelper.getCollection(tag, "linkedBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
+	}
+
+	private void setupStoragePositionIndexes() {
+		storagePositionIndexes.clear();
+		for (int i = 0; i < storagePositions.size(); i++) {
+			storagePositionIndexes.put(storagePositions.get(i), i);
+		}
 	}
 
 	@Override
