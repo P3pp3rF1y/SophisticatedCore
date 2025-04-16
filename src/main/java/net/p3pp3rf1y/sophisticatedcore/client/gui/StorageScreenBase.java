@@ -144,6 +144,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		updateTransferButtonsPositions();
 	}
 
+	public int getInventoryLabelX() {
+		return inventoryLabelX;
+	}
+
 	protected int getStorageInventoryHeight(int displayableNumberOfRows) {
 		return displayableNumberOfRows * 18;
 	}
@@ -1041,7 +1045,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	public Optional<Rect2i> getUpgradeSlotsRectangle() {
-		return numberOfUpgradeSlots == 0 ? Optional.empty() : GuiHelper.getPositiveRectangle(leftPos - UPGRADE_INVENTORY_OFFSET + 4, topPos, UPGRADE_INVENTORY_OFFSET + 4, getUpgradeHeight());
+		return numberOfUpgradeSlots == 0 ? Optional.empty() : GuiHelper.getPositiveRectangle(leftPos - UPGRADE_INVENTORY_OFFSET, topPos, UPGRADE_INVENTORY_OFFSET + 4, getUpgradeHeight());
 	}
 
 	private void renderStackCount(GuiGraphics guiGraphics, String count, int x, int y) {
