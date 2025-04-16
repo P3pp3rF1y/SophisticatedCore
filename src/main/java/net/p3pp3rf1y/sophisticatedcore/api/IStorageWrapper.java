@@ -97,4 +97,8 @@ public interface IStorageWrapper extends ITintable {
 	default boolean isUpgradeRunnable(ItemStack upgrade) {
 		return true;
 	}
+
+	default void registerOnInventoryInputOutputHandlerRefreshListener(Runnable onInventoryForInputOutputHandlerRefresh) {
+		//noop
+	}
 }
