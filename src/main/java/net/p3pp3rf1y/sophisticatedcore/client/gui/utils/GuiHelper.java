@@ -45,8 +45,8 @@ import java.util.stream.Stream;
 
 public class GuiHelper {
 	public static final ResourceLocation GUI_CONTROLS = SophisticatedCore.getRL("textures/gui/gui_controls.png");
-	private static final int GUI_CONTROLS_TEXTURE_WIDTH = 256;
-	private static final int GUI_CONTROLS_TEXTURE_HEIGHT = 256;
+	public static final int GUI_CONTROLS_TEXTURE_WIDTH = 256;
+	public static final int GUI_CONTROLS_TEXTURE_HEIGHT = 256;
 	public static final TextureBlitData BAR_BACKGROUND_BOTTOM = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 66), Dimension.SQUARE_18);
 	public static final TextureBlitData BAR_BACKGROUND_MIDDLE = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 48), Dimension.SQUARE_18);
 	public static final TextureBlitData BAR_BACKGROUND_TOP = new TextureBlitData(GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 30), Dimension.SQUARE_18);

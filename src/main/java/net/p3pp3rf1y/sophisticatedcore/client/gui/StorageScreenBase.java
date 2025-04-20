@@ -138,12 +138,17 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		inventoryLabelY = imageHeight - 94;
 		inventoryLabelX = 8 + storageBackgroundProperties.getPlayerInventoryXOffset();
 		updatePlayerSlotsPositions();
+		updateExtraSlotsPositions();
 		updateUpgradeSlotsPositions();
 		updateTransferButtonsPositions();
 	}
 
 	public int getInventoryLabelX() {
 		return inventoryLabelX;
+	}
+
+	protected void updateExtraSlotsPositions() {
+		//noop by default
 	}
 
 	protected int getStorageInventoryHeight(int displayableNumberOfRows) {
@@ -251,6 +256,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		getMenu().setUpgradeChangeListener(c -> {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
+			updateExtraSlotsPositions();
 			updateUpgradeSlotsPositions();
 			updateInventoryScrollPanel();
 			updateNoResultsLabel();
@@ -496,6 +502,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
+			updateExtraSlotsPositions();
 			updateInventoryScrollPanel();
 			updateNoResultsLabel();
 			updateTransferButtonsPositions();
