@@ -72,6 +72,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	protected final IStorageWrapper parentStorageWrapper;
 	private final int storageItemSlotIndex;
 	private final boolean shouldLockStorageItemSlot;
+	private final List<Slot> extraSlots;
 	private int storageItemSlotNumber = -1;
 	private Consumer<StorageContainerMenuBase<?>> upgradeChangeListener = null;
 	private boolean isUpdatingFromPacket = false;
@@ -90,28 +91,49 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private boolean tryingToMergeUpgrade = false;
 	private boolean initialBroadcast = true;
 
-	protected StorageContainerMenuBase(MenuType<?> pMenuType, int pContainerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
-		super(pMenuType, pContainerId);
+	private int extraSlotsSize = 0;
+
+	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
+		this(menuType, containerId, player, storageWrapper, parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot, Collections.emptyList());
+	}
+
+	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, List<Slot> extraSlots) {
+		super(menuType, containerId);
 		this.player = player;
 		this.storageWrapper = storageWrapper;
 		this.parentStorageWrapper = parentStorageWrapper;
 		this.storageItemSlotIndex = storageItemSlotIndex;
 		this.shouldLockStorageItemSlot = shouldLockStorageItemSlot;
+		this.extraSlots = extraSlots;
 
 		removeOpenTabIfKeepOff();
 		storageWrapper.fillWithLoot(player);
-		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot);
+		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot, extraSlots);
 	}
 
 	public abstract Optional<BlockPos> getBlockPosition();
 
 	public abstract Optional<Entity> getEntity();
 
-	protected void initSlotsAndContainers(Player player, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
+	protected void initSlotsAndContainers(Player player, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, List<Slot> extraSlots) {
 		addStorageInventorySlots();
 		addPlayerInventorySlots(player.getInventory(), storageItemSlotIndex, shouldLockStorageItemSlot);
+		addExtraSlots(extraSlots);
 		addUpgradeSlots();
 		addUpgradeSettingsContainers(player);
+	}
+
+	private void addExtraSlots(List<Slot> extraSlots) {
+		extraSlots.forEach(this::addExtraSlot);
+	}
+
+	protected void addExtraSlot(Slot slot) {
+		extraSlotsSize++;
+		addSlot(slot);
+	}
+
+	public List<Slot> getExtraSlots() {
+		return extraSlots;
 	}
 
 	public S getStorageWrapper() {
@@ -303,7 +325,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public boolean hasSomethingMessedWithStorage() {
-		return !isClientSide() && (storageItemHasChanged() || realInventorySlots.size() != storageWrapper.getInventoryHandler().getSlots() + NUMBER_OF_PLAYER_SLOTS);
+		return !isClientSide() && (storageItemHasChanged() || realInventorySlots.size() != storageWrapper.getInventoryHandler().getSlots() + NUMBER_OF_PLAYER_SLOTS + extraSlotsSize);
 	}
 
 	protected boolean isClientSide() {
@@ -686,23 +708,29 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private boolean mergeSlotStack(Slot slot, int index, ItemStack slotStack) {
 		if (isUpgradeSlot(index)) {
-			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToStorage(slot, slotStack);
+			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToExtraSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack);
 		} else if (isStorageInventorySlot(index)) {
 			if (shouldShiftClickIntoOpenTabFirst()) {
-				return mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToPlayersInventory(slot, slotStack);
+				return mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToPlayersInventory(slot, slotStack) || mergeStackToExtraSlots(slot, slotStack);
 			}
-			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
+			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToExtraSlots(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
 		} else if (isUpgradeSettingsSlot(index)) {
 			if (getSlotUpgradeContainer(slot).map(c -> c.mergeIntoStorageFirst(slot)).orElse(true)) {
-				return mergeStackToStorage(slot, slotStack) || mergeStackToPlayersInventory(slot, slotStack);
+				return mergeStackToStorage(slot, slotStack) || mergeStackToPlayersInventory(slot, slotStack) || mergeStackToExtraSlots(slot, slotStack);
 			}
-			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToStorage(slot, slotStack);
+			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToExtraSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack);
+		} else if (isExtraSlot(index)) {
+			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToStorage(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
 		} else {
 			if (shouldShiftClickIntoOpenTabFirst()) {
-				return mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack);
+				return mergeStackToExtraSlots(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack);
 			}
-			return mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
+			return mergeStackToExtraSlots(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
 		}
+	}
+
+	private boolean isExtraSlot(int slotIndex) {
+		return slotIndex >= getInventorySlotsSize() - extraSlotsSize && slotIndex < getInventorySlotsSize();
 	}
 
 	private boolean shouldShiftClickIntoOpenTabFirst() {
@@ -776,8 +804,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return false;
 	}
 
+	private boolean mergeStackToExtraSlots(Slot sourceSlot, ItemStack slotStack) {
+		return mergeItemStack(sourceSlot, slotStack, getInventorySlotsSize() - extraSlotsSize, getInventorySlotsSize(), true, true);
+	}
+
 	private boolean mergeStackToPlayersInventory(Slot sourceSlot, ItemStack slotStack) {
-		return mergeItemStack(sourceSlot, slotStack, getNumberOfStorageInventorySlots(), getInventorySlotsSize(), true, true);
+		return mergeItemStack(sourceSlot, slotStack, getNumberOfStorageInventorySlots(), getInventorySlotsSize() - extraSlotsSize, true, true);
 	}
 
 	public boolean isNotPlayersInventorySlot(int slotNumber) {
@@ -980,7 +1012,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		remoteUpgradeSlots.clear();
 		upgradeContainers.clear();
 
-		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot);
+		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot, extraSlots);
 		slotsChangedSinceStartOfClick = true;
 	}
 
@@ -1582,6 +1614,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		remoteRealSlots.clear();
 		addStorageInventorySlots();
 		addPlayerInventorySlots(player.getInventory(), storageItemSlotIndex, shouldLockStorageItemSlot);
+		addExtraSlots(extraSlots);
 	}
 
 	@Override
