@@ -172,6 +172,14 @@ public abstract class RenderInfo {
 		return upgradeData;
 	}
 
+	public void removeAllUpgradeRenderData() {
+		upgradeData.clear();
+		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+		renderInfo.remove(UPGRADES_TAG);
+		serializeRenderInfo(renderInfo);
+		save();
+	}
+
 	public void removeUpgradeRenderData(UpgradeRenderDataType<?> type) {
 		upgradeData.remove(type);
 		serializeUpgradeData(upgrades -> upgrades.remove(type.getName()));
