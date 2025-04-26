@@ -263,14 +263,19 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		if (simulate) {
 			if (fullSlotStacks.containsKey(slot)) {
 				return handleOverflow(overflowHandler, ItemStackKey.of(stack), stack);
-			} else if (shouldInsertIntoEmpty.getAsBoolean() && emptySlots.contains(slot)) {
-				if ((memorySettings.isSlotSelected(slot) && !memorySettings.matchesFilter(slot, stack))
-						|| filterItemSlots.containsSlotAndDoesNotMatch(slot, stack.getItem())) {
-					return handleOverflow(overflowHandler, stack, hasOneFullStackOfItem(ItemStackKey.of(stack)));
+			} else if (emptySlots.contains(slot)) {
+				if (memorySettings.isSlotSelected(slot) && memorySettings.matchesFilter(slot, stack)) {
+					return inserter.insertItem(slot, stack, true);
+				} else if (filterItemSlots.getSlots(stack.getItem()).contains(slot)) {
+					return inserter.insertItem(slot, stack, true);
+				} else if (shouldInsertIntoEmpty.getAsBoolean()) {
+					if ((memorySettings.isSlotSelected(slot) && !memorySettings.matchesFilter(slot, stack))
+							|| filterItemSlots.containsSlotAndDoesNotMatch(slot, stack.getItem())) {
+						return handleOverflow(overflowHandler, stack, hasOneFullStackOfItem(ItemStackKey.of(stack)));
+					}
+					return inserter.insertItem(slot, stack, true);
 				}
-				return inserter.insertItem(slot, stack, true);
-			}
-			if (partiallyFilledSlotStacks.containsKey(slot)) {
+			} else if (partiallyFilledSlotStacks.containsKey(slot)) {
 				ItemStack remainingStack = stack;
 				if (partiallyFilledSlotStacks.get(slot).hashCode() == ItemStackKey.of(stack).hashCode()) {
 					remainingStack = inserter.insertItem(slot, stack, true);
