@@ -5,11 +5,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions.createToggleButtonDefinition;
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions.getBooleanStateData;
@@ -50,6 +46,12 @@ public class PumpUpgradeTab extends UpgradeSettingsTab<PumpUpgradeContainer> {
 	}
 
 	public static class Advanced extends PumpUpgradeTab {
+		private final FluidFilterControl fluidFilterControl;
+
+		public FluidFilterControl getFluidFilterControl() {
+			return fluidFilterControl;
+		}
+
 		public Advanced(PumpUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen) {
 			super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("advanced_pump"), TranslationHelper.INSTANCE.translUpgradeTooltip("advanced_pump"));
 			addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), INTERACT_WITH_WORLD,
@@ -58,7 +60,8 @@ public class PumpUpgradeTab extends UpgradeSettingsTab<PumpUpgradeContainer> {
 			addHideableChild(new ToggleButton<>(new Position(x + 39, y + 24), INTERACT_WITH_HAND,
 					button -> getContainer().setInteractWithHand(!getContainer().shouldInteractWithHand()),
 					() -> getContainer().shouldInteractWithHand()));
-			addHideableChild(new FluidFilterControl(new Position(x + 3, y + 44), getContainer().getFluidFilterContainer()));
+			fluidFilterControl = new FluidFilterControl(new Position(x + 3, y + 44), getContainer().getFluidFilterContainer());
+			addHideableChild(fluidFilterControl);
 		}
 	}
 }

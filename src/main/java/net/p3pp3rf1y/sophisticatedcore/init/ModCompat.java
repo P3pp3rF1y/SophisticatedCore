@@ -9,7 +9,9 @@ import net.p3pp3rf1y.sophisticatedcore.compat.create.CreateCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
-import net.p3pp3rf1y.sophisticatedcore.compat.jei.JeiCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi.EmiCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei.JeiCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei.ReiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.reliquary.ReliquaryCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.trashslot.TrashSlotCompat;
 
@@ -25,6 +27,8 @@ public class ModCompat {
 
 	static {
 		compatFactories.put(CompatModIds.JEI, () -> JeiCompat::new);
+		compatFactories.put(CompatModIds.REI, () -> ReiCompat::new);
+		compatFactories.put(CompatModIds.EMI, () -> EmiCompat::new);
 		compatFactories.put(CompatModIds.CRAFTING_TWEAKS, () -> CraftingTweaksCompat::new);
 		compatFactories.put(CompatModIds.INVENTORY_SORTER, () -> InventorySorterCompat::new);
 		compatFactories.put(CompatModIds.ITEM_BORDERS, () -> ItemBordersCompat::new);
