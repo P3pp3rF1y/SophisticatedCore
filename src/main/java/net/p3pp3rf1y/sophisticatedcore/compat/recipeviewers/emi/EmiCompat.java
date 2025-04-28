@@ -1,12 +1,13 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CommonPayloads;
 
-public class JeiCompat implements ICompat {
+public class EmiCompat implements ICompat {
 	@Override
 	public void init(IEventBus modBus) {
 		modBus.addListener(this::registerPackets);
@@ -18,10 +19,9 @@ public class JeiCompat implements ICompat {
 	}
 
 	private void registerPackets(final RegisterPayloadHandlersEvent event) {
-
 		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned("1.0");
 		registrar.optional().playToServer(TransferRecipePayload.TYPE, TransferRecipePayload.STREAM_CODEC, TransferRecipePayload::handlePayload);
-		registrar.optional().playToServer(SetGhostSlotPayload.TYPE, SetGhostSlotPayload.STREAM_CODEC, SetGhostSlotPayload::handlePayload);
-		registrar.optional().playToServer(SetMemorySlotPayload.TYPE, SetMemorySlotPayload.STREAM_CODEC, SetMemorySlotPayload::handlePayload);
+
+		CommonPayloads.registerPackets(registrar);
 	}
 }

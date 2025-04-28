@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 
 import java.util.HashMap;
@@ -18,7 +19,7 @@ import java.util.Map;
 public record TransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, Map<Integer, Integer> matchingItems,
 									List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes,
 									boolean maxTransfer) implements CustomPacketPayload {
-	public static final Type<TransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("transfer_recipe"));
+	public static final Type<TransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("jei_transfer_recipe"));
 	public static final StreamCodec<ByteBuf, TransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
 			ResourceLocation.STREAM_CODEC,
 			TransferRecipePayload::recipeId,
@@ -45,7 +46,7 @@ public record TransferRecipePayload(ResourceLocation recipeId, ResourceLocation 
 			return;
 		}
 
-		CraftingContainerRecipeTransferHandlerServer.setItems(context.player(), payload.recipeId, recipeType, payload.matchingItems,
+		CraftingContainerRecipeTransferHandlerServer.setItemsWithSlotIDMap(context.player(), payload.recipeId, recipeType, payload.matchingItems,
 				payload.craftingSlotIndexes, payload.inventorySlotIndexes, payload.maxTransfer);
 	}
 }
