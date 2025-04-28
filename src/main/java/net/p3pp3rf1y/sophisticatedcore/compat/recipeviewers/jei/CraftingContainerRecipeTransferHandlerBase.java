@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
