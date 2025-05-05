@@ -12,7 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements IGhostIngredientHandler<S> {
+public class JeiSettingsGhostIngredientHandler<S extends SettingsScreen> implements IGhostIngredientHandler<S> {
 	private S targetedScreen;
 
 	@Override

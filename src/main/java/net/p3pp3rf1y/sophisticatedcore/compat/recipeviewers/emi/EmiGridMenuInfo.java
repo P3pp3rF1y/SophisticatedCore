@@ -24,17 +24,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class GridMenuInfo<C extends StorageContainerMenuBase<?>> implements StandardRecipeHandler<C> {
+public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements StandardRecipeHandler<C> {
 	private final RecipeType<? extends Recipe<?>> recipeType;
 
-	public static <C extends StorageContainerMenuBase<?>> GridMenuInfo<C> crafting() {
-		return new GridMenuInfo<>(RecipeType.CRAFTING);
+	public static <C extends StorageContainerMenuBase<?>> EmiGridMenuInfo<C> crafting() {
+		return new EmiGridMenuInfo<>(RecipeType.CRAFTING);
 	}
-	public static <C extends StorageContainerMenuBase<?>> GridMenuInfo<C> smithing() {
-		return new GridMenuInfo<>(RecipeType.SMITHING);
+	public static <C extends StorageContainerMenuBase<?>> EmiGridMenuInfo<C> smithing() {
+		return new EmiGridMenuInfo<>(RecipeType.SMITHING);
 	}
 
-	private GridMenuInfo(RecipeType<? extends Recipe<?>> recipeType) {
+	private EmiGridMenuInfo(RecipeType<? extends Recipe<?>> recipeType) {
 		this.recipeType = recipeType;
 	}
 
@@ -98,7 +98,7 @@ public class GridMenuInfo<C extends StorageContainerMenuBase<?>> implements Stan
 				if (recipeTypeId != null) {
 					Slot output = getOutputSlot(container);
 					PacketDistributor.sendToServer(
-							new TransferRecipePayload(
+							new EmiTransferRecipePayload(
 									recipe.getId(),
 									recipeTypeId,
 									action,

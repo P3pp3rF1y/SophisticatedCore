@@ -19,33 +19,33 @@ import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 
 import java.util.List;
 
-public record TransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting, int output, List<ItemStack> stacks, boolean maxTransfer) implements CustomPacketPayload {
-	public static final Type<TransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("emi_transfer_recipe"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, TransferRecipePayload> STREAM_CODEC = StreamCodecHelper.composite(
+public record EmiTransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting, int output, List<ItemStack> stacks, boolean maxTransfer) implements CustomPacketPayload {
+	public static final Type<EmiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("emi_transfer_recipe"));
+	public static final StreamCodec<RegistryFriendlyByteBuf, EmiTransferRecipePayload> STREAM_CODEC = StreamCodecHelper.composite(
 			ResourceLocation.STREAM_CODEC,
-			TransferRecipePayload::recipeId,
+			EmiTransferRecipePayload::recipeId,
 			ResourceLocation.STREAM_CODEC,
-			TransferRecipePayload::recipeTypeId,
+			EmiTransferRecipePayload::recipeTypeId,
 			ByteBufCodecs.INT,
-			TransferRecipePayload::action,
+			EmiTransferRecipePayload::action,
 			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			TransferRecipePayload::slots,
+			EmiTransferRecipePayload::slots,
 			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			TransferRecipePayload::crafting,
+			EmiTransferRecipePayload::crafting,
 			ByteBufCodecs.INT,
-			TransferRecipePayload::output,
+			EmiTransferRecipePayload::output,
 			ItemStack.OPTIONAL_LIST_STREAM_CODEC,
-			TransferRecipePayload::stacks,
+			EmiTransferRecipePayload::stacks,
 			ByteBufCodecs.BOOL,
-			TransferRecipePayload::maxTransfer,
-			TransferRecipePayload::new);
+			EmiTransferRecipePayload::maxTransfer,
+			EmiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 
-	public static void handlePayload(TransferRecipePayload payload, IPayloadContext context) {
+	public static void handlePayload(EmiTransferRecipePayload payload, IPayloadContext context) {
 		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
 		if (recipeType == null) {
 			return;

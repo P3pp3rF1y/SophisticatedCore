@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-public class StorageGhostDragDropHandler<T extends StorageScreenBase<?>> implements EmiDragDropHandler<T> {
+public class EmiStorageGhostDragDropHandler<T extends StorageScreenBase<?>> implements EmiDragDropHandler<T> {
     private final BiFunction<T, EmiIngredient, Map<Bounds, Consumer<EmiIngredient>>> bounds;
 
-    public StorageGhostDragDropHandler() {
+    public EmiStorageGhostDragDropHandler() {
         this.bounds = (screen, ingredient) -> {
             Map<Bounds, Consumer<EmiIngredient>> map = Maps.newHashMap();
             if (ingredient.getEmiStacks().isEmpty()) {

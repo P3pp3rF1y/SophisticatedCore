@@ -20,7 +20,7 @@ public class EmiCompat implements ICompat {
 
 	private void registerPackets(final RegisterPayloadHandlersEvent event) {
 		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned("1.0");
-		registrar.optional().playToServer(TransferRecipePayload.TYPE, TransferRecipePayload.STREAM_CODEC, TransferRecipePayload::handlePayload);
+		registrar.optional().playToServer(EmiTransferRecipePayload.TYPE, EmiTransferRecipePayload.STREAM_CODEC, EmiTransferRecipePayload::handlePayload);
 
 		CommonPayloads.registerPackets(registrar);
 	}

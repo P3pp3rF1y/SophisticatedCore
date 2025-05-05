@@ -16,31 +16,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record TransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, Map<Integer, Integer> matchingItems,
-									List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes,
-									boolean maxTransfer) implements CustomPacketPayload {
-	public static final Type<TransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("jei_transfer_recipe"));
-	public static final StreamCodec<ByteBuf, TransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
+public record JeiTransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, Map<Integer, Integer> matchingItems,
+									   List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes,
+									   boolean maxTransfer) implements CustomPacketPayload {
+	public static final Type<JeiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("jei_transfer_recipe"));
+	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
 			ResourceLocation.STREAM_CODEC,
-			TransferRecipePayload::recipeId,
+			JeiTransferRecipePayload::recipeId,
 			ResourceLocation.STREAM_CODEC,
-			TransferRecipePayload::recipeTypeId,
+			JeiTransferRecipePayload::recipeTypeId,
 			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new),
-			TransferRecipePayload::matchingItems,
+			JeiTransferRecipePayload::matchingItems,
 			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			TransferRecipePayload::craftingSlotIndexes,
+			JeiTransferRecipePayload::craftingSlotIndexes,
 			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			TransferRecipePayload::inventorySlotIndexes,
+			JeiTransferRecipePayload::inventorySlotIndexes,
 			ByteBufCodecs.BOOL,
-			TransferRecipePayload::maxTransfer,
-			TransferRecipePayload::new);
+			JeiTransferRecipePayload::maxTransfer,
+			JeiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 
-	public static void handlePayload(TransferRecipePayload payload, IPayloadContext context) {
+	public static void handlePayload(JeiTransferRecipePayload payload, IPayloadContext context) {
 		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
 		if (recipeType == null) {
 			return;

@@ -16,21 +16,21 @@ public class CoreReiCommonPlugin implements REIServerPlugin {
 	@Override
 	public void registerSlotAccessors(SlotAccessorRegistry registry) {
 		registry.register(ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "storage"),
-				slotAccessor -> slotAccessor instanceof SophisticatedSlotAccessor,
+				slotAccessor -> slotAccessor instanceof ReiSlotAccessor,
 				new SlotAccessorRegistry.Serializer() {
 					@Override
 					public SlotAccessor read(AbstractContainerMenu menu, Player player, CompoundTag tag) {
 						int slot = tag.getInt("Slot");
-						return new SophisticatedSlotAccessor(menu.getSlot(slot));
+						return new ReiSlotAccessor(menu.getSlot(slot));
 					}
 
 					@Override
 					public CompoundTag save(AbstractContainerMenu menu, Player player, SlotAccessor accessor) {
-						if (!(accessor instanceof SophisticatedSlotAccessor sophisticatedSlotAccessor)) {
+						if (!(accessor instanceof ReiSlotAccessor reiSlotAccessor)) {
 							throw new IllegalArgumentException("Cannot save non-sophisticated slot accessor!");
 						}
 						CompoundTag tag = new CompoundTag();
-						tag.putInt("Slot", sophisticatedSlotAccessor.getIndex());
+						tag.putInt("Slot", reiSlotAccessor.getIndex());
 						return tag;
 					}
 				});

@@ -4,14 +4,14 @@ import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-public class SophisticatedSlotAccessor implements SlotAccessor {
+public class ReiSlotAccessor implements SlotAccessor {
 	public static SlotAccessor fromSlot(Slot slot) {
-		return new SophisticatedSlotAccessor(slot);
+		return new ReiSlotAccessor(slot);
 	}
 
 	protected Slot slot;
 
-	public SophisticatedSlotAccessor(Slot slot) {
+	public ReiSlotAccessor(Slot slot) {
 		this.slot = slot;
 	}
 

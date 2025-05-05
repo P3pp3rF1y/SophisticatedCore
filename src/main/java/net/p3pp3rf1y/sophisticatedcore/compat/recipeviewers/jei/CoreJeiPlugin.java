@@ -12,7 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
 
 @SuppressWarnings("unused")
 @JeiPlugin
-public class CorePlugin implements IModPlugin {
+public class CoreJeiPlugin implements IModPlugin {
 	@Override
 	public ResourceLocation getPluginUid() {
 		return ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "default");

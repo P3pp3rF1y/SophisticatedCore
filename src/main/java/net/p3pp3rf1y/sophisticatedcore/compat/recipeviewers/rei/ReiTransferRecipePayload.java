@@ -30,29 +30,29 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingConta
 import java.util.ArrayList;
 import java.util.List;
 
-public record TransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, CompoundTag tag, List<Integer> inputSlots, List<Integer> inventorySlots, boolean maxTransfer) implements CustomPacketPayload {
-	public static final Type<TransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("rei_move_items"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, TransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
+public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, CompoundTag tag, List<Integer> inputSlots, List<Integer> inventorySlots, boolean maxTransfer) implements CustomPacketPayload {
+	public static final Type<ReiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("rei_move_items"));
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
 			ResourceLocation.STREAM_CODEC,
-			TransferRecipePayload::recipeId,
+			ReiTransferRecipePayload::recipeId,
 			ResourceLocation.STREAM_CODEC,
-			TransferRecipePayload::recipeTypeId,
+			ReiTransferRecipePayload::recipeTypeId,
 			ByteBufCodecs.COMPOUND_TAG,
-			TransferRecipePayload::tag,
+			ReiTransferRecipePayload::tag,
 			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			TransferRecipePayload::inputSlots,
+			ReiTransferRecipePayload::inputSlots,
 			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			TransferRecipePayload::inventorySlots,
+			ReiTransferRecipePayload::inventorySlots,
 			ByteBufCodecs.BOOL,
-			TransferRecipePayload::maxTransfer,
-			TransferRecipePayload::new);
+			ReiTransferRecipePayload::maxTransfer,
+			ReiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
 		return TYPE;
 	}
 
-	public static void handlePayload(TransferRecipePayload payload, IPayloadContext context) {
+	public static void handlePayload(ReiTransferRecipePayload payload, IPayloadContext context) {
 		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
 		if (recipeType == null) {
 			return;
@@ -64,7 +64,7 @@ public record TransferRecipePayload(ResourceLocation recipeId, ResourceLocation 
 
 		RecipeFinder recipeFinder = new RecipeFinder();
 		for (int slotId : payload.inventorySlots) {
-			SophisticatedSlotAccessor slot = (SophisticatedSlotAccessor) SophisticatedSlotAccessor.fromSlot(container.getSlot(slotId));
+			ReiSlotAccessor slot = (ReiSlotAccessor) ReiSlotAccessor.fromSlot(container.getSlot(slotId));
 			recipeFinder.addNormalItem(slot.getItemStack());
 		}
 
