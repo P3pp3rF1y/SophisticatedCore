@@ -12,19 +12,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SetMemorySlotPayload;
-import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SetGhostSlotPayload;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements DraggableStackVisitor<S> {
+public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> implements DraggableStackVisitor<S> {
 	private final Class<S> handingScreenClass;
 
-	public SettingsGhostIngredientHandler(Class<S> handingScreenClass) {
+	public ReiStorageGhostIngredientHandler(Class<S> handingScreenClass) {
 		this.handingScreenClass = handingScreenClass;
 	}
 
@@ -45,7 +46,7 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 			}).findFirst();
 			if (target.isPresent()) {
 				//noinspection unchecked
-				GhostTarget<ItemStack, ? extends SettingsScreen> ghost = (GhostTarget<ItemStack, ? extends SettingsScreen>) target.get();
+				GhostTarget<ItemStack, ? extends StorageScreenBase<?>> ghost = (GhostTarget<ItemStack, ? extends StorageScreenBase<?>>) target.get();
 				Object held = stack.getStack().getValue();
 				if (held instanceof ItemStack item) {
 					ghost.accept(item);
@@ -59,18 +60,14 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 	@Override
 	public Stream<BoundsProvider> getDraggableAcceptingBounds(DraggingContext<S> context, DraggableStack stack) {
 		List<BoundsProvider> targets = new ArrayList<>();
-		SettingsScreen screen = context.getScreen();
+		StorageContainerMenuBase<?> screen = context.getScreen().getMenu();
 
 		if (stack.getStack().getValue() instanceof ItemStack ghostStack) {
-			screen.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
-				if (tab instanceof MemorySettingsTab) {
-					screen.getMenu().getStorageInventorySlots().forEach(s -> {
-						if (s.getItem().isEmpty()) {
-							targets.add(new GhostTarget<>(screen, ghostStack, s));
-						}
-					});
+			screen.getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
+				if (s instanceof IFilterSlot && s.mayPlace(ghostStack)) {
+					targets.add(new GhostTarget<>(context.getScreen(), ghostStack, s));
 				}
-			});
+			}));
 		}
 
 		return targets.stream();
@@ -81,7 +78,7 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 		return this.handingScreenClass.isInstance(screen);
 	}
 
-	private static class GhostTarget<I, S extends SettingsScreen> implements BoundsProvider {
+	private static class GhostTarget<I, S extends StorageScreenBase<?>> implements BoundsProvider {
 		private final Rectangle area;
 		private final Slot slot;
 		private final ItemStack stack;
@@ -93,7 +90,7 @@ public class SettingsGhostIngredientHandler<S extends SettingsScreen> implements
 		}
 
 		public void accept(I ingredient) {
-			PacketDistributor.sendToServer(new SetMemorySlotPayload(stack, slot.index));
+			PacketDistributor.sendToServer(new SetGhostSlotPayload(stack, slot.index));
 		}
 
 		@Override

@@ -12,8 +12,8 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingsGhostDragDropHandler<T extends SettingsScreen> extends EmiDragDropHandler.SlotBased<T> {
-    public SettingsGhostDragDropHandler() {
+public class EmiSettingsGhostDragDropHandler<T extends SettingsScreen> extends EmiDragDropHandler.SlotBased<T> {
+    public EmiSettingsGhostDragDropHandler() {
         super(
             screen -> {
                 List<Slot> slots = new ArrayList<>();

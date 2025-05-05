@@ -6,7 +6,7 @@ import dev.emi.emi.api.EmiRegistry;
 
 @SuppressWarnings("unused")
 @EmiEntrypoint
-public class EmiSCPlugin implements EmiPlugin {
+public class CoreEmiPlugin implements EmiPlugin {
 	@Override
 	public void register(EmiRegistry registry) {
 	}

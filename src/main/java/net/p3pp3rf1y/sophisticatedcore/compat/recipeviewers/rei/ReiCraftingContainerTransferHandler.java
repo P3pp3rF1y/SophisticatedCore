@@ -27,19 +27,19 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 import java.util.List;
 
-public class ClientTransferHandler<C extends StorageContainerMenuBase<?>, D extends Display> implements SimpleTransferHandler {
+public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuBase<?>, D extends Display> implements SimpleTransferHandler {
 	public static <C extends StorageContainerMenuBase<?>> TransferHandler crafting(Class<? extends C> containerClass) {
-		return new ClientTransferHandler<>(containerClass, BuiltinPlugin.CRAFTING, RecipeType.CRAFTING);
+		return new ReiCraftingContainerTransferHandler<>(containerClass, BuiltinPlugin.CRAFTING, RecipeType.CRAFTING);
 	}
 	public static <C extends StorageContainerMenuBase<?>> TransferHandler smithing(Class<? extends C> containerClass) {
-		return new ClientTransferHandler<>(containerClass, BuiltinPlugin.SMITHING, RecipeType.SMITHING);
+		return new ReiCraftingContainerTransferHandler<>(containerClass, BuiltinPlugin.SMITHING, RecipeType.SMITHING);
 	}
 
 	private final Class<? extends C> containerClass;
 	private final CategoryIdentifier<D> categoryIdentifier;
 	private final RecipeType<? extends Recipe<?>> recipeType;
 
-	public ClientTransferHandler(Class<? extends C> containerClass, CategoryIdentifier<D> categoryIdentifier, RecipeType<? extends Recipe<?>> recipeType) {
+	public ReiCraftingContainerTransferHandler(Class<? extends C> containerClass, CategoryIdentifier<D> categoryIdentifier, RecipeType<? extends Recipe<?>> recipeType) {
 		this.containerClass = containerClass;
 		this.categoryIdentifier = categoryIdentifier;
 		this.recipeType = recipeType;
@@ -61,14 +61,14 @@ public class ClientTransferHandler<C extends StorageContainerMenuBase<?>, D exte
 	public Iterable<SlotAccessor> getInputSlots(Context context) {
 		StorageContainerMenuBase<?> storageContainerMenuBase = (StorageContainerMenuBase<?>) context.getMenu();
 		return storageContainerMenuBase.getOpenOrFirstCraftingContainer(recipeType)
-				.map(c -> c.getRecipeSlots().stream().map(SophisticatedSlotAccessor::fromSlot).toList())
+				.map(c -> c.getRecipeSlots().stream().map(ReiSlotAccessor::fromSlot).toList())
 				.orElse(List.of());
 	}
 
 	@Override
 	public Iterable<SlotAccessor> getInventorySlots(Context context) {
 		StorageContainerMenuBase<?> storageContainerMenuBase = (StorageContainerMenuBase<?>) context.getMenu();
-		return storageContainerMenuBase.realInventorySlots.stream().map(SophisticatedSlotAccessor::fromSlot).toList();
+		return storageContainerMenuBase.realInventorySlots.stream().map(ReiSlotAccessor::fromSlot).toList();
 	}
 
 	@Override
@@ -112,17 +112,17 @@ public class ClientTransferHandler<C extends StorageContainerMenuBase<?>, D exte
 		ResourceLocation recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipeType);
 		if (recipeTypeId != null) {
 			List<Integer> inputSlotIds = inputSlots.stream()
-					.map(SophisticatedSlotAccessor.class::cast)
-					.map(SophisticatedSlotAccessor::getIndex)
+					.map(ReiSlotAccessor.class::cast)
+					.map(ReiSlotAccessor::getIndex)
 					.toList();
 
 			List<Integer> inventorySlotIds = inventorySlots.stream()
-					.map(SophisticatedSlotAccessor.class::cast)
-					.map(SophisticatedSlotAccessor::getIndex)
+					.map(ReiSlotAccessor.class::cast)
+					.map(ReiSlotAccessor::getIndex)
 					.toList();
 
 			PacketDistributor.sendToServer(
-					new TransferRecipePayload(
+					new ReiTransferRecipePayload(
 							context.getDisplay().getDisplayLocation().get(),
 							recipeTypeId,
 							save(inputs),
