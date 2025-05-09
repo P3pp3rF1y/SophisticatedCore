@@ -1448,6 +1448,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 							if (!needsSlotsThatAreOccupied(result, 0, newColumnsTaken)) {
 								destSlot.set(result.split(toTransfer));
 								updateColumnsTaken(newColumnsTaken);
+								if (isClientSide()) {
+									onUpgradesChanged();
+								}
 							} else {
 								errorMerging = true;
 							}

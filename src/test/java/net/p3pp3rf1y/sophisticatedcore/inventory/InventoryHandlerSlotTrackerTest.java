@@ -53,10 +53,10 @@ public class InventoryHandlerSlotTrackerTest {
 	}
 
 	private InventoryHandlerSlotTracker initSlotTracker(InventoryHandler inventoryHandler) {
-		return initSlotTracker(inventoryHandler, Map.of(), false, new SlotValueMap<>());
+		return initSlotTracker(inventoryHandler, Map.of(), false, new SlotValueMap<>(), true);
 	}
 
-	private InventoryHandlerSlotTracker initSlotTracker(InventoryHandler inventoryHandler, Map<Integer, ItemStack> memoryFilterStacks, boolean memoryIgnoresNbt, SlotValueMap<Item> filterItemSlots) {
+	private InventoryHandlerSlotTracker initSlotTracker(InventoryHandler inventoryHandler, Map<Integer, ItemStack> memoryFilterStacks, boolean memoryIgnoresNbt, SlotValueMap<Item> filterItemSlots, boolean shouldInsertIntoEmpty) {
 		MemorySettingsCategory memorySettings = new MemorySettingsCategory(() -> inventoryHandler, new CompoundTag(), tag -> {
 		});
 		memorySettings.setIgnoreNbt(memoryIgnoresNbt);
@@ -64,6 +64,7 @@ public class InventoryHandlerSlotTrackerTest {
 
 		InventoryHandlerSlotTracker slotTracker = new InventoryHandlerSlotTracker(memorySettings, filterItemSlots);
 		slotTracker.refreshSlotIndexesFrom(inventoryHandler);
+		slotTracker.setShouldInsertIntoEmpty(() -> shouldInsertIntoEmpty);
 		return slotTracker;
 	}
 
@@ -346,7 +347,7 @@ public class InventoryHandlerSlotTrackerTest {
 	void simulatedInsertRespectsMemorizedAndFilterItems(SimulatedInsertRespectsMemorizedAndFilterItemsParams params) {
 		InventoryHandler inventoryHandler = initInventoryHandler(params.initialState(), params.slotLimit());
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
-		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler, params.memorizedItems(), params.memoryIgnoresNbt(), params.filterItems());
+		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler, params.memorizedItems(), params.memoryIgnoresNbt(), params.filterItems(), params.shouldInsertIntoEmpty());
 
 		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
 
@@ -361,7 +362,8 @@ public class InventoryHandlerSlotTrackerTest {
 																		Predicate<ItemStack> stackVoided,
 																		Map<Integer, ItemStack> memorizedItems,
 																		boolean memoryIgnoresNbt,
-																		SlotValueMap<Item> filterItems) {
+																		SlotValueMap<Item> filterItems,
+																		boolean shouldInsertIntoEmpty) {
 	}
 
 	private static List<SimulatedInsertRespectsMemorizedAndFilterItemsParams> simulatedInsertRespectsMemorizedAndFilterItems() {
@@ -375,7 +377,8 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> false,
 						Map.of(),
 						true,
-						SlotValueMap.of(1, Items.IRON_INGOT)
+						SlotValueMap.of(1, Items.IRON_INGOT),
+						true
 				),
 				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
 						64,
@@ -386,7 +389,8 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> stack.getItem() == Items.GOLD_INGOT,
 						Map.of(),
 						true,
-						SlotValueMap.of(1, Items.IRON_INGOT)
+						SlotValueMap.of(1, Items.IRON_INGOT),
+						true
 				),
 				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
 						64,
@@ -397,7 +401,8 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> false,
 						Map.of(),
 						true,
-						SlotValueMap.of(1, Items.GOLD_INGOT)
+						SlotValueMap.of(1, Items.GOLD_INGOT),
+						true
 				),
 				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
 						64,
@@ -408,7 +413,8 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> false,
 						Map.of(1, new ItemStack(Items.GOLD_INGOT, 1)),
 						true,
-						SlotValueMap.of()
+						SlotValueMap.of(),
+						true
 				),
 				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
 						64,
@@ -419,7 +425,8 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> false,
 						Map.of(1, new ItemStack(Items.IRON_INGOT, 1)),
 						true,
-						SlotValueMap.of()
+						SlotValueMap.of(),
+						true
 				),
 				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
 						64,
@@ -430,7 +437,8 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> false,
 						Map.of(1, customizeName(new ItemStack(Items.GOLD_INGOT, 1), "test")),
 						false,
-						SlotValueMap.of()
+						SlotValueMap.of(),
+						true
 				),
 				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
 						64,
@@ -441,7 +449,32 @@ public class InventoryHandlerSlotTrackerTest {
 						stack -> stack.getItem() == Items.GOLD_INGOT,
 						Map.of(1, customizeName(new ItemStack(Items.GOLD_INGOT, 1), "test")),
 						false,
-						SlotValueMap.of()
+						SlotValueMap.of(),
+						true
+				),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
+						64,
+						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						1,
+						new ItemStack(Items.GOLD_INGOT, 1),
+						ItemStack.EMPTY,
+						stack -> false,
+						Map.of(1, new ItemStack(Items.GOLD_INGOT, 1)),
+						true,
+						SlotValueMap.of(),
+						false
+				),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
+						64,
+						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						1,
+						new ItemStack(Items.GOLD_INGOT, 1),
+						ItemStack.EMPTY,
+						stack -> false,
+						Map.of(),
+						true,
+						SlotValueMap.of(1, Items.GOLD_INGOT),
+						false
 				)
 		);
 	}
@@ -449,6 +482,13 @@ public class InventoryHandlerSlotTrackerTest {
 	@ParameterizedTest
 	@MethodSource("simulatedInsertConsidersInaccessibleSlots")
 	void simulatedInsertConsidersInaccessibleSlots(SimulatedInsertConsidersInaccessibleSlotsParams params) {
+		InventoryHandler inventoryHandler = initInventoryHandler(params.initialState(), params.slotLimit(), params.inaccessibleSlots());
+		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
+		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
+
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+
+		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
 
 	private record SimulatedInsertConsidersInaccessibleSlotsParams(int slotLimit,

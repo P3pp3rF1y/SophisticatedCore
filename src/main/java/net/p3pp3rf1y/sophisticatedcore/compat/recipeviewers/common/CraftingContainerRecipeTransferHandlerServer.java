@@ -74,11 +74,14 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		container.broadcastChanges();
 	}
 
-	public static void putIntoInventory(Player player, List<Integer> inventorySlots, StorageContainerMenuBase<?> container, List<ItemStack> itemList) {
-		for (ItemStack item : itemList) {
-			int added = addStack(container, inventorySlots, item);
-			if (added < item.getCount() && !player.getInventory().add(item)) {
-				player.drop(item, false);
+	private static void putIntoInventory(Player player, List<Integer> inventorySlots, StorageContainerMenuBase<?> container, List<ItemStack> clearedCraftingItems) {
+		for (ItemStack oldCraftingItem : clearedCraftingItems) {
+			int added = addStack(container, inventorySlots, oldCraftingItem);
+			if (added < oldCraftingItem.getCount()) {
+				ItemStack remainingStack = added == 0 ? oldCraftingItem : oldCraftingItem.copyWithCount(oldCraftingItem.getCount() - added);
+				if (!player.getInventory().add(remainingStack)) {
+					player.drop(remainingStack, false);
+				}
 			}
 		}
 	}
