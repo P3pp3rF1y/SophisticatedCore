@@ -14,7 +14,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.EntityMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterAttributes;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyFilterAttribute;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.feeding.HungerLevel;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.filter.Direction;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.RepeatMode;
@@ -150,6 +152,9 @@ public class ModCoreDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> FUEL_FILTER_ATTRIBUTES = DATA_COMPONENT_TYPES.register("fuel_filter_attributes",
             () -> new DataComponentType.Builder<FilterAttributes>().persistent(FilterAttributes.CODEC).networkSynchronized(FilterAttributes.STREAM_CODEC).build());
 
+    public static final Supplier<DataComponentType<List<AlchemyFilterAttribute>>> ALCHEMY_FILTER_ATTRIBUTES = DATA_COMPONENT_TYPES.register("alchemy_filter_attributes",
+            () -> new DataComponentType.Builder<List<AlchemyFilterAttribute>>().persistent(Codec.list(AlchemyFilterAttribute.CODEC)).networkSynchronized(AlchemyFilterAttribute.STREAM_CODEC.apply(ByteBufCodecs.list())).build());
+
     public static final Supplier<DataComponentType<Boolean>> ENABLED = DATA_COMPONENT_TYPES.register("enabled",
             () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
@@ -164,6 +169,18 @@ public class ModCoreDataComponents {
 
     public static final Supplier<DataComponentType<Long>> DISC_FINISH_TIME = DATA_COMPONENT_TYPES.register("disc_finish_time",
             () -> new DataComponentType.Builder<Long>().persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG).build());
+
+    public static final Supplier<DataComponentType<Boolean>> MATCH_ALL_EFFECTS = DATA_COMPONENT_TYPES.register("match_all_effects",
+            () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+    public static final Supplier<DataComponentType<Boolean>> MATCH_EFFECT_DURATION = DATA_COMPONENT_TYPES.register("match_effect_duration",
+            () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+    public static final Supplier<DataComponentType<Boolean>> MATCH_EFFECT_AMPLIFIER = DATA_COMPONENT_TYPES.register("match_effect_amplifier",
+            () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+    public static final Supplier<DataComponentType<EntityMatch>> ENTITY_MATCH = DATA_COMPONENT_TYPES.register("entity_match",
+            () -> new DataComponentType.Builder<EntityMatch>().persistent(EntityMatch.CODEC).networkSynchronized(EntityMatch.STREAM_CODEC).build());
 
     public static void register(IEventBus modBus) {
         DATA_COMPONENT_TYPES.register(modBus);
