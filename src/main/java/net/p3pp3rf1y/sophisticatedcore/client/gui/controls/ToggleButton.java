@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class ToggleButton<T extends Comparable<T>> extends Button {
 	private final Map<T, StateData> stateData;
-	private final Supplier<T> getState;
+	protected final Supplier<T> getState;
 
 	public ToggleButton(Position position, ButtonDefinition.Toggle<T> buttonDefinition, IntConsumer onClick, Supplier<T> getState) {
 		super(position, buttonDefinition, onClick);
