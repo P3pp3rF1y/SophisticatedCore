@@ -289,7 +289,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		return true;
 	}
 
-	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownPotion.class, "onHit", HitResult.class);
+	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownPotion.class, "m_6532_", HitResult.class);
 
 	private static void onHit(ThrownPotion thrownPotion, EntityHitResult entityHitResult) {
 		try {
@@ -299,7 +299,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		}
 	}
 
-	private static final Field EFFECTS = ObfuscationReflectionHelper.findField(FoodProperties.class, "effects");
+	private static final Field EFFECTS = ObfuscationReflectionHelper.findField(FoodProperties.class, "f_38728_");
 
 	private static List<Pair<Supplier<MobEffectInstance>, Float>> getEffects(FoodProperties foodProperties) {
 		try {
