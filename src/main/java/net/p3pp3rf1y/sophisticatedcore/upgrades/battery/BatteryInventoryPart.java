@@ -4,12 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -39,13 +34,13 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y(), TANK_BACKGROUND_TOP);
+		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y(), TANK_BACKGROUND_TOP, 18, height < 36 ? height / 2 : 18);
 		int yOffset = 18;
 		for (int i = 0; i < (height - 36) / 18; i++) {
 			GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + yOffset, TANK_BACKGROUND_MIDDLE);
 			yOffset += 18;
 		}
-		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + yOffset, TANK_BACKGROUND_BOTTOM);
+		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + (height < 36 ? height / 2 : yOffset), TANK_BACKGROUND_BOTTOM, 18, height < 36 ? height / 2 : 18);
 
 		yOffset = 0;
 		for (int i = 0; i < height / 18; i++) {
