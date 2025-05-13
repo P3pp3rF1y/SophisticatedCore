@@ -9,6 +9,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.JeiCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.reliquary.ReliquaryCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.trashslot.TrashSlotCompat;
 
 public class ModCompat {
@@ -23,6 +24,7 @@ public class ModCompat {
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.CURIOS), () -> mobBus -> new CuriosCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.CREATE), () -> mobBus -> new CreateCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.TRASH_SLOT), () -> mobBus -> new TrashSlotCompat());
+		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.RELIQUARY), () -> mobBus -> new ReliquaryCompat());
 		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
 	}
 }
