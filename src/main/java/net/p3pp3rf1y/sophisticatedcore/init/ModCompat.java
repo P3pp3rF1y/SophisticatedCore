@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.jei.JeiCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.reliquary.ReliquaryCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.trashslot.TrashSlotCompat;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.CURIOS, () -> CuriosCompat::new);
 		compatFactories.put(CompatModIds.CREATE, () -> CreateCompat::new);
 		compatFactories.put(CompatModIds.TRASH_SLOT, () -> TrashSlotCompat::new);
+		compatFactories.put(CompatModIds.RELIQUARY, () -> ReliquaryCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 

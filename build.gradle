@@ -95,6 +95,7 @@ dependencies {
     compileOnly fg.deobf("com.simibubi.create:create-${create_mc_version}:${create_version}:all") {
         transitive = false
     }
+    compileOnly fg.deobf("curse.maven:reliquary-241319:${reliquary_cf_file_id}")
 
 /*
     compileOnly fg.deobf("curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
