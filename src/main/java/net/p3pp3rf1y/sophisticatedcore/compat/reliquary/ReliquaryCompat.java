@@ -47,7 +47,7 @@ public class ReliquaryCompat implements ICompat {
 		);
 	}
 
-	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownXRPotionEntity.class, "onHit", HitResult.class);
+	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownXRPotionEntity.class, "m_6532_", HitResult.class);
 
 	private static void onHit(ThrownXRPotionEntity thrownPotion, HitResult hitResult) {
 		try {
