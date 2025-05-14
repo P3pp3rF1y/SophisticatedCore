@@ -1,7 +1,5 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei.subtypes;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes;
 
-import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
-import mezz.jei.api.ingredients.subtypes.UidContext;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +11,12 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Function;
 
-public abstract class PropertyBasedSubtypeInterpreter implements ISubtypeInterpreter<ItemStack> {
+public abstract class PropertyBasedSubtypeInterpreter {
 	private final List<IPropertyDefinition<?>> propertyDefinitions = new ArrayList<>();
+
+	protected List<IPropertyDefinition<?>> getPropertyDefinitions() {
+		return propertyDefinitions;
+	}
 
 	protected <T> void addOptionalProperty(Function<ItemStack, Optional<T>> propertyGetter, String propertyName,
 										   Function<T, String> propertyValueSerializer) {
@@ -23,7 +25,7 @@ public abstract class PropertyBasedSubtypeInterpreter implements ISubtypeInterpr
 	}
 
 	private <T> void addDefinition(Function<ItemStack, @Nullable T> getter, String propertyName, Function<T, String> propertyValueSerializer) {
-		this.propertyDefinitions.add(new IPropertyDefinition<T>() {
+		getPropertyDefinitions().add(new IPropertyDefinition<T>() {
 			@Override
 			public @Nullable T getPropertyValue(ItemStack itemStack) {
 				return getter.apply(itemStack);
@@ -45,12 +47,11 @@ public abstract class PropertyBasedSubtypeInterpreter implements ISubtypeInterpr
 		addDefinition(propertyGetter, propertyName, propertyValueSerializer);
 	}
 
-	@Override
-	public final @Nullable Object getSubtypeData(ItemStack ingredient, UidContext context) {
+	public final @Nullable Object getComparableData(ItemStack stack) {
 		boolean allNulls = true;
-		List<@Nullable Object> results = new ArrayList<>(propertyDefinitions.size());
-		for (IPropertyDefinition<?> definition : propertyDefinitions) {
-			@Nullable Object value = definition.getPropertyValue(ingredient);
+		List<@Nullable Object> results = new ArrayList<>(getPropertyDefinitions().size());
+		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
+			@Nullable Object value = definition.getPropertyValue(stack);
 			if (value != null) {
 				allNulls = false;
 			}
@@ -62,22 +63,6 @@ public abstract class PropertyBasedSubtypeInterpreter implements ISubtypeInterpr
 		return results;
 	}
 
-	@Override
-	public String getLegacyStringSubtypeInfo(ItemStack itemStack, UidContext context) {
-		StringBuilder result = new StringBuilder();
-		for (IPropertyDefinition<?> definition : propertyDefinitions) {
-			@Nullable Object value = definition.getPropertyValue(itemStack);
-			if (value != null) {
-				String serializedValue = getSerializedPropertyValue(definition, value);
-				if (!result.isEmpty()) {
-					result.append(',');
-				}
-				result.append(definition.getPropertyName()).append(':').append(serializedValue);
-			}
-		}
-		return "{" + result + "}";
-	}
-
 	private <T> String getSerializedPropertyValue(IPropertyDefinition<T> definition, Object value) {
 		//noinspection unchecked
 		return definition.serializePropertyValue((T) value);
@@ -85,7 +70,7 @@ public abstract class PropertyBasedSubtypeInterpreter implements ISubtypeInterpr
 
 	public String getRegistrySanitizedItemString(ItemStack stack) {
 		StringBuilder result = new StringBuilder();
-		for (IPropertyDefinition<?> definition : propertyDefinitions) {
+		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
 			@Nullable Object value = definition.getPropertyValue(stack);
 			if (value != null) {
 				String serializedValue = sanitize(getSerializedPropertyValue(definition, value));
@@ -105,7 +90,6 @@ public abstract class PropertyBasedSubtypeInterpreter implements ISubtypeInterpr
 	private static @NotNull String getItemPath(ItemStack stack) {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
 	}
-
 
 	public interface IPropertyDefinition<T> {
 		@Nullable

@@ -47,6 +47,21 @@ repositories {
             includeGroup "net.blay09.mods"
         }
     }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/"
+        content {
+            includeGroup "dev.emi"
+        }
+    }
+    maven {
+        url = "https://maven.shedaniel.me/"
+        content {
+            includeGroup "dev.architectury"
+            includeGroup "me.shedaniel"
+            includeGroup "me.shedaniel.cloth"
+        }
+    }
 }
 
 base {
@@ -110,6 +125,10 @@ configurations {
 dependencies {
     compileOnly "mezz.jei:jei-${jei_mc_version}:${jei_version}"
     localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
+    compileOnly "dev.emi:emi-neoforge:${emi_version}"
+    localRuntime "dev.emi:emi-neoforge:${emi_version}"
+    compileOnly "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+    localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
     compileOnly "curse.maven:balm-531761:${balm_cf_file_id}"
     localRuntime "curse.maven:balm-531761:${balm_cf_file_id}"
     compileOnly "curse.maven:craftingtweaks-233071:${crafting_tweaks_cf_file_id}"
