@@ -79,7 +79,7 @@ public class EmiStorageGhostDragDropHandler<T extends StorageScreenBase<?>> impl
     @Override
     public void render(T screen, EmiIngredient dragged, GuiGraphics draw, int mouseX, int mouseY, float delta) {
         for (Bounds b : this.bounds.apply(screen, dragged).keySet()) {
-            draw.fill(b.x(), b.y(), b.x() + b.width(), b.height() + b.height(), 0x8822BB33);
+            draw.fill(b.x(), b.y(), b.x() + b.width(), b.y() + b.height(), 0x8822BB33);
         }
     }
 
