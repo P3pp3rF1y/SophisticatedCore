@@ -37,7 +37,6 @@ import net.p3pp3rf1y.sophisticatedcore.util.DummySlot;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1764,7 +1763,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 
 		@Override
-		public void set(@NotNull ItemStack stack) {
+		public void set(ItemStack stack) {
 			super.set(stack);
 			wasEmpty = getItem().isEmpty();
 		}
