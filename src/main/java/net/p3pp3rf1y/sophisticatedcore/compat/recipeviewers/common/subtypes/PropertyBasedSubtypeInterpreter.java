@@ -2,9 +2,8 @@ package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -20,15 +19,14 @@ public abstract class PropertyBasedSubtypeInterpreter {
 
 	protected <T> void addOptionalProperty(Function<ItemStack, Optional<T>> propertyGetter, String propertyName,
 										   Function<T, String> propertyValueSerializer) {
-		Function<ItemStack, @Nullable T> nullableGetter = propertyGetter.andThen(i -> i.orElse(null));
-		addDefinition(nullableGetter, propertyName, propertyValueSerializer);
+		addDefinition(s -> propertyGetter.andThen(i -> i.orElse(null)).apply(s), propertyName, propertyValueSerializer);
 	}
 
-	private <T> void addDefinition(Function<ItemStack, @Nullable T> getter, String propertyName, Function<T, String> propertyValueSerializer) {
+	private <T> void addDefinition(IPropertyValueGetter<T> getter, String propertyName, Function<T, String> propertyValueSerializer) {
 		getPropertyDefinitions().add(new IPropertyDefinition<T>() {
 			@Override
 			public @Nullable T getPropertyValue(ItemStack itemStack) {
-				return getter.apply(itemStack);
+				return getter.getPropertyValue(itemStack);
 			}
 
 			@Override
@@ -43,13 +41,13 @@ public abstract class PropertyBasedSubtypeInterpreter {
 		});
 	}
 
-	protected <T> void addProperty(Function<ItemStack, @Nullable T> propertyGetter, String propertyName, Function<T, String> propertyValueSerializer) {
+	protected <T> void addProperty(IPropertyValueGetter<T> propertyGetter, String propertyName, Function<T, String> propertyValueSerializer) {
 		addDefinition(propertyGetter, propertyName, propertyValueSerializer);
 	}
 
 	public final @Nullable Object getComparableData(ItemStack stack) {
 		boolean allNulls = true;
-		List<@Nullable Object> results = new ArrayList<>(getPropertyDefinitions().size());
+		List<Object> results = new ArrayList<>(getPropertyDefinitions().size());
 		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
 			@Nullable Object value = definition.getPropertyValue(stack);
 			if (value != null) {
@@ -87,8 +85,13 @@ public abstract class PropertyBasedSubtypeInterpreter {
 		return value.replaceAll(":", "_").toLowerCase(Locale.ROOT);
 	}
 
-	private static @NotNull String getItemPath(ItemStack stack) {
+	private static String getItemPath(ItemStack stack) {
 		return BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath();
+	}
+
+	public interface IPropertyValueGetter<T> {
+		@Nullable
+		T getPropertyValue(ItemStack itemStack);
 	}
 
 	public interface IPropertyDefinition<T> {

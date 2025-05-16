@@ -5,7 +5,8 @@ import mezz.jei.api.ingredients.subtypes.UidContext;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes.PropertyBasedSubtypeInterpreter;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes.PropertyBasedSubtypeInterpreterWrapper;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public class JeiSubtypeInterpreter extends PropertyBasedSubtypeInterpreterWrapper implements ISubtypeInterpreter<ItemStack> {
 	public static JeiSubtypeInterpreter of(PropertyBasedSubtypeInterpreter wrapped) {
