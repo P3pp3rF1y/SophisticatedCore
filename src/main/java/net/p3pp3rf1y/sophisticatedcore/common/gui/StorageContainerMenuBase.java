@@ -94,6 +94,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private int extraSlotsSize = 0;
 
+	private int columnsChange = 0;
+
 	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		this(menuType, containerId, player, storageWrapper, parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot, Collections.emptyList());
 	}
@@ -506,6 +508,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected void updateColumnsTaken(int columnsChange) {
+		if (player.level().isClientSide()) {
+			this.columnsChange = columnsChange;
+		} else {
+			actuallyUpdateColumnsTaken(columnsChange);
+		}
+	}
+
+	private void actuallyUpdateColumnsTaken(int columnsChange) {
 		if (columnsChange != 0) {
 			//when these get changed recalculate columns taken to fix columnsTaken out of sync issues
 			AtomicInteger columnsTaken = new AtomicInteger(0);
@@ -1710,15 +1720,22 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public void updateSlotChangeError(UpgradeSlotChangeResult result) {
 		errorUpgradeSlotChangeResult = result;
+		if (player.level().isClientSide() && errorUpgradeSlotChangeResult.successful() && columnsChange != 0) {
+			actuallyUpdateColumnsTaken(columnsChange);
+			onUpgradesChanged();
+		}
+		columnsChange = 0;
 		showUpgradeSlotChangeError();
 	}
 
 	private void showUpgradeSlotChangeError() {
-		if (errorUpgradeSlotChangeResult == null || errorUpgradeSlotChangeResult.successful() || tryingToMergeUpgrade) {
+		if (errorUpgradeSlotChangeResult == null || tryingToMergeUpgrade) {
 			return;
 		}
 		if (player.level().isClientSide()) {
-			errorResultExpirationTime = player.level().getGameTime() + 60;
+			if (!errorUpgradeSlotChangeResult.successful()) {
+				errorResultExpirationTime = player.level().getGameTime() + 60;
+			}
 		} else {
 			if (player instanceof ServerPlayer serverPlayer) {
 				PacketDistributor.sendToPlayer(serverPlayer, new SyncSlotChangeErrorPayload(errorUpgradeSlotChangeResult));
