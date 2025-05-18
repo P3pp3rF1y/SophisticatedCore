@@ -24,6 +24,11 @@ public class SyncSlotChangeErrorMessage {
 	}
 
 	private static void writeSlotChangeResult(FriendlyByteBuf packetBuffer, UpgradeSlotChangeResult slotChangeResult) {
+		if (slotChangeResult.isSuccessful()) {
+			packetBuffer.writeBoolean(true);
+			return;
+		}
+		packetBuffer.writeBoolean(false);
 		packetBuffer.writeComponent(slotChangeResult.getErrorMessage().orElse(Component.empty()));
 		packetBuffer.writeVarIntArray(slotChangeResult.getErrorUpgradeSlots().stream().mapToInt(i -> i).toArray());
 		packetBuffer.writeVarIntArray(slotChangeResult.getErrorInventorySlots().stream().mapToInt(i -> i).toArray());
@@ -31,6 +36,12 @@ public class SyncSlotChangeErrorMessage {
 	}
 
 	public static SyncSlotChangeErrorMessage decode(FriendlyByteBuf packetBuffer) {
+		boolean success = packetBuffer.readBoolean();
+
+		if (success) {
+			return new SyncSlotChangeErrorMessage(new UpgradeSlotChangeResult.Success());
+		}
+
 		return new SyncSlotChangeErrorMessage(new UpgradeSlotChangeResult.Fail(packetBuffer.readComponent(),
 				Arrays.stream(packetBuffer.readVarIntArray()).boxed().collect(Collectors.toSet()),
 				Arrays.stream(packetBuffer.readVarIntArray()).boxed().collect(Collectors.toSet()),
