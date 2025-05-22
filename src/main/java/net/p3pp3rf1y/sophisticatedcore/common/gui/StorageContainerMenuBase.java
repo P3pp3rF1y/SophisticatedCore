@@ -95,6 +95,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private int extraSlotsSize = 0;
 
 	private int columnsChange = 0;
+	private int inventorySlotsBeforeClickHandled;
 
 	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		this(menuType, containerId, player, storageWrapper, parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot, Collections.emptyList());
@@ -112,6 +113,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		removeOpenTabIfKeepOff();
 		storageWrapper.fillWithLoot(player);
 		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot, extraSlots);
+
+		inventorySlotsBeforeClickHandled = getInventorySlotsSize();
 	}
 
 	public abstract Optional<BlockPos> getBlockPosition();
@@ -378,6 +381,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public void clicked(int slotId, int dragType, ClickType clickType, Player player) {
+		inventorySlotsBeforeClickHandled = getInventorySlotsSize();
 		if (isUpgradeSettingsSlot(slotId) && getSlot(slotId) instanceof IFilterSlot && getSlot(slotId).mayPlace(getCarried())) {
 			Slot slot = getSlot(slotId);
 			ItemStack cursorStack = getCarried().copy();
@@ -993,7 +997,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				inventorySlotStackChanged = true;
 			}
 		} else {
-			remoteUpgradeSlots.set(slotIndex - getInventorySlotsSize(), stack);
+			remoteUpgradeSlots.set(slotIndex - inventorySlotsBeforeClickHandled, stack);
 		}
 	}
 
