@@ -15,4 +15,5 @@ public class CompatModIds {
 	public static final String CREATE = "create";
 	public static final String TRASH_SLOT = "trashslot";
 	public static final String RELIQUARY = "reliquary";
+	public static final String MOUSE_TWEAKS = "mousetweaks";
 }

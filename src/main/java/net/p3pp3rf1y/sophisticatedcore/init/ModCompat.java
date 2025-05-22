@@ -9,6 +9,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.create.CreateCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.mousetweaks.MouseTweaksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi.EmiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei.JeiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei.ReiCompat;
@@ -36,6 +37,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.CREATE, () -> CreateCompat::new);
 		compatFactories.put(CompatModIds.TRASH_SLOT, () -> TrashSlotCompat::new);
 		compatFactories.put(CompatModIds.RELIQUARY, () -> ReliquaryCompat::new);
+		compatFactories.put(CompatModIds.MOUSE_TWEAKS, () -> MouseTweaksCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 

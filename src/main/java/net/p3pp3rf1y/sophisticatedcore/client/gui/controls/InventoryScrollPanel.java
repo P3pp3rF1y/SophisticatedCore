@@ -14,6 +14,12 @@ import java.util.function.Predicate;
 
 public class InventoryScrollPanel extends ScrollPanel {
 	private static final int TOP_Y_OFFSET = 1;
+	private static boolean restrictScrollToScrollbar = false;
+
+	public static void setRestrictScrollToScrollbar(boolean restrictScrollToScrollbar) {
+		InventoryScrollPanel.restrictScrollToScrollbar = restrictScrollToScrollbar;
+	}
+
 	private final IInventoryScreen screen;
 	private final int firstSlotIndex;
 	private final int numberOfSlots;
@@ -103,6 +109,10 @@ public class InventoryScrollPanel extends ScrollPanel {
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double scroll) {
+		if (restrictScrollToScrollbar && findSlot(mouseX, mouseY).isPresent()) {
+			return false;
+		}
+
 		boolean ret = super.mouseScrolled(mouseX, mouseY, scroll);
 		updateSlotsPosition();
 		return ret;
