@@ -1,11 +1,14 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.mousetweaks;
 
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 
 public class MouseTweaksCompat implements ICompat {
 	@Override
 	public void setup() {
-		InventoryScrollPanel.setRestrictScrollToScrollbar(true);
+		if (FMLEnvironment.dist == Dist.CLIENT) {
+			MouseTweaksCompatClient.restrictSophisticatedScrollInteraction();
+		}
 	}
 }
