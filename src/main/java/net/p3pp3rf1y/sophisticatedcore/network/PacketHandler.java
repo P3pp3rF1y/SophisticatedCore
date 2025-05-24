@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.network;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -68,6 +69,10 @@ public class PacketHandler {
 
 	public <M> void sendToAllTracking(M message, Entity entity) {
 		networkWrapper.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
+	}
+
+	public <M> void sentToAllTrackingChunkOf(Level level, BlockPos pos, M message) {
+		networkWrapper.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(pos)), message);
 	}
 
 	public <M> void sendToAllNear(ServerLevel world, ResourceKey<Level> dimension, Vec3 position, int range, M message) {
