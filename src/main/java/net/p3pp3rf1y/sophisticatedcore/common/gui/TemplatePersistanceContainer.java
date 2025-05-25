@@ -40,7 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TemplatePersistanceContainer {
-	private static final Pattern EXPORT_FILE_NAME_PATTERN = Pattern.compile("[A-Za-z0-9/._\\-\\s]+");
+	private static final Pattern EXPORT_FILE_NAME_PATTERN = Pattern.compile("[A-Za-z0-9_\\-\\s]+");
 	private static final int TOTAL_ORDINAL_SAVE_SLOTS = 10;
 	private static final String ACTION_TAG = "action";
 	private static final String SAVE_SLOT_TAG = "saveSlot";
@@ -261,6 +261,7 @@ public class TemplatePersistanceContainer {
 		}
 
 		fileName = fileName.replace(' ', '_');
+
 		fileName = fileName.toLowerCase(Locale.ROOT);
 
 		String finalFileName = fileName;
