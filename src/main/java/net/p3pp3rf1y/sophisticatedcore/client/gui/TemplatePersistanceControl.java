@@ -6,17 +6,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.CompositeWidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.TextBox;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.TemplatePersistanceContainer;
 
 import java.util.List;
@@ -45,7 +36,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 	private final TextBox exportInput;
 
 	protected TemplatePersistanceControl(Position position, TemplatePersistanceContainer container) {
-		super(position, new Dimension(18, 2 * 18 + BUTTON_GAP));
+		super(position, new Dimension(18, 3 * 18 + BUTTON_GAP));
 		this.container = container;
 		container.setOnSlotsRefreshed(() -> {
 			setSaveTooltip();
