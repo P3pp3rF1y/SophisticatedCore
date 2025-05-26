@@ -33,6 +33,7 @@ jobs:
           package-name: 'sophisticatedcore.sophisticatedcore'
           package-type: 'maven'
           min-versions-to-keep: 50
+        continue-on-error: true
       - name: Publish to CurseForge
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
