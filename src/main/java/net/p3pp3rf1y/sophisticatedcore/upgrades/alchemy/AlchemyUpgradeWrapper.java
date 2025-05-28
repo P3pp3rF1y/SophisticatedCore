@@ -133,7 +133,13 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		if (entity instanceof LivingEntity livingEntity) {
 			applyTo(livingEntity);
 		} else {
-			level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(CHECK_RADIUS), this::entityMatches).forEach(this::applyTo);
+			List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(CHECK_RADIUS), this::entityMatches);
+			for (LivingEntity livingEntity : entities) {
+				applyTo(livingEntity);
+				if (applying) {
+					break;
+				}
+			}
 		}
 		if (!applying) {
 			nextCheckTime = level.getGameTime() + CHECK_INTERVAL;
