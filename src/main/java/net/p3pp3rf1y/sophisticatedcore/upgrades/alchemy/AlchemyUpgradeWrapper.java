@@ -120,6 +120,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				applying = false;
 				ItemStack remainingStack = defBeingApplied.finishUsing.apply(stackBeingAplied, applyingToEntity);
 				stackBeingAplied = ItemStack.EMPTY;
+				applyingToEntity = null;
+				defBeingApplied = null;
 				storageWrapper.getInventoryForUpgradeProcessing().insertItem(remainingStack, false);
 				nextCheckTime = level.getGameTime() + CHECK_INTERVAL;
 			} else if (shouldTriggerItemUseEffects()) {
