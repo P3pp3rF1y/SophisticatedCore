@@ -1213,13 +1213,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				if (itemstack4.isEmpty()) {
 					if (slot2.mayPickup(player)) {
 						if (slotStack.getCount() <= slotStack.getMaxStackSize()) {
-							inventory.setItem(dragType, slotStack);
+							inventory.setItem(dragType, slotStack.copy());
 							onSwapCraft(slot2, slotStack.getCount());
 							slot2.set(ItemStack.EMPTY);
 							slot2.onTake(player, slotStack);
 						} else {
-							inventory.setItem(dragType, slotStack.split(slotStack.getMaxStackSize()));
-							slot2.setChanged();
+							inventory.setItem(dragType, slotStack.copyWithCount(slotStack.getMaxStackSize()));
+							slot2.set(slotStack.copyWithCount(slotStack.getCount() - slotStack.getMaxStackSize()));
 						}
 					}
 				} else if (slotStack.isEmpty()) {
@@ -1241,9 +1241,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 							player.drop(slotStack, true);
 						}
 					} else {
+						ItemStack slotStackCopy = slotStack.copy();
 						slot2.set(itemstack4);
-						inventory.setItem(dragType, slotStack);
-						slot2.onTake(player, slotStack);
+						inventory.setItem(dragType, slotStackCopy);
+						slot2.onTake(player, slotStackCopy);
 					}
 				}
 			}
