@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -67,7 +67,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			}
 
 			try {
-				int c = FastColor.ARGB32.opaque(Integer.parseInt(s.substring(1), 16));
+				int c = ARGB.opaque(Integer.parseInt(s.substring(1), 16));
 				colorPreview.setColor(c);
 				colorGradientArea.setColor(c);
 				rainbowSlider.setColor(c);
@@ -151,30 +151,30 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 
 		public void setColor(int color) {
 			this.color = color;
-			this.hue = Color.RGBtoHSB(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), null)[0];
+			this.hue = Color.RGBtoHSB(ARGB.red(color), ARGB.green(color), ARGB.blue(color), null)[0];
 		}
 
 		public void setHue(float hue) {
 			this.hue = hue;
-			float[] hsv = Color.RGBtoHSB(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), null);
+			float[] hsv = Color.RGBtoHSB(ARGB.red(color), ARGB.green(color), ARGB.blue(color), null);
 			float saturation = hsv[1];
 			float value = hsv[2];
-			color = FastColor.ARGB32.opaque(Mth.hsvToRgb(hue, saturation, value));
+			color = ARGB.opaque(Mth.hsvToRgb(hue, saturation, value));
 			colorSetter.accept(color);
 		}
 
 		@Override
 		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 			int topRightCornerColor = Mth.hsvToRgb(hue, 1, 1);
-			int red = FastColor.ARGB32.red(topRightCornerColor);
-			int green = FastColor.ARGB32.green(topRightCornerColor);
-			int blue = FastColor.ARGB32.blue(topRightCornerColor);
+			int red = ARGB.red(topRightCornerColor);
+			int green = ARGB.green(topRightCornerColor);
+			int blue = ARGB.blue(topRightCornerColor);
 			for (int i = 0; i < getWidth(); i++) {
 				for (int j = 0; j < getHeight(); j++) {
 
 					float horizontalFactor = (float) i / getWidth();
 					float verticalFactor = (float) j / getHeight();
-					int color = FastColor.ARGB32.opaque(FastColor.ARGB32.color(
+					int color = ARGB.opaque(ARGB.color(
 							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + red * horizontalFactor)),
 							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + green * horizontalFactor)),
 							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + blue * horizontalFactor))
@@ -187,7 +187,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 
 		@Override
 		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-			float[] hsv = Color.RGBtoHSB(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), null);
+			float[] hsv = Color.RGBtoHSB(ARGB.red(color), ARGB.green(color), ARGB.blue(color), null);
 			int x = (int) (hsv[1] * getWidth());
 			int y = (int) ((1 - hsv[2]) * getHeight());
 
@@ -208,7 +208,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			double yClicked = mouseY - y;
 			float saturation = (float) xClicked / getWidth();
 			float value = 1 - (float) yClicked / getHeight();
-			color = FastColor.ARGB32.opaque(Mth.hsvToRgb(hue, saturation, value));
+			color = ARGB.opaque(Mth.hsvToRgb(hue, saturation, value));
 			colorSetter.accept(color);
 		}
 
@@ -229,7 +229,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		public void setColor(int color) {
-			float[] hsl = Color.RGBtoHSB(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), null);
+			float[] hsl = Color.RGBtoHSB(ARGB.red(color), ARGB.green(color), ARGB.blue(color), null);
 			this.hue = hsl[0];
 		}
 
@@ -237,7 +237,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 			for (int i = 0; i < getHeight(); i++) {
 				float renderedHue = (float) i / getHeight();
-				int color = FastColor.ARGB32.opaque(Mth.hsvToRgb(renderedHue, 1, 1));
+				int color = ARGB.opaque(Mth.hsvToRgb(renderedHue, 1, 1));
 				guiGraphics.fill(x, y + getHeight() - i, x + getWidth(), y + getHeight() - i - 1, color);
 			}
 		}

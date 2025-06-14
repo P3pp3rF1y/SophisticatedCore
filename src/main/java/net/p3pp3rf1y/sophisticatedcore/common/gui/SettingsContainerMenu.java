@@ -64,7 +64,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	private boolean inventorySlotStackChanged = false;
 	private final Set<Integer> inaccessibleSlots = new HashSet<>();
 	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
-	private final Map<Integer, Pair<ResourceLocation, ResourceLocation>> emptySlotIcons = new HashMap<>();
+	private final Map<Integer, ResourceLocation> emptySlotIcons = new HashMap<>();
 
 	protected SettingsContainerMenu(MenuType<?> menuType, int windowId, Player player, S storageWrapper) {
 		super(menuType, windowId);
@@ -299,7 +299,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 		@Nullable
 		@Override
-		public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+		public ResourceLocation getNoItemIcon() {
 			return inaccessibleSlots.contains(getSlotIndex()) ? StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(getSlotIndex(), null);
 		}
 	}
@@ -369,7 +369,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	@Override
 	public void updateEmptySlotIcons(Map<ResourceLocation, Set<Integer>> emptySlotIcons) {
 		this.emptySlotIcons.clear();
-		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, new Pair<>(InventoryMenu.BLOCK_ATLAS, textureName))));
+		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, textureName)));
 	}
 
 	@Override

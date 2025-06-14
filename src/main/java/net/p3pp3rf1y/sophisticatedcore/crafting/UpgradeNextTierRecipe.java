@@ -14,7 +14,7 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	private final ShapedRecipe compose;
 
 	public UpgradeNextTierRecipe(ShapedRecipe compose) {
-		super(compose.getGroup(), compose.category(), compose.pattern, compose.result);
+		super(compose.group(), compose.category(), compose.pattern, compose.result);
 		this.compose = compose;
 	}
 
@@ -26,7 +26,7 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	@Override
 	public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
 		ItemStack nextTier = super.assemble(inv, registries);
-		getUpgrade(inv).ifPresent(upgrade -> nextTier.components.setAll(upgrade.getComponents()));
+		getUpgrade(inv).map(ItemStack::getComponentsPatch).ifPresent(nextTier::applyComponents);
 		return nextTier;
 	}
 
@@ -46,7 +46,7 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	}
 
 	@Override
-	public RecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<UpgradeNextTierRecipe> getSerializer() {
 		return ModRecipes.UPGRADE_NEXT_TIER_SERIALIZER.get();
 	}
 

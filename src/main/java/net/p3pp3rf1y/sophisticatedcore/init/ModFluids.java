@@ -38,8 +38,8 @@ public class ModFluids {
 	public static final Supplier<FlowingFluid> XP_FLOWING = FLUIDS.register("xp_flowing", () -> new BaseFlowingFluid.Flowing(fluidProperties()));
 	public static final Supplier<FluidType> XP_FLUID_TYPE = FLUID_TYPES.register("experience", () -> new FluidType(FluidType.Properties.create().lightLevel(10).density(800).viscosity(1500)));
 
-	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registries.ITEM, SophisticatedCore.MOD_ID);
-	public static final Supplier<Item> XP_BUCKET = ITEMS.register("xp_bucket", () -> new BucketItem(XP_STILL.get(), new Item.Properties().stacksTo(1)));
+	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(SophisticatedCore.MOD_ID);
+	public static final Supplier<Item> XP_BUCKET = ITEMS.registerItem("xp_bucket", properties -> new BucketItem(XP_STILL.get(), properties.stacksTo(1)));
 
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB.location(), SophisticatedCore.MOD_ID);
 	public static final Supplier<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () ->

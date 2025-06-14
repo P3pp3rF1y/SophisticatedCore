@@ -11,8 +11,8 @@ public class AlchemyUpgradeItem extends UpgradeItemBase<AlchemyUpgradeWrapper> {
 	private static final UpgradeType<AlchemyUpgradeWrapper> TYPE = new UpgradeType<>(AlchemyUpgradeWrapper::new);
 	private final IntSupplier filterSlotCount;
 
-	public AlchemyUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public AlchemyUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.filterSlotCount = filterSlotCount;
 	}
 

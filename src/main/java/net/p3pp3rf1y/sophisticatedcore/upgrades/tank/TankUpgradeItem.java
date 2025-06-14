@@ -21,8 +21,8 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 
 	private final TankUpgradeConfig tankUpgradeConfig;
 
-	public TankUpgradeItem(TankUpgradeConfig tankUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public TankUpgradeItem(TankUpgradeConfig tankUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.tankUpgradeConfig = tankUpgradeConfig;
 	}
 

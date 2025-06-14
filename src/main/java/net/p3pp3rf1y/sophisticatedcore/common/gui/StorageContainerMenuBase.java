@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 
 public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extends AbstractContainerMenu implements IAdditionalSlotInfoMenu {
 	public static final int NUMBER_OF_PLAYER_SLOTS = 36;
-	public static final ResourceLocation EMPTY_UPGRADE_SLOT_BACKGROUND = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "item/empty_upgrade_slot");
-	public static final Pair<ResourceLocation, ResourceLocation> INACCESSIBLE_SLOT_BACKGROUND = new Pair<>(InventoryMenu.BLOCK_ATLAS, SophisticatedCore.getRL("item/inaccessible_slot"));
+	public static final ResourceLocation EMPTY_UPGRADE_SLOT_BACKGROUND = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "container/slot/upgrade");
+	public static final ResourceLocation INACCESSIBLE_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/inaccessible");
 	protected static final String UPGRADE_ENABLED_TAG = "upgradeEnabled";
 	protected static final String UPGRADE_SLOT_TAG = "upgradeSlot";
 	protected static final String ACTION_TAG = "action";
@@ -86,7 +86,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private final Map<Integer, Integer> slotLimitOverrides = new HashMap<>();
 	private final Set<Integer> infiniteSlots = new HashSet<>();
 	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
-	private final Map<Integer, Pair<ResourceLocation, ResourceLocation>> emptySlotIcons = new HashMap<>();
+	private final Map<Integer, ResourceLocation> emptySlotIcons = new HashMap<>();
 
 	private boolean slotsChangedSinceStartOfClick = false;
 	private boolean tryingToMergeUpgrade = false;
@@ -261,7 +261,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 				@Nullable
 				@Override
-				public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+				public ResourceLocation getNoItemIcon() {
 					return inaccessibleSlots.contains(finalSlotIndex) ? INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(finalSlotIndex, null);
 				}
 
@@ -371,8 +371,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return index >= getNumberOfStorageInventorySlots() + getNumberOfUpgradeSlots() + StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS && index < getTotalSlotsNumber();
 	}
 
-	public boolean isStorageInventorySlot(int index) {
-		return index >= 0 && index < getNumberOfStorageInventorySlots();
+	public boolean isStorageInventorySlot(int slotIndex) {
+		return slotIndex >= 0 && slotIndex < getNumberOfStorageInventorySlots();
+	}
+
+	public boolean isStorageInventorySlot(Slot slot) {
+		return slot instanceof StorageInventorySlot && isStorageInventorySlot(slot.index);
 	}
 
 	protected boolean isUpgradeSlot(int index) {
@@ -803,8 +807,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			if (slots.isEmpty()) {
 				return false;
 			}
-			int firstSlotIndex = slots.get(0).index;
-			int lastSlotIndex = slots.get(slots.size() - 1).index;
+			int firstSlotIndex = slots.getFirst().index;
+			int lastSlotIndex = slots.getLast().index;
 			return mergeItemStack(sourceSlot, slotStack, firstSlotIndex, lastSlotIndex + 1, false, true);
 		}).orElse(false);
 	}
@@ -1113,7 +1117,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								slotStackLimit = carriedCopy.getMaxStackSize();
 							}
 
-							int l = Math.min(MathHelper.intMaxCappedAddition(getQuickCraftPlaceCount(slot1, this.quickcraftSlots.size(), this.quickcraftType, carriedCopy), j), slotStackLimit);
+							int l = Math.min(MathHelper.intMaxCappedAddition(getQuickCraftPlaceCount(slot1, quickcraftSlots.size(), quickcraftType, carriedCopy), j), slotStackLimit);
 							j1 -= l - j;
 							slot1.setByPlayer(carriedCopy.copyWithCount(l));
 						}
@@ -1213,13 +1217,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				if (itemstack4.isEmpty()) {
 					if (slot2.mayPickup(player)) {
 						if (slotStack.getCount() <= slotStack.getMaxStackSize()) {
-							inventory.setItem(dragType, slotStack);
+							inventory.setItem(dragType, slotStack.copy());
 							onSwapCraft(slot2, slotStack.getCount());
 							slot2.set(ItemStack.EMPTY);
 							slot2.onTake(player, slotStack);
 						} else {
-							inventory.setItem(dragType, slotStack.split(slotStack.getMaxStackSize()));
-							slot2.setChanged();
+							inventory.setItem(dragType, slotStack.copyWithCount(slotStack.getMaxStackSize()));
+							slot2.set(slotStack.copyWithCount(slotStack.getCount() - slotStack.getMaxStackSize()));
 						}
 					}
 				} else if (slotStack.isEmpty()) {
@@ -1241,9 +1245,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 							player.drop(slotStack, true);
 						}
 					} else {
+						ItemStack slotStackCopy = slotStack.copy();
 						slot2.set(itemstack4);
-						inventory.setItem(dragType, slotStack);
-						slot2.onTake(player, slotStack);
+						inventory.setItem(dragType, slotStackCopy);
+						slot2.onTake(player, slotStackCopy);
 					}
 				}
 			}
@@ -1715,7 +1720,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public void updateEmptySlotIcons(Map<ResourceLocation, Set<Integer>> emptySlotIcons) {
 		this.emptySlotIcons.clear();
-		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, new Pair<>(InventoryMenu.BLOCK_ATLAS, textureName))));
+		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, textureName)));
 	}
 
 	public ItemStack getSlotFilterItem(int slot) {
@@ -1851,8 +1856,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 		@Nullable
 		@Override
-		public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-			return new Pair<>(InventoryMenu.BLOCK_ATLAS, StorageContainerMenuBase.EMPTY_UPGRADE_SLOT_BACKGROUND);
+		public ResourceLocation getNoItemIcon() {
+			return StorageContainerMenuBase.EMPTY_UPGRADE_SLOT_BACKGROUND;
 		}
 	}
 }

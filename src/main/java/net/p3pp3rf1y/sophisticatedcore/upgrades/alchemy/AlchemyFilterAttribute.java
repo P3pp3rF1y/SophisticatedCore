@@ -35,22 +35,15 @@ public record AlchemyFilterAttribute(ItemStack filter, AlchemyCondition conditio
 	}
 
 	public AlchemyFilterAttribute setFilter(ItemStack filter) {
-		CopyBuilder builder = new CopyBuilder(this);
-		builder.filter(filter);
-		return builder.build();
+		return new CopyBuilder(this).filter(filter).build();
 	}
 
 	public AlchemyFilterAttribute setConditionAndValue(AlchemyCondition condition, float value) {
-		CopyBuilder builder = new CopyBuilder(this);
-		builder.condition(condition);
-		builder.value(value);
-		return builder.build();
+		return new CopyBuilder(this).condition(condition).value(value).build();
 	}
 
 	public AlchemyFilterAttribute setValue(float value) {
-		CopyBuilder builder = new CopyBuilder(this);
-		builder.value(value);
-		return builder.build();
+		return new CopyBuilder(this).value(value).build();
 	}
 
 	private static class CopyBuilder {
@@ -59,9 +52,9 @@ public record AlchemyFilterAttribute(ItemStack filter, AlchemyCondition conditio
 		private AlchemyCondition condition;
 
 		private CopyBuilder(AlchemyFilterAttribute attribute) {
-			this.filter = attribute.filter;
-			this.condition = attribute.condition;
-			this.value = attribute.value;
+			filter = attribute.filter;
+			condition = attribute.condition;
+			value = attribute.value;
 		}
 
 		public CopyBuilder filter(ItemStack filter) {

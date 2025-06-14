@@ -9,8 +9,8 @@ import java.util.List;
 public class CraftingUpgradeItem extends UpgradeItemBase<CraftingUpgradeWrapper> {
 	private static final UpgradeType<CraftingUpgradeWrapper> TYPE = new UpgradeType<>(CraftingUpgradeWrapper::new);
 
-	public CraftingUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public CraftingUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 	}
 
 	@Override

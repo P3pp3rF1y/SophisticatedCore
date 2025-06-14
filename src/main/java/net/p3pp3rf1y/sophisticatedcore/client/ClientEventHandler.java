@@ -14,6 +14,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -25,6 +26,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +43,11 @@ public class ClientEventHandler {
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
+		eventBus.addListener(ClientEventHandler::recipesReceived);
+	}
+
+	private static void recipesReceived(RecipesReceivedEvent event) {
+		RecipeHelper.setRecipes(event.getRecipeMap());
 	}
 
 	private static void onDrawScreen(ScreenEvent.Render.Post event) {

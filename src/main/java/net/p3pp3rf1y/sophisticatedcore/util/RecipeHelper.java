@@ -2,17 +2,23 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.SlotDisplayContext;
 import net.minecraft.world.level.Level;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
-import net.neoforged.neoforge.client.event.RecipesUpdatedEvent;
+import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
@@ -32,6 +38,12 @@ public class RecipeHelper {
 	private static RecipeCache clientCache = null;
 	@Nullable
 	private static RecipeCache serverCache = null;
+
+	private static RecipeMap RECIPE_MAP = RecipeMap.EMPTY;
+
+	public static void setRecipes(RecipeMap recipeMap) {
+		RECIPE_MAP = recipeMap;
+	}
 
 	private RecipeHelper() {
 	}
@@ -75,7 +87,7 @@ public class RecipeHelper {
 	}
 
 	@SuppressWarnings("unused") //event parameter used to identify which event this listener is for
-	public static void onRecipesUpdated(RecipesUpdatedEvent event) {
+	public static void onRecipesUpdated(RecipesReceivedEvent event) {
 		runOnCache(cache -> {
 			cache.clearCache();
 			cache.recipeChangeListeners.notifyAllListeners();
@@ -278,6 +290,10 @@ public class RecipeHelper {
 		return craftinginventory;
 	}
 
+	public static RecipePropertySet getPropertySet(ResourceKey<RecipePropertySet> acceptedInputs) {
+		return getLevel().map(level -> level.recipeAccess().propertySet(acceptedInputs)).orElse(RecipePropertySet.EMPTY);
+	}
+
 	public static <T extends AbstractCookingRecipe> Optional<RecipeHolder<T>> getCookingRecipe(ItemStack stack, RecipeType<T> recipeType) {
 		return getLevel().flatMap(w -> safeGetRecipeFor(recipeType, new SingleRecipeInput(stack), w, null));
 	}
@@ -286,30 +302,59 @@ public class RecipeHelper {
 		return getFromCache(cache -> cache.getItemCompactingShapes(stack), Collections.emptySet());
 	}
 
+	public static <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeHolder<T>> getRecipesOfType(RecipeType<T> recipeType) {
+		return getLevel().map(level -> safeGetRecipesOfType(recipeType, level)).orElse(Collections.emptyList());
+	}
+
 	public static <I extends RecipeInput, T extends Recipe<I>> List<RecipeHolder<T>> getRecipesOfType(RecipeType<T> recipeType, I inventory) {
-		return getLevel().map(w -> w.getRecipeManager().getRecipesFor(recipeType, inventory, w)).orElse(Collections.emptyList());
+		return getLevel().map(level -> safeGetRecipesFor(recipeType, inventory, level)).orElse(Collections.emptyList());
 	}
 
-	public static <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> safeGetRecipeFor(RecipeType<T> recipeType, I inventory, @Nullable ResourceLocation recipeId) {
-		return getLevel().flatMap(w -> safeGetRecipeFor(recipeType, inventory, w, recipeId));
-	}
-
-	public static <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> safeGetRecipeFor(RecipeType<T> recipeType, I inventory, Level level, @Nullable ResourceLocation recipeId) {
+	public static <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> safeGetRecipeFor(RecipeType<T> recipeType, I inventory, Level level, @Nullable ResourceKey<Recipe<?>> recipeId) {
 		try {
-			return level.getRecipeManager().getRecipeFor(recipeType, inventory, level, recipeId);
+			if (!(level instanceof ServerLevel serverLevel)) {
+				SophisticatedCore.LOGGER.error("safeGetRecipeFor called on client side, returning empty optional");
+				return Optional.empty();
+			}
+
+			return serverLevel.recipeAccess().getRecipeFor(recipeType, inventory, level, recipeId);
 		} catch (Exception e) {
 			SophisticatedCore.LOGGER.error("Error while getting recipe ", e);
 			return Optional.empty();
 		}
 	}
 
-	public static <I extends CraftingInput, T extends Recipe<I>> List<RecipeHolder<T>> safeGetRecipesFor(RecipeType<T> recipeType, I inventory, Level level) {
+	public static <I extends RecipeInput, R extends Recipe<I>> Collection<RecipeHolder<R>> safeGetRecipesOfType(RecipeType<R> recipeType, Level level) {
 		try {
-			return level.getRecipeManager().getRecipesFor(recipeType, inventory, level);
+			RecipeMap recipeMap = getRecipeMap(level);
+			return recipeMap.byType(recipeType);
+		} catch (Exception e) {
+			SophisticatedCore.LOGGER.error("Error while getting recipes of type ", e);
+			return Collections.emptyList();
+		}
+	}
+
+	private static RecipeMap getRecipeMap(Level level) {
+		return level instanceof ServerLevel serverLevel ? serverLevel.recipeAccess().recipeMap() : RECIPE_MAP;
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>> List<RecipeHolder<T>> safeGetRecipesFor(RecipeType<T> recipeType, I inventory, Level level) {
+		try {
+			return getRecipeMap(level).getRecipesFor(recipeType, inventory, level).toList();
 		} catch (Exception e) {
 			SophisticatedCore.LOGGER.error("Error while getting recipe ", e);
 			return Collections.emptyList();
 		}
+	}
+
+	public static Collection<Optional<Ingredient>> getIngredients(Recipe<?> recipe) {
+		if (recipe instanceof ShapedRecipe shapedRecipe) {
+			return shapedRecipe.pattern.ingredients();
+		} else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
+			return shapelessRecipe.ingredients.stream().map(Optional::of).toList();
+		}
+
+		return Collections.emptyList();
 	}
 
 	public enum CompactingShape {
@@ -428,6 +473,14 @@ public class RecipeHelper {
 				return true;
 			});
 		}
+	}
+
+	public static HolderLookup<Item> getItemLookup() {
+		return getLevel().map(level -> level.registryAccess().lookupOrThrow(Registries.ITEM)).orElseThrow();
+	}
+
+	public static ContextMap getContextMap() {
+		return getLevel().map(SlotDisplayContext::fromLevel).orElse(ContextMap.EMPTY);
 	}
 
 	private static class RecipeCache {

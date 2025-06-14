@@ -21,25 +21,4 @@ public class JeiSubtypeInterpreter extends PropertyBasedSubtypeInterpreterWrappe
 	public final @Nullable Object getSubtypeData(ItemStack ingredient, UidContext context) {
 		return getComparableData(ingredient);
 	}
-
-	@Override
-	public String getLegacyStringSubtypeInfo(ItemStack itemStack, UidContext context) {
-		StringBuilder result = new StringBuilder();
-		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
-			@Nullable Object value = definition.getPropertyValue(itemStack);
-			if (value != null) {
-				String serializedValue = getSerializedPropertyValue(definition, value);
-				if (!result.isEmpty()) {
-					result.append(',');
-				}
-				result.append(definition.getPropertyName()).append(':').append(serializedValue);
-			}
-		}
-		return "{" + result + "}";
-	}
-
-	private <T> String getSerializedPropertyValue(IPropertyDefinition<T> definition, Object value) {
-		//noinspection unchecked
-		return definition.serializePropertyValue((T) value);
-	}
 }

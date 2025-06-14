@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -10,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -19,9 +21,10 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 	private static final int NOTHING_TO_DO_COOLDOWN = 10;
 	protected final CookingLogic<R> cookingLogic;
 
-	protected CookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, float burnTimeModifier) {
+	protected CookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, ResourceKey<RecipePropertySet> acceptedInputs, float burnTimeModifier) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		cookingLogic = new CookingLogic<>(upgrade, upgradeSaveHandler, upgradeItem.getCookingUpgradeConfig(), recipeType, burnTimeModifier);
+		RecipePropertySet validInput = RecipeHelper.getPropertySet(acceptedInputs);
+		cookingLogic = new CookingLogic<>(upgrade, upgradeSaveHandler, upgradeItem.getCookingUpgradeConfig(), recipeType, validInput::test, burnTimeModifier);
 	}
 
 	@Override
@@ -36,11 +39,11 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 
 		boolean isBurning = cookingLogic.isBurning(level);
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		if (renderInfo.getUpgradeRenderData(CookingUpgradeRenderData.TYPE).map(CookingUpgradeRenderData::isBurning).orElse(false) != isBurning) {
+		if (renderInfo.getUpgradeClientData(CookingUpgradeClientData.TYPE).map(CookingUpgradeClientData::isBurning).orElse(false) != isBurning) {
 			if (isBurning) {
-				renderInfo.setUpgradeRenderData(CookingUpgradeRenderData.TYPE, new CookingUpgradeRenderData(true));
+				renderInfo.setUpgradeClientData(CookingUpgradeClientData.TYPE, new CookingUpgradeClientData(true));
 			} else {
-				renderInfo.removeUpgradeRenderData(CookingUpgradeRenderData.TYPE);
+				renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 			}
 		}
 	}
@@ -61,7 +64,7 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 	private void pauseAndRemoveRenderInfo() {
 		cookingLogic.pause();
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		renderInfo.removeUpgradeRenderData(CookingUpgradeRenderData.TYPE);
+		renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 	}
 
 	public CookingLogic<R> getCookingLogic() {
@@ -70,19 +73,19 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 
 	public static class SmeltingUpgradeWrapper extends CookingUpgradeWrapper<SmeltingUpgradeWrapper, SmeltingUpgradeItem, SmeltingRecipe> {
 		public SmeltingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMELTING, 1);
+			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMELTING, RecipePropertySet.FURNACE_INPUT, 1);
 		}
 	}
 
 	public static class SmokingUpgradeWrapper extends CookingUpgradeWrapper<SmokingUpgradeWrapper, SmokingUpgradeItem, SmokingRecipe> {
 		public SmokingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMOKING, 0.5f);
+			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMOKING, RecipePropertySet.SMOKER_INPUT, 0.5f);
 		}
 	}
 
 	public static class BlastingUpgradeWrapper extends CookingUpgradeWrapper<BlastingUpgradeWrapper, BlastingUpgradeItem, BlastingRecipe> {
 		public BlastingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.BLASTING, 0.5f);
+			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.BLASTING, RecipePropertySet.BLAST_FURNACE_INPUT, 0.5f);
 		}
 	}
 }

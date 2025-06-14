@@ -109,7 +109,7 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 	public int getFirstSelectedSlot() {
 		List<Integer> slots = getCategory().getSlots();
 
-		return slots.isEmpty() ? -1 : slots.get(0);
+		return slots.isEmpty() ? -1 : slots.getFirst();
 	}
 
 	public DisplaySide getDisplaySide() {

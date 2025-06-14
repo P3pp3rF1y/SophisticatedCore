@@ -12,8 +12,8 @@ public class PickupUpgradeItem extends UpgradeItemBase<PickupUpgradeWrapper> {
 
 	private final IntSupplier filterSlotCount;
 
-	public PickupUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public PickupUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.filterSlotCount = filterSlotCount;
 	}
 

@@ -13,31 +13,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmiSettingsGhostDragDropHandler<T extends SettingsScreen> extends EmiDragDropHandler.SlotBased<T> {
-    public EmiSettingsGhostDragDropHandler() {
-        super(
-            screen -> {
-                List<Slot> slots = new ArrayList<>();
-                screen.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
-                    if (tab instanceof MemorySettingsTab) {
-                        screen.getMenu().getStorageInventorySlots().forEach(s -> {
-                            if (s.getItem().isEmpty()) {
-                                slots.add(s);
-                            }
-                        });
-                    }
-                });
-                return slots;
-            },
-            (screen, slot, ingredient) -> {
-                List<EmiStack> stacks = ingredient.getEmiStacks();
-                if (stacks.size() != 1)
-                    return;
+	public EmiSettingsGhostDragDropHandler() {
+		super(
+				screen -> {
+					List<Slot> slots = new ArrayList<>();
+					screen.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
+						if (tab instanceof MemorySettingsTab) {
+							screen.getMenu().getStorageInventorySlots().forEach(s -> {
+								if (s.getItem().isEmpty()) {
+									slots.add(s);
+								}
+							});
+						}
+					});
+					return slots;
+				},
+				(screen, slot, ingredient) -> {
+					List<EmiStack> stacks = ingredient.getEmiStacks();
+					if (stacks.size() != 1)
+						return;
 
-                ItemStack stack = stacks.getFirst().getItemStack();
-                if (slot.mayPlace(stack)) {
-					PacketDistributor.sendToServer(new SetMemorySlotPayload(stack, slot.index));
-                }
-            }
-        );
-    }
+					ItemStack stack = stacks.getFirst().getItemStack();
+					if (slot.mayPlace(stack)) {
+						PacketDistributor.sendToServer(new SetMemorySlotPayload(stack, slot.index));
+					}
+				}
+		);
+	}
 }

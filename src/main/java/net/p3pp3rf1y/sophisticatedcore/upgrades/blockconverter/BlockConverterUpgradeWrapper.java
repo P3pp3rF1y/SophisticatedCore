@@ -1,7 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -38,7 +39,7 @@ public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgra
 		return inputInventory;
 	}
 
-	public void setRecipeId(@Nullable ResourceLocation recipeId) {
+	public void setRecipeId(@Nullable ResourceKey<Recipe<?>> recipeId) {
 		if (recipeId == null) {
 			upgrade.remove(ModCoreDataComponents.RECIPE_ID);
 			return;
@@ -47,7 +48,7 @@ public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgra
 		save();
 	}
 
-	public Optional<ResourceLocation> getRecipeId() {
+	public Optional<ResourceKey<Recipe<?>>> getRecipeId() {
 		return Optional.ofNullable(upgrade.get(ModCoreDataComponents.RECIPE_ID));
 	}
 

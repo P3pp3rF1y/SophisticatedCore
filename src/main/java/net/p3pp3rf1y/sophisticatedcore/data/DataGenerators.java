@@ -1,20 +1,48 @@
 package net.p3pp3rf1y.sophisticatedcore.data;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.DataGenerator;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 
 public class DataGenerators {
-	private DataGenerators() {}
+	private DataGenerators() {
+	}
 
-	public static void gatherData(GatherDataEvent evt) {
-		DataGenerator generator = evt.getGenerator();
-		PackOutput packOutput = generator.getPackOutput();
-		CompletableFuture<HolderLookup.Provider> registries = evt.getLookupProvider();
-		generator.addProvider(evt.includeServer(), new SCFluidTagsProvider(packOutput, registries, evt.getExistingFileHelper()));
-		generator.addProvider(evt.includeServer(), new SCRecipeProvider(packOutput, registries));
+	public static void gatherData(GatherDataEvent.Client evt) {
+		evt.createProvider(CoreFluidTagsProvider::new);
+		evt.createProvider(CoreRecipeProvider.Runner::new);
+		evt.createProvider(CoreModelProvider::new);
+	}
+
+	private static class CoreModelProvider extends SophisticatedModelProvider {
+		public CoreModelProvider(PackOutput output) {
+			super(output, SophisticatedCore.MOD_ID);
+		}
+
+		@Override
+		protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+			itemModels.itemModelOutput.accept(
+					ModFluids.XP_BUCKET.get(),
+					new DynamicFluidContainerModel.Unbaked(
+							new DynamicFluidContainerModel.Textures(
+									Optional.of(ResourceLocation.withDefaultNamespace("item/bucket")),
+									Optional.of(ResourceLocation.withDefaultNamespace("item/bucket")),
+									Optional.of(ResourceLocation.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid")),
+									Optional.empty()
+							),
+							ModFluids.XP_STILL.get(),
+							false,
+							false,
+							false
+					)
+			);
+		}
 	}
 }

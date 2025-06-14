@@ -102,7 +102,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	public void searchAndAddBoundables() {
 		Set<BlockPos> positionsToCheck = new HashSet<>();
 		for (Direction dir : Direction.values()) {
-			positionsToCheck.add(getBlockPos().offset(dir.getNormal()));
+			positionsToCheck.add(getBlockPos().offset(dir.getUnitVec3i()));
 		}
 		searchAndAddBoundables(positionsToCheck, false);
 	}
@@ -199,7 +199,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
 		for (Direction dir : Direction.values()) {
-			BlockPos pos = currentPos.offset(dir.getNormal());
+			BlockPos pos = currentPos.offset(dir.getUnitVec3i());
 			if (!positionsChecked.contains(pos) && ((!storagePositions.contains(pos) && !connectingBlocks.contains(pos) && !nonConnectingBlocks.contains(pos)) || linkedBlocks.contains(pos)) && isWithinRange(pos)) {
 				positionsToCheck.add(pos);
 			}
@@ -468,7 +468,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 		Set<BlockPos> positionsToCheck = new HashSet<>();
 		for (Direction dir : Direction.values()) {
-			BlockPos offsetPos = getBlockPos().offset(dir.getNormal());
+			BlockPos offsetPos = getBlockPos().offset(dir.getUnitVec3i());
 			if (toVerify.contains(offsetPos)) {
 				positionsToCheck.add(offsetPos);
 			}
@@ -510,7 +510,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 				toVerify.remove(posToCheck);
 				if (h.canConnectStorages()) {
 					for (Direction dir : Direction.values()) {
-						BlockPos pos = posToCheck.offset(dir.getNormal());
+						BlockPos pos = posToCheck.offset(dir.getUnitVec3i());
 						if (!positionsChecked.contains(pos) && toVerify.contains(pos)) {
 							positionsToCheck.add(pos);
 						}

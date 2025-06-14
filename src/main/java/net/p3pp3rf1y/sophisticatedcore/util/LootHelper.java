@@ -43,7 +43,7 @@ public class LootHelper {
 			}
 
 			if (!lootStack.isEmpty()) {
-				inventory.setStackInSlot(slots.remove(slots.size() - 1), lootStack);
+				inventory.setStackInSlot(slots.removeLast(), lootStack);
 			}
 		}
 	}

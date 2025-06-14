@@ -13,30 +13,30 @@ import java.util.function.Function;
 
 public class StorageWrapperRepository {
 
-    private static final Cache<ItemStack, IStorageWrapper> stackStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
-    private static final Cache<UUID, IStorageWrapper> uuidStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
+	private static final Cache<ItemStack, IStorageWrapper> stackStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
+	private static final Cache<UUID, IStorageWrapper> uuidStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
 
-    public static <T extends IStorageWrapper> Optional<T> getExistingStorageWrapper(ItemStack stack, Class<T> wrapperClass) {
-        IStorageWrapper storageWrapper = stackStorageWrappers.getIfPresent(stack);
-        if (wrapperClass.isInstance(storageWrapper)) {
-            return Optional.of(wrapperClass.cast(storageWrapper));
-        }
-        return Optional.empty();
-    }
+	public static <T extends IStorageWrapper> Optional<T> getExistingStorageWrapper(ItemStack stack, Class<T> wrapperClass) {
+		IStorageWrapper storageWrapper = stackStorageWrappers.getIfPresent(stack);
+		if (wrapperClass.isInstance(storageWrapper)) {
+			return Optional.of(wrapperClass.cast(storageWrapper));
+		}
+		return Optional.empty();
+	}
 
-    public static <T extends IStorageWrapper> T getStorageWrapper(ItemStack stack, Class<T> wrapperClass, Function<ItemStack, T> factory) {
-        IStorageWrapper storageWrapper = stackStorageWrappers.getIfPresent(stack);
-        if (storageWrapper == null) {
-            storageWrapper = instantiateWrapper(stack, factory);
-            stackStorageWrappers.put(stack, storageWrapper);
-        } else if (!wrapperClass.isInstance(storageWrapper)) {
-            SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...", stack, wrapperClass);
-            stackStorageWrappers.invalidate(stack);
-            storageWrapper = instantiateWrapper(stack, factory);
-            stackStorageWrappers.put(stack, storageWrapper);
-        }
-        return wrapperClass.cast(storageWrapper);
-    }
+	public static <T extends IStorageWrapper> T getStorageWrapper(ItemStack stack, Class<T> wrapperClass, Function<ItemStack, T> factory) {
+		IStorageWrapper storageWrapper = stackStorageWrappers.getIfPresent(stack);
+		if (storageWrapper == null) {
+			storageWrapper = instantiateWrapper(stack, factory);
+			stackStorageWrappers.put(stack, storageWrapper);
+		} else if (!wrapperClass.isInstance(storageWrapper)) {
+			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...", stack, wrapperClass);
+			stackStorageWrappers.invalidate(stack);
+			storageWrapper = instantiateWrapper(stack, factory);
+			stackStorageWrappers.put(stack, storageWrapper);
+		}
+		return wrapperClass.cast(storageWrapper);
+	}
 
 /*    public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) { //TODO future UUID based caching and retrieval
         IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid);
@@ -52,17 +52,17 @@ public class StorageWrapperRepository {
         return wrapperClass.cast(storageWrapper);
     }*/
 
-    private static <T extends IStorageWrapper> T instantiateWrapper(ItemStack stack, Function<ItemStack, T> instantiate) {
-        return instantiate.apply(stack);
-    }
+	private static <T extends IStorageWrapper> T instantiateWrapper(ItemStack stack, Function<ItemStack, T> instantiate) {
+		return instantiate.apply(stack);
+	}
 
-    public static void migrateToUuid(IStorageWrapper storageWrapper, ItemStack stack, UUID storageUuid) {
-        stackStorageWrappers.invalidate(stack);
-        uuidStorageWrappers.put(storageUuid, storageWrapper);
-    }
+	public static void migrateToUuid(IStorageWrapper storageWrapper, ItemStack stack, UUID storageUuid) {
+		stackStorageWrappers.invalidate(stack);
+		uuidStorageWrappers.put(storageUuid, storageWrapper);
+	}
 
-    public static void clearCache() {
-        stackStorageWrappers.invalidateAll();
-        uuidStorageWrappers.invalidateAll();
-    }
+	public static void clearCache() {
+		stackStorageWrappers.invalidateAll();
+		uuidStorageWrappers.invalidateAll();
+	}
 }

@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -16,6 +17,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,19 +40,20 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 	private int fuelCooldown = 0;
 	private int inputCooldown = 0;
 
-	public AutoCookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, float burnTimeModifier) {
+	public AutoCookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, ResourceKey<RecipePropertySet> acceptedInputs, float burnTimeModifier) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		this.recipeType = recipeType;
+		RecipePropertySet validInput = RecipeHelper.getPropertySet(acceptedInputs);
 		AutoCookingUpgradeConfig autoCookingUpgradeConfig = upgradeItem.getAutoCookingUpgradeConfig();
 		inputFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.inputFilterSlots.get(),
-				s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), ModCoreDataComponents.INPUT_FILTER_ATTRIBUTES);
+				validInput::test, ModCoreDataComponents.INPUT_FILTER_ATTRIBUTES);
 		fuelFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.fuelFilterSlots.get(),
-				s -> s.getBurnTime(recipeType) > 0, ModCoreDataComponents.FUEL_FILTER_ATTRIBUTES);
+				s -> s.getBurnTime(recipeType, WorldHelper.getFuelValues()) > 0, ModCoreDataComponents.FUEL_FILTER_ATTRIBUTES);
 		fuelFilterLogic.setAllowByDefault(true);
 		fuelFilterLogic.setEmptyAllowListMatchesEverything();
 
-		isValidInput = s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent() && inputFilterLogic.matchesFilter(s);
-		isValidFuel = s -> s.getBurnTime(recipeType) > 0 && fuelFilterLogic.matchesFilter(s);
+		isValidInput = s -> validInput.test(s) && inputFilterLogic.matchesFilter(s);
+		isValidFuel = s -> s.getBurnTime(recipeType, WorldHelper.getFuelValues()) > 0 && fuelFilterLogic.matchesFilter(s);
 		cookingLogic = new CookingLogic<>(upgrade, upgradeSaveHandler, isValidFuel, isValidInput, autoCookingUpgradeConfig, recipeType, burnTimeModifier);
 	}
 
@@ -65,7 +68,7 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 	private void pauseAndRemoveRenderInfo() {
 		cookingLogic.pause();
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		renderInfo.removeUpgradeRenderData(CookingUpgradeRenderData.TYPE);
+		renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 	}
 
 	@Override
@@ -89,7 +92,7 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 		}
 
 		ItemStack fuel = cookingLogic.getFuel();
-		if (!fuel.isEmpty() && fuel.getBurnTime(recipeType) <= 0 && inventory.insertItem(fuel, true).getCount() < fuel.getCount()) {
+		if (!fuel.isEmpty() && fuel.getBurnTime(recipeType, WorldHelper.getFuelValues()) <= 0 && inventory.insertItem(fuel, true).getCount() < fuel.getCount()) {
 			ItemStack ret = inventory.insertItem(fuel, false);
 			cookingLogic.getCookingInventory().extractItem(CookingLogic.FUEL_SLOT, fuel.getCount() - ret.getCount(), false);
 		}
@@ -109,11 +112,11 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 		}
 		boolean isBurning = cookingLogic.isBurning(level);
 		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		if (renderInfo.getUpgradeRenderData(CookingUpgradeRenderData.TYPE).map(CookingUpgradeRenderData::isBurning).orElse(false) != isBurning) {
+		if (renderInfo.getUpgradeClientData(CookingUpgradeClientData.TYPE).map(CookingUpgradeClientData::isBurning).orElse(false) != isBurning) {
 			if (isBurning) {
-				renderInfo.setUpgradeRenderData(CookingUpgradeRenderData.TYPE, new CookingUpgradeRenderData(true));
+				renderInfo.setUpgradeClientData(CookingUpgradeClientData.TYPE, new CookingUpgradeClientData(true));
 			} else {
-				renderInfo.removeUpgradeRenderData(CookingUpgradeRenderData.TYPE);
+				renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 			}
 		}
 	}
@@ -188,19 +191,19 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 
 	public static class AutoSmeltingUpgradeWrapper extends AutoCookingUpgradeWrapper<AutoSmeltingUpgradeWrapper, AutoSmeltingUpgradeItem, SmeltingRecipe> {
 		public AutoSmeltingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMELTING, 1);
+			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMELTING, RecipePropertySet.FURNACE_INPUT, 1);
 		}
 	}
 
 	public static class AutoSmokingUpgradeWrapper extends AutoCookingUpgradeWrapper<AutoSmokingUpgradeWrapper, AutoSmokingUpgradeItem, SmokingRecipe> {
 		public AutoSmokingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMOKING, 0.5f);
+			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.SMOKING, RecipePropertySet.SMOKER_INPUT, 0.5f);
 		}
 	}
 
 	public static class AutoBlastingUpgradeWrapper extends AutoCookingUpgradeWrapper<AutoBlastingUpgradeWrapper, AutoBlastingUpgradeItem, BlastingRecipe> {
 		public AutoBlastingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
-			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.BLASTING, 0.5f);
+			super(storageWrapper, upgrade, upgradeSaveHandler, RecipeType.BLASTING, RecipePropertySet.BLAST_FURNACE_INPUT, 0.5f);
 		}
 	}
 }

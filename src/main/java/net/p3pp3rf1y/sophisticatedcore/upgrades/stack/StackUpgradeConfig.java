@@ -63,11 +63,10 @@ public class StackUpgradeConfig {
 			nonStackableItems = new HashSet<>();
 			nonStackableItemsList.get().forEach(name -> {
 				ResourceLocation registryName = ResourceLocation.parse(name);
-				if (BuiltInRegistries.ITEM.containsKey(registryName)) {
-					nonStackableItems.add(BuiltInRegistries.ITEM.get(registryName));
-				} else {
-					SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry", name);
-				}
+				BuiltInRegistries.ITEM.get(registryName).ifPresentOrElse(
+						e -> nonStackableItems.add(e.value()),
+						() -> SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry", name)
+				);
 			});
 		}
 		return !nonStackableItems.contains(item);

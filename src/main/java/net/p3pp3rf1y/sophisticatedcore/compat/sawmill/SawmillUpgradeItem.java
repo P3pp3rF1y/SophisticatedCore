@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 public class SawmillUpgradeItem extends BlockConverterUpgradeItem<SawmillUpgradeItem, SawmillUpgradeItem.Wrapper> {
 	private static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
-	public SawmillUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
-    }
+	public SawmillUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
+	}
 
 	@Override
 	public UpgradeType<Wrapper> getType() {

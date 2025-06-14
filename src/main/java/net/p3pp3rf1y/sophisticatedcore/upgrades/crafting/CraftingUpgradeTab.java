@@ -3,8 +3,8 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.Slot;
@@ -156,7 +156,7 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 	private void renderSelectionSlotHover(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		getResultChoiceHovered(mouseX, mouseY).ifPresent(i -> {
 			Position position = resultChoicePositions.get(i);
-			AbstractContainerScreen.renderSlotHighlight(guiGraphics, position.x() + 1, position.y() + 1, 0, -2130706433);
+			guiGraphics.fill(position.x() + 1, position.y() + 1, position.x() + 1 + 16, position.y() + 1 + 16, -2130706433);
 		});
 	}
 
@@ -208,10 +208,10 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 		int halfWidth = width / 2;
 		int halfHeight = height / 2;
 
-		guiGraphics.blit(GUI_CONTROLS, resultListLeftX, resultListTopY, 85, 24, halfWidth, halfHeight, 256, 256);
-		guiGraphics.blit(GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY, (float) 117 - halfWidth, 24, halfWidth, halfHeight, 256, 256);
-		guiGraphics.blit(GUI_CONTROLS, resultListLeftX, resultListTopY + halfHeight, 85, (float) 56 - halfHeight, halfWidth, halfHeight, 256, 256);
-		guiGraphics.blit(GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY + halfHeight, (float) 117 - halfWidth, (float) 56 - halfHeight, halfWidth, halfHeight, 256, 256);
+		guiGraphics.blit(RenderType::guiTextured, GUI_CONTROLS, resultListLeftX, resultListTopY, 85, 24, halfWidth, halfHeight, 256, 256);
+		guiGraphics.blit(RenderType::guiTextured, GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY, (float) 117 - halfWidth, 24, halfWidth, halfHeight, 256, 256);
+		guiGraphics.blit(RenderType::guiTextured, GUI_CONTROLS, resultListLeftX, resultListTopY + halfHeight, 85, (float) 56 - halfHeight, halfWidth, halfHeight, 256, 256);
+		guiGraphics.blit(RenderType::guiTextured, GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY + halfHeight, (float) 117 - halfWidth, (float) 56 - halfHeight, halfWidth, halfHeight, 256, 256);
 
 		GuiHelper.renderSlotsBackground(guiGraphics, resultListLeftX + RESULT_SELECTION_BORDER_WIDTH, resultListTopY + RESULT_SELECTION_BORDER_WIDTH, 3, matchedCraftingResults.size() / 3, matchedCraftingResults.size() % 3);
 	}

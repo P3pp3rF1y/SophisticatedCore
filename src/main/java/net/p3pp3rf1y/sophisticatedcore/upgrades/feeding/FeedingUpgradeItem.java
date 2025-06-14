@@ -12,8 +12,8 @@ public class FeedingUpgradeItem extends UpgradeItemBase<FeedingUpgradeWrapper> {
 
 	private final IntSupplier filterSlotCount;
 
-	public FeedingUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public FeedingUpgradeItem(IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.filterSlotCount = filterSlotCount;
 	}
 

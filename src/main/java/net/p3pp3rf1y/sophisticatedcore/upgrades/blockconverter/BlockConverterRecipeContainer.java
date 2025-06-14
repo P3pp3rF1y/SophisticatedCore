@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter;
 
 import com.google.common.collect.Lists;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -14,10 +14,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleItemRecipe;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
@@ -25,6 +22,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -42,8 +40,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
 	private Runnable inventoryUpdateListener = () -> {};
-	private final Supplier<Optional<ResourceLocation>> getLastSelectedRecipeId;
-	private final Consumer<ResourceLocation> setLastSelectedRecipeId;
+	private final Supplier<Optional<ResourceKey<Recipe<?>>>> getLastSelectedRecipeId;
+	private final Consumer<ResourceKey<Recipe<?>>> setLastSelectedRecipeId;
 	private long lastOnTake = -1;
 	private final SoundEvent craftSound;
 
@@ -103,7 +101,6 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	}
 
 	private void updateAvailableRecipes(Container inventory, ItemStack stack) {
-		recipes.clear();
 		selectedRecipe.set(-1);
 		outputSlot.set(ItemStack.EMPTY);
 		if (!stack.isEmpty()) {
@@ -117,6 +114,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 					}
 				}
 			});
+		} else {
+			recipes = Collections.emptyList();
 		}
 	}
 

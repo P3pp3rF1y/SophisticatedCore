@@ -11,8 +11,8 @@ public class AutoSmeltingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeW
 	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoSmeltingUpgradeConfig;
 
-	public AutoSmeltingUpgradeItem(AutoCookingUpgradeConfig autoSmeltingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
+	public AutoSmeltingUpgradeItem(AutoCookingUpgradeConfig autoSmeltingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+        super(upgradeTypeLimitConfig, properties);
         this.autoSmeltingUpgradeConfig = autoSmeltingUpgradeConfig;
 	}
 

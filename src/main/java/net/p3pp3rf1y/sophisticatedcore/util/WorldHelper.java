@@ -1,9 +1,14 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.FuelValues;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.util.thread.SidedThreadGroups;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -42,5 +47,16 @@ public class WorldHelper {
 			return;
 		}
 		level.sendBlockUpdated(tile.getBlockPos(), tile.getBlockState(), tile.getBlockState(), 3);
+	}
+
+	public static FuelValues getFuelValues() {
+		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER && FMLEnvironment.dist.isClient()) {
+			return ClientLevelHelper.getFuelValues();
+		}
+		MinecraftServer currentServer = ServerLifecycleHooks.getCurrentServer();
+		if (currentServer == null) {
+			throw new IllegalArgumentException("Cannot get fuel values without a server instance.");
+		}
+		return currentServer.fuelValues();
 	}
 }

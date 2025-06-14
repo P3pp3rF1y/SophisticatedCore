@@ -11,8 +11,8 @@ public class AutoBlastingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeW
 	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoBlastingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoBlastingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoBlastingUpgradeConfig;
 
-	public AutoBlastingUpgradeItem(AutoCookingUpgradeConfig autoBlastingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
+	public AutoBlastingUpgradeItem(AutoCookingUpgradeConfig autoBlastingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+        super(upgradeTypeLimitConfig, properties);
         this.autoBlastingUpgradeConfig = autoBlastingUpgradeConfig;
 	}
 

@@ -1,27 +1,25 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.entry.InputIngredient;
 import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes;
-import me.shedaniel.rei.api.common.transfer.RecipeFinder;
-import me.shedaniel.rei.api.common.util.CollectionUtils;
-import net.minecraft.core.NonNullList;
+import me.shedaniel.rei.api.common.transfer.ItemRecipeFinder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -53,7 +51,7 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static void handlePayload(ReiTransferRecipePayload payload, IPayloadContext context) {
-		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
+		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.getValue(payload.recipeTypeId);
 		if (recipeType == null) {
 			return;
 		}
@@ -62,24 +60,24 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 		AbstractContainerMenu container = player.containerMenu;
 		List<InputIngredient<ItemStack>> inputs = readInputs(payload.tag.getList("Inputs", Tag.TAG_COMPOUND));
 
-		RecipeFinder recipeFinder = new RecipeFinder();
+		ItemRecipeFinder recipeFinder = new ItemRecipeFinder();
 		for (int slotId : payload.inventorySlots) {
 			ReiSlotAccessor slot = (ReiSlotAccessor) ReiSlotAccessor.fromSlot(container.getSlot(slotId));
 			recipeFinder.addNormalItem(slot.getItemStack());
 		}
 
-		NonNullList<Ingredient> ingredients = NonNullList.create();
+		List<List<ItemStack>> ingredients = new ArrayList<>();
 		for (InputIngredient<ItemStack> itemStacks : inputs) {
-			ingredients.add(CollectionUtils.toIngredient(itemStacks.get()));
+			ingredients.add(itemStacks.get());
 		}
 
-		IntList recipeItemIds = new IntArrayList();
-		if (recipeFinder.findRecipe(ingredients, recipeItemIds)) {
+		List<ItemStack> stacks = new ArrayList<>();
+		if (recipeFinder.findRecipe(ingredients, 1, stacks::add)) {
 			CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(
 					player,
-					payload.recipeId,
+					ResourceKey.create(Registries.RECIPE, payload.recipeId),
 					recipeType,
-					recipeItemIds.intStream().mapToObj(RecipeFinder::getStackFromId).toList(),
+					stacks,
 					payload.inputSlots,
 					payload.inventorySlots,
 					payload.maxTransfer
@@ -91,7 +89,7 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 		List<InputIngredient<ItemStack>> inputs = new ArrayList<>();
 		for (Tag t : tag) {
 			CompoundTag compoundTag = (CompoundTag) t;
-			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getInt("Index"), EntryIngredient.read(compoundTag.getList("Ingredient", Tag.TAG_COMPOUND)));
+			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getInt("Index"), EntryIngredient.codec().parse(NbtOps.INSTANCE, compoundTag.getList("Ingredient", Tag.TAG_COMPOUND)).getOrThrow());
 			inputs.add(InputIngredient.withType(stacks, VanillaEntryTypes.ITEM));
 		}
 		return inputs;

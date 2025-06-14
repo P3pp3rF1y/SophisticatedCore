@@ -55,12 +55,12 @@ public class InventoryScrollPanel extends ScrollPanel {
 		poseStack.pushPose();
 		poseStack.translate(screen.getLeftX(), screen.getTopY(), 0.0D);
 
-		screen.renderInventorySlots(guiGraphics, mouseX, mouseY, isMouseOver(mouseX, mouseY));
+		screen.renderStorageInventorySlots(guiGraphics, mouseX, mouseY, isMouseOver(mouseX, mouseY));
 
 		poseStack.popPose();
 	}
 
-	public Optional<Slot> findSlot(double mouseX, double mouseY) {
+	public Optional<Slot> getHoveredSlot(double mouseX, double mouseY) {
 		if (!isMouseOver(mouseX, mouseY)) {
 			return Optional.empty();
 		}
@@ -74,7 +74,7 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	public interface IInventoryScreen {
-		void renderInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover);
+		void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover);
 
 		boolean isMouseOverSlot(Slot slot, double mouseX, double mouseY);
 
@@ -109,7 +109,7 @@ public class InventoryScrollPanel extends ScrollPanel {
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-		if (restrictScrollToScrollbar && findSlot(mouseX, mouseY).isPresent()) {
+		if (restrictScrollToScrollbar && getHoveredSlot(mouseX, mouseY).isPresent()) {
 			return false;
 		}
 

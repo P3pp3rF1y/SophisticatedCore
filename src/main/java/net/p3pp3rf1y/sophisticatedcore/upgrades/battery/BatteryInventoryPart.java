@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
@@ -77,7 +78,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			int maxEnergyStored = container.getMaxEnergyStored();
 			List<Component> tooltip = new ArrayList<>();
 			tooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("battery.contents_tooltip"), String.format("%,d", energyStored), String.format("%,d", maxEnergyStored)));
-			guiGraphics.renderTooltip(screen.font, tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 
@@ -107,7 +108,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			int blue = (int) (initialBlue * (1 - percentage) + finalBlue * percentage);
 			int color = red << 16 | green << 8 | blue | 255 << 24;
 
-			GuiHelper.coloredBlit(matrix, getTankLeft() + 1, pos.y() + height - (i + 1) * segmentHeight, CHARGE_SEGMENT, color);
+			GuiHelper.coloredBlit(RenderType::guiTextured, matrix, getTankLeft() + 1, pos.y() + height - (i + 1) * segmentHeight, CHARGE_SEGMENT, color);
 		}
 	}
 }

@@ -11,8 +11,8 @@ public class BlastingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.B
 	public static final UpgradeType<CookingUpgradeWrapper.BlastingUpgradeWrapper> TYPE = new UpgradeType<>(CookingUpgradeWrapper.BlastingUpgradeWrapper::new);
 	private final CookingUpgradeConfig blastingUpgradeConfig;
 
-	public BlastingUpgradeItem(CookingUpgradeConfig blastingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
+	public BlastingUpgradeItem(CookingUpgradeConfig blastingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+        super(upgradeTypeLimitConfig, properties);
 		this.blastingUpgradeConfig = blastingUpgradeConfig;
 	}
 

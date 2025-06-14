@@ -2,7 +2,8 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
@@ -11,10 +12,7 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
@@ -171,8 +169,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					matchedCraftingRecipes = recipes;
 					matchedCraftingResults.clear();
 					selectedCraftingResultIndex = 0;
-					RecipeHolder<CraftingRecipe> craftingRecipe = matchedCraftingRecipes.get(0);
-					if (inventoryResult.setRecipeUsed(level, serverplayerentity, craftingRecipe)) {
+					RecipeHolder<CraftingRecipe> craftingRecipe = matchedCraftingRecipes.getFirst();
+					if (inventoryResult.setRecipeUsed(serverplayerentity, craftingRecipe)) {
 						lastRecipe = craftingRecipe;
 						itemstack = lastRecipe.value().assemble(inventory.asCraftInput(), level.registryAccess());
 						matchedCraftingResults.add(itemstack.copy());
@@ -215,7 +213,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			ItemStack result = matchedCraftingResults.get(resultIndex).copy();
 			craftingResultSlot.set(result);
 			//noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
-			craftResult.setRecipeUsed(player.level(), serverPlayer, lastRecipe);
+			craftResult.setRecipeUsed(serverPlayer, lastRecipe);
 		} else {
 			sendDataToServer(() -> NBTHelper.putInt(new CompoundTag(), DATA_SELECT_RESULT, resultIndex));
 		}
@@ -251,11 +249,11 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	}
 
 	@Override
-	public void setRecipeUsed(ResourceLocation recipeId) {
-		if (lastRecipe != null && lastRecipe.id().equals(recipeId)) {
+	public void setRecipeUsed(ResourceKey<Recipe<?>> recipeId) {
+		if (lastRecipe != null && lastRecipe.id().equals(recipeId) || !(player.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
-		player.level().getRecipeManager().byKey(recipeId).filter(r -> r.value().getType() == RecipeType.CRAFTING).map(r -> (RecipeHolder<CraftingRecipe>) r)
+		serverLevel.recipeAccess().byKey(recipeId).filter(r -> r.value().getType() == RecipeType.CRAFTING).map(r -> (RecipeHolder<CraftingRecipe>) r)
 				.ifPresent(recipe -> {
 					lastRecipe = recipe;
 					for (int i = 0; i < matchedCraftingRecipes.size(); i++) {

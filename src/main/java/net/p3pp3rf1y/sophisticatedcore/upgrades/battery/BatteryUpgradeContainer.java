@@ -4,7 +4,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -18,8 +17,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.tank.TankUpgradeWrapper;
 import java.util.function.Supplier;
 
 public class BatteryUpgradeContainer extends UpgradeContainerBase<BatteryUpgradeWrapper, BatteryUpgradeContainer> {
-	public static final ResourceLocation EMPTY_BATTERY_INPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("item/empty_battery_input_slot");
-	public static final ResourceLocation EMPTY_BATTERY_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("item/empty_battery_output_slot");
+	public static final ResourceLocation EMPTY_BATTERY_INPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/battery_input");
+	public static final ResourceLocation EMPTY_BATTERY_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/battery_output");
 
 	public BatteryUpgradeContainer(Player player, int upgradeContainerId, BatteryUpgradeWrapper upgradeWrapper, UpgradeContainerType<BatteryUpgradeWrapper, BatteryUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
@@ -28,13 +27,13 @@ public class BatteryUpgradeContainer extends UpgradeContainerBase<BatteryUpgrade
 			public int getMaxStackSize(ItemStack stack) {
 				return 1;
 			}
-		}.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_BATTERY_INPUT_SLOT_BACKGROUND));
+		}.setBackground(EMPTY_BATTERY_INPUT_SLOT_BACKGROUND));
 		slots.add(new BatteryIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("battery_output")){
 			@Override
 			public int getMaxStackSize(ItemStack stack) {
 				return 1;
 			}
-		}.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_BATTERY_OUTPUT_SLOT_BACKGROUND));
+		}.setBackground(EMPTY_BATTERY_OUTPUT_SLOT_BACKGROUND));
 	}
 
 	@Override

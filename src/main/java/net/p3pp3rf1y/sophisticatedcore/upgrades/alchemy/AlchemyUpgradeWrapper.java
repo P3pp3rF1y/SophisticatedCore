@@ -3,7 +3,9 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
@@ -14,20 +16,25 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrownPotion;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.item.consume_effects.ClearAllStatusEffectsConsumeEffect;
+import net.minecraft.world.item.consume_effects.ConsumeEffect;
+import net.minecraft.world.item.consume_effects.RemoveStatusEffectsConsumeEffect;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.network.EmitConsumableClientParticlesAndSoundsPayload;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.EntityMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
@@ -115,15 +122,17 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 			remainingApplyTime--;
 			if (remainingApplyTime <= 0) {
 				if (defBeingApplied.hasItemUseEffects()) {
-					triggerItemUseEffects(level);
+					triggerItemUseEffects();
 				}
 				applying = false;
 				ItemStack remainingStack = defBeingApplied.finishUsing.apply(stackBeingAplied, applyingToEntity);
 				stackBeingAplied = ItemStack.EMPTY;
+				applyingToEntity = null;
+				defBeingApplied = null;
 				storageWrapper.getInventoryForUpgradeProcessing().insertItem(remainingStack, false);
 				nextCheckTime = level.getGameTime() + CHECK_INTERVAL;
 			} else if (shouldTriggerItemUseEffects()) {
-				triggerItemUseEffects(level);
+				triggerItemUseEffects();
 			}
 			return;
 		}
@@ -131,7 +140,13 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		if (entity instanceof LivingEntity livingEntity) {
 			applyTo(livingEntity);
 		} else {
-			level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(CHECK_RADIUS), this::entityMatches).forEach(this::applyTo);
+			List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, new AABB(pos).inflate(CHECK_RADIUS), this::entityMatches);
+			for (LivingEntity livingEntity : entities) {
+				applyTo(livingEntity);
+				if (applying) {
+					break;
+				}
+			}
 		}
 		if (!applying) {
 			nextCheckTime = level.getGameTime() + CHECK_INTERVAL;
@@ -157,13 +172,14 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		return false;
 	}
 
-	public void triggerItemUseEffects(Level level) {
-		if (stackBeingAplied.getUseAnimation() == UseAnim.DRINK) {
-			level.playSound(null, applyingToEntity.getX(), applyingToEntity.getY(), applyingToEntity.getZ(), stackBeingAplied.getDrinkingSound(), applyingToEntity.getSoundSource(), 0.5F, level.random.nextFloat() * 0.1F + 0.9F);
+	public void triggerItemUseEffects() {
+		Consumable consumable = stackBeingAplied.get(DataComponents.CONSUMABLE);
+		if (consumable == null) {
+			return;
 		}
-
-		if (stackBeingAplied.getUseAnimation() == UseAnim.EAT) {
-			level.playSound(null, applyingToEntity.getX(), applyingToEntity.getY(), applyingToEntity.getZ(), applyingToEntity.getEatingSound(stackBeingAplied), applyingToEntity.getSoundSource(), 0.5F + 0.5F * level.random.nextInt(2), (level.random.nextFloat() - level.random.nextFloat()) * 0.2F + 1.0F);
+		consumable.emitParticlesAndSounds(applyingToEntity.getRandom(), applyingToEntity, stackBeingAplied, 5);
+		if (applyingToEntity instanceof ServerPlayer serverPlayer) {
+			PacketDistributor.sendToPlayer(serverPlayer, new EmitConsumableClientParticlesAndSoundsPayload(stackBeingAplied));
 		}
 	}
 
@@ -213,8 +229,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				(stack, livingEntity) -> {
 					Level level = livingEntity.level();
 					level.playSound(null, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
-					ThrownPotion thrownPotion = new ThrownPotion(level, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2);
-					thrownPotion.setItem(stack);
+					ThrownPotion thrownPotion = new ThrownPotion(level, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack);
 					onHit(thrownPotion, new EntityHitResult(livingEntity, new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
 					return 1;
 				}, (stack, livingEntity) -> ItemStack.EMPTY, false));
@@ -227,19 +242,17 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 					}
 					return new ItemStack(Items.GLASS_BOTTLE);
 				}));
-		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.MILK_BUCKET, stack -> AlchemyCondition.NEGATIVE_EFFECT,
-				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> true,
-				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> stack.getItem() == Items.MILK_BUCKET,
-				ItemStack::getUseDuration, (stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity)));
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.GOLDEN_APPLE, stack -> AlchemyCondition.ALWAYS,
 				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> {
 					if (le instanceof ZombieVillager zombieVillager) {
 						return !zombieVillager.isConverting() && zombieVillager.hasEffect(MobEffects.WEAKNESS);
 					} else if (le instanceof Player) {
-						return shouldApplyFoodEffectsTo(le, potionStack, matchAllEffects, matchEffectAmplifier);
+						return shouldApplyConsumableEffectsTo(le, potionStack, matchAllEffects, matchEffectAmplifier);
 					}
 					return false;
-				}, AlchemyUpgradeWrapper::foodStackPotionEffectsMatch, ItemStack::getUseDuration,
+				},
+				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
+				ItemStack::getUseDuration,
 				(stack, livingEntity) -> {
 					if (livingEntity instanceof ZombieVillager zombieVillager && zombieVillager.hasEffect(MobEffects.WEAKNESS)) {
 						zombieVillager.startConverting(null, livingEntity.level().random.nextInt(2401) + 3600);
@@ -249,46 +262,57 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 					return stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity);
 				}));
 		addItemDefinition(new AlchemyItemDefinition(
-				stack -> {
-					FoodProperties foodProperties = stack.getFoodProperties(null);
-					return foodProperties != null && !foodProperties.effects().isEmpty();
-				}, stack -> AlchemyCondition.ALWAYS,
+				AlchemyUpgradeWrapper::isEffectAffectingConsumable,
+				AlchemyUpgradeWrapper::getDefaultConditionForConsumable,
 				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> {
 					if (le instanceof Player) {
-						return shouldApplyFoodEffectsTo(le, potionStack, matchAllEffects, matchEffectAmplifier);
+						return shouldApplyConsumableEffectsTo(le, potionStack, matchAllEffects, matchEffectAmplifier);
 					}
 					return false;
-				}, AlchemyUpgradeWrapper::foodStackPotionEffectsMatch, ItemStack::getUseDuration,
-				(stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity))
+				},
+				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
+				ItemStack::getUseDuration, (stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity))
 		);
 	}
 
-	private static boolean foodStackPotionEffectsMatch(ItemStack stack, ItemStack filter, boolean matchAllEffects, boolean matchEffectDuration, boolean matchEffectAmplifier) {
-		if (matchAllEffects && matchEffectDuration && matchEffectAmplifier) {
-			return ItemStack.isSameItemSameComponents(filter, stack);
+	private static AlchemyCondition getDefaultConditionForConsumable(ItemStack stack) {
+		Consumable consumable = stack.get(DataComponents.CONSUMABLE);
+		if (consumable == null) {
+			return AlchemyCondition.NEVER;
 		}
 
-		FoodProperties foodProperties = stack.getFoodProperties(null);
-		FoodProperties filterFoodProperties = filter.getFoodProperties(null);
-
-		if (foodProperties == null || filterFoodProperties == null) {
-			return false;
-		}
-
-		if (foodProperties.effects().isEmpty() || filterFoodProperties.effects().isEmpty()) {
-			return false;
-		}
-
-		for (FoodProperties.PossibleEffect possibleEffect : filterFoodProperties.effects()) {
-			if (!matchEffectIn(foodProperties, possibleEffect, matchEffectDuration, matchEffectAmplifier)) {
-				return false;
+		List<ConsumeEffect> consumeEffects = consumable.onConsumeEffects();
+		for (ConsumeEffect consumeEffect : consumeEffects) {
+			if (consumeEffect instanceof ClearAllStatusEffectsConsumeEffect) {
+				return AlchemyCondition.NEGATIVE_EFFECT;
+			} else if (consumeEffect instanceof RemoveStatusEffectsConsumeEffect) {
+				return AlchemyCondition.NEGATIVE_EFFECT;
+			} else if (consumeEffect instanceof ApplyStatusEffectsConsumeEffect applyStatusEffectsConsumeEffect) {
+				List<MobEffectInstance> effects = applyStatusEffectsConsumeEffect.effects();
+				if (effects.isEmpty()) {
+					return AlchemyCondition.NEVER;
+				}
+				return getDefaultConditionForEffect(effects.getFirst().getEffect());
 			}
-			if (!matchAllEffects) {
+		}
+
+		return AlchemyCondition.NEVER;
+	}
+
+	private static boolean isEffectAffectingConsumable(ItemStack stack) {
+		Consumable consumable = stack.get(DataComponents.CONSUMABLE);
+		if (consumable == null) {
+			return false;
+		}
+
+		List<ConsumeEffect> consumeEffects = consumable.onConsumeEffects();
+		for (ConsumeEffect consumeEffect : consumeEffects) {
+			if (consumeEffect instanceof ClearAllStatusEffectsConsumeEffect || consumeEffect instanceof RemoveStatusEffectsConsumeEffect || consumeEffect instanceof ApplyStatusEffectsConsumeEffect) {
 				return true;
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownPotion.class, "onHit", HitResult.class);
@@ -299,18 +323,6 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		} catch (Exception e) {
 			SophisticatedCore.LOGGER.error("Failed to invoke ThrownPotion::onHit method", e);
 		}
-	}
-
-	private static boolean matchEffectIn(FoodProperties foodProperties, FoodProperties.PossibleEffect filterEffect, boolean matchEffectDuration, boolean matchEffectAmplifier) {
-		for (FoodProperties.PossibleEffect effectInstance : foodProperties.effects()) {
-			Holder<MobEffect> effect = effectInstance.effect().getEffect();
-			if (effect == filterEffect.effect().getEffect()
-					&& (!matchEffectDuration || effectInstance.effect().getDuration() == filterEffect.effect().getDuration())
-					&& (!matchEffectAmplifier || effectInstance.effect().getAmplifier() == filterEffect.effect().getAmplifier())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public static boolean stackPotionEffectsMatch(ItemStack stack, ItemStack filter, boolean matchAllEffects, boolean matchEffectDuration, boolean matchEffectAmplifier) {
@@ -360,6 +372,10 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 			return AlchemyCondition.NEVER;
 		}
 		Holder<MobEffect> effect = it.next().getEffect();
+		return getDefaultConditionForEffect(effect);
+	}
+
+	private static AlchemyCondition getDefaultConditionForEffect(Holder<MobEffect> effect) {
 		if (effect == MobEffects.WATER_BREATHING) {
 			return AlchemyCondition.UNDER_WATER;
 		} else if (effect == MobEffects.HEAL || effect == MobEffects.REGENERATION) {
@@ -401,13 +417,26 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		return leEffectInstance != null && (!matchEffectAmplifier || leEffectInstance.getAmplifier() >= amplifier);
 	}
 
-	private static boolean shouldApplyFoodEffectsTo(LivingEntity le, ItemStack potionStack, boolean matchAllEffects, boolean matchEffectAmplifier) {
-		FoodProperties foodProperties = potionStack.getFoodProperties(le);
-		if (foodProperties == null) {
+	private static boolean shouldApplyConsumableEffectsTo(LivingEntity le, ItemStack potionStack, boolean matchAllEffects, boolean matchEffectAmplifier) {
+		Consumable consumable = potionStack.get(DataComponents.CONSUMABLE);
+		if (consumable == null) {
 			return false;
 		}
-		for (FoodProperties.PossibleEffect possibleEffect : foodProperties.effects()) {
-			MobEffectInstance effectInstance = possibleEffect.effect();
+		for (ConsumeEffect consumeEffect : consumable.onConsumeEffects()) {
+			if (consumeEffect instanceof ApplyStatusEffectsConsumeEffect applyStatusEffects) {
+				return areEffectsMissing(le, matchAllEffects, matchEffectAmplifier, applyStatusEffects.effects());
+			} else if (consumeEffect instanceof ClearAllStatusEffectsConsumeEffect) {
+				return true; //always apply these effects
+			} else if (consumeEffect instanceof RemoveStatusEffectsConsumeEffect removeStatusEffects) {
+				return areEffectsPresent(le, matchAllEffects, matchEffectAmplifier, removeStatusEffects.effects());
+			}
+		}
+
+		return false;
+	}
+
+	private static boolean areEffectsMissing(LivingEntity le, boolean matchAllEffects, boolean matchEffectAmplifier, List<MobEffectInstance> effects) {
+		for (MobEffectInstance effectInstance : effects) {
 			if (matchAllEffects) {
 				if (!effectPresent(le, effectInstance.getEffect(), matchEffectAmplifier, effectInstance.getAmplifier())) {
 					return true;
@@ -419,6 +448,19 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 			}
 		}
 		return !matchAllEffects;
+	}
+
+	private static boolean areEffectsPresent(LivingEntity le, boolean matchAllEffects, boolean matchEffectAmplifier, HolderSet<MobEffect> effects) {
+		for (Holder<MobEffect> effect : effects) {
+			if (le.hasEffect(effect)) {
+				if (!matchAllEffects) {
+					return true;
+				}
+			} else if (matchAllEffects) {
+				return false;
+			}
+		}
+		return matchAllEffects;
 	}
 
 	public boolean isValidAlchemyItem(ItemStack stack) {

@@ -12,8 +12,8 @@ public class MagnetUpgradeItem extends UpgradeItemBase<MagnetUpgradeWrapper> {
 	private final IntSupplier radius;
 	private final IntSupplier filterSlotCount;
 
-	public MagnetUpgradeItem(IntSupplier radius, IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public MagnetUpgradeItem(IntSupplier radius, IntSupplier filterSlotCount, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.radius = radius;
 		this.filterSlotCount = filterSlotCount;
 	}

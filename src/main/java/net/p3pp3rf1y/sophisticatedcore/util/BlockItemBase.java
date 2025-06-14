@@ -7,11 +7,12 @@ import net.p3pp3rf1y.sophisticatedcore.Config;
 
 import java.util.function.Consumer;
 
-public class BlockItemBase extends BlockItem {
+public class BlockItemBase extends BlockItem implements ICreativeTabSupplier {
 	public BlockItemBase(Block block, Properties properties) {
 		super(block, properties);
 	}
 
+	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
 		if (Config.COMMON.enabledItems.isItemEnabled(this) && getBlock() instanceof BlockBase blockBase) {
 			blockBase.addCreativeTabItems(itemConsumer);

@@ -69,7 +69,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 				boolean mouseOver = isMouseOver(mouseX, mouseY);
 				boolean showTextBox = container.showsTextbox() && mouseOver;
 				if (mouseOver) {
-					guiGraphics.renderTooltip(screen.font, getTooltip(), Optional.empty(), saveTemplateButton.getX() + 10, saveTemplateButton.getY() + (showTextBox ? -13 : 6));
+					guiGraphics.renderTooltip(screen.getFont(), getTooltip(), Optional.empty(), saveTemplateButton.getX() + 10, saveTemplateButton.getY() + (showTextBox ? -13 : 6));
 				}
 				saveInput.setVisible(showTextBox);
 				saveInput.setFocused(showTextBox);
@@ -95,7 +95,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 			public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 				boolean mouseOver = isMouseOver(mouseX, mouseY);
 				if (mouseOver) {
-					guiGraphics.renderTooltip(screen.font, getTooltip(), Optional.empty(), loadTemplateButton.getX() + 10, loadTemplateButton.getY() + 6);
+					guiGraphics.renderTooltip(screen.getFont(), getTooltip(), Optional.empty(), loadTemplateButton.getX() + 10, loadTemplateButton.getY() + 6);
 				}
 			}
 		};
@@ -116,7 +116,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 			public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 				boolean mouseOver = isMouseOver(mouseX, mouseY);
 				if (mouseOver) {
-					guiGraphics.renderTooltip(screen.font, getTooltip(), Optional.empty(), exportTemplateButton.getX() + 10, exportTemplateButton.getY() - 13);
+					guiGraphics.renderTooltip(screen.getFont(), getTooltip(), Optional.empty(), exportTemplateButton.getX() + 10, exportTemplateButton.getY() - 13);
 				}
 				exportInput.setVisible(mouseOver);
 				exportInput.setFocused(mouseOver);

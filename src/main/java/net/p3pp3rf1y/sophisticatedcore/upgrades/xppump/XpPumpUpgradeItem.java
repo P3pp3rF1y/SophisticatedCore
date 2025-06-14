@@ -10,8 +10,8 @@ public class XpPumpUpgradeItem extends UpgradeItemBase<XpPumpUpgradeWrapper> {
 	public static final UpgradeType<XpPumpUpgradeWrapper> TYPE = new UpgradeType<>(XpPumpUpgradeWrapper::new);
 	private final XpPumpUpgradeConfig xpPumpUpgradeConfig;
 
-	public XpPumpUpgradeItem(XpPumpUpgradeConfig xpPumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public XpPumpUpgradeItem(XpPumpUpgradeConfig xpPumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.xpPumpUpgradeConfig = xpPumpUpgradeConfig;
 	}
 

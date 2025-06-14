@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -96,7 +97,8 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 		poseStack.pushPose();
 		RenderSystem.enableBlend();
 		RenderSystem.disableDepthTest();
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, slot.x, slot.y, 77, 0, 16, 16);
+		poseStack.translate(0, 0, 300);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, slot.x, slot.y, 77, 0, 16, 16, 256, 256);
 		RenderSystem.enableDepthTest();
 		RenderSystem.disableBlend();
 		poseStack.popPose();

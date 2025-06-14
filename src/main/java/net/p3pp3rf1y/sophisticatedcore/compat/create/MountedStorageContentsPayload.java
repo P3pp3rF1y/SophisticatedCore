@@ -26,6 +26,6 @@ public record MountedStorageContentsPayload(UUID storageUuid, CompoundTag conten
 	}
 
 	public static void handlePayload(MountedStorageContentsPayload payload, IPayloadContext context) {
-		MountedStorageData.get(payload.storageUuid).setContents(payload.storageUuid, payload.contents);
+		MountedStorageData.get().setContentsClient(payload.storageUuid, payload.contents);
 	}
 }

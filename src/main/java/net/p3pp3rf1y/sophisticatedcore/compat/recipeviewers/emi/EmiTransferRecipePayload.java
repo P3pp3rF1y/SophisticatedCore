@@ -1,15 +1,18 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -19,10 +22,10 @@ import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 
 import java.util.List;
 
-public record EmiTransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting, int output, List<ItemStack> stacks, boolean maxTransfer) implements CustomPacketPayload {
+public record EmiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting, int output, List<ItemStack> stacks, boolean maxTransfer) implements CustomPacketPayload {
 	public static final Type<EmiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("emi_transfer_recipe"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, EmiTransferRecipePayload> STREAM_CODEC = StreamCodecHelper.composite(
-			ResourceLocation.STREAM_CODEC,
+			ResourceKey.streamCodec(Registries.RECIPE),
 			EmiTransferRecipePayload::recipeId,
 			ResourceLocation.STREAM_CODEC,
 			EmiTransferRecipePayload::recipeTypeId,
@@ -46,7 +49,7 @@ public record EmiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static void handlePayload(EmiTransferRecipePayload payload, IPayloadContext context) {
-		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
+		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.getValue(payload.recipeTypeId);
 		if (recipeType == null) {
 			return;
 		}

@@ -4,8 +4,8 @@ import net.minecraft.nbt.*;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedBatteryUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedTankUpgrade;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeRenderData;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeRenderData;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeClientData;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
@@ -24,12 +24,12 @@ public abstract class RenderInfo {
 	private static final String UPGRADES_TAG = "upgrades";
 	private static final String UPGRADE_ITEMS_TAG = "upgradeItems";
 
-	private static final Map<String, UpgradeRenderDataType<?>> RENDER_DATA_TYPES;
+	private static final Map<String, UpgradeClientDataType<?>> CLIENT_DATA_TYPES;
 
 	static {
-		RENDER_DATA_TYPES = Map.of(
-				CookingUpgradeRenderData.TYPE.getName(), CookingUpgradeRenderData.TYPE,
-				JukeboxUpgradeRenderData.TYPE.getName(), JukeboxUpgradeRenderData.TYPE
+		CLIENT_DATA_TYPES = Map.of(
+				CookingUpgradeClientData.TYPE.getName(), CookingUpgradeClientData.TYPE,
+				JukeboxUpgradeClientData.TYPE.getName(), JukeboxUpgradeClientData.TYPE
 		);
 	}
 
@@ -37,7 +37,7 @@ public abstract class RenderInfo {
 	private final Supplier<Runnable> getSaveHandler;
 	private final boolean showsCountsAndFillRatios;
 	private final List<ItemStack> upgradeItems = new ArrayList<>();
-	private final Map<UpgradeRenderDataType<?>, IUpgradeRenderData> upgradeData = new HashMap<>();
+	private final Map<UpgradeClientDataType<?>, IUpgradeClientData> clientData = new HashMap<>();
 
 	private final Map<TankPosition, IRenderedTankUpgrade.TankRenderInfo> tankRenderInfos = new LinkedHashMap<>();
 	@Nullable
@@ -77,17 +77,17 @@ public abstract class RenderInfo {
 		serializeRenderInfo(renderInfo);
 	}
 
-	public <T extends IUpgradeRenderData> void setUpgradeRenderData(UpgradeRenderDataType<T> upgradeRenderDataType, T renderData) {
-		upgradeData.put(upgradeRenderDataType, renderData);
-		serializeUpgradeData(upgrades -> upgrades.put(upgradeRenderDataType.getName(), renderData.serializeNBT()));
+	public <T extends IUpgradeClientData> void setUpgradeClientData(UpgradeClientDataType<T> upgradeClientDataType, T clientData) {
+		this.clientData.put(upgradeClientDataType, clientData);
+		serializeUpgradeData(upgrades -> upgrades.put(upgradeClientDataType.getName(), clientData.serializeNBT()));
 		save();
 	}
 
-	public <T extends IUpgradeRenderData> Optional<T> getUpgradeRenderData(UpgradeRenderDataType<T> upgradeRenderDataType) {
-		if (!upgradeData.containsKey(upgradeRenderDataType)) {
+	public <T extends IUpgradeClientData> Optional<T> getUpgradeClientData(UpgradeClientDataType<T> upgradeClientDataType) {
+		if (!clientData.containsKey(upgradeClientDataType)) {
 			return Optional.empty();
 		}
-		return upgradeRenderDataType.cast(upgradeData.get(upgradeRenderDataType));
+		return upgradeClientDataType.cast(clientData.get(upgradeClientDataType));
 	}
 
 	private void serializeUpgradeData(Consumer<CompoundTag> modifyUpgradesTag) {
@@ -168,20 +168,20 @@ public abstract class RenderInfo {
 
 	protected abstract Optional<CompoundTag> getRenderInfoTag();
 
-	public Map<UpgradeRenderDataType<?>, IUpgradeRenderData> getUpgradeRenderData() {
-		return upgradeData;
+	public Map<UpgradeClientDataType<?>, IUpgradeClientData> getUpgradeClientData() {
+		return clientData;
 	}
 
-	public void removeAllUpgradeRenderData() {
-		upgradeData.clear();
+	public void removeAllUpgradeClientData() {
+		clientData.clear();
 		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
 		renderInfo.remove(UPGRADES_TAG);
 		serializeRenderInfo(renderInfo);
 		save();
 	}
 
-	public void removeUpgradeRenderData(UpgradeRenderDataType<?> type) {
-		upgradeData.remove(type);
+	public void removeUpgradeClientData(UpgradeClientDataType<?> type) {
+		clientData.remove(type);
 		serializeUpgradeData(upgrades -> upgrades.remove(type.getName()));
 		save();
 	}
@@ -189,9 +189,9 @@ public abstract class RenderInfo {
 	private void deserializeUpgradeData(CompoundTag renderInfoTag) {
 		CompoundTag upgrades = renderInfoTag.getCompound(UPGRADES_TAG);
 		upgrades.getAllKeys().forEach(key -> {
-			if (RENDER_DATA_TYPES.containsKey(key)) {
-				UpgradeRenderDataType<?> upgradeRenderDataType = RENDER_DATA_TYPES.get(key);
-				upgradeData.put(upgradeRenderDataType, upgradeRenderDataType.deserialize(upgrades.getCompound(key)));
+			if (CLIENT_DATA_TYPES.containsKey(key)) {
+				UpgradeClientDataType<?> upgradeClientDataType = CLIENT_DATA_TYPES.get(key);
+				clientData.put(upgradeClientDataType, upgradeClientDataType.deserialize(upgrades.getCompound(key)));
 			}
 		});
 	}
@@ -202,7 +202,7 @@ public abstract class RenderInfo {
 
 	public void deserializeFrom(CompoundTag renderInfoNbt) {
 		resetUpgradeInfo(false);
-		upgradeData.clear();
+		clientData.clear();
 		serializeRenderInfo(renderInfoNbt);
 		deserialize();
 	}
@@ -317,7 +317,7 @@ public abstract class RenderInfo {
 		public CompoundTag serialize() {
 			CompoundTag ret = new CompoundTag();
 			if (displayItems.size() == 1) {
-				displayItems.get(0).serialize(ret);
+				displayItems.getFirst().serialize(ret);
 			} else if (displayItems.size() > 1) {
 				NBTHelper.putList(ret, ITEMS_TAG, displayItems, displayItem -> displayItem.serialize(new CompoundTag()));
 			}

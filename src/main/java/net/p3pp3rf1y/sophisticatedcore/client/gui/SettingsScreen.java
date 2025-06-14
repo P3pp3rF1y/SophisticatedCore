@@ -1,14 +1,15 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -142,6 +143,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, storageBackgroundProperties.getTextureName(), imageWidth, getStorageInventoryHeight(getNumberOfVisibleRows()));
 		if (inventoryScrollPanel == null) {
 			drawSlotBg(guiGraphics, x, y, getMenu().getStorageInventorySlots().size());
+		} else {
+			guiGraphics.flush();
 		}
 	}
 
@@ -176,44 +179,49 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderLabels(guiGraphics, mouseX, mouseY);
 		if (inventoryScrollPanel == null) {
-			renderInventorySlots(guiGraphics, mouseX, mouseY, true);
+			renderStorageInventorySlots(guiGraphics, mouseX, mouseY, true);
 		}
 	}
 
 	@Override
-	public void renderInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover) {
+	public void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover) {
 		for (int slotId = 0; slotId < menu.ghostSlots.size(); ++slotId) {
 			Slot slot = menu.ghostSlots.get(slotId);
+
 			renderSlot(guiGraphics, slot);
 
 			settingsTabControl.renderSlotOverlays(guiGraphics, slot, this::renderSlotOverlay, isTemplateLoadHovered());
-
-			if (canShowHover && isHovering(slot, mouseX, mouseY) && slot.isActive()) {
-				hoveredSlot = slot;
-				renderSlotHighlight(guiGraphics, slot.x, slot.y, 0, getSlotColor(slotId));
-			}
-
 			settingsTabControl.renderSlotExtra(guiGraphics, slot);
 		}
+	}
+
+	@Nullable
+	private Slot getHoveredGhostSlot(double p_372985_, double p_372965_) {
+		if (menu.ghostSlots.isEmpty()) {
+			return null;
+		}
+		for(Slot slot : menu.ghostSlots) {
+			if (slot.isActive() && isHovering(slot, p_372985_, p_372965_)) {
+				return slot;
+			}
+		}
+		return null;
 	}
 
 	@Override
 	protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
 		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY ? slot.getItem() : settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex(), isTemplateLoadHovered());
 
-		RenderSystem.enableDepthTest();
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(0, 0, 100);
-		//noinspection ConstantConditions - by this point minecraft isn't null
-		if (!settingsTabControl.renderGuiItem(guiGraphics, minecraft.getItemRenderer(), itemstack, slot, isTemplateLoadHovered())) {
+		if (!settingsTabControl.renderGuiItem(guiGraphics, itemstack, slot, isTemplateLoadHovered())) {
 			if (!getMenu().getSlotFilterItem(slot.index).isEmpty()) {
 				guiGraphics.renderItem(getMenu().getSlotFilterItem(slot.index), slot.x, slot.y);
 			} else {
-				Pair<ResourceLocation, ResourceLocation> pair = slot.getNoItemIcon();
-				if (pair != null) {
-					TextureAtlasSprite textureatlassprite = minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
-					guiGraphics.blit(slot.x, slot.y, 0, 16, 16, textureatlassprite);
+				ResourceLocation icon = slot.getNoItemIcon();
+				if (icon != null) {
+					guiGraphics.blitSprite(RenderType::guiTextured, icon, slot.x, slot.y, 16, 16);
 				}
 			}
 		}
@@ -240,7 +248,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		if (mouseDragHandledByOther) {
 			return false;
 		}
-		Slot slot = findSlot(mouseX, mouseY);
+		Slot slot = getHoveredSlot(mouseX, mouseY);
 		if (slot != null) {
 			settingsTabControl.handleSlotClick(slot, button);
 		}
@@ -254,7 +262,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Nullable
 	@Override
-	protected Slot findSlot(double mouseX, double mouseY) {
+	protected Slot getHoveredSlot(double mouseX, double mouseY) {
 		for (int i = 0; i < menu.ghostSlots.size(); ++i) {
 			Slot slot = menu.ghostSlots.get(i);
 			if (isHovering(slot, mouseX, mouseY) && slot.isActive()) {
@@ -347,5 +355,109 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@Override
 	public Predicate<ItemStack> getStackFilter() {
 		return MATCH_ALL_FILTER;
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		return superMouseClicked(mouseX, mouseY, button);
+	}
+
+	// The only modification here is calling of the containerEventHandlerMouseClicked method
+	private boolean superMouseClicked(double mouseX, double mouseY, int button) {
+		if (containerEventHandlerMouseClicked(mouseX, mouseY, button)) {
+			return true;
+		} else {
+			InputConstants.Key mouseKey = InputConstants.Type.MOUSE.getOrCreate(button);
+			boolean flag = this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey);
+			Slot slot = this.getHoveredSlot(mouseX, mouseY);
+			long i = Util.getMillis();
+			this.doubleclick = this.lastClickSlot == slot && i - this.lastClickTime < 250L && this.lastClickButton == button;
+			this.skipNextRelease = false;
+			if (button != 0 && button != 1 && !flag) {
+				this.checkHotbarMouseClicked(button);
+			} else {
+				int j = this.leftPos;
+				int k = this.topPos;
+				boolean flag1 = this.hasClickedOutside(mouseX, mouseY, j, k, button);
+				if (slot != null) {
+					flag1 = false;
+				}
+
+				int l = -1;
+				if (slot != null) {
+					l = slot.index;
+				}
+
+				if (flag1) {
+					l = -999;
+				}
+
+				if ((Boolean) this.minecraft.options.touchscreen().get() && flag1 && this.menu.getCarried().isEmpty()) {
+					this.onClose();
+					return true;
+				}
+
+				if (l != -1) {
+					if ((Boolean) this.minecraft.options.touchscreen().get()) {
+						if (slot != null && slot.hasItem()) {
+							this.clickedSlot = slot;
+							this.draggingItem = ItemStack.EMPTY;
+							this.isSplittingStack = button == 1;
+						} else {
+							this.clickedSlot = null;
+						}
+					} else if (!this.isQuickCrafting) {
+						if (this.menu.getCarried().isEmpty()) {
+							if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
+								this.slotClicked(slot, l, button, ClickType.CLONE);
+							} else {
+								boolean flag2 = l != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
+								ClickType clicktype = ClickType.PICKUP;
+								if (flag2) {
+									this.lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
+									clicktype = ClickType.QUICK_MOVE;
+								} else if (l == -999) {
+									clicktype = ClickType.THROW;
+								}
+
+								this.slotClicked(slot, l, button, clicktype);
+							}
+
+							this.skipNextRelease = true;
+						} else {
+							this.isQuickCrafting = true;
+							this.quickCraftingButton = button;
+							this.quickCraftSlots.clear();
+							if (button == 0) {
+								this.quickCraftingType = 0;
+							} else if (button == 1) {
+								this.quickCraftingType = 1;
+							} else if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
+								this.quickCraftingType = 2;
+							}
+						}
+					}
+				}
+			}
+
+			this.lastClickSlot = slot;
+			this.lastClickTime = i;
+			this.lastClickButton = button;
+			return true;
+		}
+	}
+
+	//Modified to actually return false if child didn't handle the click
+	private boolean containerEventHandlerMouseClicked(double mouseX, double mouseY, int button) {
+		return getChildAt(mouseX, mouseY).map(child -> {
+			if (child.mouseClicked(mouseX, mouseY, button)) {
+				setFocused(child);
+				if (button == 0) {
+					setDragging(true);
+				}
+				return true;
+			}
+			return false;
+		}).orElse(false);
 	}
 }

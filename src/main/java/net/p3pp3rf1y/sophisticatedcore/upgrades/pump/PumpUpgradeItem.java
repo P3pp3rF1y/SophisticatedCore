@@ -12,8 +12,8 @@ public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	private final boolean interactWithWorldDefault;
 	private final PumpUpgradeConfig pumpUpgradeConfig;
 
-	public PumpUpgradeItem(boolean interactWithHandDefault, boolean interactWithWorldDefault, PumpUpgradeConfig pumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public PumpUpgradeItem(boolean interactWithHandDefault, boolean interactWithWorldDefault, PumpUpgradeConfig pumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.interactWithHandDefault = interactWithHandDefault;
 		this.interactWithWorldDefault = interactWithWorldDefault;
 		this.pumpUpgradeConfig = pumpUpgradeConfig;

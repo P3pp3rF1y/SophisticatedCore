@@ -25,6 +25,10 @@ public class CapabilityHelper {
 		runOnCapability(entity, Capabilities.ItemHandler.ENTITY, null, run);
 	}
 
+	public static <T> T getFromItemHandler(Entity entity, Function<IItemHandler, T> get, T defaultValue) {
+		return getFromCapability(entity, Capabilities.ItemHandler.ENTITY, null, get, defaultValue);
+	}
+
 	public static <T> T getFromItemHandler(Level level, BlockPos pos, @Nullable Direction context, Function<IItemHandler, T> get, T defaultValue) {
 		return getFromCapability(level, pos, Capabilities.ItemHandler.BLOCK, context, get, defaultValue);
 	}
@@ -35,8 +39,8 @@ public class CapabilityHelper {
 	public static <T, C> void runOnCapability(Entity entity, EntityCapability<T, C> capability, @Nullable C context, Consumer<T> run) {
 		runOnCapability(run, entity.getCapability(capability, context));
 	}
+
 	public static <T, C> void runOnCapability(ItemStack stack, ItemCapability<T, C> capability, @Nullable C context, Consumer<T> run) {
-		//noinspection DataFlowIssue - stack.getCapability actually accepts null for Void context
 		runOnCapability(run, stack.getCapability(capability, context));
 	}
 
@@ -46,9 +50,7 @@ public class CapabilityHelper {
 		}
 	}
 
-
 	public static <T, C, U> U getFromCapability(ItemStack stack, ItemCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
-		//noinspection DataFlowIssue - stack.getCapability actually accepts null for Void context
 		T t = stack.getCapability(capability, context);
 		if (t == null) {
 			return defaultValue;
@@ -69,8 +71,15 @@ public class CapabilityHelper {
 	}
 
 	public static <T, C, U> U getFromCapability(Level level, BlockPos pos, @Nullable BlockState state, @Nullable BlockEntity blockEntity, BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
-		//noinspection DataFlowIssue - be.getCapability actually accepts null for Void context
 		T t = level.getCapability(capability, pos, state, blockEntity, context);
+		if (t == null) {
+			return defaultValue;
+		}
+		return get.apply(t);
+	}
+
+	public static <T, C, U> U getFromCapability(Entity entity, EntityCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
+		T t = entity.getCapability(capability, context);
 		if (t == null) {
 			return defaultValue;
 		}

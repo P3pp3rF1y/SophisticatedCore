@@ -10,17 +10,19 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
-import org.jetbrains.annotations.Unmodifiable;
 
 import javax.annotation.concurrent.Immutable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Immutable
 public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, boolean matchDurability,
 							   boolean matchComponents, PrimaryMatch primaryMatch, boolean matchAnyTag,
-							   @Unmodifiable List<ItemStack> filterItems, boolean filterByStorage, boolean filterByInventory) {
+							   ItemContainerContents filterItems, boolean filterByStorage, boolean filterByInventory) {
 	public static final Codec<FilterAttributes> CODEC = RecordCodecBuilder.create(
 			builder -> builder
 					.group(
@@ -30,7 +32,7 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 							Codec.BOOL.optionalFieldOf("match_components", false).forGetter(FilterAttributes::matchComponents),
 							PrimaryMatch.CODEC.optionalFieldOf("primary_match", PrimaryMatch.ITEM).forGetter(FilterAttributes::primaryMatch),
 							Codec.BOOL.optionalFieldOf("match_any_tag", false).forGetter(FilterAttributes::matchAnyTag),
-							Codec.list(ItemStack.OPTIONAL_CODEC).optionalFieldOf("filter_items", Collections.emptyList()).forGetter(FilterAttributes::filterItems),
+							ItemContainerContents.CODEC.optionalFieldOf("filter_items", ItemContainerContents.EMPTY).forGetter(FilterAttributes::filterItems),
 							Codec.BOOL.optionalFieldOf("filter_by_storage", false).forGetter(FilterAttributes::filterByStorage),
 							Codec.BOOL.optionalFieldOf("filter_by_inventory", false).forGetter(FilterAttributes::filterByInventory)
 					)
@@ -49,13 +51,27 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 			FilterAttributes::primaryMatch,
 			ByteBufCodecs.BOOL,
 			FilterAttributes::matchAnyTag,
-			ItemStack.OPTIONAL_LIST_STREAM_CODEC,
+			ItemContainerContents.STREAM_CODEC,
 			FilterAttributes::filterItems,
 			ByteBufCodecs.BOOL,
 			FilterAttributes::filterByStorage,
 			ByteBufCodecs.BOOL,
 			FilterAttributes::filterByInventory,
 			FilterAttributes::new);
+
+	public FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, boolean matchDurability,
+							   boolean matchComponents, PrimaryMatch primaryMatch, boolean matchAnyTag,
+							ItemContainerContents filterItems, boolean filterByStorage, boolean filterByInventory) {
+		this.tagKeys = Collections.unmodifiableSet(tagKeys);
+		this.isAllowList = isAllowList;
+		this.matchDurability = matchDurability;
+		this.matchComponents = matchComponents;
+		this.primaryMatch = primaryMatch;
+		this.matchAnyTag = matchAnyTag;
+		this.filterItems = filterItems;
+		this.filterByStorage = filterByStorage;
+		this.filterByInventory = filterByInventory;
+	}
 
 	public FilterAttributes setTagKeys(Set<TagKey<Item>> tagKeys) {
 		return new CopyBuilder(this).setTagKeys(tagKeys).build();
@@ -93,10 +109,6 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 		return new CopyBuilder(this).setFilterByInventory(filterByInventory).build();
 	}
 
-	public FilterAttributes expandFilterItems(int targetFilterCount) {
-		return new CopyBuilder(this).expandFilterItems(targetFilterCount).build();
-	}
-
 	protected static class CopyBuilder {
 		private Set<TagKey<Item>> tagKeys;
 		private boolean isAllowList;
@@ -104,7 +116,7 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 		private boolean matchComponents;
 		private PrimaryMatch primaryMatch;
 		private boolean matchAnyTag;
-		private List<ItemStack> filterItems;
+		private ItemContainerContents filterItems;
 		private boolean filterByStorage;
 		private boolean filterByInventory;
 
@@ -115,7 +127,7 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 			this.matchComponents = original.matchComponents();
 			this.primaryMatch = original.primaryMatch();
 			this.matchAnyTag = original.matchAnyTag();
-			this.filterItems = new ArrayList<>(original.filterItems());
+			this.filterItems = original.filterItems();
 			this.filterByStorage = original.filterByStorage();
 			this.filterByInventory = original.filterByInventory();
 		}
@@ -126,7 +138,7 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 		}
 
 		public FilterAttributes build() {
-			return new FilterAttributes(tagKeys, isAllowList, matchDurability, matchComponents, primaryMatch, matchAnyTag, Collections.unmodifiableList(filterItems), filterByStorage, filterByInventory);
+			return new FilterAttributes(tagKeys, isAllowList, matchDurability, matchComponents, primaryMatch, matchAnyTag, filterItems, filterByStorage, filterByInventory);
 		}
 
 		public CopyBuilder setAllowList(boolean isAllowList) {
@@ -155,7 +167,10 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 		}
 
 		public CopyBuilder setFilterItem(int slot, ItemStack filterItem) {
-			filterItems.set(slot, filterItem.copy());
+			NonNullList<ItemStack> items = NonNullList.withSize(Math.max(slot + 1, filterItems.getSlots()), ItemStack.EMPTY);
+			filterItems.copyInto(items);
+			items.set(slot, filterItem);
+			filterItems = ItemContainerContents.fromItems(items);
 			return this;
 		}
 
@@ -166,18 +181,6 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 
 		public CopyBuilder setFilterByInventory(boolean filterByInventory) {
 			this.filterByInventory = filterByInventory;
-			return this;
-		}
-
-		public CopyBuilder expandFilterItems(int targetFilterCount) {
-			NonNullList<ItemStack> targetFilterItems = NonNullList.withSize(targetFilterCount, ItemStack.EMPTY);
-			for (int slot = 0; slot < filterItems.size(); slot++) {
-				if (slot >= targetFilterCount) {
-					break;
-				}
-				targetFilterItems.set(slot, filterItems.get(slot));
-			}
-			filterItems = targetFilterItems;
 			return this;
 		}
 	}

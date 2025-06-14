@@ -102,9 +102,4 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	}
 
 	protected abstract void applyColors(ItemStack coloredStorage, List<DyeColor> mainDyes, List<DyeColor> trimDyes);
-
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width >= 2 && height >= 1;
-	}
 }

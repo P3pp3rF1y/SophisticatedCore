@@ -11,8 +11,8 @@ public class AutoSmokingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWr
 	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoSmokingUpgradeConfig;
 
-	public AutoSmokingUpgradeItem(AutoCookingUpgradeConfig autoSmokingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
+	public AutoSmokingUpgradeItem(AutoCookingUpgradeConfig autoSmokingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+        super(upgradeTypeLimitConfig, properties);
 		this.autoSmokingUpgradeConfig = autoSmokingUpgradeConfig;
 	}
 

@@ -14,14 +14,12 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
@@ -60,6 +58,8 @@ public class GuiHelper {
 
 	private static final Map<Integer, TextureBlitData> SLOTS_BACKGROUNDS = new HashMap<>();
 
+	private static final ItemStackRenderState scratchItemStackRenderState = new ItemStackRenderState();
+
 	private GuiHelper() {}
 
 	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition) {
@@ -94,7 +94,7 @@ public class GuiHelper {
 	}
 
 	public static void blit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData) {
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(RenderType::guiTextured, texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
 	public static void blit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData, int width, int height) {
@@ -103,13 +103,13 @@ public class GuiHelper {
 		int halfHeight = height / 2;
 		int secondHalfHeight = height - halfHeight;
 
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), halfWidth, halfHeight, texData.getTextureWidth(), texData.getTextureHeight());
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset(), (float) texData.getU() + texData.getWidth() - secondHalfWidth, texData.getV(), secondHalfWidth, halfHeight, texData.getTextureWidth(), texData.getTextureHeight());
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset() + halfHeight, texData.getU(), (float) texData.getV() + texData.getHeight() - secondHalfHeight, halfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset() + halfHeight, (float) texData.getU() + texData.getWidth() - secondHalfWidth, (float) texData.getV() + texData.getHeight() - secondHalfHeight, secondHalfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(RenderType::guiTextured, texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), halfWidth, halfHeight, texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(RenderType::guiTextured, texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset(), (float) texData.getU() + texData.getWidth() - secondHalfWidth, texData.getV(), secondHalfWidth, halfHeight, texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(RenderType::guiTextured, texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset() + halfHeight, texData.getU(), (float) texData.getV() + texData.getHeight() - secondHalfHeight, halfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(RenderType::guiTextured, texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset() + halfHeight, (float) texData.getU() + texData.getWidth() - secondHalfWidth, (float) texData.getV() + texData.getHeight() - secondHalfHeight, secondHalfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
-	public static void coloredBlit(Matrix4f matrix, int x, int y, TextureBlitData texData, int color) {
+	public static void coloredBlit(Function<ResourceLocation, RenderType> renderTypeGetter, Matrix4f matrix, int x, int y, TextureBlitData texData, int color) {
 		float red = (color >> 16 & 255) / 255F;
 		float green = (color >> 8 & 255) / 255F;
 		float blue = (color & 255) / 255F;
@@ -125,36 +125,15 @@ public class GuiHelper {
 		float minV = (float) texData.getV() / texData.getTextureHeight();
 		float maxV = minV + ((float) texData.getHeight() / texData.getTextureWidth());
 
-		RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-		BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-		bufferbuilder.addVertex(matrix, xMin, yMax, 0).setUv(minU, maxV).setColor(red, green, blue, alpha);
-		bufferbuilder.addVertex(matrix, xMax, yMax, 0).setUv(maxU, maxV).setColor(red, green, blue, alpha);
-		bufferbuilder.addVertex(matrix, xMax, yMin, 0).setUv(maxU, minV).setColor(red, green, blue, alpha);
-		bufferbuilder.addVertex(matrix, xMin, yMin, 0).setUv(minU, minV).setColor(red, green, blue, alpha);
-		BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+		RenderType renderType = renderTypeGetter.apply(texData.getTextureName());
+		VertexConsumer vertexConsumer = getBufferSource().getBuffer(renderType);
+		vertexConsumer.addVertex(matrix, xMin, yMax, 0).setUv(minU, maxV).setColor(red, green, blue, alpha);
+		vertexConsumer.addVertex(matrix, xMax, yMax, 0).setUv(maxU, maxV).setColor(red, green, blue, alpha);
+		vertexConsumer.addVertex(matrix, xMax, yMin, 0).setUv(maxU, minV).setColor(red, green, blue, alpha);
+		vertexConsumer.addVertex(matrix, xMin, yMin, 0).setUv(minU, minV).setColor(red, green, blue, alpha);
 	}
 
-	public static void renderTooltipBackground(Matrix4f matrix4f, int tooltipWidth, int leftX, int topY, int tooltipHeight, int backgroundColor, int borderColorStart, int borderColorEnd) {
-		Tesselator tessellator = Tesselator.getInstance();
-		BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 4, leftX + tooltipWidth + 3, topY - 3, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY + tooltipHeight + 3, leftX + tooltipWidth + 3, topY + tooltipHeight + 4, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 3, leftX + tooltipWidth + 3, topY + tooltipHeight + 3, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX - 4, topY - 3, leftX - 3, topY + tooltipHeight + 3, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX + tooltipWidth + 3, topY - 3, leftX + tooltipWidth + 4, topY + tooltipHeight + 3, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 3 + 1, leftX - 3 + 1, topY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
-		fillGradient(matrix4f, bufferbuilder, leftX + tooltipWidth + 2, topY - 3 + 1, leftX + tooltipWidth + 3, topY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 3, leftX + tooltipWidth + 3, topY - 3 + 1, borderColorStart, borderColorStart);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY + tooltipHeight + 2, leftX + tooltipWidth + 3, topY + tooltipHeight + 3, borderColorEnd, borderColorEnd);
-		RenderSystem.enableDepthTest();
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
-		BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
-		RenderSystem.disableBlend();
-	}
-
-	public static void writeTooltipLines(GuiGraphics guiGraphics, List<FormattedCharSequence> textLines, Font font, float leftX, int topY, Matrix4f matrix4f, MultiBufferSource.BufferSource renderTypeBuffer, int color) {
+	public static void writeTooltipLines(GuiGraphics guiGraphics, List<FormattedCharSequence> textLines, Font font, float leftX, int topY, MultiBufferSource.BufferSource renderTypeBuffer, int color) {
 		for (int i = 0; i < textLines.size(); ++i) {
 			FormattedCharSequence line = textLines.get(i);
 			if (line != null) {
@@ -167,21 +146,6 @@ public class GuiHelper {
 
 			topY += 10;
 		}
-	}
-
-	private static void fillGradient(Matrix4f matrix, BufferBuilder builder, int x1, int y1, int x2, int y2, int colorA, int colorB) {
-		float f = (colorA >> 24 & 255) / 255.0F;
-		float f1 = (colorA >> 16 & 255) / 255.0F;
-		float f2 = (colorA >> 8 & 255) / 255.0F;
-		float f3 = (colorA & 255) / 255.0F;
-		float f4 = (colorB >> 24 & 255) / 255.0F;
-		float f5 = (colorB >> 16 & 255) / 255.0F;
-		float f6 = (colorB >> 8 & 255) / 255.0F;
-		float f7 = (colorB & 255) / 255.0F;
-		builder.addVertex(matrix, x2, y1, 400).setColor(f1, f2, f3, f);
-		builder.addVertex(matrix, x1, y1, 400).setColor(f1, f2, f3, f);
-		builder.addVertex(matrix, x1, y2, 400).setColor(f5, f6, f7, f4);
-		builder.addVertex(matrix, x2, y2, 400).setColor(f5, f6, f7, f4);
 	}
 
 	public static void fill(GuiGraphics guiGraphics, float minX, float minY, float maxX, float maxY, int color) {
@@ -203,7 +167,7 @@ public class GuiHelper {
 			maxY = j;
 		}
 
-		VertexConsumer vertexconsumer = guiGraphics.bufferSource().getBuffer(renderType);
+		VertexConsumer vertexconsumer = getBufferSource().getBuffer(renderType);
 		vertexconsumer.addVertex(matrix4f, minX, minY, z).setColor(color);
 		vertexconsumer.addVertex(matrix4f, minX, maxY, z).setColor(color);
 		vertexconsumer.addVertex(matrix4f, maxX, maxY, z).setColor(color);
@@ -236,10 +200,9 @@ public class GuiHelper {
 		}
 	}
 
-	public static void renderTiledFluidTextureAtlas(GuiGraphics guiGraphics, TextureAtlasSprite sprite, int color, int x, int y, int height) {
-		RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
-		RenderSystem.setShaderTexture(0, sprite.atlasLocation());
-		BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
+	public static void renderTiledFluidTextureAtlas(GuiGraphics guiGraphics, Function<ResourceLocation, RenderType> renderTypeGetter, TextureAtlasSprite sprite, int color, int x, int y, int height) {
+		RenderType renderType = renderTypeGetter.apply(sprite.atlasLocation());
+		VertexConsumer vertexConsumer = Minecraft.getInstance().renderBuffers().bufferSource().getBuffer(renderType);
 		float u0 = sprite.getU0();
 		float v0 = sprite.getV0();
 		int spriteHeight = sprite.contents().height();
@@ -255,16 +218,13 @@ public class GuiHelper {
 			// we need to draw the quads per width too
 			Matrix4f matrix = guiGraphics.pose().last().pose();
 			float u1 = sprite.getU1();
-			builder.addVertex(matrix, x, (float) startY + renderHeight, 100).setUv(u0, v1).setColor(red, green, blue, 1);
-			builder.addVertex(matrix, (float) x + 16, (float) startY + renderHeight, 100).setUv(u1, v1).setColor(red, green, blue, 1);
-			builder.addVertex(matrix, (float) x + 16, startY, 100).setUv(u1, v0).setColor(red, green, blue, 1);
-			builder.addVertex(matrix, x, startY, 100).setUv(u0, v0).setColor(red, green, blue, 1);
+			vertexConsumer.addVertex(matrix, x, (float) startY + renderHeight, 100).setUv(u0, v1).setColor(red, green, blue, 1);
+			vertexConsumer.addVertex(matrix, (float) x + 16, (float) startY + renderHeight, 100).setUv(u1, v1).setColor(red, green, blue, 1);
+			vertexConsumer.addVertex(matrix, (float) x + 16, startY, 100).setUv(u1, v0).setColor(red, green, blue, 1);
+			vertexConsumer.addVertex(matrix, x, startY, 100).setUv(u0, v0).setColor(red, green, blue, 1);
 
 			startY += renderHeight;
 		} while (height > 0);
-
-		// finish drawing sprites
-		BufferUploader.drawWithShader(builder.buildOrThrow());
 	}
 
 	public static void renderControlBackground(GuiGraphics guiGraphics, int x, int y, int renderWidth, int renderHeight) {
@@ -278,17 +238,19 @@ public class GuiHelper {
 	public static void renderControlBackground(GuiGraphics guiGraphics, int x, int y, int renderWidth, int renderHeight, int u, int v, int textureBgWidth, int textureBgHeight) {
 		int halfWidth = renderWidth / 2;
 		int halfHeight = renderHeight / 2;
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, u, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, u, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + halfWidth, y, (float) u + textureBgWidth - halfWidth, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + halfWidth, y + halfHeight, (float) u + textureBgWidth - halfWidth, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x, y, u, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x, y + halfHeight, u, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x + halfWidth, y, (float) u + textureBgWidth - halfWidth, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x + halfWidth, y + halfHeight, (float) u + textureBgWidth - halfWidth, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 	}
 
-	public static void tryRenderGuiItem(GuiGraphics guiGraphics, ItemRenderer itemRenderer, @Nullable LivingEntity livingEntity, ItemStack stack, int x, int y, int rotation) {
+	public static void tryRenderGuiItem(GuiGraphics guiGraphics, @Nullable LivingEntity livingEntity, ItemStack stack, int x, int y, int rotation) {
 		if (!stack.isEmpty()) {
-			BakedModel bakedmodel = itemRenderer.getModel(stack, null, livingEntity, 0);
+			Minecraft.getInstance()
+					.getItemModelResolver()
+					.updateForTopItem(scratchItemStackRenderState, stack, ItemDisplayContext.GUI, false, livingEntity != null ? livingEntity.level() : null, livingEntity, 0);
 			try {
-				renderGuiItem(guiGraphics, itemRenderer, stack, x, y, bakedmodel, rotation);
+				renderGuiItem(guiGraphics, x, y, rotation);
 			} catch (Throwable throwable) {
 				CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering item");
 				CrashReportCategory crashreportcategory = crashreport.addCategory("Item being rendered");
@@ -300,7 +262,7 @@ public class GuiHelper {
 		}
 	}
 
-	private static void renderGuiItem(GuiGraphics guiGraphics, ItemRenderer itemRenderer, ItemStack stack, int x, int y, BakedModel bakedModel, int rotation) {
+	private static void renderGuiItem(GuiGraphics guiGraphics, int x, int y, int rotation) {
 		PoseStack posestack = guiGraphics.pose();
 		posestack.pushPose();
 		posestack.translate(x + 8F, y + 8F, 150.0F);
@@ -309,14 +271,15 @@ public class GuiHelper {
 		}
 		posestack.scale(1.0F, -1.0F, 1.0F);
 		posestack.scale(16.0F, 16.0F, 16.0F);
-		RenderSystem.applyModelViewMatrix();
-		MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-		boolean flag = !bakedModel.usesBlockLight();
+		MultiBufferSource.BufferSource bufferSource = getBufferSource();
+		boolean flag = !scratchItemStackRenderState.usesBlockLight();
 		if (flag) {
+			bufferSource.endBatch();
 			Lighting.setupForFlatItems();
 		}
 
-		itemRenderer.render(stack, ItemDisplayContext.GUI, false, posestack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY, bakedModel);
+		scratchItemStackRenderState.render(posestack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
+		bufferSource.endBatch();
 
 		RenderSystem.disableDepthTest();
 		bufferSource.endBatch();
@@ -327,12 +290,15 @@ public class GuiHelper {
 		}
 
 		posestack.popPose();
-		RenderSystem.applyModelViewMatrix();
+	}
+
+	private static  MultiBufferSource.BufferSource getBufferSource() {
+		return Minecraft.getInstance().renderBuffers().bufferSource();
 	}
 
 	public static void renderTooltip(Screen screen, GuiGraphics guiGraphics, List<Component> components, int x, int y) {
-		List<ClientTooltipComponent> list = gatherTooltipComponents(components, x, screen.width, screen.height, screen.font);
-		guiGraphics.renderTooltipInternal(screen.font, list, x, y, DefaultTooltipPositioner.INSTANCE);
+		List<ClientTooltipComponent> list = gatherTooltipComponents(components, x, screen.width, screen.height, screen.getFont());
+		guiGraphics.renderTooltipInternal(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
 	}
 
 	//copy of ForgeHooksClient.gatherTooltipComponents with splitting always called so that new lines in translation are properly wrapped

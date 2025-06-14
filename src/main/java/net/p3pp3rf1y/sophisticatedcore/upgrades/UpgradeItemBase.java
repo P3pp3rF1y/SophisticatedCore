@@ -14,8 +14,8 @@ import java.util.List;
 public abstract class UpgradeItemBase<T extends IUpgradeWrapper> extends ItemBase implements IUpgradeItem<T> {
 	private final IUpgradeCountLimitConfig upgradeTypeLimitConfig;
 
-	protected UpgradeItemBase(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(new Properties());
+	protected UpgradeItemBase(IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(properties);
 		this.upgradeTypeLimitConfig = upgradeTypeLimitConfig;
 	}
 
@@ -39,7 +39,7 @@ public abstract class UpgradeItemBase<T extends IUpgradeWrapper> extends ItemBas
 	}
 
 	@Override
-	public Component getName() {
+	public Component getName(ItemStack stack) {
 		return Component.translatable(getDescriptionId());
 	}
 }

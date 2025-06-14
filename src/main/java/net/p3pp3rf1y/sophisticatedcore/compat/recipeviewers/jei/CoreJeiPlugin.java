@@ -20,6 +20,8 @@ public class CoreJeiPlugin implements IModPlugin {
 
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
-		registration.addRecipes(RecipeTypes.CRAFTING, ClientRecipeHelper.transformAllRecipesOfType(RecipeType.CRAFTING, UpgradeNextTierRecipe.class, JeiClientRecipeHelper::copyShapedRecipeWithRecipeHolder));
+		JeiRecipeDisplayGenerator generator = new JeiRecipeDisplayGenerator();
+		ClientRecipeHelper.addAllRecipesOfType(generator, RecipeType.CRAFTING, UpgradeNextTierRecipe.class);
+		registration.addRecipes(RecipeTypes.CRAFTING, generator.getCraftingRecipes());
 	}
 }

@@ -2,6 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
 import net.minecraft.nbt.CompoundTag;
 
-public interface IUpgradeRenderData {
+public interface IUpgradeClientData {
 	CompoundTag serializeNBT();
 }

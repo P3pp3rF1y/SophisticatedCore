@@ -291,7 +291,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		});
 		NBTHelper.getInt(categoryNbt, ROTATION_TAG).ifPresent(r -> {
 			if (!slotIndexes.isEmpty()) {
-				slotRotations.put(slotIndexes.iterator().next(), r);
+				slotRotations.put(slotIndexes.getFirst(), r);
 			}
 			categoryNbt.remove(ROTATION_TAG);
 			serializeRotations();

@@ -127,9 +127,9 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 	public boolean detectSettingsChangeAndReload() {
 		if (player.level().isClientSide) {
 			return storageWrapper.getContentsUuid().map(uuid -> {
-				MountedStorageData storage = MountedStorageData.get(uuid);
+				MountedStorageData storage = MountedStorageData.get();
 				if (storage.removeUpdatedStorageSettingsFlag(uuid)) {
-					CompoundTag contents = storage.getContents();
+					CompoundTag contents = storage.getContents(uuid);
 					storageWrapper.getSettingsHandler().reloadFrom(getSettingsTag(contents));
 					return true;
 				}

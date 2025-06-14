@@ -5,15 +5,15 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderer;
+import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeClientTickHandler;
 import org.joml.Vector3f;
 
 import java.util.function.UnaryOperator;
 
-public class CookingUpgradeRenderer implements IUpgradeRenderer<CookingUpgradeRenderData> {
+public class CookingUpgradeClientTickHandler implements IUpgradeClientTickHandler<CookingUpgradeClientData> {
 	@Override
-	public void render(Level level, RandomSource rand, UnaryOperator<Vector3f> getPositionFromOffset, CookingUpgradeRenderData upgradeRenderData) {
-		if (!upgradeRenderData.isBurning()) {
+	public void onClientTick(Level level, RandomSource rand, UnaryOperator<Vector3f> getPositionFromOffset, CookingUpgradeClientData upgradeClientData) {
+		if (!upgradeClientData.isBurning()) {
 			return;
 		}
 

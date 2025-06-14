@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.p3pp3rf1y.sophisticatedcore.util.FilterItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
@@ -53,12 +54,13 @@ public class FilterLogic {
 
 	public ObservableFilterItemStackHandler getFilterHandler() {
 		if (filterHandler == null) {
-			int filterSlotCount = getAttributes().filterItems().size();
+			ItemContainerContents filterItemContents = getAttributes().filterItems();
+			NonNullList<ItemStack> filterItems = NonNullList.withSize(filterItemContents.getSlots(), ItemStack.EMPTY);
+			filterItemContents.copyInto(filterItems);
+
+			int filterSlotCount = Math.max(filterItems.size(), defaultFilterSlotCount);
 			filterHandler = new ObservableFilterItemStackHandler(filterSlotCount);
-			filterHandler.initFilters(getAttributes().filterItems());
-			if (getAttributes().filterItems().size() < filterSlotCount) {
-				setAttributes(contents -> contents.expandFilterItems(filterSlotCount));
-			}
+			filterHandler.initFilters(filterItems);
 		}
 
 		return filterHandler;
@@ -115,7 +117,7 @@ public class FilterLogic {
 
 	private FilterAttributes getEmptyAttributes() {
 		if (emptyAttributes == null) {
-			emptyAttributes = new FilterAttributes(Collections.emptySet(), allowListDefault, false, false, PrimaryMatch.ITEM, true, NonNullList.withSize(defaultFilterSlotCount, ItemStack.EMPTY), false, false);
+			emptyAttributes = new FilterAttributes(Collections.emptySet(), allowListDefault, false, false, PrimaryMatch.ITEM, true, ItemContainerContents.EMPTY, false, false);
 		}
 		return emptyAttributes;
 	}
@@ -268,7 +270,7 @@ public class FilterLogic {
 
 		public void initFilters(List<ItemStack> filterItems) {
 			for (int slot = 0; slot < filterItems.size(); slot++) {
-				setStackInSlot(slot, filterItems.get(slot).copy());
+				setStackInSlot(slot, filterItems.get(slot));
 			}
 			onLoad();
 		}

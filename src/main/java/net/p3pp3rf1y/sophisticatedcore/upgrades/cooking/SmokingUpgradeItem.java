@@ -11,8 +11,8 @@ public class SmokingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.Sm
 	public static final UpgradeType<CookingUpgradeWrapper.SmokingUpgradeWrapper> TYPE = new UpgradeType<>(CookingUpgradeWrapper.SmokingUpgradeWrapper::new);
 	private final CookingUpgradeConfig smokingUpgradeConfig;
 
-	public SmokingUpgradeItem(CookingUpgradeConfig smokingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
+	public SmokingUpgradeItem(CookingUpgradeConfig smokingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+        super(upgradeTypeLimitConfig, properties);
 		this.smokingUpgradeConfig = smokingUpgradeConfig;
 	}
 

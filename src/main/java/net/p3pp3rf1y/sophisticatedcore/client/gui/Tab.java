@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.CompositeWidgetBase;
@@ -59,7 +60,7 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (shouldRender.getAsBoolean() && isClosedTooltipVisible(mouseX, mouseY)) {
-			guiGraphics.renderTooltip(screen.font, tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 
@@ -90,9 +91,9 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 		int halfHeight = height / 2;
 		int oddHeightAddition = height % 2;
 		int secondHalfHeight = halfHeight + oddHeightAddition;
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, (float) TEXTURE_WIDTH - width, 0, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) TEXTURE_WIDTH - width, (float) TEXTURE_HEIGHT - secondHalfHeight, width, secondHalfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x - 3, y, TEXTURE_WIDTH / 2, TEXTURE_HEIGHT - height, 3, height);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x, y, (float) TEXTURE_WIDTH - width, 0, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) TEXTURE_WIDTH - width, (float) TEXTURE_HEIGHT - secondHalfHeight, width, secondHalfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderType::guiTextured, GuiHelper.GUI_CONTROLS, x - 3, y, TEXTURE_WIDTH / 2, TEXTURE_HEIGHT - height, 3, height, 256, 256);
 	}
 
 	protected boolean isClosedTooltipVisible(int mouseX, int mouseY) {

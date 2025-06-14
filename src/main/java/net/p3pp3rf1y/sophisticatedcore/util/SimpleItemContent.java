@@ -31,11 +31,11 @@ public class SimpleItemContent implements DataComponentHolder {
 	}
 
 	public ItemStack copy() {
-		return this.itemStack.copy();
+		return itemStack.copy();
 	}
 
 	public boolean isEmpty() {
-		return this.itemStack.isEmpty();
+		return itemStack.isEmpty();
 	}
 
 	public Item getItem() {
@@ -94,12 +94,12 @@ public class SimpleItemContent implements DataComponentHolder {
 		} else if (!(obj instanceof SimpleItemContent o)) {
 			return false;
 		} else {
-			return ItemStack.isSameItemSameComponents(this.itemStack, o.itemStack);
+			return ItemStack.isSameItemSameComponents(itemStack, o.itemStack);
 		}
 	}
 
 	@Override
 	public int hashCode() {
-		return this.itemStack.getCount() * 31 + ItemStack.hashItemAndComponents(this.itemStack);
+		return itemStack.getCount() * 31 + ItemStack.hashItemAndComponents(itemStack);
 	}
 }

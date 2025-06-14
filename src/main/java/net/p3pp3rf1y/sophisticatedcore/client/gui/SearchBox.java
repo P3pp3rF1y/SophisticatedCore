@@ -86,10 +86,15 @@ class SearchBox extends TextBox {
 	}
 
 	@Override
+	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+	}
+
+	@Override
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (!isFocused() && isMouseOver(mouseX, mouseY)) {
-			guiGraphics.renderTooltip(screen.font, TOOLTIP, Optional.empty(), mouseX, mouseY);
+			guiGraphics.renderTooltip(screen.getFont(), TOOLTIP, Optional.empty(), mouseX, mouseY);
 		}
 	}
 }

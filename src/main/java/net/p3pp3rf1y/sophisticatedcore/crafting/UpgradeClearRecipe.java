@@ -45,12 +45,7 @@ public class UpgradeClearRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return width >= 1 && height >= 1;
-	}
-
-	@Override
-	public RecipeSerializer<?> getSerializer() {
+	public RecipeSerializer<UpgradeClearRecipe> getSerializer() {
 		return ModRecipes.UPGRADE_CLEAR_SERIALIZER.get();
 	}
 }

@@ -1,11 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei;
 
+import com.mojang.serialization.DynamicOps;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import me.shedaniel.rei.api.client.registry.transfer.TransferHandler;
 import me.shedaniel.rei.api.client.registry.transfer.simple.SimpleTransferHandler;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.InputIngredient;
 import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
 import me.shedaniel.rei.api.common.util.CollectionUtils;
@@ -16,6 +18,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -146,7 +149,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 
 		for (InputIngredient<ItemStack> input : inputs) {
 			CompoundTag innerTag = new CompoundTag();
-			innerTag.put("Ingredient", EntryIngredients.ofItemStacks(input.get()).saveIngredient());
+			innerTag.put("Ingredient", EntryIngredient.codec().encodeStart(NbtOps.INSTANCE, EntryIngredients.ofItemStacks(input.get())).getOrThrow());
 			innerTag.putInt("Index", input.getIndex());
 			tag.add(innerTag);
 		}

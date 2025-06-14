@@ -18,8 +18,8 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	public static final UpgradeGroup UPGRADE_GROUP = new UpgradeGroup("stack_upgrades", TranslationHelper.INSTANCE.translUpgradeGroup("stack_upgrades"));
 	private final double stackSizeMultiplier;
 
-	public StackUpgradeItem(double stackSizeMultiplier, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public StackUpgradeItem(double stackSizeMultiplier, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.stackSizeMultiplier = stackSizeMultiplier;
 	}
 
@@ -93,10 +93,6 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		UpgradeSlotChangeResult result = super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
 		if (!result.successful()) {
 			return result;
-		}
-
-		if (isClientSide) {
-			return UpgradeSlotChangeResult.success();
 		}
 
 		if (!(upgradeStackToPut.getItem() instanceof StackUpgradeItem otherStackUpgradeItem)) {

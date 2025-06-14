@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ClientboundSetCursorItemPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerSynchronizer;
@@ -29,7 +29,7 @@ public class HighStackCountSynchronizer implements ContainerSynchronizer {
 
 	@Override
 	public void sendCarriedChange(AbstractContainerMenu containerMenu, ItemStack stack) {
-		player.connection.send(new ClientboundContainerSetSlotPacket(-1, containerMenu.incrementStateId(), -1, stack));
+		player.connection.send(new ClientboundSetCursorItemPacket(stack));
 	}
 
 	@Override

@@ -3,7 +3,6 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.FilterSlotItemHandler;
@@ -15,7 +14,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> {
-	public static final ResourceLocation EMPTY_POTION_SLOT_BACKGROUND = SophisticatedCore.getRL("item/empty_potion_slot");
+	public static final ResourceLocation EMPTY_POTION_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/potion");
 	public static final String DATA_CONDITION = "condition";
 	public static final String DATA_MATCH_ALL = "matchAll";
 	private static final String DATA_MATCH_DURATION = "matchDuration";
@@ -35,7 +34,7 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 				public boolean mayPlace(ItemStack stack) {
 					return stack.isEmpty() || getItemHandler().isItemValid(slot, stack);
 				}
-			}.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_POTION_SLOT_BACKGROUND));
+			}.setBackground(EMPTY_POTION_SLOT_BACKGROUND));
 		});
 	}
 

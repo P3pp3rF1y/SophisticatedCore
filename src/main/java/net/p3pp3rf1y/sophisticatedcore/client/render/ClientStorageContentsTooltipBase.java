@@ -208,7 +208,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	}
 
 	@Override
-	public int getHeight() {
+	public int getHeight(Font font) {
 		return height;
 	}
 

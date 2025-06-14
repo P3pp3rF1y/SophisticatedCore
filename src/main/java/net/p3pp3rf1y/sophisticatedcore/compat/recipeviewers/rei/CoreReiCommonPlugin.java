@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei;
 
-import me.shedaniel.rei.api.common.plugins.REIServerPlugin;
+import me.shedaniel.rei.api.common.plugins.REICommonPlugin;
 import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
 import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessorRegistry;
 import me.shedaniel.rei.forge.REIPluginCommon;
@@ -12,7 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 @SuppressWarnings("unused")
 @REIPluginCommon
-public class CoreReiCommonPlugin implements REIServerPlugin {
+public class CoreReiCommonPlugin implements REICommonPlugin {
 	@Override
 	public void registerSlotAccessors(SlotAccessorRegistry registry) {
 		registry.register(ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "storage"),

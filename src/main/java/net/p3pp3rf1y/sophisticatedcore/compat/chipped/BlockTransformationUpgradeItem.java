@@ -12,8 +12,8 @@ import java.util.function.Supplier;
 public class BlockTransformationUpgradeItem extends UpgradeItemBase<BlockTransformationUpgradeWrapper> {
 	private static final UpgradeType<BlockTransformationUpgradeWrapper> TYPE = new UpgradeType<>(BlockTransformationUpgradeWrapper::new);
 	private final Supplier<RecipeType<ChippedRecipe>> getRecipeType;
-	public BlockTransformationUpgradeItem(Supplier<RecipeType<ChippedRecipe>> getRecipeType, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-		super(upgradeTypeLimitConfig);
+	public BlockTransformationUpgradeItem(Supplier<RecipeType<ChippedRecipe>> getRecipeType, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
 		this.getRecipeType = getRecipeType;
 	}
 

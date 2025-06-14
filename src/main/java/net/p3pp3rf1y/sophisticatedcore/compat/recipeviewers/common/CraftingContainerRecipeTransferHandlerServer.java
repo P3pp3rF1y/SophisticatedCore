@@ -1,10 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
@@ -17,7 +18,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	/**
 	 * Called server-side to actually put the items in place.
 	 */
-	public static void setItemsWithSlotIDMap(Player player, ResourceLocation recipeId, RecipeType<?> recipeType, Map<Integer, Integer> slotIdMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+	public static void setItemsWithSlotIDMap(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, Map<Integer, Integer> slotIdMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
 			return;
 		}
@@ -41,7 +42,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	/**
 	 * Called server-side to actually put the items in place.
 	 */
-	public static void setItemsWithStacks(Player player, ResourceLocation recipeId, RecipeType<?> recipeType, List<ItemStack> stacks, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+	public static void setItemsWithStacks(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<ItemStack> stacks, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
 			return;
 		}
@@ -59,7 +60,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		setItems(container, player, recipeId, recipeType, slotMap, craftingSlots, inventorySlots, maxTransfer);
 	}
 
-	private static void setItems(StorageContainerMenuBase<?> container, Player player, ResourceLocation recipeId, RecipeType<?> recipeType, Map<Integer, ItemStack> slotMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+	private static void setItems(StorageContainerMenuBase<?> container, Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, Map<Integer, ItemStack> slotMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		Map<Integer, ItemStack> toTransfer = removeItemsFromInventory(player, container, slotMap, craftingSlots, inventorySlots, maxTransfer);
 
 		if (toTransfer.isEmpty()) {
@@ -86,7 +87,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		}
 	}
 
-	private static List<ItemStack> clearAndPutItemsIntoGrid(Player player, ResourceLocation recipeId, RecipeType<?> recipeType, List<Integer> craftingSlots, AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer) {
+	private static List<ItemStack> clearAndPutItemsIntoGrid(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<Integer> craftingSlots, AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer) {
 		List<ItemStack> clearedCraftingItems = new ArrayList<>();
 		int minSlotStackLimit = Integer.MAX_VALUE;
 		for (int craftingSlotNumberIndex = 0; craftingSlotNumberIndex < craftingSlots.size(); craftingSlotNumberIndex++) {

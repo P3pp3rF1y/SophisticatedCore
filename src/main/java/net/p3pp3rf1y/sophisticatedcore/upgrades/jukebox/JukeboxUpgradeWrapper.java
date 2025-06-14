@@ -155,16 +155,16 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		isPlaying = playing;
 		upgrade.set(ModCoreDataComponents.IS_PLAYING, playing);
 		if (isPlaying) {
-			storageWrapper.getRenderInfo().setUpgradeRenderData(JukeboxUpgradeRenderData.TYPE, new JukeboxUpgradeRenderData(true));
+			storageWrapper.getRenderInfo().setUpgradeClientData(JukeboxUpgradeClientData.TYPE, new JukeboxUpgradeClientData(true));
 		} else {
-			removeRenderData();
+			removeClientData();
 			setDiscSlotActive(-1);
 		}
 		save();
 	}
 
-	private void removeRenderData() {
-		storageWrapper.getRenderInfo().removeUpgradeRenderData(JukeboxUpgradeRenderData.TYPE);
+	private void removeClientData() {
+		storageWrapper.getRenderInfo().removeUpgradeClientData(JukeboxUpgradeClientData.TYPE);
 	}
 
 	public void stop(LivingEntity entity) {
@@ -215,7 +215,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 	@Override
 	public void onBeforeRemoved() {
-		removeRenderData();
+		removeClientData();
 	}
 
 	public void next() {

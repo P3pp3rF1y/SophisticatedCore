@@ -4,9 +4,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
@@ -42,8 +43,8 @@ public class FluidFilterControl extends WidgetBase {
 			if (!fluid.isEmpty()) {
 				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
 				ResourceLocation texture = renderProperties.getStillTexture(fluid);
-				TextureAtlasSprite still = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-				GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
+				TextureAtlasSprite still = minecraft.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
+				GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, RenderType::guiTextured, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}

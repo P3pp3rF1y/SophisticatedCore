@@ -12,9 +12,9 @@ import java.util.function.Consumer;
 public class StonecutterUpgradeItem extends BlockConverterUpgradeItem<StonecutterUpgradeItem, StonecutterUpgradeItem.Wrapper> {
 	private static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
-	public StonecutterUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
-    }
+	public StonecutterUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
+		super(upgradeTypeLimitConfig, properties);
+	}
 
 	@Override
 	public UpgradeType<Wrapper> getType() {

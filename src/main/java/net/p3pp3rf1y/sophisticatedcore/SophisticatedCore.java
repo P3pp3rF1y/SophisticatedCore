@@ -11,7 +11,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
@@ -82,8 +82,8 @@ public class SophisticatedCore {
 		event.enqueueWork(CompatRegistry::setupCompats);
 	}
 
-	private static void onResourceReload(AddReloadListenerEvent event) {
-		event.addListener(DatapackSettingsTemplateManager.Loader.INSTANCE);
+	private static void onResourceReload(AddServerReloadListenersEvent event) {
+		event.addListener(DatapackSettingsTemplateManager.Loader.KEY, DatapackSettingsTemplateManager.Loader.INSTANCE);
 	}
 
 	public static ResourceLocation getRL(String regName) {

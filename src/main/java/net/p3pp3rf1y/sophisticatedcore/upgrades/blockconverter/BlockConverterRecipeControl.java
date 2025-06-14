@@ -81,7 +81,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 			int k = listInnerLeftX + j % 4 * 16;
 			int l = j / 4;
 			int i1 = top + l * 18 + 2;
-			ItemStack resultItem = list.get(i).value().getResultItem(minecraft.level.registryAccess());
+			ItemStack resultItem = list.get(i).value().result;
 			GuiHelper.renderItemInGUI(guiGraphics, minecraft, resultItem, k, i1, renderResultCount && resultItem.getCount() > 1, String.valueOf(resultItem.getCount()));
 		}
 
@@ -135,7 +135,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 				int recipeLeftX = x + inviewRecipeIndex % 4 * 16;
 				int k1 = listTopY + inviewRecipeIndex / 4 * 18 + 2;
 				if (mouseX >= recipeLeftX && mouseX < recipeLeftX + 16 && mouseY >= k1 && mouseY < k1 + 18) {
-					renderTooltip(guiGraphics, list.get(recipeIndex).value().getResultItem(minecraft.level.registryAccess()), mouseX, mouseY);
+					renderTooltip(guiGraphics, list.get(recipeIndex).value().result, mouseX, mouseY);
 				}
 			}
 		}

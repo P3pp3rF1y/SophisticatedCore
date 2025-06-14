@@ -58,6 +58,7 @@ public class DatapackSettingsTemplateManager {
 
 	@SuppressWarnings("java:S6548")
 	public static class Loader extends SimplePreparableReloadListener<Map<ResourceLocation, CompoundTag>> {
+		public static final ResourceLocation KEY = SophisticatedCore.getRL("settings_templates");
 		public static final Loader INSTANCE = new Loader();
 		private static final String DIRECTORY = "sophisticated_settingstemplates";
 		private static final String SUFFIX = ".snbt";

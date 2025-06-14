@@ -56,7 +56,7 @@ public interface IControllerBoundable {
 		if (!level.isClientSide()) {
 			BlockPos pos = getStorageBlockPos();
 			for (Direction dir : Direction.values()) {
-				BlockPos offsetPos = pos.offset(dir.getNormal());
+				BlockPos offsetPos = pos.offset(dir.getUnitVec3i());
 				WorldHelper.getBlockEntity(level, offsetPos, IControllerBoundable.class).ifPresentOrElse(
 						s -> {
 							if (s.canConnectStorages()) {

@@ -4,7 +4,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -12,6 +11,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.items.ComponentItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -42,8 +42,8 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private long remainingCookTime = 0;
 	private long remainingBurnTime = 0;
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
-		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), cookingUpgradeConfig, recipeType, burnTimeModifier);
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, Predicate<ItemStack> isInput, float burnTimeModifier) {
+		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, isInput, cookingUpgradeConfig, recipeType, burnTimeModifier);
 	}
 
 	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
@@ -73,7 +73,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 			fr.ifPresent(recipe -> {
 				updateFuel(level, recipe);
 
-				if (isBurning(level) && canSmelt(recipe, level)) {
+				if (isBurning(level) && canSmelt(recipe)) {
 					updateCookingProgress(level, recipe);
 				} else if (!isBurning(level)) {
 					didSomething.set(false);
@@ -141,15 +141,15 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 	private void updateCookingProgress(Level level, T cookingRecipe) {
 		if (isCooking() && finishedCooking(level)) {
-			smelt(cookingRecipe, level);
-			if (canSmelt(cookingRecipe, level)) {
-				setCookTime(level, (int) (cookingRecipe.getCookingTime() * (1 / cookingSpeedMultiplier)));
+			smelt(cookingRecipe);
+			if (canSmelt(cookingRecipe)) {
+				setCookTime(level, (int) (cookingRecipe.cookingTime() * (1 / cookingSpeedMultiplier)));
 			} else {
 				setIsCooking(false);
 			}
 		} else if (!isCooking()) {
 			setIsCooking(true);
-			setCookTime(level, (int) (cookingRecipe.getCookingTime() * (1 / cookingSpeedMultiplier)));
+			setCookTime(level, (int) (cookingRecipe.cookingTime() * (1 / cookingSpeedMultiplier)));
 		}
 	}
 
@@ -161,13 +161,13 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		return !getFuel().isEmpty() && !getCookInput().isEmpty();
 	}
 
-	private void smelt(Recipe<?> recipe, Level level) {
-		if (!canSmelt(recipe, level)) {
+	private void smelt(T recipe) {
+		if (!canSmelt(recipe)) {
 			return;
 		}
 
 		ItemStack input = getCookInput();
-		ItemStack recipeOutput = recipe.getResultItem(level.registryAccess());
+		ItemStack recipeOutput = recipe.result;
 		ItemStack output = getCookOutput();
 		if (output.isEmpty()) {
 			setCookOutput(recipeOutput.copy());
@@ -210,19 +210,19 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 	private void updateFuel(Level level, T cookingRecipe) {
 		ItemStack fuel = getFuel();
-		if (!isBurning(level) && canSmelt(cookingRecipe, level)) {
+		if (!isBurning(level) && canSmelt(cookingRecipe)) {
 			if (getBurnTime(fuel, recipeType, burnTimeModifier) <= 0) {
 				return;
 			}
 			setBurnTime(level, (int) (getBurnTime(fuel, recipeType, burnTimeModifier) * fuelEfficiencyMultiplier / cookingSpeedMultiplier));
 			if (isBurning(level)) {
-				if (fuel.hasCraftingRemainingItem()) {
-					setFuelWithoutValidation(fuel.getCraftingRemainingItem());
+				if (!fuel.getCraftingRemainder().isEmpty()) {
+					setFuelWithoutValidation(fuel.getCraftingRemainder());
 				} else if (!fuel.isEmpty()) {
 					fuel.shrink(1);
 					setFuel(fuel);
 					if (fuel.isEmpty()) {
-						setFuel(fuel.getCraftingRemainingItem());
+						setFuel(fuel.getCraftingRemainder());
 					}
 				}
 			}
@@ -234,11 +234,11 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		setBurnTimeTotal(burnTime);
 	}
 
-	protected boolean canSmelt(Recipe<?> cookingRecipe, Level level) {
+	protected boolean canSmelt(T cookingRecipe) {
 		if (getCookInput().isEmpty()) {
 			return false;
 		}
-		ItemStack recipeOutput = cookingRecipe.getResultItem(level.registryAccess());
+		ItemStack recipeOutput = cookingRecipe.result;
 		if (recipeOutput.isEmpty()) {
 			return false;
 		} else {
@@ -256,7 +256,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	}
 
 	private static <T extends AbstractCookingRecipe> int getBurnTime(ItemStack fuel, RecipeType<T> recipeType, float burnTimeModifier) {
-		return (int) (fuel.getBurnTime(recipeType) * burnTimeModifier);
+		return (int) (fuel.getBurnTime(recipeType, WorldHelper.getFuelValues()) * burnTimeModifier);
 	}
 
 	public ItemStack getCookOutput() {

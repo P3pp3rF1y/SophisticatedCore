@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.crafting;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.data.recipes.RecipeOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
@@ -26,7 +26,12 @@ public class HoldingRecipeOutput implements RecipeOutput {
 	}
 
 	@Override
-	public void accept(ResourceLocation id, Recipe<?> recipe, @Nullable AdvancementHolder advancement, ICondition... conditions) {
+	public void includeRootAdvancement() {
+
+	}
+
+	@Override
+	public void accept(ResourceKey<Recipe<?>> id, Recipe<?> recipe, @Nullable AdvancementHolder advancement, ICondition... conditions) {
 		this.recipe = recipe;
 		this.advancementHolder = advancement;
 		this.conditions = conditions;

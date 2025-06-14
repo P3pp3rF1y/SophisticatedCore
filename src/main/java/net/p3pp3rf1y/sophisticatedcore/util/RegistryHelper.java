@@ -29,7 +29,7 @@ public class RegistryHelper {
 
 	public static Optional<RegistryAccess> getRegistryAccess() {
 		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER && FMLEnvironment.dist.isClient()) {
-			return ClientRegistryHelper.getRegistryAccess();
+			return ClientLevelHelper.getRegistryAccess();
 		}
 
 		MinecraftServer currentServer = ServerLifecycleHooks.getCurrentServer();

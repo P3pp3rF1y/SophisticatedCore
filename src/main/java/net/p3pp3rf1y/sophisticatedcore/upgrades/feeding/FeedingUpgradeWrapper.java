@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.feeding;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
@@ -35,8 +35,12 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	public FeedingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), s -> s.getFoodProperties(null) != null,
-				ModCoreDataComponents.FILTER_ATTRIBUTES);
+		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), this::isEdible, ModCoreDataComponents.FILTER_ATTRIBUTES);
+	}
+
+	private boolean isEdible(ItemStack s) {
+		FoodProperties foodProperties = s.get(DataComponents.FOOD);
+		return foodProperties != null && foodProperties.nutrition() >= 1;
 	}
 
 	@Override
@@ -78,14 +82,14 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	private boolean tryFeedingStack(Level level, int hungerLevel, Player player, Integer slot, ItemStack stack, ITrackedContentsItemHandler inventory) {
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
-		if (isEdible(stack, player) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
+		if (isEdible(stack) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 			ItemStack mainHandItem = player.getMainHandItem();
 			player.getInventory().items.set(player.getInventory().selected, stack);
 
 			ItemStack singleItemCopy = stack.copy();
 			singleItemCopy.setCount(1);
 
-			if (singleItemCopy.use(level, player, InteractionHand.MAIN_HAND).getResult() == InteractionResult.CONSUME) {
+			if (singleItemCopy.use(level, player, InteractionHand.MAIN_HAND) == InteractionResult.CONSUME) {
 				stack.shrink(1);
 				inventory.setStackInSlot(slot, stack);
 
@@ -106,13 +110,8 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		return false;
 	}
 
-	private static boolean isEdible(ItemStack stack, LivingEntity player) {
-		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
-		return foodProperties != null && foodProperties.nutrition() >= 1;
-	}
-
-	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack, Player player) {
-		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
+	private boolean isHungryEnoughForFood(int hungerLevel, ItemStack stack) {
+		FoodProperties foodProperties = stack.get(DataComponents.FOOD);
 		if (foodProperties == null) {
 			return false;
 		}
