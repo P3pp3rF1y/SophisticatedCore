@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.scores.DisplaySlot;
 import net.neoforged.neoforge.common.crafting.CustomDisplayIngredient;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.ShapelessRecipeDisplayBuilder;
 
@@ -17,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuilder<CraftingRecipe> {
-	private final List<DisplaySlot> displays = new ArrayList();
 	private final HolderGetter<Item> items;
 	private final JeiRecipeDisplayGenerator generator;
 	private final List<Ingredient> ingredients = new ArrayList<>();
@@ -50,7 +48,8 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 		return requires(Ingredient.of(items));
 	}
 
-	private ShapelessRecipeDisplayBuilder<CraftingRecipe> requires(Ingredient ingredient) {
+	@Override
+	public ShapelessRecipeDisplayBuilder<CraftingRecipe> requires(Ingredient ingredient) {
 		ingredients.add(ingredient);
 		return this;
 	}

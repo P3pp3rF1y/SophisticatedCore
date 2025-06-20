@@ -108,8 +108,7 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 			displays = unpack(displayKey, SlotDisplay.Empty.INSTANCE).getOrThrow();
 		} else {
 			pattern = new ShapedRecipePattern(width, height, ingredients, Optional.empty());
-			displays = new ArrayList<>();
-			ingredients.forEach(i -> displays.add(i.map(Ingredient::display).orElse(SlotDisplay.Empty.INSTANCE)));
+			displays = this.displays;
 		}
 
 		generator.acceptCrafting(new RecipeHolder<>(id, new JeiShapedRecipe("", CraftingBookCategory.MISC, pattern, displays, result)));

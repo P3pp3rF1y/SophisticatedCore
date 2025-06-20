@@ -43,6 +43,15 @@ public abstract class ShapedRecipeDisplayBuilder<R> implements IRecipeDisplayBui
 
 	public abstract ShapedRecipeDisplayBuilder<R> define(ItemStack itemStack);
 
+	public ShapedRecipeDisplayBuilder<R> define(Ingredient ingredient) {
+		if (ingredient.getCustomIngredient() != null) {
+			define(HolderSet.direct(ingredient.getCustomIngredient().items().toList()));
+		} else {
+			define(ingredient.getValues());
+		}
+		return this;
+	}
+
 	public ShapedRecipeDisplayBuilder<R> defineIngredients(List<Optional<Ingredient>> ingredients) {
 		ingredients.forEach(i -> define(i.map(Ingredient::getValues).orElse(HolderSet.empty())));
 		return this;

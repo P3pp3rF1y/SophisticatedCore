@@ -21,6 +21,7 @@ import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.crafting.CustomShapelessRecipe;
 
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
@@ -352,6 +353,8 @@ public class RecipeHelper {
 			return shapedRecipe.pattern.ingredients();
 		} else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
 			return shapelessRecipe.ingredients.stream().map(Optional::of).toList();
+		} else if (recipe instanceof CustomShapelessRecipe customShapelessRecipe) {
+			return customShapelessRecipe.getIngredients().stream().map(Optional::of).toList();
 		}
 
 		return Collections.emptyList();

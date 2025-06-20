@@ -18,6 +18,16 @@ public abstract class ShapelessRecipeDisplayBuilder<R> implements IRecipeDisplay
 
 	public abstract ShapelessRecipeDisplayBuilder<R> requires(HolderSet<Item> items);
 
+	public ShapelessRecipeDisplayBuilder<R> requires(Ingredient ingredient) {
+		if (ingredient.getCustomIngredient() != null) {
+			requires(HolderSet.direct(ingredient.getCustomIngredient().items().toList()));
+		} else {
+			requires(ingredient.getValues());
+		}
+
+		return this;
+	}
+
 	public ShapelessRecipeDisplayBuilder<R> requires(List<Ingredient> ingredients) {
 		ingredients.forEach(ingredient -> requires(ingredient.getValues()));
 		return this;

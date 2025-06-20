@@ -34,6 +34,7 @@ import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.Config;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -229,7 +230,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			for (int j = 0; j < 9; ++j) {
 				int slotIndex = j + i * 9;
 				int xPosition = playerInventoryXOffset + 8 + j * 18;
-				Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + slotIndex);
+				Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - getMenu().getExtraSlots().size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + slotIndex);
 				slot.x = xPosition;
 				slot.y = yPosition;
 			}
@@ -240,7 +241,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		for (int slotIndex = 0; slotIndex < 9; ++slotIndex) {
 			int xPosition = playerInventoryXOffset + 8 + slotIndex * 18;
-			Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + 3 * 9 + slotIndex);
+			Slot slot = getMenu().getSlot(getMenu().getInventorySlotsSize() - getMenu().getExtraSlots().size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + 3 * 9 + slotIndex);
 			slot.x = xPosition;
 			slot.y = yPosition;
 		}
@@ -777,8 +778,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int y = (height - imageHeight) / 2;
 		drawInventoryBg(guiGraphics, x, y, storageBackgroundProperties.getTextureName());
 		if (inventoryScrollPanel == null) {
-			drawSlotBg(guiGraphics, x, y, visibleSlotsCount);
-			drawSlotOverlays(guiGraphics);
+			drawSlotBg(guiGraphics, visibleSlotsCount);
 		}
 		drawUpgradeBackground(guiGraphics);
 	}
@@ -1246,8 +1246,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		float leftX = (float) -tooltipWidth / 2;
 
-		//TODO background.png and frame.png for error overlay
-		TooltipRenderUtil.renderTooltipBackground(guiGraphics, (int) leftX, 0, tooltipWidth, tooltipHeight, 350, null);
+		TooltipRenderUtil.renderTooltipBackground(guiGraphics, (int) leftX, 0, tooltipWidth, tooltipHeight, 350, SophisticatedCore.getRL("error"));
 		MultiBufferSource.BufferSource renderTypeBuffer = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
 		matrixStack.translate(0.0D, 0.0D, 400.0D);
 		GuiHelper.writeTooltipLines(guiGraphics, wrappedTextLines, fontrenderer, leftX, 0, renderTypeBuffer, ERROR_TEXT_COLOR);
@@ -1274,6 +1273,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public void drawSlotBg(GuiGraphics guiGraphics, int visibleSlotsCount) {
 		drawSlotBg(guiGraphics, (width - imageWidth) / 2, (height - imageHeight) / 2, visibleSlotsCount);
 		drawSlotOverlays(guiGraphics);
+		getMenu().getExtraSlots().forEach(slot -> GuiHelper.renderSlotsBackground(guiGraphics, slot.x + leftPos - 1, slot.y + topPos - 1, 1, 1));
 	}
 
 	@Override

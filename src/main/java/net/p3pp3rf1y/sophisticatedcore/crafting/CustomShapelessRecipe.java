@@ -69,6 +69,10 @@ public abstract class CustomShapelessRecipe implements CraftingRecipe {
 		}
 	}
 
+	public List<Ingredient> getIngredients() {
+		return ingredients;
+	}
+
 	public ItemStack assemble(CraftingInput craftingInput, HolderLookup.Provider registries) {
 		return result.copy();
 	}

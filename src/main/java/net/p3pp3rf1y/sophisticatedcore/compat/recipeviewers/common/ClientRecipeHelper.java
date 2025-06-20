@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.neoforged.neoforge.common.crafting.ICustomIngredient;
@@ -24,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class ClientRecipeHelper {
 	private ClientRecipeHelper() {
@@ -65,26 +67,44 @@ public class ClientRecipeHelper {
 		}, 3, 3);
 		int slot = 0;
 		for (Optional<Ingredient> ingredient : ingredients) {
+			int fSlot = slot;
 			ingredient.ifPresentOrElse(
 					i -> {
-						if (i.getValues().size() > 0 && i.getValues().get(0) == variantItem.getItem()) {
-							craftingInventory.setItem(slot, variantItem.copy());
+						if (ingredientMatchesVariantItem(variantItem, i)) {
+							craftingInventory.setItem(fSlot, variantItem.copy());
 						} else {
-							craftingInventory.setItem(slot, i.getValues().size() == 0 ? ItemStack.EMPTY : new ItemStack(i.getValues().get(0).value()));
+							craftingInventory.setItem(fSlot, getStackFromIngredient(i));
 						}
-					}, () -> craftingInventory.setItem(slot, ItemStack.EMPTY)
+					}, () -> craftingInventory.setItem(fSlot, ItemStack.EMPTY)
 			);
+			slot++;
 		}
 		return assemble(recipe, craftingInventory.asCraftInput());
 	}
 
+	private static ItemStack getStackFromIngredient(Ingredient i) {
+		if (i.getCustomIngredient() != null) {
+			return i.getCustomIngredient().items().findFirst().map(holder -> new ItemStack(holder.value())).orElse(ItemStack.EMPTY);
+		}
+
+		return i.getValues().size() > 0 ? new ItemStack(i.getValues().get(0).value()) : ItemStack.EMPTY;
+	}
+
+	private static boolean ingredientMatchesVariantItem(ItemStack variantItem, Ingredient ingredient) {
+		if (ingredient.getCustomIngredient() != null) {
+			return ingredient.getCustomIngredient().items().anyMatch(item -> item == variantItem.getItem());
+		}
+
+		return ingredient.getValues().stream().anyMatch(holder -> holder.value() == variantItem.getItem());
+	}
+
 	public static <U extends CraftingRecipe> void addVariantRecipes(IRecipeDisplayGenerator<?> generator,
-																					  Class<U> originalRecipeClass,
-																					  Function<CraftingRecipe, List<ItemStack>> getVariantItems,
-																					  Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter,
-																					  String modId, String idPrefix) {
+																	Class<U> originalRecipeClass,
+																	Function<CraftingRecipe, List<ItemStack>> getVariantItems,
+																	Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter,
+																	String modId, String idPrefix) {
 		runOnAllRecipesOfType(RecipeType.CRAFTING, originalRecipeClass, recipe -> getVariantItems.apply(recipe.value()).forEach(variantItem -> {
-					ItemStack result = getVariantResult(recipe.value(), variantItem);
+					ItemStack result = getVariantResult(recipe.value(), variantItem.copy());
 					ResourceLocation id = ResourceLocation.fromNamespaceAndPath(modId,
 							idPrefix
 									+ getItemString(getSubtypeInterpreter, variantItem)
@@ -129,10 +149,10 @@ public class ClientRecipeHelper {
 			for (Optional<Ingredient> ingredient : shapedRecipe.getIngredients()) {
 				ingredient.ifPresentOrElse(
 						i -> {
-							if (i.getValues().size() > 0 && i.getValues().get(0) == variantItem.getItem()) {
+							if (ingredientMatchesVariantItem(variantItem, i)) {
 								shaped.define(variantItem);
 							} else {
-								shaped.define(i.getValues());
+								shaped.define(i);
 							}
 						}, () -> shaped.define(HolderSet.empty())
 				);
@@ -140,29 +160,36 @@ public class ClientRecipeHelper {
 
 			shaped.save(ResourceKey.create(Registries.RECIPE, id));
 		} else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
-			ShapelessRecipeDisplayBuilder<?> shapeless = generator.shapeless(result);
-
-			for (Ingredient ingredient : shapelessRecipe.ingredients) {
-				if (ingredient.getValues().size() > 0 && ingredient.getValues().get(0) == variantItem.getItem()) {
-					shapeless.requires(variantItem);
-				} else {
-					shapeless.requires(ingredient.getValues());
-				}
-			}
-
-			shapeless.save(ResourceKey.create(Registries.RECIPE, id));
+			addShapelessRecipe(generator, variantItem, result, id, shapelessRecipe.ingredients);
+		} else if (recipe instanceof CustomShapelessRecipe customShapelessRecipe) {
+			addShapelessRecipe(generator, variantItem, result, id, customShapelessRecipe.placementInfo().ingredients());
 		}
 	}
 
+	private static void addShapelessRecipe(IRecipeDisplayGenerator<?> generator, ItemStack variantItem, ItemStack result, ResourceLocation id, List<Ingredient> ingredients) {
+		ShapelessRecipeDisplayBuilder<?> shapeless = generator.shapeless(result);
+
+		for (Ingredient ingredient : ingredients) {
+			if (ingredientMatchesVariantItem(variantItem, ingredient)) {
+				shapeless.requires(variantItem);
+			} else {
+				shapeless.requires(ingredient);
+			}
+		}
+
+		shapeless.save(ResourceKey.create(Registries.RECIPE, id));
+	}
+
 	public static List<ItemStack> getIngredientCreativeTabVariants(Recipe<?> recipe, Class<? extends ICreativeTabSupplier> itemClass) {
-		return getIngredientCreativeTabVariants(recipe, itemClass, stack -> {});
+		return getIngredientCreativeTabVariants(recipe, itemClass, stack -> {
+		});
 	}
 
 	public static List<ItemStack> getIngredientCreativeTabVariants(Recipe<?> recipe, Class<? extends ICreativeTabSupplier> itemClass, Consumer<ItemStack> updateStack) {
 		List<ItemStack> ingredientItems = new ArrayList<>();
 		for (Optional<Ingredient> ingredient : RecipeHelper.getIngredients(recipe)) {
 			ingredient.ifPresent(i -> {
-				i.getValues().stream().map(Holder::value).filter(itemClass::isInstance).map(itemClass::cast).forEach(item -> {
+				getIngredientValues(i).map(Holder::value).filter(itemClass::isInstance).map(itemClass::cast).forEach(item -> {
 					item.addCreativeTabItems(stack -> {
 						updateStack.accept(stack);
 						ingredientItems.add(stack);
@@ -174,6 +201,13 @@ public class ClientRecipeHelper {
 			}
 		}
 		return ingredientItems;
+	}
+
+	private static Stream<Holder<Item>> getIngredientValues(Ingredient i) {
+		if (i.getCustomIngredient() != null) {
+			return i.getCustomIngredient().items();
+		}
+		return i.getValues().stream();
 	}
 
 	public static List<ItemStack> getCustomIngredientVariants(Recipe<?> recipe, Class<? extends ICustomIngredient> customIngredientClass) {
