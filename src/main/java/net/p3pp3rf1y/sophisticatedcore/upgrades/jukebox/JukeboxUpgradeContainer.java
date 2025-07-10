@@ -35,8 +35,7 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(ACTION_DATA)) {
-			String actionName = data.getString(ACTION_DATA);
+		data.getString(ACTION_DATA).ifPresent(actionName -> {
 			switch (actionName) {
 				case "play" -> {
 					if (player.containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu) {
@@ -47,14 +46,10 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 				case "next" -> upgradeWrapper.next();
 				case "previous" -> upgradeWrapper.previous();
 			}
-		}
-		if (data.contains("shuffle")) {
-			upgradeWrapper.setShuffleEnabled(data.getBoolean("shuffle"));
-		}
+		});
+		data.getBoolean("shuffle").ifPresent(upgradeWrapper::setShuffleEnabled);
+		NBTHelper.getEnumConstant(data, "repeat", RepeatMode::fromName).ifPresent(upgradeWrapper::setRepeatMode);
 
-		if (data.contains("repeat")) {
-			NBTHelper.getEnumConstant(data, "repeat", RepeatMode::fromName).ifPresent(upgradeWrapper::setRepeatMode);
-		}
 	}
 
 	public void play() {

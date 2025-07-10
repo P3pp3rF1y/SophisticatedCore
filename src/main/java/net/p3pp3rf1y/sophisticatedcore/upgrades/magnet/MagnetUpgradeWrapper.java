@@ -110,7 +110,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 
 			if (amountAdded > 0) {
 				Vec3 pos = xpOrb.position();
-				xpOrb.value = 0;
+				xpOrb.setValue(0);
 				xpOrb.discard();
 
 				Player player = entity instanceof Player ? (Player) entity : null;

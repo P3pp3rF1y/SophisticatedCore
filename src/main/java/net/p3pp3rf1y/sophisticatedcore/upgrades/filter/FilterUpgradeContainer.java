@@ -37,8 +37,6 @@ public class FilterUpgradeContainer extends UpgradeContainerBase<FilterUpgradeWr
 			return;
 		}
 
-		if (data.contains(DATA_DIRECTION)) {
-			setDirection(Direction.fromName(data.getString(DATA_DIRECTION)));
-		}
+		data.getString(DATA_DIRECTION).ifPresent(dir -> setDirection(Direction.fromName(dir)));
 	}
 }

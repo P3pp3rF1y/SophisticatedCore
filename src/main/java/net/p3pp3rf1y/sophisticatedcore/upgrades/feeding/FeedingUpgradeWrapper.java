@@ -84,7 +84,7 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
 		if (isEdible(stack) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 			ItemStack mainHandItem = player.getMainHandItem();
-			player.getInventory().items.set(player.getInventory().selected, stack);
+			player.getInventory().getNonEquipmentItems().set(player.getInventory().getSelectedSlot(), stack);
 
 			ItemStack singleItemCopy = stack.copy();
 			singleItemCopy.setCount(1);
@@ -102,10 +102,10 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 					}
 				}
 
-				player.getInventory().items.set(player.getInventory().selected, mainHandItem);
+				player.getInventory().getNonEquipmentItems().set(player.getInventory().getSelectedSlot(), mainHandItem);
 				return true;
 			}
-			player.getInventory().items.set(player.getInventory().selected, mainHandItem);
+			player.getInventory().getNonEquipmentItems().set(player.getInventory().getSelectedSlot(), mainHandItem);
 		}
 		return false;
 	}

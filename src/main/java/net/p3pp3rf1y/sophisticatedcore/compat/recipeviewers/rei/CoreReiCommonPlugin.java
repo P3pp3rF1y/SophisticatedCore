@@ -20,7 +20,7 @@ public class CoreReiCommonPlugin implements REICommonPlugin {
 				new SlotAccessorRegistry.Serializer() {
 					@Override
 					public SlotAccessor read(AbstractContainerMenu menu, Player player, CompoundTag tag) {
-						int slot = tag.getInt("Slot");
+						int slot = tag.getIntOr("Slot", 0);
 						return new ReiSlotAccessor(menu.getSlot(slot));
 					}
 

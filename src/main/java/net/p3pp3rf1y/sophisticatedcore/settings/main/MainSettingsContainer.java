@@ -17,12 +17,11 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(CONTEXT_TAG)) {
-			context = Context.fromId(data.getInt(CONTEXT_TAG));
-		} else {
-			for (String tagName : data.getAllKeys()) {
-				SettingsManager.getSetting(tagName).ifPresent(setting -> setSettingValue(getPlayer(), setting, data));
-			}
+		data.getInt(CONTEXT_TAG).ifPresent(contextId -> {
+			context = Context.fromId(contextId);
+		});
+		for (String tagName : data.keySet()) {
+			SettingsManager.getSetting(tagName).ifPresent(setting -> setSettingValue(getPlayer(), setting, data));
 		}
 	}
 

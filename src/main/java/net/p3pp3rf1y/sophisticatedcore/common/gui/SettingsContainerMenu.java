@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -181,8 +180,11 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			remoteGhostSlots.set(slotIndex, ghostSlots.get(slotIndex).getItem().copy());
 		}
 
+		ItemStack carriedStack = getCarried();
+		remoteCarried.force(carriedStack);
+
 		if (synchronizer != null) {
-			synchronizer.sendInitialData(this, remoteGhostSlots, remoteCarried, new int[0]);
+			synchronizer.sendInitialData(this, remoteGhostSlots, carriedStack, new int[0]);
 		}
 
 		if (player instanceof ServerPlayer serverPlayer) {
@@ -238,14 +240,12 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains("categoryName")) {
-			String categoryName = data.getString("categoryName");
+		data.getString("categoryName").ifPresent(categoryName -> {
 			if (settingsContainers.containsKey(categoryName)) {
 				settingsContainers.get(categoryName).handlePacket(data);
 			}
-		} else if (data.contains(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG, Tag.TAG_COMPOUND)) {
-			templatePersistanceContainer.handlePacket(data.getCompound(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG));
-		}
+		});
+		data.getCompound(TemplatePersistanceContainer.TEMPLATE_PERSISTANCE_TAG).ifPresent(templatePersistanceContainer::handlePacket);
 	}
 
 	@Override
@@ -370,16 +370,6 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	public void updateEmptySlotIcons(Map<ResourceLocation, Set<Integer>> emptySlotIcons) {
 		this.emptySlotIcons.clear();
 		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, textureName)));
-	}
-
-	@Override
-	public void setRemoteSlotNoCopy(int slot, ItemStack stack) {
-		ItemStack previous = getSlot(slot).getItem();
-		super.setRemoteSlotNoCopy(slot, stack);
-
-		if (previous.isEmpty() || stack.isEmpty()) {
-			inventorySlotStackChanged = true;
-		}
 	}
 
 	private void sendEmptySlotIcons() {

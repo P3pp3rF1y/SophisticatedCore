@@ -29,9 +29,7 @@ public class ContentsFilterLogicContainer extends FilterLogicContainer<ContentsF
 			return false;
 		}
 
-		if (data.contains(DATA_CONTENTS_FILTER_TYPE)) {
-			setFilterType(ContentsFilterType.fromName(data.getString(DATA_CONTENTS_FILTER_TYPE)));
-		}
+		data.getString(DATA_CONTENTS_FILTER_TYPE).ifPresent(typeName -> setFilterType(ContentsFilterType.fromName(typeName)));
 		return super.handlePacket(data);
 	}
 

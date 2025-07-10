@@ -24,7 +24,7 @@ public interface IRenderedBatteryUpgrade {
 		}
 
 		public static BatteryRenderInfo deserialize(CompoundTag tag) {
-			return new BatteryRenderInfo(tag.getFloat(CHARGE_RATIO_TAG));
+			return new BatteryRenderInfo(tag.getFloatOr(CHARGE_RATIO_TAG, 0));
 		}
 
 		public void setChargeRatio(float chargeRatio) {

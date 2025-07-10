@@ -21,21 +21,18 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(ACTION_TAG)) {
-			switch (data.getString(ACTION_TAG)) {
+		data.getString(ACTION_TAG).ifPresent(action -> {
+			switch (action) {
 				case SELECT_ALL_ACTION -> selectAllSlots();
 				case UNSELECT_ALL_ACTION -> unselectAllSlots();
 				default -> {
 					//noop
 				}
 			}
-		} else if (data.contains(SELECT_SLOT_TAG)) {
-			selectSlot(data.getInt(SELECT_SLOT_TAG));
-		} else if (data.contains(UNSELECT_SLOT_TAG)) {
-			unselectSlot(data.getInt(UNSELECT_SLOT_TAG));
-		} else if (data.contains(IGNORE_NBT_TAG)) {
-			setIgnoreNbt(data.getBoolean(IGNORE_NBT_TAG));
-		}
+		});
+		data.getInt(SELECT_SLOT_TAG).ifPresent(this::selectSlot);
+		data.getInt(UNSELECT_SLOT_TAG).ifPresent(this::unselectSlot);
+		data.getBoolean(IGNORE_NBT_TAG).ifPresent(this::setIgnoreNbt);
 	}
 
 	public void unselectSlot(int slotNumber) {

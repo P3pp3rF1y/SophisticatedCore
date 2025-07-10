@@ -92,7 +92,7 @@ public class ClientRecipeHelper {
 
 	private static boolean ingredientMatchesVariantItem(ItemStack variantItem, Ingredient ingredient) {
 		if (ingredient.getCustomIngredient() != null) {
-			return ingredient.getCustomIngredient().items().anyMatch(item -> item == variantItem.getItem());
+			return ingredient.getCustomIngredient().items().anyMatch(holder -> holder.value() == variantItem.getItem());
 		}
 
 		return ingredient.getValues().stream().anyMatch(holder -> holder.value() == variantItem.getItem());

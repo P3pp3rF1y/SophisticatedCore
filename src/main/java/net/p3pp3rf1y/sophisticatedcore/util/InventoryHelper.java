@@ -43,7 +43,7 @@ public class InventoryHelper {
 		registerEquipmentInventoryProvider(player -> new CombinedInvWrapper(
 				new PlayerArmorInvWrapper(player.getInventory()),
 				new PlayerOffhandInvWrapper(player.getInventory()),
-				new RangedWrapper(new InvWrapper(player.getInventory()), player.getInventory().selected, player.getInventory().selected + 1))
+				new RangedWrapper(new InvWrapper(player.getInventory()), player.getInventory().getSelectedSlot(), player.getInventory().getSelectedSlot() + 1))
 				);
 	}
 
@@ -320,7 +320,7 @@ public class InventoryHelper {
 	public static ItemStack mergeIntoPlayerInventory(Player player, ItemStack stack, int startSlot) {
 		ItemStack result = stack.copy();
 		List<Integer> emptySlots = new ArrayList<>();
-		for (int slot = startSlot; slot < player.getInventory().items.size(); slot++) {
+		for (int slot = startSlot; slot < player.getInventory().getNonEquipmentItems().size(); slot++) {
 			ItemStack slotStack = player.getInventory().getItem(slot);
 			if (slotStack.isEmpty()) {
 				emptySlots.add(slot);

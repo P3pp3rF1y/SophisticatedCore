@@ -168,9 +168,7 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	}
 
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(DATA_SELECTED_RECIPE_INDEX)) {
-			selectRecipe(data.getInt(DATA_SELECTED_RECIPE_INDEX));
-		}
+		data.getInt(DATA_SELECTED_RECIPE_INDEX).ifPresent(this::selectRecipe);
 	}
 
 	public boolean isNotResultSlot(Slot slot) {
@@ -192,7 +190,7 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 
 		@Override
 		public void onTake(Player player, ItemStack stack) {
-			stack.onCraftedBy(player.level(), player, stack.getCount());
+			stack.onCraftedBy(player, stack.getCount());
 			resultInventory.awardUsedRecipes(player, List.of(inputSlot.getItem()));
 			ItemStack itemstack = inputSlot.remove(getInputCount());
 			if (!itemstack.isEmpty()) {

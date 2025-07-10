@@ -100,19 +100,15 @@ public class TemplatePersistanceContainer {
 	}
 
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(ACTION_TAG)) {
-			String action = data.getString(ACTION_TAG);
+		data.getString(ACTION_TAG).ifPresent(action -> {
 			switch (action) {
-				case "saveTemplate" -> saveTemplate(data.getString("slotName"));
+				case "saveTemplate" -> data.getString("slotName").ifPresent(this::saveTemplate);
 				case "loadTemplate" -> loadTemplate();
-				case "exportTemplate" -> exportTemplate(data.getString("fileName"));
+				case "exportTemplate" -> data.getString("fileName").ifPresent(this::exportTemplate);
 			}
-		}
-		if (data.contains(SAVE_SLOT_TAG)) {
-			scrollSaveSlot(data.getBoolean(SAVE_SLOT_TAG));
-		} else if (data.contains(LOAD_SLOT_TAG)) {
-			scrollLoadSlot(data.getBoolean(LOAD_SLOT_TAG));
-		}
+		});
+		data.getBoolean(SAVE_SLOT_TAG).ifPresent(this::scrollSaveSlot);
+		data.getBoolean(LOAD_SLOT_TAG).ifPresent(this::scrollLoadSlot);
 	}
 
 	private void sendDataToServer(Supplier<CompoundTag> compoundSupplier) {

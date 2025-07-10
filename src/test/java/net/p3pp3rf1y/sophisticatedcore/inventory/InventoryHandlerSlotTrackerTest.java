@@ -619,10 +619,8 @@ public class InventoryHandlerSlotTrackerTest {
 				}
 			}
 
-			return stack;
-		} else {
-			return stack;
 		}
+		return stack;
 	}
 
 	public interface IItemHandlerSlottedInserter {

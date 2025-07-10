@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
@@ -160,11 +159,7 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 			}
 			int progressOver = width - (int) (width * remainingProgress);
 
-			RenderSystem.disableDepthTest();
-			RenderSystem.colorMask(true, true, true, false);
 			guiGraphics.fillGradient(xPos + progressOver, yPos, xPos + width, yPos + height, 0, slotColor, slotColor);
-			RenderSystem.colorMask(true, true, true, true);
-			RenderSystem.enableDepthTest();
 		}
 	}
 }

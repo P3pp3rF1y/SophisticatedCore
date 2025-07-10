@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -71,12 +70,8 @@ public class ColorToggleButton extends ButtonBase {
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		RenderSystem.disableDepthTest();
-		RenderSystem.colorMask(true, true, true, false);
 		int color = getColor.get().getTextureDiffuseColor() | (200 << 24);
 		guiGraphics.fillGradient(x + 3, y + 3, x + 15, y + 15, color, color);
-		RenderSystem.colorMask(true, true, true, true);
-		RenderSystem.enableDepthTest();
 	}
 
 	@Override

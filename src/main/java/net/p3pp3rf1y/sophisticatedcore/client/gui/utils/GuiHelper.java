@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.utils;
 
 import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Either;
 import com.mojang.math.Axis;
 import net.minecraft.CrashReport;
@@ -86,7 +86,6 @@ public class GuiHelper {
 
 	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition, boolean renderOverlay,
 									   @Nullable String countText) {
-		RenderSystem.enableDepthTest();
 		guiGraphics.renderItem(stack, xPosition, yPosition);
 		if (renderOverlay) {
 			guiGraphics.renderItemDecorations(minecraft.font, stack, xPosition, yPosition, countText);
@@ -248,7 +247,7 @@ public class GuiHelper {
 		if (!stack.isEmpty()) {
 			Minecraft.getInstance()
 					.getItemModelResolver()
-					.updateForTopItem(scratchItemStackRenderState, stack, ItemDisplayContext.GUI, false, livingEntity != null ? livingEntity.level() : null, livingEntity, 0);
+					.updateForTopItem(scratchItemStackRenderState, stack, ItemDisplayContext.GUI, livingEntity != null ? livingEntity.level() : null, livingEntity, 0);
 			try {
 				renderGuiItem(guiGraphics, x, y, rotation);
 			} catch (Throwable throwable) {
@@ -280,10 +279,6 @@ public class GuiHelper {
 
 		scratchItemStackRenderState.render(posestack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
 		bufferSource.endBatch();
-
-		RenderSystem.disableDepthTest();
-		bufferSource.endBatch();
-		RenderSystem.enableDepthTest();
 
 		if (flag) {
 			Lighting.setupFor3DItems();

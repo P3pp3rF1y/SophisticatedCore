@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.client.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -255,7 +254,6 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 		int x = leftX;
 		for (IUpgradeWrapper upgradeWrapper : upgrades) {
 			if (upgradeWrapper.canBeDisabled()) {
-				RenderSystem.disableDepthTest();
 				GuiHelper.blit(guiGraphics, x, topY + 3, upgradeWrapper.isEnabled() ? UPGRADE_ON : UPGRADE_OFF);
 				x += 4;
 			}

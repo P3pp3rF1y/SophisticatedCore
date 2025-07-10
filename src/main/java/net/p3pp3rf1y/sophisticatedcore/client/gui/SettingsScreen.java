@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -283,11 +282,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	private void renderSlotOverlay(GuiGraphics guiGraphics, int xPos, int yPos, int height, int slotColor) {
-		RenderSystem.disableDepthTest();
-		RenderSystem.colorMask(true, true, true, false);
 		guiGraphics.fillGradient(xPos, yPos, xPos + 16, yPos + height, slotColor, slotColor);
-		RenderSystem.colorMask(true, true, true, true);
-		RenderSystem.enableDepthTest();
 	}
 
 	@Override

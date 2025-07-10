@@ -23,35 +23,26 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 
 	public AlchemyUpgradeContainer(Player player, int upgradeContainerId, AlchemyUpgradeWrapper upgradeWrapper, UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(), (slot, stack) -> {
-			slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
-				@Override
-				public boolean mayPickup(Player player) {
-					return false;
-				}
-
-				@Override
-				public boolean mayPlace(ItemStack stack) {
-					return stack.isEmpty() || getItemHandler().isItemValid(slot, stack);
-				}
-			}.setBackground(EMPTY_POTION_SLOT_BACKGROUND));
-		});
+		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(), (slot, stack) ->
+				slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
+					@Override
+					public boolean mayPlace(ItemStack stack) {
+						return stack.isEmpty() || getItemHandler().isItemValid(slot, stack);
+					}
+				}.setBackground(EMPTY_POTION_SLOT_BACKGROUND)));
 	}
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(DATA_CONDITION)) {
-			NBTHelper.getEnumConstant(data, DATA_CONDITION, AlchemyCondition::fromName).ifPresent(
-					condition -> setConditionValue(data.getInt("slot"), condition, data.getFloat("value")));
-		} else if (data.contains(DATA_MATCH_ALL)) {
-			setMatchAll(data.getBoolean(DATA_MATCH_ALL));
-		} else if (data.contains(DATA_MATCH_DURATION)) {
-			setMatchDuration(data.getBoolean(DATA_MATCH_DURATION));
-		} else if (data.contains(DATA_MATCH_AMPLIFIER)) {
-			setMatchAmplifier(data.getBoolean(DATA_MATCH_AMPLIFIER));
-		} else if (data.contains(DATA_ENTITY_MATCH)) {
-			NBTHelper.getEnumConstant(data, DATA_ENTITY_MATCH, EntityMatch::fromName).ifPresent(this::setEntityMatch);
-		}
+		NBTHelper.getEnumConstant(data, DATA_CONDITION, AlchemyCondition::fromName).ifPresent(condition -> {
+			data.getInt("slot").ifPresent(slot -> data.getFloat("value").ifPresent(value -> {
+				setConditionValue(slot, condition, value);
+			}));
+		});
+		data.getBoolean(DATA_MATCH_ALL).ifPresent(this::setMatchAll);
+		data.getBoolean(DATA_MATCH_DURATION).ifPresent(this::setMatchDuration);
+		data.getBoolean(DATA_MATCH_AMPLIFIER).ifPresent(this::setMatchAmplifier);
+		NBTHelper.getEnumConstant(data, DATA_ENTITY_MATCH, EntityMatch::fromName).ifPresent(this::setEntityMatch);
 	}
 
 	private void setConditionValue(int slot, AlchemyCondition enumConstant, float value) {

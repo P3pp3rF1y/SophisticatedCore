@@ -44,9 +44,10 @@ public class FluidFilterContainer {
 
 	public boolean handlePacket(CompoundTag data) {
 		if (data.contains(DATA_FLUID)) {
-			CompoundTag fluidData = data.getCompound(DATA_FLUID);
-			FluidStack fluid = FluidStack.parseOptional(player.level().registryAccess(), fluidData.getCompound("fluid"));
-			setFluid(fluidData.getInt("index"), fluid);
+			data.getCompound(DATA_FLUID).ifPresent(fluidData -> {
+				FluidStack fluid = FluidStack.parseOptional(player.level().registryAccess(), fluidData.getCompoundOrEmpty("fluid"));
+				setFluid(fluidData.getIntOr("index", 0), fluid);
+			});
 			return true;
 		}
 		return false;

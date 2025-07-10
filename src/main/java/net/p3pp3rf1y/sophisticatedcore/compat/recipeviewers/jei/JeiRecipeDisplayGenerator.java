@@ -30,8 +30,8 @@ public class JeiRecipeDisplayGenerator implements IRecipeDisplayGenerator<Crafti
 	}
 
 	@Override
-	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Optional<Ingredient> base, Optional<Ingredient> addition, ItemStack result) {
-		return id -> acceptSmithing(new RecipeHolder<>(id, new SmithingTransformRecipe(template, base, addition, result)));
+	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Ingredient base, Optional<Ingredient> addition, ItemStack result) {
+		return id -> acceptSmithing(new RecipeHolder<>(id, new SmithingTransformRecipe(template, base, addition, new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch()))));
 	}
 
 	private void acceptSmithing(RecipeHolder<SmithingRecipe> recipe) {

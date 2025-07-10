@@ -76,11 +76,11 @@ public class DatapackSettingsTemplateManager {
 
 				try (
 						InputStream inputstream = resource.open();
-						Reader reader = new BufferedReader(new InputStreamReader(inputstream, StandardCharsets.UTF_8));
+						Reader reader = new BufferedReader(new InputStreamReader(inputstream, StandardCharsets.UTF_8))
 				) {
 					String fileContents = IOUtils.toString(reader);
 
-					CompoundTag tag = TagParser.parseTag(fileContents);
+					CompoundTag tag = TagParser.parseCompoundFully(fileContents);
 					if (map.put(resourceLocationWithoutSuffix, tag) != null) {
 						throw new IllegalStateException("Duplicate data file ignored with ID " + resourceLocationWithoutSuffix);
 					}

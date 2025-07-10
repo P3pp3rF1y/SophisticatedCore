@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei;
 
-import com.mojang.serialization.DynamicOps;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import me.shedaniel.rei.api.client.registry.transfer.TransferHandler;

@@ -58,7 +58,7 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 
 		Player player = context.player();
 		AbstractContainerMenu container = player.containerMenu;
-		List<InputIngredient<ItemStack>> inputs = readInputs(payload.tag.getList("Inputs", Tag.TAG_COMPOUND));
+		List<InputIngredient<ItemStack>> inputs = readInputs(payload.tag.getListOrEmpty("Inputs"));
 
 		ItemRecipeFinder recipeFinder = new ItemRecipeFinder();
 		for (int slotId : payload.inventorySlots) {
@@ -89,7 +89,7 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 		List<InputIngredient<ItemStack>> inputs = new ArrayList<>();
 		for (Tag t : tag) {
 			CompoundTag compoundTag = (CompoundTag) t;
-			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getInt("Index"), EntryIngredient.codec().parse(NbtOps.INSTANCE, compoundTag.getList("Ingredient", Tag.TAG_COMPOUND)).getOrThrow());
+			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getIntOr("Index", 0), EntryIngredient.codec().parse(NbtOps.INSTANCE, compoundTag.getListOrEmpty("Ingredient")).getOrThrow());
 			inputs.add(InputIngredient.withType(stacks, VanillaEntryTypes.ITEM));
 		}
 		return inputs;

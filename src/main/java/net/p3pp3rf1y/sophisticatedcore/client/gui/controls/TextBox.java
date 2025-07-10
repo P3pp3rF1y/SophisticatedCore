@@ -37,7 +37,7 @@ public class TextBox extends WidgetBase {
 		if (editBox.getValue().isEmpty() && unfocusedEmptyHint != null && !editBox.isFocused()) {
 			int x = editBox.getX() + editBox.getWidth() / 2 + 2/* editBox.isBordered() ? editBox.getX() + 4 : editBox.getX()*/;
 			int y = editBox.isBordered() ? editBox.getY() + (editBox.getHeight() - 8) / 2 : editBox.getY();
-			guiGraphics.drawCenteredString(this.font, unfocusedEmptyHint, x, y, editBox.textColor);
+			guiGraphics.drawCenteredString(font, unfocusedEmptyHint, x, y, editBox.textColor);
 		}
 		poseStack.popPose();
 	}

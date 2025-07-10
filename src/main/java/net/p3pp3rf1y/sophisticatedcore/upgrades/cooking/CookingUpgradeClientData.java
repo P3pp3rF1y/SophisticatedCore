@@ -24,6 +24,6 @@ public class CookingUpgradeClientData implements IUpgradeClientData {
 	}
 
 	public static CookingUpgradeClientData deserializeNBT(CompoundTag nbt) {
-		return new CookingUpgradeClientData(nbt.getBoolean("burning"));
+		return new CookingUpgradeClientData(nbt.getBooleanOr("burning", false));
 	}
 }

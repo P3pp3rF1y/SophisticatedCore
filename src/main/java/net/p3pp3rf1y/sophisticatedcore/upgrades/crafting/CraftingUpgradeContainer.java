@@ -225,18 +225,15 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(DATA_SHIFT_CLICK_INTO_STORAGE)) {
-			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
-		} else if (data.contains(DATA_SELECT_RESULT)) {
-			selectCraftingResult(data.getInt(DATA_SELECT_RESULT));
-		}
+		data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE).ifPresent(this::setShiftClickIntoStorage);
+		data.getInt(DATA_SELECT_RESULT).ifPresent(this::selectCraftingResult);
 	}
 
 	@Override
 	public ItemStack getSlotStackToTransfer(Slot slot) {
 		if (slot == craftingResultSlot) {
 			ItemStack slotStack = slot.getItem();
-			slotStack.getItem().onCraftedBy(slotStack, player.level(), player);
+			slotStack.getItem().onCraftedBy(slotStack, player);
 			return slotStack;
 		}
 		return super.getSlotStackToTransfer(slot);

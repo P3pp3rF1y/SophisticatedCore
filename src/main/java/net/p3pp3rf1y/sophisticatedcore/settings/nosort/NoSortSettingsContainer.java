@@ -20,21 +20,18 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(ACTION_TAG)) {
-			switch (data.getString(ACTION_TAG)) {
+		data.getString(ACTION_TAG).ifPresent(action -> {
+			switch (action) {
 				case SELECT_ALL_ACTION -> selectAllSlots();
 				case UNSELECT_ALL_ACTION -> unselectAllSlots();
 				default -> {
 					//noop
 				}
 			}
-		} else if (data.contains(SELECT_SLOT_TAG)) {
-			selectSlot(data.getInt(SELECT_SLOT_TAG));
-		} else if (data.contains(UNSELECT_SLOT_TAG)) {
-			unselectSlot(data.getInt(UNSELECT_SLOT_TAG));
-		} else if (data.contains(COLOR_TAG)) {
-			setColor(DyeColor.byId(data.getInt(COLOR_TAG)));
-		}
+		});
+		data.getInt(SELECT_SLOT_TAG).ifPresent(this::selectSlot);
+		data.getInt(UNSELECT_SLOT_TAG).ifPresent(this::unselectSlot);
+		data.getInt(COLOR_TAG).ifPresent(colorId -> setColor(DyeColor.byId(colorId)));
 	}
 
 	public void unselectSlot(int slotNumber) {

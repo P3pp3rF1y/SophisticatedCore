@@ -1,7 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import com.google.common.primitives.Shorts;
+import com.google.common.primitives.SignedBytes;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.HashedStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -57,9 +59,6 @@ import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.GUI_CON
 
 public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> extends AbstractContainerScreen<S>
 		implements InventoryScrollPanel.IInventoryScreen {
-	public static final int ERROR_BACKGROUND_COLOR = 0xF0100010;
-	public static final int ERROR_BORDER_COLOR = DyeColor.RED.getTextureDiffuseColor();
-	private static final int DISABLED_SLOT_COLOR = -1072689136;
 	private static final int UPGRADE_TOP_HEIGHT = 7;
 	private static final int UPGRADE_SLOT_HEIGHT = 16;
 	private static final int UPGRADE_BOTTOM_HEIGHT = 6;
@@ -551,12 +550,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, mouseX, mouseY));
 		ItemStack itemstack = draggingItem.isEmpty() ? menu.getCarried() : draggingItem;
 		if (!itemstack.isEmpty()) {
-			int l = this.draggingItem.isEmpty() ? 8 : 16;
+			int l = draggingItem.isEmpty() ? 8 : 16;
 			String s = null;
-			if (!this.draggingItem.isEmpty() && this.isSplittingStack) {
+			if (!draggingItem.isEmpty() && isSplittingStack) {
 				itemstack = itemstack.copyWithCount(Mth.ceil((float) itemstack.getCount() / 2.0F));
 			} else if (isQuickCrafting && quickCraftSlots.size() > 1) {
-				itemstack = itemstack.copyWithCount(this.quickCraftingRemainder);
+				itemstack = itemstack.copyWithCount(quickCraftingRemainder);
 				if (itemstack.isEmpty()) {
 					s = ChatFormatting.YELLOW + "0";
 				}
@@ -567,7 +566,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 
 		poseStack.popPose();
-		RenderSystem.enableDepthTest();
 	}
 
 	@Nullable
@@ -744,12 +742,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private void drawStackOverlay(GuiGraphics guiGraphics, int x, int y) {
 		PoseStack pose = guiGraphics.pose();
 		pose.pushPose();
-		RenderSystem.enableBlend();
-		RenderSystem.disableDepthTest();
 		pose.translate(0, 0, 200);
 		guiGraphics.blit(RenderType::guiTexturedOverlay, GuiHelper.GUI_CONTROLS, x, y, 77, 0, 16, 16, 256, 256);
-		RenderSystem.enableDepthTest();
-		RenderSystem.disableBlend();
 		pose.popPose();
 	}
 
@@ -766,11 +760,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	public void renderOverlay(GuiGraphics guiGraphics, int slotColor, int xPos, int yPos, int width, int height) {
-		RenderSystem.disableDepthTest();
-		RenderSystem.colorMask(true, true, true, false);
 		guiGraphics.fillGradient(xPos, yPos, xPos + width, yPos + height, 0, slotColor, slotColor);
-		RenderSystem.colorMask(true, true, true, true);
-		RenderSystem.enableDepthTest();
 	}
 
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
@@ -937,15 +927,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		//noinspection ConstantConditions - by this point minecraft isn't null
 		menu.clicked(slotNumber, mouseButton, type, minecraft.player);
-		Int2ObjectMap<ItemStack> changedSlotIndexes = new Int2ObjectOpenHashMap<>();
 
 		int inventorySlotsToCheck = Math.min(realInventoryItems.size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS, menu.getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS);
 
-		for (int i = 0; i < inventorySlotsToCheck; i++) {
-			ItemStack itemstack = realInventoryItems.get(i);
-			ItemStack slotStack = menu.getSlot(i).getItem();
+		Int2ObjectMap<HashedStack> changedSlotStacks = new Int2ObjectOpenHashMap<>();
+
+		for (int slotIndex = 0; slotIndex < inventorySlotsToCheck; slotIndex++) {
+			ItemStack itemstack = realInventoryItems.get(slotIndex);
+			ItemStack slotStack = menu.getSlot(slotIndex).getItem();
 			if (!ItemStack.matches(itemstack, slotStack)) {
-				changedSlotIndexes.put(i, slotStack.copy());
+				changedSlotStacks.put(slotIndex, HashedStack.create(slotStack, minecraft.getConnection().decoratedHashOpsGenenerator()));
 			}
 		}
 
@@ -954,7 +945,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			int slotIndex = menu.getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + i;
 			ItemStack slotStack = menu.getSlot(slotIndex).getItem();
 			if (!ItemStack.matches(itemstack, slotStack)) {
-				changedSlotIndexes.put(slotIndex, slotStack.copy());
+				changedSlotStacks.put(slotIndex, HashedStack.create(slotStack, minecraft.getConnection().decoratedHashOpsGenenerator()));
 			}
 		}
 
@@ -974,11 +965,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			int slotIndex = menu.getInventorySlotsSize() + i;
 			ItemStack slotStack = menu.getSlot(slotIndex).getItem();
 			if (!ItemStack.matches(itemstack, slotStack)) {
-				changedSlotIndexes.put(slotIndex, slotStack.copy());
+				changedSlotStacks.put(slotIndex, HashedStack.create(slotStack, minecraft.getConnection().decoratedHashOpsGenenerator()));
 			}
 		}
 
-		minecraft.player.connection.send(new ServerboundContainerClickPacket(menu.containerId, menu.getStateId(), slotNumber, mouseButton, type, menu.getCarried().copy(), changedSlotIndexes));
+		HashedStack hashedCarried = HashedStack.create(menu.getCarried(), minecraft.getConnection().decoratedHashOpsGenenerator());
+		minecraft.player.connection.send(new ServerboundContainerClickPacket(menu.containerId, menu.getStateId(), Shorts.checkedCast(slotNumber), SignedBytes.checkedCast(mouseButton), type, changedSlotStacks, hashedCarried));
 	}
 
 	@Override
@@ -1002,17 +994,17 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			return true;
 		} else {
 			InputConstants.Key mouseKey = InputConstants.Type.MOUSE.getOrCreate(button);
-			boolean flag = this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey);
-			Slot slot = this.getHoveredSlot(mouseX, mouseY);
+			boolean flag = minecraft.options.keyPickItem.isActiveAndMatches(mouseKey);
+			Slot slot = getHoveredSlot(mouseX, mouseY);
 			long i = Util.getMillis();
-			this.doubleclick = this.lastClickSlot == slot && i - this.lastClickTime < 250L && this.lastClickButton == button;
-			this.skipNextRelease = false;
+			doubleclick = lastClickSlot == slot && i - lastClickTime < 250L && lastClickButton == button;
+			skipNextRelease = false;
 			if (button != 0 && button != 1 && !flag) {
-				this.checkHotbarMouseClicked(button);
+				checkHotbarMouseClicked(button);
 			} else {
-				int j = this.leftPos;
-				int k = this.topPos;
-				boolean flag1 = this.hasClickedOutside(mouseX, mouseY, j, k, button);
+				int j = leftPos;
+				int k = topPos;
+				boolean flag1 = hasClickedOutside(mouseX, mouseY, j, k, button);
 				if (slot != null) {
 					flag1 = false;
 				}
@@ -1026,57 +1018,57 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 					l = -999;
 				}
 
-				if ((Boolean) this.minecraft.options.touchscreen().get() && flag1 && this.menu.getCarried().isEmpty()) {
-					this.onClose();
+				if (minecraft.options.touchscreen().get() && flag1 && menu.getCarried().isEmpty()) {
+					onClose();
 					return true;
 				}
 
 				if (l != -1) {
-					if ((Boolean) this.minecraft.options.touchscreen().get()) {
+					if (minecraft.options.touchscreen().get()) {
 						if (slot != null && slot.hasItem()) {
-							this.clickedSlot = slot;
-							this.draggingItem = ItemStack.EMPTY;
-							this.isSplittingStack = button == 1;
+							clickedSlot = slot;
+							draggingItem = ItemStack.EMPTY;
+							isSplittingStack = button == 1;
 						} else {
-							this.clickedSlot = null;
+							clickedSlot = null;
 						}
-					} else if (!this.isQuickCrafting) {
-						if (this.menu.getCarried().isEmpty()) {
-							if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
-								this.slotClicked(slot, l, button, ClickType.CLONE);
+					} else if (!isQuickCrafting) {
+						if (menu.getCarried().isEmpty()) {
+							if (minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
+								slotClicked(slot, l, button, ClickType.CLONE);
 							} else {
 								boolean flag2 = l != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
 								ClickType clicktype = ClickType.PICKUP;
 								if (flag2) {
-									this.lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
+									lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
 									clicktype = ClickType.QUICK_MOVE;
 								} else if (l == -999) {
 									clicktype = ClickType.THROW;
 								}
 
-								this.slotClicked(slot, l, button, clicktype);
+								slotClicked(slot, l, button, clicktype);
 							}
 
-							this.skipNextRelease = true;
+							skipNextRelease = true;
 						} else {
-							this.isQuickCrafting = true;
-							this.quickCraftingButton = button;
-							this.quickCraftSlots.clear();
+							isQuickCrafting = true;
+							quickCraftingButton = button;
+							quickCraftSlots.clear();
 							if (button == 0) {
-								this.quickCraftingType = 0;
+								quickCraftingType = 0;
 							} else if (button == 1) {
-								this.quickCraftingType = 1;
-							} else if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
-								this.quickCraftingType = 2;
+								quickCraftingType = 1;
+							} else if (minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
+								quickCraftingType = 2;
 							}
 						}
 					}
 				}
 			}
 
-			this.lastClickSlot = slot;
-			this.lastClickTime = i;
-			this.lastClickButton = button;
+			lastClickSlot = slot;
+			lastClickTime = i;
+			lastClickButton = button;
 			return true;
 		}
 	}
@@ -1187,7 +1179,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void renderErrorOverlay(GuiGraphics guiGraphics) {
 		menu.getErrorUpgradeSlotChangeResult().ifPresent(upgradeSlotChangeResult -> upgradeSlotChangeResult.getErrorMessage().ifPresent(overlayErrorMessage -> {
-			RenderSystem.disableDepthTest();
 			PoseStack poseStack = guiGraphics.pose();
 			poseStack.pushPose();
 			poseStack.translate(getGuiLeft(), getGuiTop(), 0.0F);

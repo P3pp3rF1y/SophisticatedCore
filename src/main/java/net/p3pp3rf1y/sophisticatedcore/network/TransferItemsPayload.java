@@ -89,7 +89,7 @@ public record TransferItemsPayload(boolean transferToInventory,
 		private final Inventory inventoryPlayer;
 
 		public PlayerMainInvWithoutHotbarWrapper(Inventory inv) {
-			super(new InvWrapper(inv), 9, inv.items.size());
+			super(new InvWrapper(inv), 9, inv.getNonEquipmentItems().size());
 			this.inventoryPlayer = inv;
 		}
 

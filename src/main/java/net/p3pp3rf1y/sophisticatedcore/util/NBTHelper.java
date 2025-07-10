@@ -34,16 +34,16 @@ public class NBTHelper {
 		return getTagValue(tag, key, CompoundTag::getCompound);
 	}
 
-	public static <T> Optional<T> getTagValue(CompoundTag tag, String key, BiFunction<CompoundTag, String, T> getValue) {
+	public static <T> Optional<T> getTagValue(CompoundTag tag, String key, BiFunction<CompoundTag, String, Optional<T>> getValue) {
 		if (!tag.contains(key)) {
 			return Optional.empty();
 		}
 
-		return Optional.of(getValue.apply(tag, key));
+		return getValue.apply(tag, key);
 	}
 
-	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, byte listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
-		return getTagValue(tag, key, (c, n) -> c.getList(n, listType)).map(listNbt -> {
+	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+		return getTagValue(tag, key, CompoundTag::getList).map(listNbt -> {
 			C ret = initCollection.get();
 			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
 			return ret;
@@ -51,7 +51,7 @@ public class NBTHelper {
 	}
 
 	public static <T extends Enum<T>> Optional<T> getEnumConstant(CompoundTag tag, String key, Function<String, T> deserialize) {
-		return getTagValue(tag, key, (t, k) -> deserialize.apply(t.getString(k)));
+		return getTagValue(tag, key, (t, k) -> t.getString(k).map(deserialize));
 	}
 
 	public static Optional<Long> getLong(CompoundTag tag, String key) {
@@ -79,7 +79,7 @@ public class NBTHelper {
 	}
 
 	public static Optional<Component> getComponent(CompoundTag tag, String key, HolderLookup.Provider registries) {
-		return getTagValue(tag, key, (t, k) -> Component.Serializer.fromJson(t.getString(k), registries));
+		return getTagValue(tag, key, (t, k) -> t.getString(k).map(string -> Component.Serializer.fromJson(string, registries)));
 	}
 
 	public static Optional<String> getString(CompoundTag tag, String key) {
@@ -91,15 +91,14 @@ public class NBTHelper {
 	}
 
 	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue, Supplier<Map<K, V>> initMap) {
-		CompoundTag mapNbt = tag.getCompound(key);
+		return tag.getCompound(key).map(mapNbt -> {
+			Map<K, V> map = initMap.get();
 
-		Map<K, V> map = initMap.get();
-
-		for (String tagName : mapNbt.getAllKeys()) {
-			getValue.apply(tagName, mapNbt.get(tagName)).ifPresent(value -> map.put(getKey.apply(tagName), value));
-		}
-
-		return Optional.of(map);
+			for (String tagName : mapNbt.keySet()) {
+				getValue.apply(tagName, mapNbt.get(tagName)).ifPresent(value -> map.put(getKey.apply(tagName), value));
+			}
+			return map;
+		});
 	}
 
 	public static <K, V> CompoundTag putMap(CompoundTag tag, String key, Map<K, V> map, Function<K, String> getStringKey, Function<V, Tag> getNbtValue) {

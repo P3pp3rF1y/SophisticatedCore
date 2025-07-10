@@ -202,34 +202,34 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 			return false;
 		}
 
-		for (String key : data.getAllKeys()) {
+		for (String key : data.keySet()) {
 			switch (key) {
 				case DATA_IS_ALLOW_LIST -> {
-					setAllowList(data.getBoolean(DATA_IS_ALLOW_LIST));
+					data.getBoolean(DATA_IS_ALLOW_LIST).ifPresent(this::setAllowList);
 					return true;
 				}
 				case DATA_MATCH_DURABILITY -> {
-					setMatchDurability(data.getBoolean(DATA_MATCH_DURABILITY));
+					data.getBoolean(DATA_MATCH_DURABILITY).ifPresent(this::setMatchDurability);
 					return true;
 				}
 				case DATA_MATCH_NBT -> {
-					setMatchNbt(data.getBoolean(DATA_MATCH_NBT));
+					data.getBoolean(DATA_MATCH_NBT).ifPresent(this::setMatchNbt);
 					return true;
 				}
 				case DATA_PRIMARY_MATCH -> {
-					setPrimaryMatch(PrimaryMatch.fromName(data.getString(DATA_PRIMARY_MATCH)));
+					data.getString(DATA_PRIMARY_MATCH).ifPresent(primaryMatchString -> setPrimaryMatch(PrimaryMatch.fromName(primaryMatchString)));
 					return true;
 				}
 				case DATA_ADD_TAG_NAME -> {
-					addTagName(TagKey.create(Registries.ITEM, ResourceLocation.parse(data.getString(DATA_ADD_TAG_NAME))));
+					data.getString(DATA_ADD_TAG_NAME).ifPresent(tagName -> addTagName(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagName))));
 					return true;
 				}
 				case DATA_REMOVE_TAG_NAME -> {
-					removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.parse(data.getString(DATA_REMOVE_TAG_NAME))));
+					data.getString(DATA_REMOVE_TAG_NAME).ifPresent(tagName -> removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagName))));
 					return true;
 				}
 				case DATA_MATCH_ANY_TAG -> {
-					setMatchAnyTag(data.getBoolean(DATA_MATCH_ANY_TAG));
+					data.getBoolean(DATA_MATCH_ANY_TAG).ifPresent(this::setMatchAnyTag);
 					return true;
 				}
 				default -> {
@@ -241,7 +241,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	}
 
 	protected boolean isDifferentFilterLogicsData(CompoundTag data) {
-		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getString(DATA_COMPONENT_KEY));
+		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getStringOr(DATA_COMPONENT_KEY, ""));
 	}
 
 	public class TagSelectionSlot extends Slot implements IFilterSlot {

@@ -24,6 +24,6 @@ public class JukeboxUpgradeClientData implements IUpgradeClientData {
 	}
 
 	public static JukeboxUpgradeClientData deserializeNBT(CompoundTag nbt) {
-		return new JukeboxUpgradeClientData(nbt.getBoolean("playing"));
+		return new JukeboxUpgradeClientData(nbt.getBooleanOr("playing", false));
 	}
 }

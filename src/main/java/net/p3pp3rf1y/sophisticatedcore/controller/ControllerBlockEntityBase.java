@@ -826,13 +826,13 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadAdditional(tag, registries);
 
-		storagePositions = NBTHelper.getCollection(tag, "storagePositions", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), ArrayList::new).orElseGet(ArrayList::new);
+		storagePositions = NBTHelper.getCollection(tag, "storagePositions", t -> t.asLong().map(BlockPos::of), ArrayList::new).orElseGet(ArrayList::new);
 		setupStoragePositionIndexes();
-		connectingBlocks = NBTHelper.getCollection(tag, "connectingBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
-		nonConnectingBlocks = NBTHelper.getCollection(tag, "nonConnectingBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
-		baseIndexes = NBTHelper.getCollection(tag, "baseIndexes", Tag.TAG_INT, t -> Optional.of(((IntTag) t).getAsInt()), ArrayList::new).orElseGet(ArrayList::new);
-		totalSlots = tag.getInt("totalSlots");
-		linkedBlocks = NBTHelper.getCollection(tag, "linkedBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
+		connectingBlocks = NBTHelper.getCollection(tag, "connectingBlocks", t -> t.asLong().map(BlockPos::of), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
+		nonConnectingBlocks = NBTHelper.getCollection(tag, "nonConnectingBlocks", t -> t.asLong().map(BlockPos::of), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
+		baseIndexes = NBTHelper.getCollection(tag, "baseIndexes", Tag::asInt, ArrayList::new).orElseGet(ArrayList::new);
+		totalSlots = tag.getIntOr("totalSlots", 0);
+		linkedBlocks = NBTHelper.getCollection(tag, "linkedBlocks", t -> t.asLong().map(BlockPos::of), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
 	}
 
 	private void setupStoragePositionIndexes() {
@@ -879,5 +879,11 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			filterItemStorages.computeIfAbsent(item, stackKey -> new LinkedHashSet<>()).add(storagePos);
 		}
 		storageFilterItems.put(storagePos, new LinkedHashSet<>(filterItems));
+	}
+
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		super.preRemoveSideEffects(pos, state);
+		detachFromStoragesAndUnlinkBlocks();
 	}
 }

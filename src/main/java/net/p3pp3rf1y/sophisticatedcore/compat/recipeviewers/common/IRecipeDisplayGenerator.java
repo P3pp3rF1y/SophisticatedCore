@@ -10,5 +10,5 @@ public interface IRecipeDisplayGenerator<C> {
 
 	ShapelessRecipeDisplayBuilder<C> shapeless(ItemStack result);
 
-	IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Optional<Ingredient> base, Optional<Ingredient> addition, ItemStack result);
+	IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Ingredient base, Optional<Ingredient> addition, ItemStack result);
 }

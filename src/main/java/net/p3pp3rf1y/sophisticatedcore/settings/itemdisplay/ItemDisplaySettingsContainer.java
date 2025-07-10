@@ -22,19 +22,12 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(SELECT_SLOT_TAG)) {
-			selectSlot(data.getInt(SELECT_SLOT_TAG));
-		} else if (data.contains(UNSELECT_SLOT_TAG)) {
-			unselectSlot(data.getInt(UNSELECT_SLOT_TAG));
-		} else if (data.contains(ROTATE_CLOCKWISE_TAG)) {
-			rotateClockwise(data.getInt(ROTATE_CLOCKWISE_TAG));
-		} else if (data.contains(ROTATE_COUNTER_CLOCKWISE_TAG)) {
-			rotateCounterClockwise(data.getInt(ROTATE_COUNTER_CLOCKWISE_TAG));
-		} else if (data.contains(COLOR_TAG)) {
-			setColor(DyeColor.byId(data.getInt(COLOR_TAG)));
-		} else if (data.contains(DISPLAY_SIDE_TAG)) {
-			getCategory().setDisplaySide(DisplaySide.fromName(data.getString(DISPLAY_SIDE_TAG)));
-		}
+		data.getInt(SELECT_SLOT_TAG).ifPresent(this::selectSlot);
+		data.getInt(UNSELECT_SLOT_TAG).ifPresent(this::unselectSlot);
+		data.getInt(ROTATE_CLOCKWISE_TAG).ifPresent(this::rotateClockwise);
+		data.getInt(ROTATE_COUNTER_CLOCKWISE_TAG).ifPresent(this::rotateCounterClockwise);
+		data.getInt(COLOR_TAG).ifPresent(colorId -> setColor(DyeColor.byId(colorId)));
+		data.getString(DISPLAY_SIDE_TAG).ifPresent(sideName -> setDisplaySide(DisplaySide.fromName(sideName)));
 	}
 
 	public void unselectSlot(int slotIndex) {

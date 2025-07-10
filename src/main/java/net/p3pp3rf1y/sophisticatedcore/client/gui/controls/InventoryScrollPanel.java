@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -45,12 +44,12 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	@Override
-	protected void drawBackground(GuiGraphics guiGraphics, Tesselator tess, float partialTick) {
+	protected void drawBackground(GuiGraphics guiGraphics, float partialTick) {
 		screen.drawSlotBg(guiGraphics, screen.getVisibleSlotsCount());
 	}
 
 	@Override
-	protected void drawPanel(GuiGraphics guiGraphics, int entryRight, int relativeY, Tesselator tess, int mouseX, int mouseY) {
+	protected void drawPanel(GuiGraphics guiGraphics, int entryRight, int relativeY, int mouseX, int mouseY) {
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(screen.getLeftX(), screen.getTopY(), 0.0D);

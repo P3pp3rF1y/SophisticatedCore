@@ -15,7 +15,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.ZombieVillager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ThrownPotion;
+import net.minecraft.world.entity.projectile.AbstractThrownPotion;
+import net.minecraft.world.entity.projectile.ThrownSplashPotion;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -229,7 +230,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				(stack, livingEntity) -> {
 					Level level = livingEntity.level();
 					level.playSound(null, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
-					ThrownPotion thrownPotion = new ThrownPotion(level, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack);
+					ThrownSplashPotion thrownPotion = new ThrownSplashPotion(level, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack);
 					onHit(thrownPotion, new EntityHitResult(livingEntity, new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
 					return 1;
 				}, (stack, livingEntity) -> ItemStack.EMPTY, false));
@@ -315,9 +316,9 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		return false;
 	}
 
-	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownPotion.class, "onHit", HitResult.class);
+	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(AbstractThrownPotion.class, "onHit", HitResult.class);
 
-	private static void onHit(ThrownPotion thrownPotion, EntityHitResult entityHitResult) {
+	private static void onHit(AbstractThrownPotion thrownPotion, EntityHitResult entityHitResult) {
 		try {
 			ON_HIT.invoke(thrownPotion, entityHitResult);
 		} catch (Exception e) {
@@ -378,13 +379,13 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 	private static AlchemyCondition getDefaultConditionForEffect(Holder<MobEffect> effect) {
 		if (effect == MobEffects.WATER_BREATHING) {
 			return AlchemyCondition.UNDER_WATER;
-		} else if (effect == MobEffects.HEAL || effect == MobEffects.REGENERATION) {
+		} else if (effect == MobEffects.INSTANT_HEALTH || effect == MobEffects.REGENERATION) {
 			return AlchemyCondition.HURT;
 		} else if (effect == MobEffects.FIRE_RESISTANCE) {
 			return AlchemyCondition.ON_FIRE;
-		} else if (effect == MobEffects.MOVEMENT_SPEED) {
+		} else if (effect == MobEffects.SPEED) {
 			return AlchemyCondition.SPRINTING;
-		} else if (effect == MobEffects.DIG_SPEED) {
+		} else if (effect == MobEffects.HASTE) {
 			return AlchemyCondition.MINING;
 		} else if (effect == MobEffects.SLOW_FALLING) {
 			return AlchemyCondition.FALLING;

@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -44,7 +43,6 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 		}
 
 		isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-		RenderSystem.enableDepthTest();
 		renderBg(guiGraphics, minecraft, mouseX, mouseY);
 		renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
 	}

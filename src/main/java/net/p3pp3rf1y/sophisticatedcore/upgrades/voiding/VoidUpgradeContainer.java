@@ -20,11 +20,8 @@ public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrappe
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(DATA_SHOULD_WORKD_IN_GUI)) {
-			setShouldWorkdInGUI(data.getBoolean(DATA_SHOULD_WORKD_IN_GUI));
-		} else if (data.contains(DATA_SHOULD_VOID_OVERFLOW)) {
-			setShouldVoidOverflow(data.getBoolean(DATA_SHOULD_VOID_OVERFLOW));
-		}
+		data.getBoolean(DATA_SHOULD_WORKD_IN_GUI).ifPresent(this::setShouldWorkdInGUI);
+		data.getBoolean(DATA_SHOULD_VOID_OVERFLOW).ifPresent(this::setShouldVoidOverflow);
 		filterLogicContainer.handlePacket(data);
 	}
 

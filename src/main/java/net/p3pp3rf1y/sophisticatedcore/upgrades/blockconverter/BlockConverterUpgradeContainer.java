@@ -27,11 +27,8 @@ public abstract class BlockConverterUpgradeContainer<R extends SingleItemRecipe,
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		if (data.contains(DATA_SHIFT_CLICK_INTO_STORAGE)) {
-			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
-		} else {
-			recipeContainer.handlePacket(data);
-		}
+		data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE).ifPresent(this::setShiftClickIntoStorage);
+		recipeContainer.handlePacket(data);
 	}
 
 	public boolean shouldShiftClickIntoStorage() {

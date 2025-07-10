@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -63,7 +62,6 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 		if (openTab != null) {
 			openTab.render(guiGraphics, mouseX, mouseY, partialTicks);
 		}
-		RenderSystem.enableDepthTest();
 	}
 
 	private boolean isNotCovered(T open, Tab t, boolean checkFullyCovered) {
