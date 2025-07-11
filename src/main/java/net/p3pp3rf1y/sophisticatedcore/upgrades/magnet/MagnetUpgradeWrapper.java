@@ -15,6 +15,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
@@ -35,8 +37,19 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		implements IContentsFilteredUpgrade, ITickableUpgrade, IPickupResponseUpgrade {
 	private static final String PREVENT_REMOTE_MOVEMENT = "PreventRemoteMovement";
 	private static final String ALLOW_MACHINE_MOVEMENT = "AllowMachineRemoteMovement";
-
 	private static final int COOLDOWN_TICKS = 10;
+
+	private static long nextTickTime = Long.MIN_VALUE;
+	public static void globalPostTick(LevelTickEvent.Post event) {
+		long gameTime = event.getLevel().getGameTime();
+		if (gameTime > nextTickTime) {
+			nextTickTime = gameTime + COOLDOWN_TICKS;
+		}
+	}
+	public static void onWorldUnload(LevelEvent.Unload evt) {
+		nextTickTime = Long.MIN_VALUE;
+	}
+
 	private static final int FULL_COOLDOWN_TICKS = 40;
 	private final ContentsFilterLogic filterLogic;
 
@@ -51,6 +64,14 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		filterLogic = new ContentsFilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(),
 				storageWrapper::getInventoryHandler, storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class),
 				ModCoreDataComponents.FILTER_ATTRIBUTES);
+	}
+
+	private boolean isInCooldown(Level level, @Nullable Entity entity) {
+		if (!(entity instanceof Player)) {
+			return super.isInCooldown(level);
+		}
+
+		return nextTickTime > level.getGameTime();
 	}
 
 	@Override
@@ -69,7 +90,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 
 	@Override
 	public void tick(@Nullable Entity entity, Level level, BlockPos pos) {
-		if (isInCooldown(level)) {
+		if (isInCooldown(level, entity)) {
 			return;
 		}
 
@@ -134,10 +155,9 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 			return COOLDOWN_TICKS;
 		}
 
-		int cooldown = COOLDOWN_TICKS;
-
 		Player player = entity instanceof Player ? (Player) entity : null;
 
+		int cooldown = FULL_COOLDOWN_TICKS;
 		for (ItemEntity itemEntity : itemEntities) {
 			if (!itemEntity.isAlive() || !filterLogic.matchesFilter(itemEntity.getItem()) || canNotPickup(itemEntity, entity)) {
 				continue;
@@ -146,8 +166,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 				if (player != null) {
 					playItemPickupSound(level, player);
 				}
-			} else {
-				cooldown = FULL_COOLDOWN_TICKS;
+				cooldown = COOLDOWN_TICKS;
 			}
 		}
 		return cooldown;
