@@ -40,7 +40,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	private static long nextTickTime = Long.MIN_VALUE;
 
 	public static void globalPostTick(TickEvent.LevelTickEvent event) {
-		if (event.phase != TickEvent.Phase.END) {
+		if (event.phase != TickEvent.Phase.END || event.level.isClientSide()) {
 			return;
 		}
 
