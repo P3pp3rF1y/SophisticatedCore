@@ -40,7 +40,11 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	private static final int COOLDOWN_TICKS = 10;
 
 	private static long nextTickTime = Long.MIN_VALUE;
-	public static void globalPostTick(LevelTickEvent.Post event) {
+	public static void globalPostTick(LevelTickEvent.Pre event) {
+		if (event.getLevel().isClientSide()) {
+			return;
+		}
+
 		long gameTime = event.getLevel().getGameTime();
 		if (gameTime > nextTickTime) {
 			nextTickTime = gameTime + COOLDOWN_TICKS;
