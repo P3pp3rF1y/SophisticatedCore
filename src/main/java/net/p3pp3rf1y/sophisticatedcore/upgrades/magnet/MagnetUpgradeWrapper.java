@@ -136,9 +136,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 				xpOrb.value = 0;
 				xpOrb.discard();
 
-				Player player = (Player) entity;
-
-				if (player != null) {
+				if (entity instanceof Player player) {
 					playXpPickupSound(world, player);
 				}
 
