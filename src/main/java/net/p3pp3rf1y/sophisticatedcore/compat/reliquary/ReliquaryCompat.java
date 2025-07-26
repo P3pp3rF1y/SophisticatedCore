@@ -12,7 +12,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyUpgradeWrapper;
-import reliquary.entities.potion.ThrownXRPotionEntity;
+import reliquary.entity.potion.ThrownXRPotionEntity;
 import reliquary.init.ModItems;
 import reliquary.util.potions.XRPotionHelper;
 

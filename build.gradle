@@ -47,6 +47,17 @@ repositories {
             includeGroup "me.shedaniel.cloth"
         }
     }
+    maven {
+        name = "GHPReliquary"
+        url = uri("https://maven.pkg.github.com/p3pp3rf1y/reliquary")
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+        content {
+            includeGroupByRegex "reliquary.*"
+        }
+    }
 }
 
 group = mod_group_id
@@ -91,6 +102,20 @@ sourceSets.main.resources {
 dependencies {
     minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
 
+    if (findProject(':Reliquary') != null) {
+        implementation project(':Reliquary')
+    } else {
+        compileOnly fg.deobf("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+        runtimeOnly fg.deobf("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+        testImplementation fg.deobf("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+    }
+
     compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
     compileOnly fg.deobf("dev.emi:emi-forge:${emi_version}")
@@ -113,7 +138,6 @@ dependencies {
     compileOnly fg.deobf("com.simibubi.create:create-${create_mc_version}:${create_version}:all") {
         transitive = false
     }
-    compileOnly fg.deobf("curse.maven:reliquary-241319:${reliquary_cf_file_id}")
 
 /*
     compileOnly fg.deobf("curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
