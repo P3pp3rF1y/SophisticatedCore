@@ -225,6 +225,12 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 	}
 
 	static {
+		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.OMINOUS_BOTTLE, stack -> AlchemyCondition.ALWAYS,
+				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> !le.hasEffect(MobEffects.BAD_OMEN),
+				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> stack.getItem() == Items.OMINOUS_BOTTLE,
+				ItemStack::getUseDuration,
+				(stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity)
+		));
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.SPLASH_POTION, AlchemyUpgradeWrapper::getDefaultConditionForPotion,
 				AlchemyUpgradeWrapper::shouldApplyPotionEffectsTo, AlchemyUpgradeWrapper::stackPotionEffectsMatch,
 				(stack, livingEntity) -> {
