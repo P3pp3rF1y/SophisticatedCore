@@ -701,7 +701,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void renderSlotBackground(GuiGraphics guiGraphics, Slot slot, int i, int j) {
 		Optional<ItemStack> memorizedStack = getMenu().getMemorizedStackInSlot(slot.index);
-		if (getMenu().isStorageInventorySlot(slot.index)) {
+		if (slot instanceof StorageInventorySlot && getMenu().isStorageInventorySlot(slot.index)) {
 			if (memorizedStack.isPresent()) {
 				guiGraphics.renderItem(memorizedStack.get(), i, j);
 				drawStackOverlay(guiGraphics, i, j);
