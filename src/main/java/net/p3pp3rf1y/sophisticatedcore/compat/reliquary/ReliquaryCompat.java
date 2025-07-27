@@ -11,7 +11,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyUpgradeWrapper;
-import reliquary.entities.potion.ThrownPotion;
+import reliquary.entity.potion.ThrownPotion;
 import reliquary.init.ModItems;
 
 import java.lang.reflect.Method;

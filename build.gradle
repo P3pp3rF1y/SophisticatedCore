@@ -61,6 +61,17 @@ repositories {
             includeGroup "me.shedaniel.cloth"
         }
     }
+    maven {
+        name = "GHPReliquary"
+        url = uri("https://maven.pkg.github.com/p3pp3rf1y/reliquary")
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+        content {
+            includeGroupByRegex "reliquary.*"
+        }
+    }
 }
 
 base {
@@ -122,6 +133,16 @@ configurations {
 }
 
 dependencies {
+    if (findProject(':Reliquary') != null) {
+        dependencies.implementation project(':Reliquary')
+    } else {
+        dependencies.implementation("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+        dependencies.testImplementation("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+    }
     compileOnly "mezz.jei:jei-${jei_mc_version}:${jei_version}"
     localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
     compileOnly "dev.emi:emi-neoforge:${emi_version}"
@@ -154,7 +175,6 @@ dependencies {
     compileOnly("com.simibubi.create:create-${create_mc_version}:${create_version}") {
         transitive = false
     }
-    compileOnly "curse.maven:reliquary-241319:${reliquary_cf_file_id}"
 
 /*
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
