@@ -1171,39 +1171,43 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				ItemStack slotStack = slot7.getItem();
 				ItemStack carriedStack = getCarried();
 				player.updateTutorialInventoryAction(carriedStack, slot7.getItem(), clickaction);
-				if (!carriedStack.overrideStackedOnOther(slot7, clickaction, player) && !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, createCarriedSlotAccess())) {
-					if (slotStack.isEmpty()) {
-						if (!carriedStack.isEmpty()) {
-							int l2 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
-							setCarried(slot7.safeInsert(carriedStack, l2));
-						}
-					} else if (slot7.mayPickup(player)) {
-						if (carriedStack.isEmpty()) {
-							int countToRemove;
-							countToRemove = Math.min(slotStack.getCount(), slotStack.getMaxStackSize());
-							if (clickaction == ClickAction.SECONDARY) {
-								countToRemove = countToRemove / 2 + countToRemove % 2;
+				if (!carriedStack.overrideStackedOnOther(slot7, clickaction, player)) {
+					if (!slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, createCarriedSlotAccess())) {
+						if (slotStack.isEmpty()) {
+							if (!carriedStack.isEmpty()) {
+								int l2 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
+								setCarried(slot7.safeInsert(carriedStack, l2));
 							}
-							Optional<ItemStack> optional1 = slot7.tryRemove(countToRemove, Integer.MAX_VALUE, player);
-							optional1.ifPresent((p_150421_) -> {
-								setCarried(p_150421_);
-								slot7.onTake(player, p_150421_);
-							});
-						} else if (slot7.mayPlace(carriedStack)) {
-							if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
-								int j3 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
-								setCarried(slot7.safeInsert(carriedStack, j3));
-							} else if (carriedStack.getCount() <= slot7.getMaxStackSize(carriedStack) && slotStack.getCount() <= slotStack.getMaxStackSize()) {
-								slot7.set(carriedStack);
-								setCarried(slotStack);
+						} else if (slot7.mayPickup(player)) {
+							if (carriedStack.isEmpty()) {
+								int countToRemove;
+								countToRemove = Math.min(slotStack.getCount(), slotStack.getMaxStackSize());
+								if (clickaction == ClickAction.SECONDARY) {
+									countToRemove = countToRemove / 2 + countToRemove % 2;
+								}
+								Optional<ItemStack> optional1 = slot7.tryRemove(countToRemove, Integer.MAX_VALUE, player);
+								optional1.ifPresent((p_150421_) -> {
+									setCarried(p_150421_);
+									slot7.onTake(player, p_150421_);
+								});
+							} else if (slot7.mayPlace(carriedStack)) {
+								if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
+									int j3 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
+									setCarried(slot7.safeInsert(carriedStack, j3));
+								} else if (carriedStack.getCount() <= slot7.getMaxStackSize(carriedStack) && slotStack.getCount() <= slotStack.getMaxStackSize()) {
+									slot7.set(carriedStack);
+									setCarried(slotStack);
+								}
+							} else if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
+								Optional<ItemStack> optional = slot7.tryRemove(slotStack.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(), player);
+								optional.ifPresent((p_150428_) -> {
+									carriedStack.grow(p_150428_.getCount());
+									slot7.onTake(player, p_150428_);
+								});
 							}
-						} else if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
-							Optional<ItemStack> optional = slot7.tryRemove(slotStack.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(), player);
-							optional.ifPresent((p_150428_) -> {
-								carriedStack.grow(p_150428_.getCount());
-								slot7.onTake(player, p_150428_);
-							});
 						}
+					} else {
+						slot7.set(slotStack);
 					}
 				}
 
