@@ -10,10 +10,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.ComponentItemHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.inventory.StatefulComponentItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 
 public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrapper, JukeboxUpgradeItem> implements ITickableUpgrade {
 	private static final int KEEP_ALIVE_SEND_INTERVAL = 5;
-	private final ComponentItemHandler discInventory;
+	private final StatefulComponentItemHandler discInventory;
 	private long lastKeepAliveSendTime = 0;
 	private boolean isPlaying;
 
@@ -44,7 +44,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 	protected JukeboxUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		discInventory = new ComponentItemHandler(upgrade, DataComponents.CONTAINER, upgradeItem.getNumberOfSlots()) {
+		discInventory = new StatefulComponentItemHandler(upgrade, DataComponents.CONTAINER, upgradeItem.getNumberOfSlots()) {
 			@Override
 			protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
 				super.onContentsChanged(slot, oldStack, newStack);
