@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotChangeListener;
 
 import java.util.function.Supplier;
 
@@ -30,5 +31,13 @@ public class SlotSuppliedHandler extends SlotItemHandler {
 	@Override
 	public int getMaxStackSize() {
 		return itemHandlerSupplier.get().getSlotLimit(slot);
+	}
+
+	@Override
+	public void setChanged() {
+		super.setChanged();
+		if (itemHandlerSupplier.get() instanceof ISlotChangeListener contentsChangeListener) {
+			contentsChangeListener.onSlotChanged(slot);
+		}
 	}
 }
