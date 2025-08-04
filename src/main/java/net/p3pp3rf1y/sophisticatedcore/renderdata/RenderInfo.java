@@ -396,6 +396,8 @@ public abstract class RenderInfo {
 		private CompoundTag serialize(CompoundTag tag) {
 			if (!item.isEmpty()) {
 				RegistryHelper.getRegistryAccess().map(item::save).ifPresent(itemTag -> tag.put(ITEM_TAG, itemTag));
+			} else {
+				tag.put(ITEM_TAG, new CompoundTag());
 			}
 			tag.putInt(ROTATION_TAG, rotation);
 			tag.putInt(SLOT_INDEX_TAG, slotIndex);
