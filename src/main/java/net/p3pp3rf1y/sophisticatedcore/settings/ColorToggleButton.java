@@ -78,7 +78,7 @@ public class ColorToggleButton extends ButtonBase {
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (isMouseOver(mouseX, mouseY)) {
-			guiGraphics.renderTooltip(screen.getFont(), TOOLTIP, Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(screen.getFont(), TOOLTIP, Optional.empty(), mouseX, mouseY);
 		}
 	}
 

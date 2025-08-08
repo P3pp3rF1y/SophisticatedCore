@@ -15,7 +15,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -100,7 +100,7 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 				ResourceLocation recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipeType);
 				if (recipeTypeId != null) {
 					Slot output = getOutputSlot(container);
-					PacketDistributor.sendToServer(
+					ClientPacketDistributor.sendToServer(
 							new EmiTransferRecipePayload(
 									ResourceKey.create(Registries.RECIPE, recipe.getId()),
 									recipeTypeId,

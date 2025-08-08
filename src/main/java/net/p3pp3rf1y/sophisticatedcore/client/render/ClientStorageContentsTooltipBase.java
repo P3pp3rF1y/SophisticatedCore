@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.client.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -8,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -241,12 +241,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	}
 
 	private int renderTooltipLine(GuiGraphics guiGraphics, int leftX, int topY, Font font, Component tooltip) {
-		PoseStack poseStack = guiGraphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(0.0D, 0.0D, 200.0F);
-		guiGraphics.drawString(font, tooltip, leftX, topY, 16777215);
-		poseStack.translate(0.0D, 0.0D, -200.0F);
-		poseStack.popPose();
+		guiGraphics.drawString(font, tooltip, leftX, topY, ARGB.opaque(0xFFFFFF));
 		return topY + 10;
 	}
 

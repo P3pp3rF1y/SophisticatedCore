@@ -65,7 +65,7 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
 		if (getContainer().isOpen()) {
-			GuiHelper.renderSlotsBackground(guiGraphics, x + 3, y + 24, slotsInRow,  getContainer().getSlots().size() / slotsInRow, getContainer().getSlots().size() % slotsInRow);
+			GuiHelper.renderSlotsBackground(guiGraphics, x + 3, y + 24, slotsInRow, getContainer().getSlots().size() / slotsInRow, getContainer().getSlots().size() % slotsInRow);
 		}
 	}
 
@@ -152,14 +152,14 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 			return song.map(jukeboxSongHolder -> (remaining / (float) jukeboxSongHolder.value().lengthInTicks())).orElse(0f);
 		}
 
-		private void renderPlaytimeOverLay(GuiGraphics guiGraphics,  int slotColor, int xPos, int yPos, int width, int height) {
+		private void renderPlaytimeOverLay(GuiGraphics guiGraphics, int slotColor, int xPos, int yPos, int width, int height) {
 			float remainingProgress = getPlaybackRemainingProgress();
 			if (remainingProgress <= 0) {
 				return;
 			}
 			int progressOver = width - (int) (width * remainingProgress);
 
-			guiGraphics.fillGradient(xPos + progressOver, yPos, xPos + width, yPos + height, 0, slotColor, slotColor);
+			guiGraphics.fillGradient(xPos + progressOver, yPos, xPos + width, yPos + height, slotColor, slotColor);
 		}
 	}
 }

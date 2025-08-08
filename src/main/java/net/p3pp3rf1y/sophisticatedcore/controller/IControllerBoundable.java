@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
@@ -11,7 +13,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public interface IControllerBoundable {
-	String CONTROLLER_POS_TAG = "controllerPos";
+	String CONTROLLER_POS = "controllerPos";
 
 	void setControllerPos(BlockPos controllerPos);
 
@@ -36,15 +38,12 @@ public interface IControllerBoundable {
 		getControllerPos().flatMap(pos -> WorldHelper.getLoadedBlockEntity(level, pos, ControllerBlockEntityBase.class)).ifPresent(toRun);
 	}
 
-	default void saveControllerPos(CompoundTag tag) {
-		getControllerPos().ifPresent(p -> tag.putLong(IControllerBoundable.CONTROLLER_POS_TAG, p.asLong()));
+	default void saveControllerPos(ValueOutput out) {
+		getControllerPos().ifPresent(pos -> out.store(CONTROLLER_POS, BlockPos.CODEC, pos));
 	}
 
-	default void loadControllerPos(CompoundTag tag) {
-		NBTHelper.getLong(tag, IControllerBoundable.CONTROLLER_POS_TAG).ifPresent(value -> {
-			BlockPos controllerPos = BlockPos.of(value);
-			setControllerPos(controllerPos);
-		});
+	default void loadControllerPos(ValueInput in) {
+		in.read(CONTROLLER_POS, BlockPos.CODEC).ifPresent(this::setControllerPos);
 	}
 
 	default void addToController(Level level, BlockPos pos, BlockPos controllerPos) {

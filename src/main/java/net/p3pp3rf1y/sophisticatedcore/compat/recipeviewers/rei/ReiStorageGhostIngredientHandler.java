@@ -8,8 +8,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
@@ -75,7 +75,7 @@ public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 
 							@Override
 							public void accept() {
-								PacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index));
+								ClientPacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index));
 							}
 						});
 					}

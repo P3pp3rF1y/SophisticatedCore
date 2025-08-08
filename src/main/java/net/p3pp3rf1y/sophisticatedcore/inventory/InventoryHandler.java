@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
@@ -62,7 +61,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		this.contentsNbt = contentsNbt;
 		this.saveHandler = saveHandler;
 		setBaseSlotLimit(baseSlotLimit);
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.getCompound(INVENTORY_TAG).ifPresent(invTag -> deserializeNBT(registryAccess, invTag)));
+		contentsNbt.getCompound(INVENTORY_TAG).ifPresent(this::deserializeNBT);
 		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompoundOrEmpty(PARTITIONER_TAG), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		initStackNbts();
 
@@ -135,8 +134,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 				.resultOrPartial(itemName -> SophisticatedCore.LOGGER.error("Tried to load invalid item: '{}'", itemName));
 	}
 
-	@Override
-	public void deserializeNBT(HolderLookup.Provider registries, CompoundTag nbt) {
+	public void deserializeNBT(CompoundTag nbt) {
 		slotTracker.clear();
 		setSize(nbt.contains("Size") ? nbt.getIntOr("Size", 0) : stacks.size());
 		ListTag tagList = nbt.getListOrEmpty("Items");
@@ -385,7 +383,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	protected abstract boolean isAllowed(ItemStack stack);
 
 	public void saveInventory() {
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(INVENTORY_TAG, serializeNBT(registryAccess)));
+		contentsNbt.put(INVENTORY_TAG, serializeNBT());
 		if (inventoryPartitioner != null) {
 			//inventory parts may affect inventory slots during their initialization in Inventory Partitioner deserialize,
 			// but there's no reason to serialize partitioner at that point as its nbt can't during init/deserialization.
@@ -411,8 +409,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		onContentsChangedListeners.clear();
 	}
 
-	@Override
-	public CompoundTag serializeNBT(HolderLookup.Provider registries) {
+	public CompoundTag serializeNBT() {
 		ListTag nbtTagList = new ListTag();
 		nbtTagList.addAll(stackNbts.values());
 		CompoundTag nbt = new CompoundTag();

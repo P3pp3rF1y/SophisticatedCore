@@ -20,7 +20,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
@@ -113,7 +113,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 						craftingSlotIndexes,
 						inventorySlotIndexes,
 						maxTransfer);
-				PacketDistributor.sendToServer(packet);
+				ClientPacketDistributor.sendToServer(packet);
 			}
 		}
 

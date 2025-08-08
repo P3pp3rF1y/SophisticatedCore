@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
@@ -50,7 +51,7 @@ public class EmiStorageGhostDragDropHandler<T extends StorageScreenBase<?>> impl
 					if (s instanceof IFilterSlot && s.mayPlace(ghostStack)) {
 						map.put(
 								new Bounds(screen.getLeftX() + s.x, screen.getTopY() + s.y, 18, 18),
-								(i) -> PacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index)));
+								(i) -> ClientPacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index)));
 					}
 				}));
 			} else if (emiGhostStack.getKey() instanceof Fluid fluid) {

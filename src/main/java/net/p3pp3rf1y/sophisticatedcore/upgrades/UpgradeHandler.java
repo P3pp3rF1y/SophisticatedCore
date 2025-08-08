@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.TankPosition;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +42,7 @@ public class UpgradeHandler extends ItemStackHandler {
 		this.storageWrapper = storageWrapper;
 		this.contentsSaveHandler = contentsSaveHandler;
 		this.onInvalidateUpgradeCaches = onInvalidateUpgradeCaches;
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.getCompound(UPGRADE_INVENTORY_TAG).ifPresent(invTag -> deserializeNBT(registryAccess, invTag)));
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.getCompound(UPGRADE_INVENTORY_TAG).ifPresent(invTag -> deserialize(ValueIOHelper.inputFromCompoundTag(registryAccess, invTag))));
 		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderInfo().getUpgradeItems().size() != getSlots()) {
 			setRenderUpgradeItems();
 		}
@@ -81,7 +82,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	public void saveInventory() {
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(UPGRADE_INVENTORY_TAG, serializeNBT(registryAccess)));
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(UPGRADE_INVENTORY_TAG, ValueIOHelper.collectOutputToTag(registryAccess, this::serialize)));
 	}
 
 	public void setPersistent(boolean persistent) {

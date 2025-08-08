@@ -75,7 +75,7 @@ public abstract class RenderInfo {
 		ListTag upgradeItemsTag = new ListTag();
 		for (ItemStack upgradeItem : upgradeItems) {
 			if (!upgradeItem.isEmpty()) {
-				RegistryHelper.getRegistryAccess().ifPresent(registries -> upgradeItemsTag.add(upgradeItem.save(registries)));
+				NBTHelper.serializeStackToTag(upgradeItem).ifPresent(upgradeItemsTag::add);
 			} else {
 				upgradeItemsTag.add(new CompoundTag()); // Add an empty tag for empty items to maintain the list size
 			}
@@ -164,7 +164,7 @@ public abstract class RenderInfo {
 		upgradeItems.clear();
 		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
 			for (int i = 0; i < upgradeItemsTag.size(); i++) {
-				upgradeItems.add(ItemStack.parse(registryAccess, upgradeItemsTag.getCompoundOrEmpty(i)).orElse(ItemStack.EMPTY));
+				upgradeItems.add(NBTHelper.deserializeStackFromTag(upgradeItemsTag.getCompoundOrEmpty(i)).orElse(ItemStack.EMPTY));
 			}
 		});
 	}
@@ -395,7 +395,9 @@ public abstract class RenderInfo {
 
 		private CompoundTag serialize(CompoundTag tag) {
 			if (!item.isEmpty()) {
-				RegistryHelper.getRegistryAccess().map(item::save).ifPresent(itemTag -> tag.put(ITEM_TAG, itemTag));
+				NBTHelper.serializeStackToTag(item).ifPresent(itemTag -> tag.put(ITEM_TAG, itemTag));
+			} else {
+				tag.put(ITEM_TAG, new CompoundTag());
 			}
 			tag.putInt(ROTATION_TAG, rotation);
 			tag.putInt(SLOT_INDEX_TAG, slotIndex);
@@ -404,8 +406,8 @@ public abstract class RenderInfo {
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
-			return new DisplayItem(RegistryHelper.getRegistryAccess().flatMap(registryAccess ->
-					tag.getCompound(ITEM_TAG).flatMap(itemTag -> ItemStack.parse(registryAccess, itemTag))).orElse(ItemStack.EMPTY),
+			return new DisplayItem(
+					tag.getCompound(ITEM_TAG).flatMap(NBTHelper::deserializeStackFromTag).orElse(ItemStack.EMPTY),
 					tag.getIntOr(ROTATION_TAG, 0), tag.getIntOr(SLOT_INDEX_TAG, 0), tag.getString(DISPLAY_SIDE_TAG).map(DisplaySide::fromName).orElse(DisplaySide.FRONT));
 		}
 

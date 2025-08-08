@@ -6,7 +6,7 @@ import me.shedaniel.rei.api.client.gui.drag.*;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SetMemorySlotPayload;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsTab;
@@ -57,7 +57,7 @@ public class ReiSettingsGhostIngredientHandler<S extends SettingsScreen> impleme
 
 								@Override
 								public void accept() {
-									PacketDistributor.sendToServer(new SetMemorySlotPayload(ghostStack, s.index));
+									ClientPacketDistributor.sendToServer(new SetMemorySlotPayload(ghostStack, s.index));
 								}
 							});
 						}

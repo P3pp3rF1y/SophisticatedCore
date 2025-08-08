@@ -75,7 +75,7 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (!openTooltip.isEmpty() && isOpenTooltipVisible(mouseX, mouseY)) {
-			guiGraphics.renderTooltip(screen.getFont(), openTooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(screen.getFont(), openTooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 

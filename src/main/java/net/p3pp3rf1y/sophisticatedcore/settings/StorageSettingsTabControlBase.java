@@ -7,8 +7,8 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsTabControl;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.Tab;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
+import org.joml.Matrix3x2fStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 			if (isSettingsCategoryDisabled(categoryName)) {
 				return;
 			}
-			settingsTabs.add(addSettingsTab(() -> {}, () -> {},
+			settingsTabs.add(addSettingsTab(() -> {
+					}, () -> {
+					},
 					instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen)));
 		});
 	}
@@ -81,7 +83,15 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		for (SettingsTab<?> tab : settingsTabs) {
 			int rotation = tab.getItemRotation(slot.index, templateLoadHovered);
 			if (rotation != 0) {
-				GuiHelper.tryRenderGuiItem(guiGraphics, minecraft.player, itemstack, slot.x, slot.y, rotation);
+				Matrix3x2fStack pose = guiGraphics.pose();
+
+				pose.pushMatrix();
+				pose.translate(16, 26);
+				pose.rotate((float) Math.toRadians(rotation));
+				pose.translate(-16, -26);
+				guiGraphics.renderItem(itemstack, slot.x, slot.y);
+
+				pose.popMatrix();
 				return true;
 			}
 		}

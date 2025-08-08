@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
@@ -27,8 +28,8 @@ import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.Ma
 
 public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Slot, C extends FilterLogicContainerBase<F, S>>
 		extends CompositeWidgetBase<WidgetBase> {
-	public static final int TAG_FONT_COLOR = 16383998;
-	public static final int MORE_TAGS_FONT_COLOR = 13882323;
+	public static final int TAG_FONT_COLOR = ARGB.opaque(16383998);
+	public static final int MORE_TAGS_FONT_COLOR = ARGB.opaque(13882323);
 	private static final int MAX_TAG_NAME_WIDTH = 68;
 
 	protected final MatchButton[] showMatchButtons;
@@ -303,7 +304,7 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (container.getPrimaryMatch() == PrimaryMatch.TAGS && isMouseOverTagList(mouseX, mouseY)) {
-			guiGraphics.renderTooltip(screen.getFont(), tagListTooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(screen.getFont(), tagListTooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 

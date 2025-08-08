@@ -6,8 +6,8 @@ import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.neoforge.NeoForgeTypes;
 import net.minecraft.client.renderer.Rect2i;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
@@ -47,7 +47,7 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 
 									@Override
 									public void accept(I i) {
-										PacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index));
+										ClientPacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index));
 									}
 								});
 							}

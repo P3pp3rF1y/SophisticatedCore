@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.tank;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
@@ -11,8 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
@@ -48,14 +47,11 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 
 		renderFluid(guiGraphics);
 
-		guiGraphics.pose().pushPose();
-		guiGraphics.pose().translate(0, 0, 100);
 		yOffset = 0;
 		for (int i = 0; i < height / 18; i++) {
 			GuiHelper.blit(guiGraphics, getTankLeft() + 1, pos.y() + yOffset, OVERLAY);
 			yOffset += 18;
 		}
-		guiGraphics.pose().popPose();
 	}
 
 	private int getTankLeft() {
@@ -74,7 +70,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 			return false;
 		}
 
-		PacketDistributor.sendToServer(new TankClickPayload(upgradeSlot));
+		ClientPacketDistributor.sendToServer(new TankClickPayload(upgradeSlot));
 
 		return true;
 	}
@@ -100,7 +96,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 				tooltip.add(contents.getHoverName());
 			}
 			tooltip.add(getContentsTooltip(contents, capacity));
-			guiGraphics.renderTooltip(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 
@@ -128,7 +124,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
 		ResourceLocation texture = renderProperties.getStillTexture(contents);
 		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
-		GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, RenderType::guiTextured, still, renderProperties.getTintColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
 
 }

@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.util.ColorHelper;
+import org.joml.Matrix3x2fStack;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -188,11 +189,26 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		@Override
 		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 			float[] hsv = Color.RGBtoHSB(ARGB.red(color), ARGB.green(color), ARGB.blue(color), null);
-			int x = (int) (hsv[1] * getWidth());
-			int y = (int) ((1 - hsv[2]) * getHeight());
+			int x = Math.min((int) (hsv[1] * getWidth()), getWidth() - 1);
+			int y = Math.min((int) ((1 - hsv[2]) * getHeight()), getHeight() - 1);
 
-			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y - 0.2f, 0), this.x + getWidth(), this.y + Math.min(y + 1.2f, getHeight()), 0xFF_FFFFFF);
-			GuiHelper.fill(guiGraphics, this.x + Math.max(x - 0.2f, 0), this.y, this.x + Math.min(x + 1.2f, getWidth()), this.y + getHeight(), 0xFF_FFFFFF);
+			Matrix3x2fStack pose = guiGraphics.pose();
+			pose.pushMatrix();
+			pose.translate(0, 0.8f);
+			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y - 1, 0), this.x + getWidth(), this.y + Math.min(y, getHeight()), 0xFF_FFFFFF);
+			pose.popMatrix();
+			pose.pushMatrix();
+			pose.translate(0, - 0.8f);
+			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y + 1, 0), this.x + getWidth(), this.y + Math.min(y + 2, getHeight()), 0xFF_FFFFFF);
+			pose.popMatrix();
+			pose.pushMatrix();
+			pose.translate(0.8f, 0);
+			GuiHelper.fill(guiGraphics, this.x + Math.max(x - 1, 0), this.y, this.x + Math.min(x, getWidth()), this.y + getHeight(), 0xFF_FFFFFF);
+			pose.popMatrix();
+			pose.pushMatrix();
+			pose.translate(-0.8f, 0);
+			GuiHelper.fill(guiGraphics, this.x + Math.max(x + 1, 0), this.y, this.x + Math.min(x + 2, getWidth()), this.y + getHeight(), 0xFF_FFFFFF);
+			pose.popMatrix();
 			GuiHelper.fill(guiGraphics, this.x, this.y + y, this.x + getWidth(), this.y + y + 1, 0xFF_000000);
 			GuiHelper.fill(guiGraphics, this.x + x, this.y, this.x + x + 1, this.y + getHeight(), 0xFF_000000);
 		}
@@ -245,10 +261,16 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		@Override
 		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 			int hueMarker = (int) (hue * getHeight());
-
-			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker - 1, x + getWidth(), y + getHeight() - hueMarker - 1.2f, 0xFF_FFFFFF);
+			Matrix3x2fStack pose = guiGraphics.pose();
+			pose.pushMatrix();
+			pose.translate(0, 0.8f);
+			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker - 1, x + getWidth(), y + getHeight() - hueMarker - 2, 0xFF_FFFFFF);
+			pose.popMatrix();
+			pose.pushMatrix();
+			pose.translate(0, - 0.8f);
+			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker + 1, 0xFF_FFFFFF);
+			pose.popMatrix();
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker - 1, 0xFF_000000);
-			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker + 0.2f, 0xFF_FFFFFF);
 		}
 
 		@Override

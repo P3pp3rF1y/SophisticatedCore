@@ -1,12 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 import java.util.Map;
 
-public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenBase<?>, UpgradeSettingsTab<?>> {
+public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenBase<?>, UpgradeSettingsTab<?>> implements IForegroundRenderable {
 	public UpgradeSettingsTabControl(Position position, StorageScreenBase<?> screen, String storageSettingsTabTooltip) {
 		super(position);
 		addChild(new StorageSettingsTab(new Position(x, getTopY()), screen, storageSettingsTabTooltip));
@@ -29,5 +30,15 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 
 	public void tick() {
 		children.forEach(Tab::tick);
+	}
+
+
+	@Override
+	public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		for (Tab child : children) {
+			if (child instanceof IForegroundRenderable renderable) {
+				renderable.renderForeground(guiGraphics, mouseX, mouseY, partialTicks);
+			}
+		}
 	}
 }

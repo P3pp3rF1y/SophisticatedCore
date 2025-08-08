@@ -1,11 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,7 +18,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class NBTHelper {
-	private NBTHelper() {}
+		private NBTHelper() {
+	}
+
 
 	public static Optional<Integer> getInt(CompoundTag tag, String key) {
 		return getTagValue(tag, key, CompoundTag::getInt);
@@ -78,10 +82,6 @@ public class NBTHelper {
 		return tag;
 	}
 
-	public static Optional<Component> getComponent(CompoundTag tag, String key, HolderLookup.Provider registries) {
-		return getTagValue(tag, key, (t, k) -> t.getString(k).map(string -> Component.Serializer.fromJson(string, registries)));
-	}
-
 	public static Optional<String> getString(CompoundTag tag, String key) {
 		return getTagValue(tag, key, CompoundTag::getString);
 	}
@@ -114,5 +114,34 @@ public class NBTHelper {
 		ListTag list = new ListTag();
 		values.forEach(v -> list.add(getNbtValue.apply(v)));
 		tag.put(key, list);
+	}
+
+	public static Optional<Tag> serializeStackToTag(ItemStack stack) {
+		return RegistryHelper.getRegistryAccess().map(registries -> {
+					RegistryOps<Tag> registryops = registries.createSerializationContext(NbtOps.INSTANCE);
+					return ItemStack.OPTIONAL_CODEC.encodeStart(registryops, stack).getOrThrow();
+				}
+		);
+	}
+
+	public static Optional<ItemStack> deserializeStackFromTag(Tag tag) {
+		return RegistryHelper.getRegistryAccess().map(registries -> {
+			RegistryOps<Tag> registryops = registries.createSerializationContext(NbtOps.INSTANCE);
+			return ItemStack.OPTIONAL_CODEC.parse(registryops, tag).getOrThrow();
+		});
+	}
+
+	public static Optional<Tag> serializeFluidToTag(FluidStack fluidStack) {
+		return RegistryHelper.getRegistryAccess().map(registryAccess -> {
+			RegistryOps<Tag> registryops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+			return FluidStack.OPTIONAL_CODEC.encodeStart(registryops, fluidStack).getOrThrow();
+		});
+	}
+
+	public static Optional<FluidStack> deserializeFluidFromTag(Tag tag) {
+		return RegistryHelper.getRegistryAccess().map(registryAccess -> {
+			RegistryOps<Tag> registryops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+			return FluidStack.OPTIONAL_CODEC.parse(registryops, tag).getOrThrow();
+		});
 	}
 }

@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -33,7 +33,7 @@ public interface IRenderedTankUpgrade {
 		public CompoundTag serialize() {
 			CompoundTag ret = new CompoundTag();
 			if (fluidStack != null) {
-				ret.put(FLUID_TAG, RegistryHelper.getRegistryAccess().map(registryAccess -> fluidStack.saveOptional(registryAccess)).orElse(new CompoundTag()));
+				ret.put(FLUID_TAG, NBTHelper.serializeFluidToTag(fluidStack).orElse(new CompoundTag()));
 				ret.putFloat(FILL_RATIO_TAG, fillRatio);
 			}
 			return ret;
@@ -41,7 +41,7 @@ public interface IRenderedTankUpgrade {
 
 		public static TankRenderInfo deserialize(CompoundTag tag) {
 			if (tag.contains(FLUID_TAG)) {
-				FluidStack fluidStack = RegistryHelper.getRegistryAccess().map(registryAccess -> FluidStack.parseOptional(registryAccess, tag.getCompoundOrEmpty(FLUID_TAG))).orElse(FluidStack.EMPTY);
+				FluidStack fluidStack = NBTHelper.deserializeFluidFromTag(tag.getCompoundOrEmpty(FLUID_TAG)).orElse(FluidStack.EMPTY);
 				if (!fluidStack.isEmpty()) {
 					return new TankRenderInfo(fluidStack, tag.getFloatOr(FILL_RATIO_TAG, 0));
 				}

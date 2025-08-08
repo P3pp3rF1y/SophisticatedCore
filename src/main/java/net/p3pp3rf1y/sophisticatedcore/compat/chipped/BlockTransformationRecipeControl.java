@@ -137,7 +137,7 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 
 	private void renderTooltip(GuiGraphics guiGraphics, ItemStack itemStack, int mouseX, int mouseY) {
 		Font font = IClientItemExtensions.of(itemStack).getFont(itemStack, IClientItemExtensions.FontContext.TOOLTIP);
-		guiGraphics.renderComponentTooltip((font == null ? this.font : font), Screen.getTooltipFromItem(minecraft, itemStack), mouseX, mouseY);
+		guiGraphics.setComponentTooltipForNextFrame((font == null ? this.font : font), Screen.getTooltipFromItem(minecraft, itemStack), mouseX, mouseY);
 	}
 
 	private void onInventoryUpdate() {

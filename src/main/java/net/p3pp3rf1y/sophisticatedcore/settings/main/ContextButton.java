@@ -6,6 +6,7 @@ import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
@@ -45,7 +46,7 @@ public class ContextButton extends ButtonBase {
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (isMouseOver(mouseX, mouseY)) {
-			guiGraphics.renderTooltip(minecraft.font, getTooltipKey.get(), Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(minecraft.font, getTooltipKey.get(), Optional.empty(), mouseX, mouseY);
 		}
 	}
 
@@ -62,7 +63,7 @@ public class ContextButton extends ButtonBase {
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		guiGraphics.drawCenteredString(minecraft.font, getTitle.get(), x + getWidth() / 2, y - 4 + getHeight() / 2, 16777215 | (255 << 24));
+		guiGraphics.drawCenteredString(minecraft.font, getTitle.get(), x + getWidth() / 2, y - 4 + getHeight() / 2, ARGB.opaque(16777215));
 	}
 
 	@Override

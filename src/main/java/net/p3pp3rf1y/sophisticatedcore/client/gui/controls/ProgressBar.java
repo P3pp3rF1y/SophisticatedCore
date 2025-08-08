@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
@@ -42,7 +43,7 @@ public class ProgressBar extends WidgetBase {
 		} else if (dir == ProgressDirection.LEFT_RIGHT) {
 			width = (int) (width * progress);
 		}
-		guiGraphics.blit(RenderType::guiTextured, progressTexture.getTextureName(), x, y + yOffset, progressTexture.getU(), (float) progressTexture.getV() + yOffset, width, height, progressTexture.getTextureWidth(), progressTexture.getTextureHeight());
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, progressTexture.getTextureName(), x, y + yOffset, progressTexture.getU(), (float) progressTexture.getV() + yOffset, width, height, progressTexture.getTextureWidth(), progressTexture.getTextureHeight());
 	}
 
 	@Override

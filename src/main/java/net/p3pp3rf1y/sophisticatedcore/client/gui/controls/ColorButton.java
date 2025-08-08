@@ -47,7 +47,7 @@ public class ColorButton extends ButtonBase {
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (visible && isMouseOver(mouseX, mouseY) && !tooltip.isEmpty()) {
-			guiGraphics.renderTooltip(screen.getMinecraft().font, tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(screen.getMinecraft().font, tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 }

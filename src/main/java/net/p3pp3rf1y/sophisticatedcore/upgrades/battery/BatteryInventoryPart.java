@@ -1,12 +1,10 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
-import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +76,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			int maxEnergyStored = container.getMaxEnergyStored();
 			List<Component> tooltip = new ArrayList<>();
 			tooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("battery.contents_tooltip"), String.format("%,d", energyStored), String.format("%,d", maxEnergyStored)));
-			guiGraphics.renderTooltip(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
+			guiGraphics.setTooltipForNextFrame(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
 		}
 	}
 
@@ -99,8 +97,6 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 		int initialGreen = BOTTOM_BAR_COLOR >> 8 & 255;
 		int initialBlue = BOTTOM_BAR_COLOR & 255;
 
-		Matrix4f matrix = guiGraphics.pose().last().pose();
-
 		for (int i = 0; i < displayLevel; i++) {
 			float percentage = (float) i / (numberOfSegments - 1);
 			int red = (int) (initialRed * (1 - percentage) + finalRed * percentage);
@@ -108,7 +104,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			int blue = (int) (initialBlue * (1 - percentage) + finalBlue * percentage);
 			int color = red << 16 | green << 8 | blue | 255 << 24;
 
-			GuiHelper.coloredBlit(RenderType::guiTextured, matrix, getTankLeft() + 1, pos.y() + height - (i + 1) * segmentHeight, CHARGE_SEGMENT, color);
+			GuiHelper.coloredBlit(guiGraphics, getTankLeft() + 1, pos.y() + height - (i + 1) * segmentHeight, CHARGE_SEGMENT, color);
 		}
 	}
 }

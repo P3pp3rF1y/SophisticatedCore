@@ -13,6 +13,6 @@ public class ItemBordersCompatClient {
 	}
 
 	private static void renderItemBorder(GuiGraphics guiGraphics, Slot slot) {
-		ItemBorders.renderBorder(guiGraphics.pose(), slot);
+		//ItemBorders.renderBorder(guiGraphics.pose(), slot); //TODO readd this when ItemBorders ports to current version
 	}
 }

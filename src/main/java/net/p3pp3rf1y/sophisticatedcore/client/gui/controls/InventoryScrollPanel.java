@@ -1,12 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.gui.widget.ScrollPanel;
+import org.joml.Matrix3x2fStack;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -50,13 +50,13 @@ public class InventoryScrollPanel extends ScrollPanel {
 
 	@Override
 	protected void drawPanel(GuiGraphics guiGraphics, int entryRight, int relativeY, int mouseX, int mouseY) {
-		PoseStack poseStack = guiGraphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(screen.getLeftX(), screen.getTopY(), 0.0D);
+		Matrix3x2fStack pose = guiGraphics.pose();
+		pose.pushMatrix();
+		pose.translate(screen.getLeftX(), screen.getTopY());
 
 		screen.renderStorageInventorySlots(guiGraphics, mouseX, mouseY, isMouseOver(mouseX, mouseY));
 
-		poseStack.popPose();
+		pose.popMatrix();
 	}
 
 	public Optional<Slot> getHoveredSlot(double mouseX, double mouseY) {

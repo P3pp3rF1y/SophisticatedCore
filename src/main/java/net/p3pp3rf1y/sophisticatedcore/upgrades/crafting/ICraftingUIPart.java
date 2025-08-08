@@ -1,13 +1,10 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
 import net.minecraft.world.inventory.Slot;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 
 import java.util.List;
 
-@OnlyIn(Dist.CLIENT)
 public interface ICraftingUIPart {
 	void onCraftingSlotsDisplayed(List<Slot> slots);
 

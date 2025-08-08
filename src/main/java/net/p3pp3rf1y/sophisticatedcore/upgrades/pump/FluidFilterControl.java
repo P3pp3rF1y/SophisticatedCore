@@ -4,7 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
@@ -44,7 +44,7 @@ public class FluidFilterControl extends WidgetBase {
 				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
 				ResourceLocation texture = renderProperties.getStillTexture(fluid);
 				TextureAtlasSprite still = minecraft.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
-				GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, RenderType::guiTextured, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
+				GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}

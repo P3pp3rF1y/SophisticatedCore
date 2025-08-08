@@ -1,14 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -142,9 +141,12 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, storageBackgroundProperties.getTextureName(), imageWidth, getStorageInventoryHeight(getNumberOfVisibleRows()));
 		if (inventoryScrollPanel == null) {
 			drawSlotBg(guiGraphics, x, y, getMenu().getStorageInventorySlots().size());
-		} else {
-			guiGraphics.flush();
 		}
+	}
+
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		renderTransparentBackground(guiGraphics);
 	}
 
 	protected void drawSlotBg(GuiGraphics guiGraphics, int x, int y, int visibleSlotsCount) {
@@ -158,20 +160,12 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		menu.detectSettingsChangeAndReload();
 		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
-		templatePersistanceControl.render(guiGraphics, mouseX, mouseY, partialTicks);
+		renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		templatePersistanceControl.render(guiGraphics, mouseX, mouseY, partialTicks);
 		settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		templatePersistanceControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		renderTooltip(guiGraphics, mouseX, mouseY);
-	}
-
-	@Override
-	public void renderTransparentBackground(GuiGraphics guiGraphics) {
-		PoseStack pose = guiGraphics.pose();
-		pose.pushPose();
-		pose.translate(0, 0, -12);
-		super.renderTransparentBackground(guiGraphics);
-		pose.popPose();
 	}
 
 	@Override
@@ -199,7 +193,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		if (menu.ghostSlots.isEmpty()) {
 			return null;
 		}
-		for(Slot slot : menu.ghostSlots) {
+		for (Slot slot : menu.ghostSlots) {
 			if (slot.isActive() && isHovering(slot, p_372985_, p_372965_)) {
 				return slot;
 			}
@@ -211,20 +205,16 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
 		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY ? slot.getItem() : settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex(), isTemplateLoadHovered());
 
-		PoseStack poseStack = guiGraphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(0, 0, 100);
 		if (!settingsTabControl.renderGuiItem(guiGraphics, itemstack, slot, isTemplateLoadHovered())) {
 			if (!getMenu().getSlotFilterItem(slot.index).isEmpty()) {
 				guiGraphics.renderItem(getMenu().getSlotFilterItem(slot.index), slot.x, slot.y);
 			} else {
 				ResourceLocation icon = slot.getNoItemIcon();
 				if (icon != null) {
-					guiGraphics.blitSprite(RenderType::guiTextured, icon, slot.x, slot.y, 16, 16);
+					guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, icon, slot.x, slot.y, 16, 16);
 				}
 			}
 		}
-		poseStack.popPose();
 
 		settingsTabControl.drawSlotStackOverlay(guiGraphics, slot, isTemplateLoadHovered());
 	}

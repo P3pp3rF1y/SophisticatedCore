@@ -101,6 +101,7 @@ public class RecipeHelper {
 			cache.clearCache();
 			cache.recipeChangeListeners.notifyAllListeners();
 		});
+		event.sendRecipes(RecipeType.CRAFTING, RecipeType.STONECUTTING);
 	}
 
 	private static Optional<Level> getLevel() {

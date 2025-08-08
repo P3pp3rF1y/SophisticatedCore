@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
@@ -29,7 +30,7 @@ public class Label extends WidgetBase {
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		guiGraphics.drawString(minecraft.font, labelText, x, y, color, false);
+		guiGraphics.drawString(minecraft.font, labelText, x, y, ARGB.opaque(color), false);
 	}
 
 	@Override

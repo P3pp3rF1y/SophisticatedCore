@@ -24,7 +24,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 import java.util.List;
@@ -123,7 +123,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 					.map(ReiSlotAccessor::getIndex)
 					.toList();
 
-			PacketDistributor.sendToServer(
+			ClientPacketDistributor.sendToServer(
 					new ReiTransferRecipePayload(
 							context.getDisplay().getDisplayLocation().get(),
 							recipeTypeId,

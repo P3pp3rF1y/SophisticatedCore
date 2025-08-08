@@ -4,15 +4,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.LongTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
@@ -22,7 +22,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nonnull;
@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerSimpleInserter {
 	private List<BlockPos> storagePositions = new ArrayList<>();
@@ -805,34 +806,32 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
+	protected void saveAdditional(ValueOutput out) {
+		super.saveAdditional(out);
 
-		saveData(tag);
+		saveData(out);
 	}
 
-	private CompoundTag saveData(CompoundTag tag) {
-		NBTHelper.putList(tag, "storagePositions", storagePositions, p -> LongTag.valueOf(p.asLong()));
-		NBTHelper.putList(tag, "connectingBlocks", connectingBlocks, p -> LongTag.valueOf(p.asLong()));
-		NBTHelper.putList(tag, "nonConnectingBlocks", nonConnectingBlocks, p -> LongTag.valueOf(p.asLong()));
-		NBTHelper.putList(tag, "linkedBlocks", linkedBlocks, p -> LongTag.valueOf(p.asLong()));
-		NBTHelper.putList(tag, "baseIndexes", baseIndexes, IntTag::valueOf);
-		tag.putInt("totalSlots", totalSlots);
-
-		return tag;
+	private void saveData(ValueOutput out) {
+		ValueIOHelper.saveList(out, "storagePositions", storagePositions, BlockPos.CODEC);
+		ValueIOHelper.saveList(out, "connectingBlocks", connectingBlocks, BlockPos.CODEC);
+		ValueIOHelper.saveList(out, "nonConnectingBlocks", nonConnectingBlocks, BlockPos.CODEC);
+		ValueIOHelper.saveList(out, "linkedBlocks", linkedBlocks, BlockPos.CODEC);
+		ValueIOHelper.saveList(out, "baseIndexes", baseIndexes, ExtraCodecs.POSITIVE_INT);
+		out.putInt("totalSlots", totalSlots);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
+	public void loadAdditional(ValueInput in) {
+		super.loadAdditional(in);
 
-		storagePositions = NBTHelper.getCollection(tag, "storagePositions", t -> t.asLong().map(BlockPos::of), ArrayList::new).orElseGet(ArrayList::new);
+		storagePositions = in.listOrEmpty("storagePositions", BlockPos.CODEC).stream().collect(Collectors.toCollection(ArrayList::new));
 		setupStoragePositionIndexes();
-		connectingBlocks = NBTHelper.getCollection(tag, "connectingBlocks", t -> t.asLong().map(BlockPos::of), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
-		nonConnectingBlocks = NBTHelper.getCollection(tag, "nonConnectingBlocks", t -> t.asLong().map(BlockPos::of), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
-		baseIndexes = NBTHelper.getCollection(tag, "baseIndexes", Tag::asInt, ArrayList::new).orElseGet(ArrayList::new);
-		totalSlots = tag.getIntOr("totalSlots", 0);
-		linkedBlocks = NBTHelper.getCollection(tag, "linkedBlocks", t -> t.asLong().map(BlockPos::of), LinkedHashSet::new).orElseGet(LinkedHashSet::new);
+		connectingBlocks = in.listOrEmpty("connectingBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
+		nonConnectingBlocks = in.listOrEmpty("nonConnectingBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
+		baseIndexes = in.listOrEmpty("baseIndexes", ExtraCodecs.POSITIVE_INT).stream().collect(Collectors.toCollection(ArrayList::new));
+		totalSlots = in.getIntOr("totalSlots", 0);
+		linkedBlocks = in.read("linkedBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 	private void setupStoragePositionIndexes() {
@@ -844,7 +843,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return saveData(super.getUpdateTag(registries));
+		return super.getUpdateTag(registries).merge(ValueIOHelper.collectOutputToTag(registries, this::saveData));
 	}
 
 	@Nullable

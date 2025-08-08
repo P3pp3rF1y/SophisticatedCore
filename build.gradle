@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.63-beta'
+    id 'net.neoforged.moddev' version '2.0.103'
     id "org.sonarqube" version "5.0.0.4638"
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
@@ -149,10 +149,10 @@ dependencies {
     //localRuntime "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
     localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
-    compileOnly "curse.maven:balm-531761:${balm_cf_file_id}"
-    localRuntime "curse.maven:balm-531761:${balm_cf_file_id}"
-    compileOnly "curse.maven:craftingtweaks-233071:${crafting_tweaks_cf_file_id}"
-    localRuntime "curse.maven:craftingtweaks-233071:${crafting_tweaks_cf_file_id}"
+    compileOnly "net.blay09.mods:balm-neoforge:${balm_version}"
+    localRuntime "net.blay09.mods:balm-neoforge:${balm_version}"
+    compileOnly "net.blay09.mods:craftingtweaks-neoforge:${craftingtweaks_version}"
+    localRuntime "net.blay09.mods:craftingtweaks-neoforge:${craftingtweaks_version}"
     compileOnly "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
     localRuntime "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
     compileOnly "curse.maven:iceberg-520110:${iceberg_cf_file_id}"

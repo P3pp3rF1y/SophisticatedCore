@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -49,15 +48,11 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		PoseStack pose = guiGraphics.pose();
-		pose.pushPose();
-		pose.translate(0,0, -11);
 		children.forEach(child -> {
 			if (child != openTab) {
 				child.render(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 		});
-		pose.popPose();
 
 		if (openTab != null) {
 			openTab.render(guiGraphics, mouseX, mouseY, partialTicks);

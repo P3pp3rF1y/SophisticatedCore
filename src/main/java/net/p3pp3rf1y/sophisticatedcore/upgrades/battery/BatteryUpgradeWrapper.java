@@ -131,7 +131,6 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 			IEnergyStorage energyStorage = energyContainer.getCapability(Capabilities.EnergyStorage.ITEM);
 			if (energyStorage != null) {
 				receiveFromStorage(energyContainer, energyStorage);
-
 			}
 		}
 

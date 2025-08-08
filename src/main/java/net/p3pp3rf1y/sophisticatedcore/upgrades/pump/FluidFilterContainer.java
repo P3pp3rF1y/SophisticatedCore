@@ -9,6 +9,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.function.Supplier;
 
@@ -37,7 +38,7 @@ public class FluidFilterContainer {
 		CompoundTag ret = new CompoundTag();
 		CompoundTag fluidNbt = new CompoundTag();
 		fluidNbt.putInt("index", index);
-		fluidNbt.put("fluid", fluid.saveOptional(player.level().registryAccess()));
+		fluidNbt.put("fluid", NBTHelper.serializeFluidToTag(fluid).orElse(new CompoundTag()));
 		ret.put(DATA_FLUID, fluidNbt);
 		return ret;
 	}
@@ -45,7 +46,7 @@ public class FluidFilterContainer {
 	public boolean handlePacket(CompoundTag data) {
 		if (data.contains(DATA_FLUID)) {
 			data.getCompound(DATA_FLUID).ifPresent(fluidData -> {
-				FluidStack fluid = FluidStack.parseOptional(player.level().registryAccess(), fluidData.getCompoundOrEmpty("fluid"));
+				FluidStack fluid = NBTHelper.deserializeFluidFromTag(fluidData.getCompoundOrEmpty("fluid")).orElse(FluidStack.EMPTY);
 				setFluid(fluidData.getIntOr("index", 0), fluid);
 			});
 			return true;

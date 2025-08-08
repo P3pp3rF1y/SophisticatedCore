@@ -22,6 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -581,7 +582,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	protected void sendToServer(Consumer<CompoundTag> addData) {
 		CompoundTag data = new CompoundTag();
 		addData.accept(data);
-		PacketDistributor.sendToServer(new SyncContainerClientDataPayload(data));
+		ClientPacketDistributor.sendToServer(new SyncContainerClientDataPayload(data));
 	}
 
 	public void setUpgradeEnabled(int upgradeSlot, boolean enabled) {
@@ -1755,11 +1756,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public void transferItemsToPlayerInventory(boolean filterByContents) {
-		PacketDistributor.sendToServer(new TransferItemsPayload(true, filterByContents));
+		ClientPacketDistributor.sendToServer(new TransferItemsPayload(true, filterByContents));
 	}
 
 	public void transferItemsToStorage(boolean filterByContents) {
-		PacketDistributor.sendToServer(new TransferItemsPayload(false, filterByContents));
+		ClientPacketDistributor.sendToServer(new TransferItemsPayload(false, filterByContents));
 	}
 
 	public class StorageUpgradeSlot extends SlotItemHandler {
