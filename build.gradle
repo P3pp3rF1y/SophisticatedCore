@@ -20,14 +20,17 @@ group = mod_group_id
 
 repositories {
     mavenCentral()
-    maven { url = "https://modmaven.dev/" }
     maven {
         url "https://www.cursemaven.com"
         content {
             includeGroup "curse.maven"
         }
     }
-    maven { url "https://maven.blamejared.com/" }
+    maven { url "https://maven.blamejared.com/"
+        content {
+            includeGroup "mezz.jei"
+        }
+    }
     maven {
         url = "https://maven.octo-studios.com/#/releases"
         content {
