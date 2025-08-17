@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.magnet.MagnetUpgradeWrapper;
+import net.p3pp3rf1y.sophisticatedcore.util.CoreFakePlayer;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 public class CommonEventHandler {
@@ -22,5 +23,6 @@ public class CommonEventHandler {
 		eventBus.addListener(RecipeHelper::onRecipesUpdated);
 		eventBus.addListener(MagnetUpgradeWrapper::globalPostTick);
 		eventBus.addListener(MagnetUpgradeWrapper::onWorldUnload);
+		eventBus.addListener(CoreFakePlayer::onDimensionUnload);
 	}
 }
