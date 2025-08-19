@@ -45,6 +45,10 @@ public interface IInventoryPartHandler {
 		//noop
 	}
 
+	default void onContentsChanged(int slot, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
+		//noop
+	}
+
 	default boolean isItemValid(int slot, ItemStack stack, @Nullable Player player, BiPredicate<Integer, ItemStack> isItemValidSuper) {
 		return false;
 	}

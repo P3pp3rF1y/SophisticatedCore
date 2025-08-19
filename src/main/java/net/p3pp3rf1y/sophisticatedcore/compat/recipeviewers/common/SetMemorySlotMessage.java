@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;

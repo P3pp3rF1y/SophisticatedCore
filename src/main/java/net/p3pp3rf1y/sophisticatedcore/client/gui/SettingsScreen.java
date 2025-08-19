@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -22,6 +23,8 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
 import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 
 public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainerMenu<?>> implements InventoryScrollPanel.IInventoryScreen {
@@ -292,6 +295,20 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	public StorageSettingsTabControlBase getSettingsTabControl() {
 		return settingsTabControl;
+	}
+
+	private Rect2i getTemplatePersistanceControlRectangle() {
+		return new Rect2i(templatePersistanceControl.getX(), templatePersistanceControl.getY(), templatePersistanceControl.getWidth(), templatePersistanceControl.getHeight());
+	}
+
+	public List<Rect2i> getExtendedControlsRectangles() {
+		if (settingsTabControl == null || templatePersistanceControl == null) {
+			return Collections.emptyList();
+		}
+
+		List<Rect2i> rectangles = settingsTabControl.getTabRectangles();
+		rectangles.add(getTemplatePersistanceControlRectangle());
+		return rectangles;
 	}
 
 	@Override

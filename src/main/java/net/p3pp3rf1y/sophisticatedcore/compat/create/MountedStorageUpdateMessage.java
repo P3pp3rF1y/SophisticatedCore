@@ -8,8 +8,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkEvent;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public record MountedStorageUpdateMessage(int contraptionEntityId, BlockPos localPos, ItemStack storageStack, boolean refreshBlockRender) {

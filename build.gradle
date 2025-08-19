@@ -18,7 +18,6 @@ idea {
 repositories {
     mavenCentral()
     maven { url "https://maven.theillusivec4.top/" }
-    maven { url "https://maven.tterrag.com/" }
     maven { url = "https://modmaven.dev/" }
     maven {
         url "https://www.cursemaven.com"
@@ -31,6 +30,32 @@ repositories {
         url = "https://maven.createmod.net"
         content {
             includeGroup "com.simibubi.create"
+        }
+    }
+    maven {
+        name = "TerraformersMC"
+        url = "https://maven.terraformersmc.com/"
+        content {
+            includeGroup "dev.emi"
+        }
+    }
+    maven {
+        url = "https://maven.shedaniel.me/"
+        content {
+            includeGroup "dev.architectury"
+            includeGroup "me.shedaniel"
+            includeGroup "me.shedaniel.cloth"
+        }
+    }
+    maven {
+        name = "GHPReliquary"
+        url = uri("https://maven.pkg.github.com/p3pp3rf1y/reliquary")
+        credentials {
+            username = System.getenv("USERNAME")
+            password = System.getenv("GITHUB_TOKEN")
+        }
+        content {
+            includeGroupByRegex "reliquary.*"
         }
     }
 }
@@ -77,8 +102,26 @@ sourceSets.main.resources {
 dependencies {
     minecraft "net.neoforged:forge:${minecraft_version}-${neo_version}"
 
+    if (findProject(':Reliquary') != null) {
+        implementation project(':Reliquary')
+    } else {
+        compileOnly fg.deobf("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+        runtimeOnly fg.deobf("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+        testImplementation fg.deobf("reliquary:reliquary:${reliquary_version}") {
+            transitive = false
+        }
+    }
+
     compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
+    compileOnly fg.deobf("dev.emi:emi-forge:${emi_version}")
+    compileOnly fg.deobf("me.shedaniel:RoughlyEnoughItems-forge:${rei_version}")
+    compileOnly fg.deobf("me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}")
+    compileOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
     compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}:api")
     runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
     compileOnly fg.deobf("curse.maven:balm-531761:${balm_cf_file_id}")

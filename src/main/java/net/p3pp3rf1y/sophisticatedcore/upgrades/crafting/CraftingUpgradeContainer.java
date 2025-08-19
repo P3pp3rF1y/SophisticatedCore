@@ -145,25 +145,27 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (!level.isClientSide) {
 			ServerPlayer serverplayerentity = (ServerPlayer) player;
 			ItemStack itemstack = ItemStack.EMPTY;
-			if (lastRecipe != null && lastRecipe.matches(inventory, level)) {
-				itemstack = lastRecipe.assemble(inventory, level.registryAccess());
-			} else {
-				//noinspection ConstantConditions - we're on server and for sure in the world so getServer can't return null here
-				List<CraftingRecipe> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, inventory, level);
-				if (!recipes.isEmpty()) {
-					matchedCraftingRecipes = recipes;
-					matchedCraftingResults.clear();
-					selectedCraftingResultIndex = 0;
-					CraftingRecipe craftingRecipe = matchedCraftingRecipes.get(0);
-					if (inventoryResult.setRecipeUsed(level, serverplayerentity, craftingRecipe)) {
-						lastRecipe = craftingRecipe;
-						itemstack = lastRecipe.assemble(inventory, level.registryAccess());
-						matchedCraftingResults.add(itemstack.copy());
-					} else {
-						lastRecipe = null;
-					}
-					for (int i = 1; i < matchedCraftingRecipes.size(); i++) {
-						matchedCraftingResults.add(matchedCraftingRecipes.get(i).assemble(inventory, level.registryAccess()));
+			if (!inventory.isEmpty()) {
+				if (lastRecipe != null && lastRecipe.matches(inventory, level)) {
+					itemstack = lastRecipe.assemble(inventory, level.registryAccess());
+				} else {
+					//noinspection ConstantConditions - we're on server and for sure in the world so getServer can't return null here
+					List<CraftingRecipe> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, inventory, level);
+					if (!recipes.isEmpty()) {
+						matchedCraftingRecipes = recipes;
+						matchedCraftingResults.clear();
+						selectedCraftingResultIndex = 0;
+						CraftingRecipe craftingRecipe = matchedCraftingRecipes.get(0);
+						if (inventoryResult.setRecipeUsed(level, serverplayerentity, craftingRecipe)) {
+							lastRecipe = craftingRecipe;
+							itemstack = lastRecipe.assemble(inventory, level.registryAccess());
+							matchedCraftingResults.add(itemstack.copy());
+						} else {
+							lastRecipe = null;
+						}
+						for (int i = 1; i < matchedCraftingRecipes.size(); i++) {
+							matchedCraftingResults.add(matchedCraftingRecipes.get(i).assemble(inventory, level.registryAccess()));
+						}
 					}
 				}
 			}

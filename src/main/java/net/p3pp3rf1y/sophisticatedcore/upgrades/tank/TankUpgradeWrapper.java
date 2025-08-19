@@ -286,25 +286,28 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			FluidStack drained = drain(filled, IFluidHandler.FluidAction.EXECUTE, false);
 			fluidHandler.fill(drained, IFluidHandler.FluidAction.EXECUTE);
 
-			if (moveFullToResult && matchingTankIsFull(fluidHandler)) {
+			if (moveFullToResult && getFluidHandler(fluidHandler.getContainer()).map(this::matchingTankIsFull).orElse(false)) {
 				updateContainerStack.accept(ItemStack.EMPTY);
 				inventory.insertItem(OUTPUT_RESULT_SLOT, fluidHandler.getContainer(), false);
 			} else {
 				updateContainerStack.accept(fluidHandler.getContainer());
 			}
+
 			return true;
 		}
 		return false;
 	}
 
-	private Boolean isFullAfterFillButUnableToInsertIntoResult(ItemStack containerCopy) {
+	private boolean isFullAfterFillButUnableToInsertIntoResult(ItemStack containerCopy) {
 		return getFluidHandler(containerCopy).map(copyFluidHandler -> {
 			copyFluidHandler.fill(new FluidStack(contents, Math.min(FluidType.BUCKET_VOLUME, contents.getAmount())), IFluidHandler.FluidAction.EXECUTE);
-			int tank = getMatchingTank(copyFluidHandler, contents);
-			if (tank < 0) {
-				return true;
-			}
-			return copyFluidHandler.getFluidInTank(tank).getAmount() == copyFluidHandler.getTankCapacity(tank) && !inventory.insertItem(OUTPUT_RESULT_SLOT, copyFluidHandler.getContainer(), true).isEmpty();
+			return getFluidHandler(copyFluidHandler.getContainer()).map(fh -> {
+				int tank = getMatchingTank(fh, contents);
+				if (tank < 0) {
+					return true;
+				}
+				return fh.getFluidInTank(tank).getAmount() == fh.getTankCapacity(tank) && !inventory.insertItem(OUTPUT_RESULT_SLOT, copyFluidHandler.getContainer(), true).isEmpty();
+			}).orElse(true);
 		}).orElse(true);
 	}
 
@@ -337,7 +340,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			FluidStack toExtract = filled == extracted.getAmount() ? extracted : new FluidStack(extracted, filled);
 			fluidHandler.drain(toExtract, IFluidHandler.FluidAction.EXECUTE);
 
-			if (moveEmptyToResult && hasNoMatchingFluid(fluidHandler)) {
+			if (moveEmptyToResult && getFluidHandler(fluidHandler.getContainer()).map(this::hasNoMatchingFluid).orElse(true)) {
 				updateContainerStack.accept(ItemStack.EMPTY);
 				inventory.insertItem(INPUT_RESULT_SLOT, fluidHandler.getContainer(), false);
 			} else {
@@ -356,7 +359,8 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 				return true;
 			}
 			copyFluidHandler.drain(extracted, IFluidHandler.FluidAction.EXECUTE);
-			return copyFluidHandler.getFluidInTank(tank).isEmpty() && !inventory.insertItem(INPUT_RESULT_SLOT, copyFluidHandler.getContainer(), true).isEmpty();
+			return getFluidHandler(copyFluidHandler.getContainer()).map(fh -> fh.getTanks() <= tank || fh.getFluidInTank(tank).isEmpty()).orElse(true)
+					&& !inventory.insertItem(INPUT_RESULT_SLOT, copyFluidHandler.getContainer(), true).isEmpty();
 		}).orElse(true);
 	}
 

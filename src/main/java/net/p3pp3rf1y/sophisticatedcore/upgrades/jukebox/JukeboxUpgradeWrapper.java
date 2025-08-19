@@ -67,6 +67,14 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 			public boolean isItemValid(int slot, ItemStack stack) {
 				return stack.getItem() instanceof RecordItem;
 			}
+
+			@Override
+			public void setSize(int size) {
+				if (size < upgradeItem.getNumberOfSlots()) {
+					size = upgradeItem.getNumberOfSlots();
+				}
+				super.setSize(size);
+			}
 		};
 		NBTHelper.getCompound(upgrade, "discInventory").ifPresent(discInventory::deserializeNBT);
 		isPlaying = NBTHelper.getBoolean(upgrade, "isPlaying").orElse(false);
