@@ -18,6 +18,9 @@ jobs:
           distribution: zulu
           cache: gradle
       - name: Build with Gradle
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: nick-invision/retry@v3
         with:
           timeout_minutes: 10
@@ -33,6 +36,7 @@ jobs:
           package-name: 'sophisticatedcore.sophisticatedcore'
           package-type: 'maven'
           min-versions-to-keep: 50
+        continue-on-error: true
       - name: Publish to CurseForge
         env:
           CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}

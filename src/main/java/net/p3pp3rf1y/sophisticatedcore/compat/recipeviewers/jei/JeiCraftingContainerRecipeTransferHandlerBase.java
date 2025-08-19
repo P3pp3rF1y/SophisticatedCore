@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 
 import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -30,11 +30,11 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class CraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>, R extends RecipeHolder<? extends Recipe<?>>> implements IRecipeTransferHandler<C, R> {
+public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>, R extends RecipeHolder<? extends Recipe<?>>> implements IRecipeTransferHandler<C, R> {
 	private final IRecipeTransferHandlerHelper handlerHelper;
 	private final IStackHelper stackHelper;
 
-	protected CraftingContainerRecipeTransferHandlerBase(IRecipeTransferHandlerHelper handlerHelper, IStackHelper stackHelper) {
+	protected JeiCraftingContainerRecipeTransferHandlerBase(IRecipeTransferHandlerHelper handlerHelper, IStackHelper stackHelper) {
 		this.handlerHelper = handlerHelper;
 		this.stackHelper = stackHelper;
 	}
@@ -106,7 +106,7 @@ public abstract class CraftingContainerRecipeTransferHandlerBase<C extends Stora
 			}
 			ResourceLocation recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipe.value().getType());
 			if (recipeTypeId != null) {
-				TransferRecipePayload packet = new TransferRecipePayload(
+				JeiTransferRecipePayload packet = new JeiTransferRecipePayload(
 						recipe.id(),
 						recipeTypeId,
 						toMap(transferOperations.results, container),

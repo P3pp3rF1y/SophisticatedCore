@@ -36,7 +36,7 @@ public class TemplatePersistanceControl extends CompositeWidgetBase<WidgetBase> 
 	private final TextBox exportInput;
 
 	protected TemplatePersistanceControl(Position position, TemplatePersistanceContainer container) {
-		super(position, new Dimension(18, 2 * 18 + BUTTON_GAP));
+		super(position, new Dimension(18, 3 * 18 + BUTTON_GAP));
 		this.container = container;
 		container.setOnSlotsRefreshed(() -> {
 			setSaveTooltip();

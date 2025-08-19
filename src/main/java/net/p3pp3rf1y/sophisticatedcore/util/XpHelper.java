@@ -62,6 +62,6 @@ public class XpHelper {
 
 	public static int getPlayerTotalExperience(Player player) {
 		int experienceForLevel = getExperienceForLevel(player.experienceLevel);
-		return (int) Math.min(Integer.MAX_VALUE, experienceForLevel + ((long) player.experienceProgress * player.getXpNeededForNextLevel()));
+		return (int) Math.min(Integer.MAX_VALUE, experienceForLevel + ((long) (player.experienceProgress * player.getXpNeededForNextLevel())));
 	}
 }

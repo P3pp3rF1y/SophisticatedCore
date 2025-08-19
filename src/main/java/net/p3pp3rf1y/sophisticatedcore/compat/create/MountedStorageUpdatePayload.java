@@ -11,7 +11,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public record MountedStorageUpdatePayload(int contraptionEntityId, BlockPos localPos, ItemStack storageStack, boolean refreshBlockRender) implements CustomPacketPayload {
 	public static final Type<MountedStorageUpdatePayload> TYPE = new Type<>(SophisticatedCore.getRL("mounted_storage_update"));

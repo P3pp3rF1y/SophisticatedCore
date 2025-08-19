@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -107,6 +108,10 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	private static boolean isEdible(ItemStack stack, LivingEntity player) {
+		if (stack.getItem() == Items.OMINOUS_BOTTLE) {
+			return false; // Don't eat ominous bottle at all
+		}
+
 		FoodProperties foodProperties = stack.getItem().getFoodProperties(stack, player);
 		return foodProperties != null && foodProperties.nutrition() >= 1;
 	}

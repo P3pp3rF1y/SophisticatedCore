@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +20,7 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	}
 
 	@Override
-	public void setStackInSlot(int slot, @NotNull ItemStack stack) {
+	public void setStackInSlot(int slot, ItemStack stack) {
 		wrappedHandlerGetter.get().setStackInSlot(slot, stack);
 	}
 
@@ -30,15 +29,13 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 		return wrappedHandlerGetter.get().getSlots();
 	}
 
-	@NotNull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		return wrappedHandlerGetter.get().getStackInSlot(slot);
 	}
 
-	@NotNull
 	@Override
-	public ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		if (simulate) {
 			return wrappedHandlerGetter.get().insertItem(slot, stack, true);
 		}
@@ -61,7 +58,6 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 		return result;
 	}
 
-	@NotNull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		return wrappedHandlerGetter.get().extractItem(slot, amount, simulate);
@@ -73,7 +69,7 @@ public class CachedFailedInsertInventoryHandler implements IItemHandlerModifiabl
 	}
 
 	@Override
-	public boolean isItemValid(int slot, @NotNull ItemStack stack) {
+	public boolean isItemValid(int slot, ItemStack stack) {
 		return wrappedHandlerGetter.get().isItemValid(slot, stack);
 	}
 }

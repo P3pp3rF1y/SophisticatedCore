@@ -1,4 +1,4 @@
-package net.p3pp3rf1y.sophisticatedcore.compat.jei;
+package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SetGhostSlotPayload;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.pump.PumpUpgradeTab;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class StorageGhostIngredientHandler<S extends StorageScreenBase<?>> implements IGhostIngredientHandler<S> {
+public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> implements IGhostIngredientHandler<S> {
 	@Override
 	public <I> List<Target<I>> getTargetsTyped(S gui, ITypedIngredient<I> ingredient, boolean doStart) {
 		List<Target<I>> targets = new ArrayList<>();
@@ -29,9 +30,11 @@ public class StorageGhostIngredientHandler<S extends StorageScreenBase<?>> imple
 						FluidStack fluidStack = CapabilityHelper.getFromCapability(ghostStack, Capabilities.FluidHandler.ITEM,
 								null, fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0) : FluidStack.EMPTY, FluidStack.EMPTY);
 						if (!fluidStack.isEmpty()) {
-							gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast).ifPresent(pumpUpgradeTab -> {
-								addFluidTargets(pumpUpgradeTab, fluidStack, targets);
-							});
+							gui.getUpgradeSettingsControl()
+									.getOpenTab()
+									.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
+									.map(PumpUpgradeTab.Advanced.class::cast)
+									.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, targets));
 							return;
 						}
 						container.getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
@@ -52,9 +55,13 @@ public class StorageGhostIngredientHandler<S extends StorageScreenBase<?>> imple
 					}
 			);
 		} else if (ingredient.getType() == NeoForgeTypes.FLUID_STACK) {
-			gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast).ifPresent(pumpUpgradeTab -> {
-				NeoForgeTypes.FLUID_STACK.castIngredient(ingredient.getIngredient()).ifPresent(ghostFluid -> addFluidTargets(pumpUpgradeTab, ghostFluid, targets));
-			});
+			gui.getUpgradeSettingsControl()
+					.getOpenTab()
+					.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
+					.map(PumpUpgradeTab.Advanced.class::cast)
+					.ifPresent(pumpUpgradeTab -> NeoForgeTypes.FLUID_STACK.castIngredient(ingredient.getIngredient())
+							.ifPresent(ghostFluid -> addFluidTargets(pumpUpgradeTab, ghostFluid, targets))
+					);
 		}
 		return targets;
 	}

@@ -289,6 +289,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		addRenderableWidget(searchBox);
 
+		if (noResultsLabel != null) {
+			removeWidget(noResultsLabel);
+		}
 		noResultsLabel = new Label(new Position(leftPos + 7, topPos + 18), Component.translatable(TranslationHelper.INSTANCE.translGui("label.no_search_results")));
 		if (visibleSlotsCount == 0) {
 			addRenderableWidget(noResultsLabel);
@@ -701,7 +704,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void renderSlotBackground(GuiGraphics guiGraphics, Slot slot, int i, int j) {
 		Optional<ItemStack> memorizedStack = getMenu().getMemorizedStackInSlot(slot.index);
-		if (getMenu().isStorageInventorySlot(slot.index)) {
+		if (slot instanceof StorageInventorySlot && getMenu().isStorageInventorySlot(slot.index)) {
 			if (memorizedStack.isPresent()) {
 				guiGraphics.renderItem(memorizedStack.get(), i, j);
 				drawStackOverlay(guiGraphics, i, j);
