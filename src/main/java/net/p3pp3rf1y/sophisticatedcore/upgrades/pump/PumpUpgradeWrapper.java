@@ -68,20 +68,16 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
 		} else {
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, level, pos);
-			if (newCooldown.isPresent()) {
-				return newCooldown.get();
+			if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
+				lastHandActionTime = level.getGameTime();
+				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
 		}
-		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
+		return handleInWorldInteractions(storageFluidHandler, level, pos)
+				.orElseGet(() -> lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME);
 	}
 
 	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, Level level, BlockPos pos) {
-		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
-			lastHandActionTime = level.getGameTime();
-			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
-		}
-
 		if (shouldInteractWithWorld()) {
 			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler);
 			if (newCooldown.isPresent()) {
