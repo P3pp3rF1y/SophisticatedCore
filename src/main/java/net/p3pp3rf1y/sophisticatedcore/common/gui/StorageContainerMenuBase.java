@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
-import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntComparators;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -949,9 +948,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 		Map<ResourceLocation, Set<Integer>> noItemSlotTextures = new HashMap<>();
 		for (int slot = 0; slot < storageWrapper.getInventoryHandler().getSlots(); slot++) {
-			Pair<ResourceLocation, ResourceLocation> noItemIcon = storageWrapper.getInventoryHandler().getNoItemIcon(slot);
+			ResourceLocation noItemIcon = storageWrapper.getInventoryHandler().getNoItemIcon(slot);
 			if (noItemIcon != null) {
-				noItemSlotTextures.computeIfAbsent(noItemIcon.getSecond(), rl -> new HashSet<>()).add(slot);
+				noItemSlotTextures.computeIfAbsent(noItemIcon, rl -> new HashSet<>()).add(slot);
 			}
 		}
 		PacketDistributor.sendToPlayer(serverPlayer, new SyncEmptySlotIconsPayload(noItemSlotTextures));

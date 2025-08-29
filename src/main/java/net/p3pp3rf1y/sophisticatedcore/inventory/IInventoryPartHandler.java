@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -66,7 +65,7 @@ public interface IInventoryPartHandler {
 	String getName();
 
 	@Nullable
-	default Pair<ResourceLocation, ResourceLocation> getNoItemIcon(int slot) {
+	default ResourceLocation getNoItemIcon(int slot) {
 		return null;
 	}
 
