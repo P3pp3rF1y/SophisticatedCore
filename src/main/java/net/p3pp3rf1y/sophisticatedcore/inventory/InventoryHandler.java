@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -395,7 +394,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	@Nullable
-	public Pair<ResourceLocation, ResourceLocation> getNoItemIcon(int slotIndex) {
+	public ResourceLocation getNoItemIcon(int slotIndex) {
 		return inventoryPartitioner.getNoItemIcon(slotIndex);
 	}
 
