@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -38,5 +39,9 @@ public class RegistryHelper {
 		}
 
 		return Optional.of(currentServer.registryAccess());
+	}
+
+	public static ResourceLocation getBlockKey(Block block) {
+		return BuiltInRegistries.BLOCK.getKey(block);
 	}
 }
