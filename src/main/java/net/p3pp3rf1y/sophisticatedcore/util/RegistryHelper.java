@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.commons.lang3.Validate;
@@ -28,5 +29,9 @@ public class RegistryHelper {
 			return Optional.of(ForgeRegistries.ITEMS.getValue(key));
 		}
 		return Optional.empty();
+	}
+
+	public static Optional<ResourceLocation> getBlockKey(Block block) {
+		return Optional.ofNullable(ForgeRegistries.BLOCKS.getKey(block));
 	}
 }

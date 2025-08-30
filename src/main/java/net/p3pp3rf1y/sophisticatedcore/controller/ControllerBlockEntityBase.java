@@ -364,6 +364,11 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return filterItemStorages.containsKey(item);
 	}
 
+	public void removeBoundable(BlockPos boundablePos) {
+		removeConnectingBlock(boundablePos);
+		verifyStoragesConnected();
+	}
+
 	public void removeStorage(BlockPos storagePos) {
 		removeConnectingBlock(storagePos);
 		removeStorageInventoryDataAndUnregisterController(storagePos);
@@ -372,7 +377,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	private void removeConnectingBlock(BlockPos storagePos) {
 		if (connectingBlocks.remove(storagePos)) {
-			WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController);
+			WorldHelper.getLoadedBlockEntity(level, storagePos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController);
 		}
 	}
 
