@@ -836,7 +836,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		nonConnectingBlocks = in.listOrEmpty("nonConnectingBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
 		baseIndexes = in.listOrEmpty("baseIndexes", ExtraCodecs.POSITIVE_INT).stream().collect(Collectors.toCollection(ArrayList::new));
 		totalSlots = in.getIntOr("totalSlots", 0);
-		linkedBlocks = in.read("linkedBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
+		linkedBlocks = in.listOrEmpty("linkedBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
 	private void setupStoragePositionIndexes() {

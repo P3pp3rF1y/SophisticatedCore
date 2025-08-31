@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.function.Consumer;
 
 public class ValueIOHelper {
@@ -34,7 +35,11 @@ public class ValueIOHelper {
 		}
 	}
 
-	public static <T> void saveList(ValueOutput out, String key, Iterable<T> elements, Codec<T> codec) {
+	public static <T> void saveList(ValueOutput out, String key, Collection<T> elements, Codec<T> codec) {
+		if (elements.isEmpty()) {
+			return;
+		}
+
 		ValueOutput.TypedOutputList<T> list = out.list(key, codec);
 		for (T element : elements) {
 			list.add(element);
