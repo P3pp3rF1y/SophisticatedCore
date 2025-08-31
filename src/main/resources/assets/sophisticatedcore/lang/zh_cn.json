@@ -116,7 +116,7 @@
   "gui.sophisticatedcore.upgrades.tag_list.empty": "未选择标签",
   "gui.sophisticatedcore.upgrades.tag_list.tag_overflow": "添加 %s",
   "gui.sophisticatedcore.upgrades.buttons.add_tag": "添加标签",
-  "gui.sophisticatedcore.upgrades.buttons.add_tag.no_item": "<- 单击插槽中的物品开始添加标签",
+  "gui.sophisticatedcore.upgrades.buttons.add_tag.no_item": "<- 向插槽中标记物品来开始添加标签",
   "gui.sophisticatedcore.upgrades.buttons.add_tag.no_additional_tags": "已添加该物品的所有标签",
   "gui.sophisticatedcore.upgrades.buttons.add_tag.controls": "滚轮选择，单击添加",
   "gui.sophisticatedcore.upgrades.buttons.remove_tag": "移除标签",
