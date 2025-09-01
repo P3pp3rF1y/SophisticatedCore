@@ -10,12 +10,14 @@ public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	private static final UpgradeType<PumpUpgradeWrapper> TYPE = new UpgradeType<>(PumpUpgradeWrapper::new);
 	private final boolean interactWithHandDefault;
 	private final boolean interactWithWorldDefault;
+	private final boolean interactWithFluidHandlersDefault;
 	private final PumpUpgradeConfig pumpUpgradeConfig;
 
-	public PumpUpgradeItem(boolean interactWithHandDefault, boolean interactWithWorldDefault, PumpUpgradeConfig pumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
+	public PumpUpgradeItem(boolean interactWithHandDefault, boolean interactWithWorldDefault, boolean interactWithFluidHandlersDefault, PumpUpgradeConfig pumpUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
 		super(upgradeTypeLimitConfig);
 		this.interactWithHandDefault = interactWithHandDefault;
 		this.interactWithWorldDefault = interactWithWorldDefault;
+		this.interactWithFluidHandlersDefault = interactWithFluidHandlersDefault;
 		this.pumpUpgradeConfig = pumpUpgradeConfig;
 	}
 
@@ -39,5 +41,9 @@ public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 
 	public PumpUpgradeConfig getPumpUpgradeConfig() {
 		return pumpUpgradeConfig;
+	}
+
+	public boolean getInteractWithFluidHandlersDefault() {
+		return interactWithFluidHandlersDefault;
 	}
 }

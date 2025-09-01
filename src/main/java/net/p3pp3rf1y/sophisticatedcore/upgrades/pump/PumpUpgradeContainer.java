@@ -9,6 +9,7 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 	private static final String DATA_IS_INPUT = "isInput";
 	private static final String DATA_INTERACT_WITH_HAND = "interactWithHand";
 	private static final String DATA_INTERACT_WITH_WORLD = "interactWithWorld";
+	public static final String DATA_INTERACT_WITH_FLUID_HANDLERS = "interactWithFluidHandlers";
 	private final FluidFilterContainer fluidFilterContainer;
 
 	public PumpUpgradeContainer(Player player, int upgradeContainerId, PumpUpgradeWrapper upgradeWrapper, UpgradeContainerType<PumpUpgradeWrapper, PumpUpgradeContainer> type) {
@@ -34,6 +35,8 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 			setInteractWithHand(data.getBoolean(DATA_INTERACT_WITH_HAND));
 		} else if (data.contains(DATA_INTERACT_WITH_WORLD)) {
 			setInteractWithWorld(data.getBoolean(DATA_INTERACT_WITH_WORLD));
+		} else if (data.contains(DATA_INTERACT_WITH_FLUID_HANDLERS)) {
+			setInteractWithFluidHandlers(data.getBoolean(DATA_INTERACT_WITH_FLUID_HANDLERS));
 		}
 		fluidFilterContainer.handleMessage(data);
 	}
@@ -58,5 +61,14 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 
 	public boolean shouldInteractWithWorld() {
 		return upgradeWrapper.shouldInteractWithWorld();
+	}
+
+	public void setInteractWithFluidHandlers(boolean interact) {
+		upgradeWrapper.setInteractWithFluidHandlers(interact);
+		sendBooleanToServer(DATA_INTERACT_WITH_FLUID_HANDLERS, interact);
+	}
+
+	public boolean shouldInteractWithFluidHandlers() {
+		return upgradeWrapper.shouldInteractWithFluidHandlers();
 	}
 }

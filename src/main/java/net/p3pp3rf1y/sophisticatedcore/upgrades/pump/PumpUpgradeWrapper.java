@@ -62,13 +62,13 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
-		if (entity instanceof Player player) {
-			if (shouldInteractWithHand() && handleFluidContainerInHands(player, storageFluidHandler)) {
-				lastHandActionTime = level.getGameTime();
-				return HAND_INTERACTION_COOLDOWN_TIME;
-			}
-		} else {
-			if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
+		if (shouldInteractWithHand()) {
+			if (entity instanceof Player player) {
+				if (handleFluidContainerInHands(player, storageFluidHandler)) {
+					lastHandActionTime = level.getGameTime();
+					return HAND_INTERACTION_COOLDOWN_TIME;
+				}
+			} else if (handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
 				lastHandActionTime = level.getGameTime();
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
@@ -84,8 +84,10 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 				return newCooldown;
 			}
 		}
-
-		return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
+		if (shouldInteractWithFluidHandlers()) {
+			return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
+		}
+		return Optional.empty();
 	}
 
 	private Optional<Integer> interactWithAttachedFluidHandlers(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
@@ -290,5 +292,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	public boolean shouldInteractWithWorld() {
 		return NBTHelper.getBoolean(upgrade, "interactWithWorld").orElse(upgradeItem.getInteractWithWorldDefault());
+	}
+
+	public void setInteractWithFluidHandlers(boolean interactWithFluidHandlers) {
+		NBTHelper.setBoolean(upgrade, "interactWithFluidHandlers", interactWithFluidHandlers);
+		save();
+	}
+
+	public boolean shouldInteractWithFluidHandlers() {
+		return NBTHelper.getBoolean(upgrade, "interactWithFluidHandlers").orElse(upgradeItem.getInteractWithFluidHandlersDefault());
 	}
 }

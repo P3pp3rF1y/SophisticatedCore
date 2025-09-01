@@ -149,6 +149,8 @@
   "gui.sophisticatedcore.upgrades.buttons.do_not_interact_with_world": "Do Not Interact With World",
   "gui.sophisticatedcore.upgrades.buttons.interact_with_hand": "Interact With\nFluid Container in Hand",
   "gui.sophisticatedcore.upgrades.buttons.do_not_interact_with_hand": "Do Not Interact With\nFluid Container in Hand",
+  "gui.sophisticatedcore.upgrades.buttons.interact_with_tanks_and_pipes": "Interact With Tanks & Pipes",
+  "gui.sophisticatedcore.upgrades.buttons.do_not_interact_with_tanks_and_pipes": "Do Not Interact With Tanks & Pipes",
   "gui.sophisticatedcore.upgrades.buttons.xp_pump_input": "Pump Experience From Player",
   "gui.sophisticatedcore.upgrades.buttons.xp_pump_output": "Pump Experience To Player",
   "gui.sophisticatedcore.upgrades.buttons.xp_pump_keep": "Keep Player at Level",
