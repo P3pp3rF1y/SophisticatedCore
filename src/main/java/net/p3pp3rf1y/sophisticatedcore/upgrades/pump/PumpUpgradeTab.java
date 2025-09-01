@@ -16,6 +16,11 @@ public class PumpUpgradeTab extends UpgradeSettingsTab<PumpUpgradeContainer> {
 					GuiHelper.getButtonStateData(new UV(144, 0), TranslationHelper.INSTANCE.translUpgradeButton("pump_input"), Dimension.SQUARE_16, new Position(1, 1)),
 					GuiHelper.getButtonStateData(new UV(160, 0), TranslationHelper.INSTANCE.translUpgradeButton("pump_output"), Dimension.SQUARE_16, new Position(1, 1))
 			));
+	private static final ButtonDefinition.Toggle<Boolean> INTERACT_WITH_FLUID_HANDLERS = createToggleButtonDefinition(
+			getBooleanStateData(
+					GuiHelper.getButtonStateData(new UV(0, 112), TranslationHelper.INSTANCE.translUpgradeButton("interact_with_tanks_and_pipes"), Dimension.SQUARE_16, new Position(1, 1)),
+					GuiHelper.getButtonStateData(new UV(16, 112), TranslationHelper.INSTANCE.translUpgradeButton("do_not_interact_with_tanks_and_pipes"), Dimension.SQUARE_16, new Position(1, 1))
+			));
 	private static final ButtonDefinition.Toggle<Boolean> INTERACT_WITH_WORLD = createToggleButtonDefinition(
 			getBooleanStateData(
 					GuiHelper.getButtonStateData(new UV(176, 0), TranslationHelper.INSTANCE.translUpgradeButton("interact_with_world"), Dimension.SQUARE_16, new Position(1, 1)),
@@ -54,10 +59,13 @@ public class PumpUpgradeTab extends UpgradeSettingsTab<PumpUpgradeContainer> {
 
 		public Advanced(PumpUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen) {
 			super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("advanced_pump"), TranslationHelper.INSTANCE.translUpgradeTooltip("advanced_pump"));
-			addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), INTERACT_WITH_WORLD,
+			addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), INTERACT_WITH_FLUID_HANDLERS,
+					button -> getContainer().setInteractWithFluidHandlers(!getContainer().shouldInteractWithFluidHandlers()),
+					() -> getContainer().shouldInteractWithFluidHandlers()));
+			addHideableChild(new ToggleButton<>(new Position(x + 39, y + 24), INTERACT_WITH_WORLD,
 					button -> getContainer().setInteractWithWorld(!getContainer().shouldInteractWithWorld()),
 					() -> getContainer().shouldInteractWithWorld()));
-			addHideableChild(new ToggleButton<>(new Position(x + 39, y + 24), INTERACT_WITH_HAND,
+			addHideableChild(new ToggleButton<>(new Position(x + 57, y + 24), INTERACT_WITH_HAND,
 					button -> getContainer().setInteractWithHand(!getContainer().shouldInteractWithHand()),
 					() -> getContainer().shouldInteractWithHand()));
 			fluidFilterControl = new FluidFilterControl(new Position(x + 3, y + 44), getContainer().getFluidFilterContainer());
