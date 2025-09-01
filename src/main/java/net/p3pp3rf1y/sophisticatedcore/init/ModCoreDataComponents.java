@@ -121,6 +121,9 @@ public class ModCoreDataComponents {
 	public static final Supplier<DataComponentType<Boolean>> INTERACT_WITH_WORLD = DATA_COMPONENT_TYPES.register("interact_with_world",
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
+	public static final Supplier<DataComponentType<Boolean>> INTERACT_WITH_FLUID_HANDLERS = DATA_COMPONENT_TYPES.register("interact_with_fluid_handler",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
 	public static final Supplier<DataComponentType<ResourceKey<Recipe<?>>>> RECIPE_ID = DATA_COMPONENT_TYPES.register("recipe_id",
 			() -> new DataComponentType.Builder<ResourceKey<Recipe<?>>>().persistent(ResourceKey.codec(Registries.RECIPE)).networkSynchronized(ResourceKey.streamCodec(Registries.RECIPE)).build());
 
