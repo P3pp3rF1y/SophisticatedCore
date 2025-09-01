@@ -7,7 +7,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.Recipe;
@@ -120,6 +119,9 @@ public class ModCoreDataComponents {
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
 	public static final Supplier<DataComponentType<Boolean>> INTERACT_WITH_WORLD = DATA_COMPONENT_TYPES.register("interact_with_world",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+	public static final Supplier<DataComponentType<Boolean>> INTERACT_WITH_FLUID_HANDLERS = DATA_COMPONENT_TYPES.register("interact_with_fluid_handler",
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
 	public static final Supplier<DataComponentType<ResourceKey<Recipe<?>>>> RECIPE_ID = DATA_COMPONENT_TYPES.register("recipe_id",
