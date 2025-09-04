@@ -231,6 +231,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			positionsToCheck.add(storagePos);
 			searchAndAddBoundables(positionsToCheck, false);
 		}
+		WorldHelper.notifyBlockUpdate(this);
 	}
 
 	private void addStorageData(BlockPos storagePos) {
