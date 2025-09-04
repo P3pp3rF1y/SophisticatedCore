@@ -60,34 +60,32 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
-		if (entity instanceof Player player) {
-			if (shouldInteractWithHand() && handleFluidContainerInHands(player, storageFluidHandler)) {
+		if (shouldInteractWithHand()) {
+			if (entity instanceof Player player) {
+				if (handleFluidContainerInHands(player, storageFluidHandler)) {
+					lastHandActionTime = level.getGameTime();
+					return HAND_INTERACTION_COOLDOWN_TIME;
+				}
+			} else if (handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
 				lastHandActionTime = level.getGameTime();
 				return HAND_INTERACTION_COOLDOWN_TIME;
 			}
-		} else {
-			Optional<Integer> newCooldown = handleInWorldInteractions(storageFluidHandler, entity, level, pos);
-			if (newCooldown.isPresent()) {
-				return newCooldown.get();
-			}
 		}
-		return lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME;
+		return handleInWorldInteractions(storageFluidHandler, entity, level, pos)
+				.orElseGet(() -> lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME);
 	}
 
 	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
-		if (shouldInteractWithHand() && handleFluidContainersInHandsOfNearbyPlayers(level, pos, storageFluidHandler)) {
-			lastHandActionTime = level.getGameTime();
-			return Optional.of(HAND_INTERACTION_COOLDOWN_TIME);
-		}
-
 		if (shouldInteractWithWorld()) {
 			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler, entity);
 			if (newCooldown.isPresent()) {
 				return newCooldown;
 			}
 		}
-
-		return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
+		if (shouldInteractWithFluidHandlers()) {
+			return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
+		}
+		return Optional.empty();
 	}
 
 	private Optional<Integer> interactWithAttachedFluidHandlers(Level level, BlockPos pos, IFluidHandler storageFluidHandler) {
@@ -294,5 +292,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	public boolean shouldInteractWithWorld() {
 		return upgrade.getOrDefault(ModCoreDataComponents.INTERACT_WITH_WORLD, upgradeItem.getInteractWithWorldDefault());
+	}
+
+	public void setInteractWithFluidHandlers(boolean interactWithFluidHandlers) {
+		upgrade.set(ModCoreDataComponents.INTERACT_WITH_FLUID_HANDLERS, interactWithFluidHandlers);
+		save();
+	}
+
+	public boolean shouldInteractWithFluidHandlers() {
+		return upgrade.getOrDefault(ModCoreDataComponents.INTERACT_WITH_FLUID_HANDLERS, upgradeItem.getInteractWithFluidHandlersDefault());
 	}
 }
