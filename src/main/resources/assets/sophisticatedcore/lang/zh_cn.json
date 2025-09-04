@@ -149,6 +149,8 @@
   "gui.sophisticatedcore.upgrades.buttons.do_not_interact_with_world": "不与世界中方块交互",
   "gui.sophisticatedcore.upgrades.buttons.interact_with_hand": "与手持流体容器交互",
   "gui.sophisticatedcore.upgrades.buttons.do_not_interact_with_hand": "不与手持流体容器交互",
+  "gui.sophisticatedcore.upgrades.buttons.interact_with_tanks_and_pipes": "与储罐&管道交互",
+  "gui.sophisticatedcore.upgrades.buttons.do_not_interact_with_tanks_and_pipes": "不与与储罐&管道交互",
   "gui.sophisticatedcore.upgrades.buttons.xp_pump_input": "从玩家泵入经验",
   "gui.sophisticatedcore.upgrades.buttons.xp_pump_output": "向玩家泵出经验",
   "gui.sophisticatedcore.upgrades.buttons.xp_pump_keep": "保持玩家等级",
