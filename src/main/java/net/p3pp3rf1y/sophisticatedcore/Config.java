@@ -37,11 +37,13 @@ public class Config {
 	public static class Client {
 		public final ForgeConfigSpec.EnumValue<SortButtonsPosition> sortButtonsPosition;
 		public final ForgeConfigSpec.BooleanValue playButtonSound;
+		public final ForgeConfigSpec.BooleanValue mouseTweaksScrollEnabled;
 
 		Client(ForgeConfigSpec.Builder builder) {
 			builder.comment("Client Settings").push("client");
 			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods").defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
 			playButtonSound = builder.comment("Whether click sound should play when custom buttons are clicked in gui").define("playButtonSound", true);
+			mouseTweaksScrollEnabled = builder.comment("Whether scrolling in inventory should be handled by Mouse Tweaks mod if it is in the pack").define("mouseTweaksScrollEnabled", true);
 			builder.pop();
 		}
 	}
