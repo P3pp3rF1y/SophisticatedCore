@@ -138,6 +138,10 @@ dependencies {
     compileOnly fg.deobf("com.simibubi.create:create-${create_mc_version}:${create_version}:all") {
         transitive = false
     }
+    compileOnly fg.deobf("vazkii.botania:Botania:${botania_version}:api")
+    runtimeOnly fg.deobf("vazkii.botania:Botania:${botania_version}")
+    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
+    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 
 /*
     compileOnly fg.deobf("curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")

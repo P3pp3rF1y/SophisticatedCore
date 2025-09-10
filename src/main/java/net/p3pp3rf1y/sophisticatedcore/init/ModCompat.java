@@ -15,6 +15,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei.JeiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei.ReiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.reliquary.ReliquaryCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.trashslot.TrashSlotCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.botania.BotaniaCompat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.TRASH_SLOT, () -> TrashSlotCompat::new);
 		compatFactories.put(CompatModIds.RELIQUARY, () -> ReliquaryCompat::new);
 		compatFactories.put(CompatModIds.MOUSE_TWEAKS, () -> MouseTweaksCompat::new);
+		compatFactories.put(CompatModIds.BOTANIA, () -> BotaniaCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 
