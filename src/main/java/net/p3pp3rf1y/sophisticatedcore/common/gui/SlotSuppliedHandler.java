@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.function.Supplier;
@@ -30,5 +31,13 @@ public class SlotSuppliedHandler extends SlotItemHandler {
 	@Override
 	public int getMaxStackSize() {
 		return itemHandlerSupplier.get().getSlotLimit(slot);
+	}
+
+	@Override
+	public void setChanged() {
+		super.setChanged();
+		if (itemHandlerSupplier.get() instanceof ItemStackHandler stackHandler) {
+			stackHandler.setStackInSlot(slot, stackHandler.getStackInSlot(slot));
+		}
 	}
 }
