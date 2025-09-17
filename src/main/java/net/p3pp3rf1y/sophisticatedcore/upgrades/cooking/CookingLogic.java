@@ -1,5 +1,17 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
+import com.google.common.collect.Lists;
+import com.mojang.serialization.Codec;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
@@ -9,11 +21,15 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ComponentItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -41,6 +57,12 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private boolean paused = false;
 	private long remainingCookTime = 0;
 	private long remainingBurnTime = 0;
+
+	public static final Codec<Map<ResourceLocation, Integer>> RECIPES_USED_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, ExtraCodecs.NON_NEGATIVE_INT);
+
+	public static final StreamCodec<FriendlyByteBuf, Map<ResourceLocation, Integer>> RECIPES_USED_STREAM_CODEC =
+			StreamCodec.of((buf, map) -> buf.writeMap(map, ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT),
+					buf -> buf.readMap(ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT));
 
 	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
 		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), cookingUpgradeConfig, recipeType, burnTimeModifier);
@@ -180,8 +202,44 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 			setFuel(new ItemStack(Items.WATER_BUCKET));
 		}
 
+		if (cookingRecipe != null) {
+			incrementRecipeUsed(cookingRecipe.id());
+			addStoredExperience(cookingRecipe.value().getExperience());
+		}
 		input.shrink(1);
 		setCookInput(input);
+	}
+
+	private void addStoredExperience(float experience) {
+		upgrade.set(ModCoreDataComponents.STORED_XP, getStoredExperience() + experience);
+		save();
+	}
+
+	public float getStoredExperience() {
+		return upgrade.getOrDefault(ModCoreDataComponents.STORED_XP, 0f);
+	}
+
+	public void drainStoredExperience(float xp) {
+		float storedXp = getStoredExperience();
+		storedXp = Math.max(0, storedXp - xp);
+		upgrade.set(ModCoreDataComponents.STORED_XP, storedXp);
+		save();
+	}
+
+	private void incrementRecipeUsed(ResourceLocation recipeId) {
+		Object2IntOpenHashMap<ResourceLocation> recipesUsed = new Object2IntOpenHashMap<>(getRecipesUsed());
+		recipesUsed.addTo(recipeId, 1);
+		upgrade.set(ModCoreDataComponents.RECIPES_USED, recipesUsed);
+		save();
+	}
+
+	private void clearRecipesUsed() {
+		upgrade.set(ModCoreDataComponents.RECIPES_USED, Map.of());
+		save();
+	}
+
+	private Map<ResourceLocation, Integer> getRecipesUsed() {
+		return upgrade.getOrDefault(ModCoreDataComponents.RECIPES_USED, Map.of());
 	}
 
 	public void setCookInput(ItemStack input) {
@@ -329,6 +387,43 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private void setIsCooking(boolean isCooking) {
 		upgrade.set(ModCoreDataComponents.IS_COOKING, isCooking);
 		save();
+	}
+
+	public void awardUsedRecipesAndPopExperience(ServerPlayer serverPlayer) {
+		List<RecipeHolder<?>> recipes = getRecipesToAwardAndPopExperience(serverPlayer.serverLevel(), serverPlayer.position());
+		serverPlayer.awardRecipes(recipes);
+
+		List<ItemStack> items = InventoryHelper.getStacks(cookingInventory);
+
+		for(RecipeHolder<?> recipeholder : recipes) {
+			if (recipeholder != null) {
+				serverPlayer.triggerRecipeCrafted(recipeholder, items);
+			}
+		}
+
+		clearRecipesUsed();
+	}
+
+	public List<RecipeHolder<?>> getRecipesToAwardAndPopExperience(ServerLevel serverLevel, Vec3 position) {
+		List<RecipeHolder<?>> recipes = Lists.newArrayList();
+
+		for (Map.Entry<ResourceLocation, Integer> entry : getRecipesUsed().entrySet()) {
+			serverLevel.getRecipeManager().byKey(entry.getKey()).ifPresent(recipes::add);
+		}
+		createExperience(serverLevel, position);
+		return recipes;
+	}
+
+	private void createExperience(ServerLevel serverLevel, Vec3 position) {
+		float storedXp = getStoredExperience();
+		int i = Mth.floor(storedXp);
+		float f = Mth.frac(storedXp);
+		if (f != 0.0F && Math.random() < (double)f) {
+			++i;
+		}
+
+		ExperienceOrb.award(serverLevel, position, i);
+		drainStoredExperience(i);
 	}
 
 	public class CookingComponentItemHandler extends ComponentItemHandler {

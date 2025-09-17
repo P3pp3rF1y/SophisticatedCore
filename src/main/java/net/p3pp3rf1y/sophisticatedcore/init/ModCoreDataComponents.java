@@ -17,6 +17,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.EntityMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterAttributes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyFilterAttribute;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.feeding.HungerLevel;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.filter.Direction;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.RepeatMode;
@@ -24,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.xppump.AutomationDirection;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -184,6 +186,14 @@ public class ModCoreDataComponents {
 
     public static final Supplier<DataComponentType<EntityMatch>> ENTITY_MATCH = DATA_COMPONENT_TYPES.register("entity_match",
             () -> new DataComponentType.Builder<EntityMatch>().persistent(EntityMatch.CODEC).networkSynchronized(EntityMatch.STREAM_CODEC).build());
+
+	public static final Supplier<DataComponentType<Map<ResourceLocation, Integer>>> RECIPES_USED = DATA_COMPONENT_TYPES.register("recipes_used",
+			() -> new DataComponentType.Builder<Map<ResourceLocation, Integer>>()
+					.persistent(CookingLogic.RECIPES_USED_CODEC)
+					.networkSynchronized(CookingLogic.RECIPES_USED_STREAM_CODEC).build());
+
+	public static final Supplier<DataComponentType<Float>> STORED_XP = DATA_COMPONENT_TYPES.register("stored_xp",
+			() -> new DataComponentType.Builder<Float>().persistent(Codec.FLOAT).networkSynchronized(ByteBufCodecs.FLOAT).build());
 
     public static void register(IEventBus modBus) {
         DATA_COMPONENT_TYPES.register(modBus);
