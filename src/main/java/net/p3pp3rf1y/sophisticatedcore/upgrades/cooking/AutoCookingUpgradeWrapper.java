@@ -6,9 +6,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
@@ -18,6 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.XpHelper;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
@@ -87,6 +91,7 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 		if (!output.isEmpty() && inventory.insertItem(output, true).getCount() < output.getCount()) {
 			ItemStack ret = inventory.insertItem(output, false);
 			cookingLogic.getCookingInventory().extractItem(CookingLogic.COOK_OUTPUT_SLOT, output.getCount() - ret.getCount(), false);
+			tryPushingXpToTanks();
 		} else {
 			outputCooldown = NO_INVENTORY_SPACE_COOLDOWN;
 		}
@@ -96,6 +101,24 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 			ItemStack ret = inventory.insertItem(fuel, false);
 			cookingLogic.getCookingInventory().extractItem(CookingLogic.FUEL_SLOT, fuel.getCount() - ret.getCount(), false);
 		}
+	}
+
+	private void tryPushingXpToTanks() {
+		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
+			float storedExperience = cookingLogic.getStoredExperience();
+			for (int i = 0; i < fluidHandler.getTanks(); i++) {
+				FluidStack xpFluidStack = new FluidStack(ModFluids.XP_STILL.get(), XpHelper.experienceToLiquid(storedExperience));
+				int filled = fluidHandler.fill(xpFluidStack, IFluidHandler.FluidAction.SIMULATE);
+				if (filled > 0) {
+					fluidHandler.fill(xpFluidStack, IFluidHandler.FluidAction.EXECUTE);
+					cookingLogic.drainStoredExperience(XpHelper.liquidToExperience(filled));
+					storedExperience -= XpHelper.liquidToExperience(filled);
+					if (storedExperience <= 0) {
+						break;
+					}
+				}
+			}
+		});
 	}
 
 	@Override
