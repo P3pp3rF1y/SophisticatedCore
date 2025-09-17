@@ -29,6 +29,7 @@ import java.util.List;
 public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgradeWrapper, CraftingUpgradeContainer> implements ICraftingContainer {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
 	private static final String DATA_SELECT_RESULT = "selectResult";
+	private static final String DATA_REFILL_CRAFTING_GRID = "refill_crafting_grid";
 	private final ResultContainer craftResult = new ResultContainer();
 	private final CraftingItemHandler craftMatrix;
 	private final ResultSlot craftingResultSlot;
@@ -59,40 +60,48 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				ItemStack remainingStack = getItem();
 				checkTakeAchievements(stack);
 				net.minecraftforge.common.ForgeHooks.setCraftingPlayer(thePlayer);
-				List<ItemStack> items;
+				List<ItemStack> remainingItems;
 				if (lastRecipe != null && lastRecipe.matches(craftMatrix, player.level())) {
-					items = lastRecipe.getRemainingItems(craftMatrix);
+					remainingItems = lastRecipe.getRemainingItems(craftMatrix);
 				} else {
-					items = craftMatrix.getItems();
+					remainingItems = new ArrayList<>();
 				}
 				net.minecraftforge.common.ForgeHooks.setCraftingPlayer(null);
-				for (int i = 0; i < items.size(); ++i) {
+				for (int i = 0; i < remainingItems.size(); ++i) {
 					if (i >= 9) {
-						logErrorAndDropRemainingItems(i, items);
+						logErrorAndDropRemainingItems(i, remainingItems);
 						break;
 					}
 
-					ItemStack itemstack = craftMatrix.getItem(i);
-					ItemStack itemstack1 = items.get(i);
-					if (!itemstack.isEmpty()) {
-						craftMatrix.removeItem(i, 1);
-						itemstack = craftMatrix.getItem(i);
+					ItemStack craftMatrixItem = craftMatrix.getItem(i);
+					ItemStack remainingItem = remainingItems.get(i);
+					if (!craftMatrixItem.isEmpty()) {
+						if (shouldRefillCraftingGrid() && upgradeWrapper.extractFromStorageOrPlayer(player, craftMatrixItem)) {
+							onCraftMatrixChanged(craftMatrix);
+						} else {
+							craftMatrix.removeItem(i, 1);
+						}
+						craftMatrixItem = craftMatrix.getItem(i);
 					}
 
-					if (!itemstack1.isEmpty()) {
-						if (itemstack.isEmpty()) {
-							craftMatrix.setItem(i, itemstack1);
-						} else if (ItemStack.isSameItemSameTags(itemstack, itemstack1)) {
-							itemstack1.grow(itemstack.getCount());
-							craftMatrix.setItem(i, itemstack1);
-						} else if (!player.getInventory().add(itemstack1)) {
-							player.drop(itemstack1, false);
+					if (!remainingItem.isEmpty()) {
+						if (craftMatrixItem.isEmpty()) {
+							craftMatrix.setItem(i, remainingItem);
+						} else if (ItemStack.isSameItemSameTags(craftMatrixItem, remainingItem)) {
+							remainingItem.grow(craftMatrixItem.getCount());
+							craftMatrix.setItem(i, remainingItem);
+						} else if (!upgradeWrapper.insertIntoStorageOrPlayer(player, remainingItem)) {
+							player.drop(remainingItem, false);
 						}
 					}
 				}
 
 				if (!remainingStack.isEmpty()) {
 					player.drop(remainingStack, false);
+				}
+
+				if (matchedCraftingRecipes.isEmpty() && player.level().isClientSide()) {
+					lastRecipe = null;
 				}
 			}
 
@@ -119,6 +128,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 							matchedCraftingResults.add(result);
 							if (ItemHandlerHelper.canItemStacksStack(getItem(), result)) {
 								selectedCraftingResultIndex = resultIndex;
+								lastRecipe = craftingRecipe;
 							}
 							resultIndex++;
 						}
@@ -194,9 +204,9 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (resultIndex < 0 || resultIndex >= matchedCraftingResults.size()) {
 			return;
 		}
+		selectedCraftingResultIndex = resultIndex;
+		lastRecipe = matchedCraftingRecipes.get(resultIndex);
 		if (player instanceof ServerPlayer serverPlayer) {
-			selectedCraftingResultIndex = resultIndex;
-			lastRecipe = matchedCraftingRecipes.get(resultIndex);
 			ItemStack result = matchedCraftingResults.get(resultIndex).copy();
 			craftingResultSlot.set(result);
 			//noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
@@ -212,6 +222,9 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
 		} else if (data.contains(DATA_SELECT_RESULT)) {
 			selectCraftingResult(data.getInt(DATA_SELECT_RESULT));
+		}
+		if (data.contains(DATA_REFILL_CRAFTING_GRID)) {
+			setRefillCraftingGrid(data.getBoolean(DATA_REFILL_CRAFTING_GRID));
 		}
 	}
 
@@ -264,6 +277,15 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
 		upgradeWrapper.setShiftClickIntoStorage(shiftClickIntoStorage);
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage));
+	}
+
+	public boolean shouldRefillCraftingGrid() {
+		return upgradeWrapper.shouldRefillCraftingGridNBT();
+	}
+
+	public void setRefillCraftingGrid(boolean replenish) {
+		upgradeWrapper.setRefillCraftingGridNBT(replenish);
+		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_REFILL_CRAFTING_GRID, replenish));
 	}
 
 	@Override
