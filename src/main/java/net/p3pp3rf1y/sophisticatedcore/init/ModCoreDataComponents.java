@@ -58,6 +58,9 @@ public class ModCoreDataComponents {
 	public static final Supplier<DataComponentType<Boolean>> SHIFT_CLICK_INTO_STORAGE = DATA_COMPONENT_TYPES.register("shift_click_into_storage",
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
+	public static final Supplier<DataComponentType<Boolean>> REFILL_CRAFTING_GRID = DATA_COMPONENT_TYPES.register("refill_crafting_grid",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
 	public static final Supplier<DataComponentType<SimpleItemContent>> INPUT_ITEM = DATA_COMPONENT_TYPES.register("input_item",
 			() -> new DataComponentType.Builder<SimpleItemContent>().persistent(SimpleItemContent.CODEC).networkSynchronized(SimpleItemContent.STREAM_CODEC).build());
 
