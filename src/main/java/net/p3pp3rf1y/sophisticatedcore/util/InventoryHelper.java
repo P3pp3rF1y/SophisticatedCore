@@ -381,6 +381,14 @@ public class InventoryHelper {
 		return ret;
 	}
 
+	public static List<ItemStack> getStacks(IItemHandler handler) {
+		List<ItemStack> ret = new ArrayList<>();
+		iterate(handler, (slot, stack) -> {
+			ret.add(stack);
+		});
+		return ret;
+	}
+
 	public static Set<ItemStackKey> getUniqueStacks(IItemHandler handler) {
 		Set<ItemStackKey> uniqueStacks = new HashSet<>();
 		iterate(handler, (slot, stack) -> {

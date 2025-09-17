@@ -1,5 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
+import com.google.common.collect.Lists;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
@@ -7,21 +15,27 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.items.ItemStackHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class CookingLogic<T extends AbstractCookingRecipe> {
+	private static final String STORED_XP_TAG = "storedXp";
 	private final ItemStack upgrade;
 	private final Consumer<ItemStack> saveHandler;
 
+	@Nullable
 	private ItemStackHandler cookingInventory = null;
 	public static final int COOK_INPUT_SLOT = 0;
 	public static final int COOK_OUTPUT_SLOT = 2;
@@ -40,6 +54,8 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private boolean paused = false;
 	private long remainingCookTime = 0;
 	private long remainingBurnTime = 0;
+	@Nullable
+	private Object2IntOpenHashMap<ResourceLocation> recipesUsed = null;
 
 	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
 		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), cookingUpgradeConfig, recipeType, burnTimeModifier);
@@ -179,8 +195,48 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 			setFuel(new ItemStack(Items.WATER_BUCKET));
 		}
 
+		if (cookingRecipe != null) {
+			incrementRecipeUsed(cookingRecipe.getId());
+			addStoredExperience(cookingRecipe.getExperience());
+		}
 		input.shrink(1);
 		setCookInput(input);
+	}
+
+	private void addStoredExperience(float experience) {
+		upgrade.getOrCreateTag().putFloat(STORED_XP_TAG, getStoredExperience() + experience);
+		save();
+	}
+
+	public float getStoredExperience() {
+		return NBTHelper.getFloat(upgrade, STORED_XP_TAG).orElse(0f);
+	}
+
+	public void drainStoredExperience(float xp) {
+		float storedXp = getStoredExperience();
+		storedXp = Math.max(0, storedXp - xp);
+		upgrade.getOrCreateTag().putFloat(STORED_XP_TAG, storedXp);
+		save();
+	}
+
+	private void incrementRecipeUsed(ResourceLocation recipeId) {
+		Object2IntOpenHashMap<ResourceLocation> recipesUsed = getRecipesUsed();
+		recipesUsed.addTo(recipeId, 1);
+		NBTHelper.putMap(upgrade.getOrCreateTag(), "recipesUsed", recipesUsed, ResourceLocation::toString, IntTag::valueOf);
+		save();
+	}
+
+	private void clearRecipesUsed() {
+		NBTHelper.removeTag(upgrade, "recipesUsed");
+		save();
+	}
+
+	private Object2IntOpenHashMap<ResourceLocation> getRecipesUsed() {
+		if (recipesUsed == null) {
+			recipesUsed = NBTHelper.getMap(upgrade, "recipesUsed", ResourceLocation::new, (v, t) -> Optional.of(Integer.valueOf(t.getAsString()))).map(Object2IntOpenHashMap::new).orElseGet(Object2IntOpenHashMap::new);
+		}
+
+		return recipesUsed;
 	}
 
 	public void setCookInput(ItemStack input) {
@@ -347,5 +403,40 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private void setIsCooking(boolean isCooking) {
 		NBTHelper.setBoolean(upgrade, "isCooking", isCooking);
 		save();
+	}
+
+	public void awardUsedRecipesAndPopExperience(ServerPlayer serverPlayer) {
+		List<Recipe<?>> recipes = getRecipesToAwardAndPopExperience(serverPlayer.serverLevel(), serverPlayer.position());
+		serverPlayer.awardRecipes(recipes);
+
+		List<ItemStack> items = InventoryHelper.getStacks(cookingInventory);
+
+		for (Recipe<?> recipe : recipes) {
+			serverPlayer.triggerRecipeCrafted(recipe, items);
+		}
+
+		clearRecipesUsed();
+	}
+
+	public List<Recipe<?>> getRecipesToAwardAndPopExperience(ServerLevel serverLevel, Vec3 position) {
+		List<Recipe<?>> recipes = Lists.newArrayList();
+
+		for (Map.Entry<ResourceLocation, Integer> entry : getRecipesUsed().entrySet()) {
+			serverLevel.getRecipeManager().byKey(entry.getKey()).ifPresent(recipes::add);
+		}
+		createExperience(serverLevel, position);
+		return recipes;
+	}
+
+	private void createExperience(ServerLevel serverLevel, Vec3 position) {
+		float storedXp = getStoredExperience();
+		int i = Mth.floor(storedXp);
+		float f = Mth.frac(storedXp);
+		if (f != 0.0F && Math.random() < (double) f) {
+			++i;
+		}
+
+		ExperienceOrb.award(serverLevel, position, i);
+		drainStoredExperience(i);
 	}
 }
