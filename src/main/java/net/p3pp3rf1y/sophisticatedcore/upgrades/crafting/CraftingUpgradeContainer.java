@@ -31,6 +31,7 @@ import java.util.List;
 public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgradeWrapper, CraftingUpgradeContainer> implements ICraftingContainer {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
 	private static final String DATA_SELECT_RESULT = "selectResult";
+	private static final String DATA_REFILL_CRAFTING_GRID = "refill_crafting_grid";
 	private final ResultContainer craftResult = new ResultContainer();
 	private final CraftingItemHandler craftMatrix;
 	private final ResultSlot craftingResultSlot;
@@ -91,7 +92,11 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						ItemStack recipeInputStack = craftMatrix.getItem(i);
 						ItemStack remainingItemStack = remainingItems.get(remaininItemsIndex);
 						if (!recipeInputStack.isEmpty()) {
-							craftMatrix.removeItem(i, 1);
+							if (shouldRefillCraftingGrid() && upgradeWrapper.extractFromStorageOrPlayer(player, recipeInputStack)) {
+								onCraftMatrixChanged(craftMatrix);
+							} else {
+								craftMatrix.removeItem(i, 1);
+							}
 							recipeInputStack = craftMatrix.getItem(i);
 						}
 
@@ -111,6 +116,10 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 
 				if (!remainingStack.isEmpty()) {
 					player.drop(remainingStack, false);
+				}
+
+				if (matchedCraftingRecipes.isEmpty() && player.level().isClientSide()) {
+					lastRecipe = null;
 				}
 			}
 
@@ -137,6 +146,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 							matchedCraftingResults.add(result);
 							if (ItemStack.isSameItemSameComponents(getItem(), result)) {
 								selectedCraftingResultIndex = resultIndex;
+								lastRecipe = craftingRecipe;
 							}
 							resultIndex++;
 						}
@@ -213,9 +223,9 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (resultIndex < 0 || resultIndex >= matchedCraftingResults.size()) {
 			return;
 		}
+		selectedCraftingResultIndex = resultIndex;
+		lastRecipe = matchedCraftingRecipes.get(resultIndex);
 		if (player instanceof ServerPlayer serverPlayer) {
-			selectedCraftingResultIndex = resultIndex;
-			lastRecipe = matchedCraftingRecipes.get(resultIndex);
 			ItemStack result = matchedCraftingResults.get(resultIndex).copy();
 			craftingResultSlot.set(result);
 			//noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
@@ -231,6 +241,9 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 			setShiftClickIntoStorage(data.getBoolean(DATA_SHIFT_CLICK_INTO_STORAGE));
 		} else if (data.contains(DATA_SELECT_RESULT)) {
 			selectCraftingResult(data.getInt(DATA_SELECT_RESULT));
+		}
+		if (data.contains(DATA_REFILL_CRAFTING_GRID)) {
+			setRefillCraftingGrid(data.getBoolean(DATA_REFILL_CRAFTING_GRID));
 		}
 	}
 
@@ -283,6 +296,15 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
 		upgradeWrapper.setShiftClickIntoStorage(shiftClickIntoStorage);
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage));
+	}
+
+	public boolean shouldRefillCraftingGrid() {
+		return upgradeWrapper.shouldRefillCraftingGridNBT();
+	}
+
+	public void setRefillCraftingGrid(boolean replenish) {
+		upgradeWrapper.setRefillCraftingGridNBT(replenish);
+		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_REFILL_CRAFTING_GRID, replenish));
 	}
 
 	@Override

@@ -15,4 +15,6 @@ public interface ICraftingContainer {
 	void setRecipeUsed(ResourceLocation recipeId);
 
 	RecipeType<?> getRecipeType();
+
+	boolean shouldRefillCraftingGrid();
 }
