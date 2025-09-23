@@ -1,41 +1,119 @@
 package net.p3pp3rf1y.sophisticatedcore.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
+import net.p3pp3rf1y.sophisticatedcore.client.render.ItemInStorageHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static net.minecraftforge.client.settings.KeyConflictContext.GUI;
+import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
+
 public class ClientEventHandler {
 	private ClientEventHandler() {}
+
+	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "keybind.sophisticatedcore.category";
+	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_highlight"),
+			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers() {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modBus.addListener(ModParticles::registerFactories);
+		modBus.addListener(ClientEventHandler::registerKeyMappings);
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
+		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
+		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
+		eventBus.addListener(ClientEventHandler::handleKeyInput);
+		eventBus.addListener(ClientEventHandler::renderLevelStage);
+	}
+
+	private static void renderLevelStage(RenderLevelStageEvent event) {
+		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES) {
+			return;
+		}
+		ItemInStorageHighlightRenderer.render(event.getPoseStack(), event.getPartialTick(), event.getCamera().getPosition());
+	}
+
+	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+		event.register(ITEM_HIGHLIGHT_KEYBIND);
+	}
+	public static void handleKeyInput(TickEvent.ClientTickEvent event) {
+		if (event.phase != TickEvent.Phase.END) {
+			return;
+		}
+		if (ITEM_HIGHLIGHT_KEYBIND.consumeClick()) {
+			tryHighlightItem();
+		}
+	}
+
+	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
+		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
+		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && event.getScreen() instanceof AbstractContainerScreen screen && tryHighlightItem(screen.getSlotUnderMouse())) {
+			screen.onClose();
+			event.setCanceled(true);
+		}
+	}
+
+	public static void handleGuiMouseKeyPress(ScreenEvent.MouseButtonPressed.Pre event) {
+		InputConstants.Key input = InputConstants.Type.MOUSE.getOrCreate(event.getButton());
+		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(input) && event.getScreen() instanceof AbstractContainerScreen screen && tryHighlightItem(screen.getSlotUnderMouse())) {
+			screen.onClose();
+			event.setCanceled(true);
+		}
+	}
+
+	private static boolean tryHighlightItem(@Nullable Slot slot) {
+		Minecraft mc = Minecraft.getInstance();
+		LocalPlayer player = mc.player;
+		if (slot == null || player == null || slot.getItem().isEmpty()) {
+			return false;
+		}
+
+		ItemInStorageHighlightRenderer.highlightItem(player, slot.getItem());
+
+		return true;
+	}
+
+	private static void tryHighlightItem() {
+		Minecraft mc = Minecraft.getInstance();
+		LocalPlayer player = mc.player;
+		if (player == null || player.getMainHandItem().isEmpty()) {
+			return;
+		}
+
+		ItemInStorageHighlightRenderer.highlightItem(player, player.getMainHandItem());
 	}
 
 	private static void onDrawScreen(ScreenEvent.Render.Post event) {
@@ -117,4 +195,18 @@ public class ClientEventHandler {
 	}
 
 	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult, Optional<TooltipComponent> tooltip) {}
+
+	private static class ItemHighlightKeyConflictContext implements IKeyConflictContext {
+		public static final ItemHighlightKeyConflictContext INSTANCE = new ItemHighlightKeyConflictContext();
+
+		@Override
+		public boolean isActive() {
+			return (IN_GAME.isActive() && !Minecraft.getInstance().player.getMainHandItem().isEmpty()) || GUI.isActive();
+		}
+
+		@Override
+		public boolean conflicts(IKeyConflictContext other) {
+			return this == other;
+		}
+	}
 }
