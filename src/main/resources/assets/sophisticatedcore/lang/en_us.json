@@ -278,5 +278,6 @@
     "fluid_type.sophisticatedcore.experience": "Experience",
     "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
   "keybind.sophisticatedcore.category": "Sophisticated Mods",
-  "keybind.sophisticatedcore.item_highlight": "Highlight Storage with Item"
+  "keybind.sophisticatedcore.item_highlight": "Highlight Storage with Item",
+  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack"
 }

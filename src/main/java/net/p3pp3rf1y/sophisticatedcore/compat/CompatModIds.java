@@ -17,4 +17,5 @@ public class CompatModIds {
 	public static final String RELIQUARY = "reliquary";
 	public static final String MOUSE_TWEAKS = "mousetweaks";
 	public static final String BOTANIA = "botania";
+	public static final String INVENTORY_TWEAKS = "invtweaks";
 }

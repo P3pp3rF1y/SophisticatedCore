@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -24,6 +25,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.client.render.ItemInStorageHighlightRenderer;
@@ -41,9 +43,12 @@ import static net.minecraftforge.client.settings.KeyConflictContext.IN_GAME;
 public class ClientEventHandler {
 	private ClientEventHandler() {}
 
+	private static final int MIDDLE_BUTTON = 2;
 	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "keybind.sophisticatedcore.category";
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_highlight"),
 			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+	public static final KeyMapping SORT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("sort"),
+			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers() {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -68,6 +73,7 @@ public class ClientEventHandler {
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		event.register(ITEM_HIGHLIGHT_KEYBIND);
+		event.register(SORT_KEYBIND);
 	}
 	public static void handleKeyInput(TickEvent.ClientTickEvent event) {
 		if (event.phase != TickEvent.Phase.END) {
@@ -83,6 +89,8 @@ public class ClientEventHandler {
 		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && event.getScreen() instanceof AbstractContainerScreen screen && tryHighlightItem(screen.getSlotUnderMouse())) {
 			screen.onClose();
 			event.setCanceled(true);
+		} else if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
+			event.setCanceled(true);
 		}
 	}
 
@@ -91,7 +99,24 @@ public class ClientEventHandler {
 		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(input) && event.getScreen() instanceof AbstractContainerScreen screen && tryHighlightItem(screen.getSlotUnderMouse())) {
 			screen.onClose();
 			event.setCanceled(true);
+		} else if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
+			event.setCanceled(true);
 		}
+	}
+
+	private static boolean tryCallSort(Screen gui) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player != null && mc.player.containerMenu instanceof StorageContainerMenuBase<?> container && gui instanceof StorageScreenBase<?> screen) {
+			MouseHandler mh = mc.mouseHandler;
+			double mouseX = mh.xpos() * mc.getWindow().getGuiScaledWidth() / mc.getWindow().getScreenWidth();
+			double mouseY = mh.ypos() * mc.getWindow().getGuiScaledHeight() / mc.getWindow().getScreenHeight();
+			Slot selectedSlot = screen.findSlot(mouseX, mouseY);
+			if (selectedSlot == null || container.isNotPlayersInventorySlot(selectedSlot.index)) {
+				container.sort();
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean tryHighlightItem(@Nullable Slot slot) {
@@ -202,6 +227,20 @@ public class ClientEventHandler {
 		@Override
 		public boolean isActive() {
 			return (IN_GAME.isActive() && !Minecraft.getInstance().player.getMainHandItem().isEmpty()) || GUI.isActive();
+		}
+
+		@Override
+		public boolean conflicts(IKeyConflictContext other) {
+			return this == other;
+		}
+	}
+
+	private static class SophisticatedScreenKeyConflictContext implements IKeyConflictContext {
+		public static final SophisticatedScreenKeyConflictContext INSTANCE = new SophisticatedScreenKeyConflictContext();
+
+		@Override
+		public boolean isActive() {
+			return GUI.isActive() && Minecraft.getInstance().screen instanceof StorageScreenBase<?>;
 		}
 
 		@Override
