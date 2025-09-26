@@ -39,17 +39,17 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final Map<BlockPos, Integer> storagePositionIndexes = new HashMap<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
 	private int totalSlots = 0;
-	private final Map<ItemStackKey, Set<BlockPos>> stackStorages = new HashMap<>();
+	protected final Map<ItemStackKey, Set<BlockPos>> stackStorages = new HashMap<>();
 	private final Map<BlockPos, Set<ItemStackKey>> storageStacks = new HashMap<>();
-	private final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
+	protected final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
 	private final Comparator<BlockPos> distanceComparator = Comparator.<BlockPos>comparingDouble(p -> p.distSqr(getBlockPos())).thenComparing(Comparator.naturalOrder());
-	private final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
+	protected final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
 
-	private final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
+	protected final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
-	private final Map<Integer, Set<BlockPos>> memorizedStackStorages = new HashMap<>();
+	protected final Map<Integer, Set<BlockPos>> memorizedStackStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Integer>> storageMemorizedStacks = new HashMap<>();
-	private final Map<Item, Set<BlockPos>> filterItemStorages = new HashMap<>();
+	protected final Map<Item, Set<BlockPos>> filterItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageFilterItems = new HashMap<>();
 	private Set<BlockPos> linkedBlocks = new TreeSet<>(distanceComparator);
 	private Set<BlockPos> connectingBlocks = new TreeSet<>(distanceComparator);
@@ -692,6 +692,14 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			return remaining;
 		}
 
+		int stackHash = stackKey.hashCode();
+		if (memorizedStackStorages.containsKey(stackHash)) {
+			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate, false);
+			if (remaining.isEmpty()) {
+				return remaining;
+			}
+		}
+
 		remaining = insertIntoStoragesThatMatchItem(remaining, simulate);
 		if (remaining.isEmpty()) {
 			return remaining;
@@ -699,13 +707,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 		if (memorizedItemStorages.containsKey(stack.getItem())) {
 			remaining = insertIntoStorages(memorizedItemStorages.get(stack.getItem()), remaining, simulate, false);
-			if (remaining.isEmpty()) {
-				return remaining;
-			}
-		}
-		int stackHash = stackKey.hashCode();
-		if (memorizedStackStorages.containsKey(stackHash)) {
-			remaining = insertIntoStorages(memorizedStackStorages.get(stackHash), remaining, simulate, false);
 			if (remaining.isEmpty()) {
 				return remaining;
 			}
@@ -764,7 +765,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return remaining;
 	}
 
-	private ItemStack insertIntoStorage(BlockPos storagePos, ItemStack remaining, boolean simulate) {
+	protected ItemStack insertIntoStorage(BlockPos storagePos, ItemStack remaining, boolean simulate) {
 		Integer idx = storagePositionIndexes.get(storagePos);
 		if (idx == null) {
 			return remaining;

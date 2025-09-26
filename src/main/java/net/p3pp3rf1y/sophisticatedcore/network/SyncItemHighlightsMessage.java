@@ -9,14 +9,19 @@ import net.p3pp3rf1y.sophisticatedcore.client.render.ItemInStorageHighlightRende
 import java.util.List;
 import java.util.function.Supplier;
 
-public record SyncItemHighlightsMessage(List<BlockPos> stackPositions, List<BlockPos> itemPositions) {
+public record SyncItemHighlightsMessage(List<BlockPos> stackPositions, List<BlockPos> itemPositions, List<BlockPos> emptyTargetPositions) {
 	public static void encode(SyncItemHighlightsMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeCollection(msg.stackPositions, FriendlyByteBuf::writeBlockPos);
 		packetBuffer.writeCollection(msg.itemPositions, FriendlyByteBuf::writeBlockPos);
+		packetBuffer.writeCollection(msg.emptyTargetPositions, FriendlyByteBuf::writeBlockPos);
 	}
 
 	public static SyncItemHighlightsMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SyncItemHighlightsMessage(packetBuffer.readList(FriendlyByteBuf::readBlockPos), packetBuffer.readList(FriendlyByteBuf::readBlockPos));
+		return new SyncItemHighlightsMessage(
+				packetBuffer.readList(FriendlyByteBuf::readBlockPos),
+				packetBuffer.readList(FriendlyByteBuf::readBlockPos),
+				packetBuffer.readList(FriendlyByteBuf::readBlockPos)
+		);
 	}
 
 	static void onMessage(SyncItemHighlightsMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -26,6 +31,6 @@ public record SyncItemHighlightsMessage(List<BlockPos> stackPositions, List<Bloc
 	}
 
 	public static void handleMessage(SyncItemHighlightsMessage msg) {
-		ItemInStorageHighlightRenderer.setHighlightedPositions(msg.stackPositions(), msg.itemPositions);
+		ItemInStorageHighlightRenderer.setHighlightedPositions(msg.stackPositions(), msg.itemPositions(), msg.emptyTargetPositions());
 	}
 }

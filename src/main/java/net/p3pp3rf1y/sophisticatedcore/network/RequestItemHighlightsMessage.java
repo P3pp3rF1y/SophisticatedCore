@@ -52,6 +52,6 @@ public record RequestItemHighlightsMessage(ItemStack stack,
 				}
 			});
 		});
-		PacketHandler.INSTANCE.sendToClient(player, new SyncItemHighlightsMessage(stackPositions, itemPositions));
+		PacketHandler.INSTANCE.sendToClient(player, new SyncItemHighlightsMessage(stackPositions, itemPositions, List.of()));
 	}
 }

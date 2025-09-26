@@ -30,11 +30,14 @@ public class ItemInStorageHighlightRenderer {
 
 	private static List<BlockPos> highlightedStackPositions = Collections.emptyList();
 	private static List<BlockPos> highlightedItemPositions = Collections.emptyList();
+	private static List<BlockPos> highlightedEmptyTargetPositions = Collections.emptyList();
 	private static long highlightExpireTime = 0;
 	@Nullable
 	private static List<HighlightedBlock> cachedMatchingStackHighlights = null;
 	@Nullable
 	private static List<HighlightedBlock> cachedMatchingItemHighlights = null;
+	@Nullable
+	private static List<HighlightedBlock> cachedEmptyTargetHighlights = null;
 
 	public static void highlightItem(LocalPlayer player, ItemStack stack) {
 		List<BlockPos> positions = WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), 32, IControllableStorage.class).stream().map(IControllerBoundable::getStorageBlockPos).toList();
@@ -46,20 +49,26 @@ public class ItemInStorageHighlightRenderer {
 	private record HighlightedBlock(BlockPos pos, List<VoxelOutliner.Edge> edges, Vec3 pivot) {
 	}
 
-	public static void setHighlightedPositions(List<BlockPos> stackPositions, List<BlockPos> itemPositions) {
+	public static void setHighlightedPositions(List<BlockPos> stackPositions, List<BlockPos> itemPositions, List<BlockPos> emptyTargetPositions) {
 		highlightedStackPositions = stackPositions;
 		highlightedItemPositions = itemPositions;
+		highlightedEmptyTargetPositions = emptyTargetPositions;
 		highlightExpireTime = Minecraft.getInstance().level.getGameTime() + HIGHLIGHT_DURATION;
+		cachedMatchingStackHighlights = null;
+		cachedMatchingItemHighlights = null;
+		cachedEmptyTargetHighlights = null;
 	}
 
 	public static void render(PoseStack poseStack, float partialTick, Vec3 cameraPos) {
 		Minecraft mc = Minecraft.getInstance();
 		if (highlightExpireTime < mc.level.getGameTime()) {
-			if (!highlightedStackPositions.isEmpty() || !highlightedItemPositions.isEmpty()) {
+			if (!highlightedStackPositions.isEmpty() || !highlightedItemPositions.isEmpty() || !highlightedEmptyTargetPositions.isEmpty()) {
 				highlightedStackPositions = Collections.emptyList();
 				highlightedItemPositions = Collections.emptyList();
+				highlightedEmptyTargetPositions = Collections.emptyList();
 				cachedMatchingStackHighlights = null;
 				cachedMatchingItemHighlights = null;
+				cachedEmptyTargetHighlights = null;
 			}
 
 			return;
@@ -72,9 +81,13 @@ public class ItemInStorageHighlightRenderer {
 		if (cachedMatchingItemHighlights == null) {
 			cachedMatchingItemHighlights = highlightedItemPositions.stream().map(pos -> getHighlightedBlock(mc, pos)).toList();
 		}
+		if (cachedEmptyTargetHighlights == null) {
+			cachedEmptyTargetHighlights = highlightedEmptyTargetPositions.stream().map(pos -> getHighlightedBlock(mc, pos)).toList();
+		}
 
 		cachedMatchingStackHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0x4CAF50));
 		cachedMatchingItemHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0x42A5F5));
+		cachedEmptyTargetHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0xFFEB3B));
 	}
 
 	private static void renderHighlightedBlock(PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedBlock bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int textColor) {
