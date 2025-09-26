@@ -12,13 +12,15 @@ import net.p3pp3rf1y.sophisticatedcore.client.render.ItemInStorageHighlightRende
 
 import java.util.List;
 
-public record SyncItemHighlightsPayload(List<BlockPos> stackPositions, List<BlockPos> itemPositions) implements CustomPacketPayload {
+public record SyncItemHighlightsPayload(List<BlockPos> stackPositions, List<BlockPos> itemPositions, List<BlockPos> emptyTargetPositions) implements CustomPacketPayload {
 	public static final Type<SyncItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_item_highlights"));
 	public static final StreamCodec<ByteBuf, SyncItemHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()),
 			SyncItemHighlightsPayload::stackPositions,
 			BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()),
 			SyncItemHighlightsPayload::itemPositions,
+			BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()),
+			SyncItemHighlightsPayload::emptyTargetPositions,
 			SyncItemHighlightsPayload::new);
 
 	@Override
@@ -27,6 +29,6 @@ public record SyncItemHighlightsPayload(List<BlockPos> stackPositions, List<Bloc
 	}
 
 	public static void handlePayload(SyncItemHighlightsPayload payload, IPayloadContext context) {
-		ItemInStorageHighlightRenderer.setHighlightedPositions(payload.stackPositions(), payload.itemPositions);
+		ItemInStorageHighlightRenderer.setHighlightedPositions(payload.stackPositions(), payload.itemPositions, payload.emptyTargetPositions);
 	}
 }

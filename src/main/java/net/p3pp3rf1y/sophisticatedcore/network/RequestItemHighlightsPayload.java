@@ -53,7 +53,7 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 					}
 				});
 			});
-			PacketDistributor.sendToPlayer(serverPlayer, new SyncItemHighlightsPayload(stackPositions, itemPositions));
+			PacketDistributor.sendToPlayer(serverPlayer, new SyncItemHighlightsPayload(stackPositions, itemPositions, List.of()));
 		}
 	}
 }
