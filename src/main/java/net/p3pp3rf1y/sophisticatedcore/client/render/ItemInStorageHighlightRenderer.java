@@ -6,6 +6,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -22,11 +23,13 @@ import net.p3pp3rf1y.sophisticatedcore.util.VoxelOutliner;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class ItemInStorageHighlightRenderer {
 	public static final int HIGHLIGHT_DURATION = 40;
+	public static final int HIGHLIGHT_RANGE = 32;
+	public static final int MATCHING_STACK_HIGHLIGHT_COLOR = 0x4CAF50;
+	public static final int MATCHING_ITEM_HIGHLIGHT_COLOR = 0x42A5F5;
 
 	private static List<BlockPos> highlightedStackPositions = Collections.emptyList();
 	private static List<BlockPos> highlightedItemPositions = Collections.emptyList();
@@ -39,10 +42,20 @@ public class ItemInStorageHighlightRenderer {
 	@Nullable
 	private static List<HighlightedBlock> cachedEmptyTargetHighlights = null;
 
+	private static List<IClientHighlightHandler<?>> highlightHandlers = new ArrayList<>();
+
+	public static void registerHighlightHandler(IClientHighlightHandler<?> highlightHandler) {
+		highlightHandlers.add(highlightHandler);
+	}
+
 	public static void highlightItem(LocalPlayer player, ItemStack stack) {
-		List<BlockPos> positions = WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), 32, IControllableStorage.class).stream().map(IControllerBoundable::getStorageBlockPos).toList();
-		if (!positions.isEmpty()) {
-			PacketDistributor.sendToServer(new RequestItemHighlightsPayload(stack, positions));
+		List<BlockPos> positions = WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), HIGHLIGHT_RANGE, IControllableStorage.class).stream().map(IControllerBoundable::getStorageBlockPos).toList();
+		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
+		highlightHandlers.forEach(h -> {
+			extras.put(h.getPayloadHandlerId(), h.buildClientRequestData(player, stack));
+		});
+		if (!positions.isEmpty() || !extras.isEmpty()) {
+			PacketDistributor.sendToServer(new RequestItemHighlightsPayload(stack, positions, extras));
 		}
 	}
 
@@ -68,6 +81,7 @@ public class ItemInStorageHighlightRenderer {
 				cachedMatchingStackHighlights = null;
 				cachedMatchingItemHighlights = null;
 				cachedEmptyTargetHighlights = null;
+				highlightHandlers.forEach(IClientHighlightHandler::clearCache);
 			}
 
 			return;
@@ -84,19 +98,21 @@ public class ItemInStorageHighlightRenderer {
 			cachedEmptyTargetHighlights = highlightedEmptyTargetPositions.stream().map(pos -> getHighlightedBlock(mc, pos)).toList();
 		}
 
-		cachedMatchingStackHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0x4CAF50));
-		cachedMatchingItemHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0x42A5F5));
+		cachedMatchingStackHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, MATCHING_STACK_HIGHLIGHT_COLOR));
+		cachedMatchingItemHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, MATCHING_ITEM_HIGHLIGHT_COLOR));
 		cachedEmptyTargetHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0xFFEB3B));
+
+		highlightHandlers.forEach(callback -> callback.render(poseStack, partialTick, cameraPos));
 	}
 
-	private static void renderHighlightedBlock(PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedBlock bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int textColor) {
+	private static void renderHighlightedBlock(PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedBlock bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
 		poseStack.pushPose();
 		poseStack.translate(bh.pos.getX() - cameraPos.x(), bh.pos.getY() - cameraPos.y(), bh.pos.getZ() - cameraPos.z());
 		poseStack.translate(bh.pivot.x, bh.pivot.y, bh.pivot.z);
 		float scale = 1 + Easing.EASE_IN_OUT_CUBIC.ease((float) tri01(mc.level.getGameTime(), 15, partialTick)) * 0.05f;
 		poseStack.scale(scale, scale, scale);
 		poseStack.translate(-bh.pivot.x, -bh.pivot.y, -bh.pivot.z);
-		BlockHighlightRenderHelper.renderThickEdges(poseStack, buffer, textColor, bh.edges(), bh.pos());
+		BlockHighlightRenderHelper.renderThickEdges(poseStack, buffer, color, bh.edges(), bh.pos().getX(), bh.pos().getY(), bh.pos().getZ());
 		poseStack.popPose();
 	}
 
