@@ -279,5 +279,8 @@
     "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
   "keybind.sophisticatedcore.category": "Sophisticated Mods",
   "keybind.sophisticatedcore.item_highlight": "Highlight Storage with Item",
-  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack"
+  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack",
+  "gui.sophisticatedcore.status.matching_stacks_found" : "Exact item found in %s locations.",
+  "gui.sophisticatedcore.status.matching_items_found" : "Item type found in %s locations.",
+  "gui.sophisticatedcore.status.no_matching_items_found" : "No exact item or item type found"
 }
