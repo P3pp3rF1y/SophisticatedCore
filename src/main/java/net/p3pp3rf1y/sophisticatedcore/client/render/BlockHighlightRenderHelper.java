@@ -39,6 +39,10 @@ public class BlockHighlightRenderHelper {
 	);
 
 	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, BlockPos originPos) {
+		renderThickEdges(poseStack, bufferSource, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());
+	}
+
+	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, double originX, double originY, double originZ) {
 		VertexConsumer vertexConsumer = bufferSource.getBuffer(THICK_HIGHLIGHT_QUADS);
 		int red = color >> 16 & 255;
 		int green = color >> 8 & 255;
@@ -46,14 +50,14 @@ public class BlockHighlightRenderHelper {
 		PoseStack.Pose pose = poseStack.last();
 
 		edges.forEach(edge -> {
-			emitThickLineOrtho(vertexConsumer, pose, originPos, edge.a(), edge.b(), 1 / 32f, red, green, blue, 255);
+			emitThickLineOrtho(vertexConsumer, pose, edge.a(), edge.b(), 1 / 32f, red, green, blue, 255, originX, originY, originZ);
 		});
 	}
 
 	public static void emitThickLineOrtho(
-			VertexConsumer vc, PoseStack.Pose pose, BlockPos origin,
+			VertexConsumer vc, PoseStack.Pose pose,
 			Vec3 a, Vec3 b, float thickness,
-			int r, int g, int bl, int alpha
+			int r, int g, int bl, int alpha, double originX, double originY, double originZ
 	) {
 		final float rh = thickness * 0.5f;
 
@@ -89,29 +93,29 @@ public class BlockHighlightRenderHelper {
 		Vec3 bVmWm = bEx.subtract(vOff).subtract(wOff);
 
 		// 4 side faces (POSITION_COLOR, no normals needed)
-		emitQuad(vc, pose, origin, aVpWm, aVpWp, bVpWp, bVpWm, r, g, bl, alpha);
-		emitQuad(vc, pose, origin, aVmWp, aVmWm, bVmWm, bVmWp, r, g, bl, alpha);
-		emitQuad(vc, pose, origin, aVmWp, aVpWp, bVpWp, bVmWp, r, g, bl, alpha);
-		emitQuad(vc, pose, origin, aVpWm, aVmWm, bVmWm, bVpWm, r, g, bl, alpha);
+		emitQuad(vc, pose, aVpWm, aVpWp, bVpWp, bVpWm, r, g, bl, alpha, originX, originY, originZ);
+		emitQuad(vc, pose, aVmWp, aVmWm, bVmWm, bVmWp, r, g, bl, alpha, originX, originY, originZ);
+		emitQuad(vc, pose, aVmWp, aVpWp, bVpWp, bVmWp, r, g, bl, alpha, originX, originY, originZ);
+		emitQuad(vc, pose, aVpWm, aVmWm, bVmWm, bVpWm, r, g, bl, alpha, originX, originY, originZ);
 	}
 
 	private static void emitQuad(
-			VertexConsumer vc, PoseStack.Pose pose, BlockPos origin,
+			VertexConsumer vc, PoseStack.Pose pose,
 			Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3,
-			int r, int g, int b, int a
+			int r, int g, int b, int a, double originX, double originY, double originZ
 	) {
-		add(vc, pose, origin, p0, r, g, b, a);
-		add(vc, pose, origin, p1, r, g, b, a);
-		add(vc, pose, origin, p2, r, g, b, a);
-		add(vc, pose, origin, p3, r, g, b, a);
+		add(vc, pose, p0, r, g, b, a, originX, originY, originZ);
+		add(vc, pose, p1, r, g, b, a, originX, originY, originZ);
+		add(vc, pose, p2, r, g, b, a, originX, originY, originZ);
+		add(vc, pose, p3, r, g, b, a, originX, originY, originZ);
 	}
 
-	private static void add(VertexConsumer vc, PoseStack.Pose pose, BlockPos origin,
-							Vec3 p, int r, int g, int b, int a) {
+	private static void add(VertexConsumer vc, PoseStack.Pose pose,
+							Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
 		vc.addVertex(pose,
-						(float) (p.x - origin.getX()),
-						(float) (p.y - origin.getY()),
-						(float) (p.z - origin.getZ()))
+						(float) (p.x - originX),
+						(float) (p.y - originY),
+						(float) (p.z - originZ))
 				.setColor(r, g, b, a);
 	}
 }
