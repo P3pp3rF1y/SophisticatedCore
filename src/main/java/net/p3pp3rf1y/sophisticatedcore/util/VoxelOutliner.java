@@ -5,6 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -309,5 +310,9 @@ public final class VoxelOutliner {
 		out.add(new Edge(new Vec3(x0,y0,z1), new Vec3(x0,y1,z1)));
 
 		return out;
+	}
+
+	public static List<Edge> edgesFromAABB(AABB aabb) {
+		return boxEdges(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ);
 	}
 }
