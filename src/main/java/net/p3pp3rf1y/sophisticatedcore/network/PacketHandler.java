@@ -54,6 +54,8 @@ public class PacketHandler {
 		registerMessage(TransferItemsMessage.class, TransferItemsMessage::encode, TransferItemsMessage::decode, TransferItemsMessage::onMessage);
 		registerMessage(RequestItemHighlightsMessage.class, RequestItemHighlightsMessage::encode, RequestItemHighlightsMessage::decode, RequestItemHighlightsMessage::onMessage);
 		registerMessage(SyncItemHighlightsMessage.class, SyncItemHighlightsMessage::encode, SyncItemHighlightsMessage::decode, SyncItemHighlightsMessage::onMessage);
+		registerMessage(DepositItemsMessage.class, DepositItemsMessage::encode, DepositItemsMessage::decode, DepositItemsMessage::onMessage);
+		registerMessage(SyncItemTransfersMessage.class, SyncItemTransfersMessage::encode, SyncItemTransfersMessage::decode, SyncItemTransfersMessage::onMessage);
 	}
 
 	@SuppressWarnings("SameParameterValue")

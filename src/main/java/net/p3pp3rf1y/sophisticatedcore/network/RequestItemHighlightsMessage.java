@@ -10,8 +10,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
-import net.p3pp3rf1y.sophisticatedcore.common.HighlightRequestPayloadHandlerRegistry;
-import net.p3pp3rf1y.sophisticatedcore.common.IHighlightRequestPayloadHandler;
+import net.p3pp3rf1y.sophisticatedcore.common.IItemActionPayloadHandler;
+import net.p3pp3rf1y.sophisticatedcore.common.ItemActionHandlerRegistry;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> storagePositions, Map<ResourceLocation, Object> extras) {
+public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> storagePositions,
+										   Map<ResourceLocation, Object> extras) {
 	public static void encode(RequestItemHighlightsMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeItemStack(msg.stack(), false);
 		packetBuffer.writeCollection(msg.storagePositions(), FriendlyByteBuf::writeBlockPos);
@@ -36,7 +37,7 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 		packetBuffer.writeInt(extras.size());
 		for (var e : extras.entrySet()) {
 			ResourceLocation id = e.getKey();
-			HighlightRequestPayloadHandlerRegistry.get(id).ifPresent(h -> {
+			ItemActionHandlerRegistry.get(id).ifPresent(h -> {
 				packetBuffer.writeResourceLocation(id);
 				encodeWith(h, packetBuffer, e.getValue());
 			});
@@ -44,7 +45,7 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 	}
 
 	@SuppressWarnings({"unchecked"})
-	private static <T> void encodeWith(IHighlightRequestPayloadHandler<T> handler, FriendlyByteBuf packetBuffer, Object v) {
+	private static <T> void encodeWith(IItemActionPayloadHandler<T> handler, FriendlyByteBuf packetBuffer, Object v) {
 		handler.encode(packetBuffer, (T) v);
 	}
 
@@ -57,7 +58,7 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 		Map<ResourceLocation, Object> extras = new LinkedHashMap<>(size);
 		for (int i = 0; i < size; i++) {
 			ResourceLocation id = packetBuffer.readResourceLocation();
-			HighlightRequestPayloadHandlerRegistry.get(id).ifPresent(h -> extras.put(id, h.decode(packetBuffer)));
+			ItemActionHandlerRegistry.get(id).ifPresent(h -> extras.put(id, h.decode(packetBuffer)));
 		}
 		return extras;
 	}
@@ -93,8 +94,9 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 		stackMatchNumber.addAndGet(stackPositions.size());
 		itemMatchNumber.addAndGet(itemPositions.size());
 		PacketHandler.INSTANCE.sendToClient(player, new SyncItemHighlightsMessage(stackPositions, itemPositions, List.of()));
-		msg.extras().forEach((id, extra) -> HighlightRequestPayloadHandlerRegistry.get(id).ifPresent(h -> {
-			IHighlightRequestPayloadHandler.HighlightResult result = compute(h, player, stackKey, extra);
+		msg.extras().forEach((id, extra) -> ItemActionHandlerRegistry.get(id).ifPresent(h -> {
+
+			IItemActionPayloadHandler.HighlightResult result = compute(h, player, stackKey, extra);
 			stackMatchNumber.addAndGet(result.stackCounts());
 			itemMatchNumber.addAndGet(result.itemCounts());
 		}));
@@ -119,7 +121,7 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 	}
 
 	@SuppressWarnings({"unchecked"})
-	private static <T> IHighlightRequestPayloadHandler.HighlightResult compute(IHighlightRequestPayloadHandler<T> handler, ServerPlayer serverPlayer, ItemStackKey stackKey, Object extra) {
-		return handler.compute(serverPlayer, stackKey, (T) extra);
+	private static <T> IItemActionPayloadHandler.HighlightResult compute(IItemActionPayloadHandler<T> handler, ServerPlayer serverPlayer, ItemStackKey stackKey, Object extra) {
+		return handler.computeHighlight(serverPlayer, stackKey, (T) extra);
 	}
 }

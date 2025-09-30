@@ -282,5 +282,10 @@
   "keybind.sophisticatedcore.sort": "Sort Storage/Backpack",
   "gui.sophisticatedcore.status.matching_stacks_found" : "Exact item found in %s locations.",
   "gui.sophisticatedcore.status.matching_items_found" : "Item type found in %s locations.",
-  "gui.sophisticatedcore.status.no_matching_items_found" : "No exact item or item type found"
+  "gui.sophisticatedcore.status.no_matching_items_found" : "No exact item or item type found",
+  "gui.sophisticatedcore.status.no_storage_in_range" : "No storage was found in range",
+  "gui.sophisticatedcore.status.deposited_item" : "Deposited %s into storage",
+  "gui.sophisticatedcore.status.deposited_items" : "Deposited %s items into storage",
+  "gui.sophisticatedcore.status.cannot_deposit_item" : "Could not deposit %s into any storage",
+  "gui.sophisticatedcore.status.cannot_deposit_items" : "Could not deposit any items into storage"
 }

@@ -52,7 +52,7 @@ public class ItemInStorageHighlightRenderer {
 		List<BlockPos> positions = WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), 32, IControllableStorage.class).stream().map(IControllerBoundable::getStorageBlockPos).toList();
 		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
 		highlightHandlers.forEach(h -> {
-			extras.put(h.getPayloadHandlerId(), h.buildClientRequestData(player, stack));
+			extras.put(h.getPayloadHandlerId(), h.buildClientRequestData(player));
 		});
 		if (!positions.isEmpty() || !extras.isEmpty()) {
 			PacketHandler.INSTANCE.sendToServer(new RequestItemHighlightsMessage(stack, positions, extras));
