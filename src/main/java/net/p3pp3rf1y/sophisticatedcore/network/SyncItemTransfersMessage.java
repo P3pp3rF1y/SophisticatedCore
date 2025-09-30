@@ -9,6 +9,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.client.render.ItemFlightAnimator;
 import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
@@ -39,6 +41,7 @@ public record SyncItemTransfersMessage(Map<Vec3, ItemStack> itemsTransferred, bo
 		context.setPacketHandled(true);
 	}
 
+	@OnlyIn(Dist.CLIENT)
 	public static void handleMessage(SyncItemTransfersMessage msg, NetworkEvent.Context context) {
 		msg.itemsTransferred().forEach((pos, stack) -> {
 			LocalPlayer player = Minecraft.getInstance().player;
