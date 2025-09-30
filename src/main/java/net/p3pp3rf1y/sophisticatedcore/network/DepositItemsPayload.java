@@ -57,7 +57,7 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 	public static void handlePayload(DepositItemsPayload payload, IPayloadContext context) {
 		Player player = context.player();
 		Level level = player.level();
-		Map<Vec3, IDepositHandler> depositHandlers = new LinkedHashMap<>();
+		Map<Vec3, IDepositHandler> depositHandlers = new TreeMap<>(Comparator.comparing(player::distanceToSqr));
 
 		payload.controllerPositions().stream()
 				.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
@@ -85,8 +85,9 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 		}
 
 		if (player instanceof ServerPlayer serverPlayer) {
-			PacketDistributor.sendToPlayer(serverPlayer, new SyncItemTransfersPayload(inserted, true));
-			PacketDistributor.sendToPlayersTrackingEntity(serverPlayer, new SyncItemTransfersPayload(inserted, true));
+			Vec3 playerPos = player.getEyePosition().add(0, -0.1, 0);
+			PacketDistributor.sendToPlayer(serverPlayer, new SyncItemTransfersPayload(inserted, playerPos, true));
+			PacketDistributor.sendToPlayersTrackingEntity(serverPlayer, new SyncItemTransfersPayload(inserted, playerPos, true));
 		}
 		Component message;
 		if (payload.maxSlot() - payload.minSlot() == 1) {
