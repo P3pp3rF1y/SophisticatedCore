@@ -84,7 +84,7 @@ public record DepositItemsMessage(int minSlot, int maxSlot,
 	public static void handleMessage(DepositItemsMessage msg, NetworkEvent.Context context) {
 		Player player = context.getSender();
 		Level level = player.level();
-		Map<Vec3, IDepositHandler> depositHandlers = new LinkedHashMap<>();
+		Map<Vec3, IDepositHandler> depositHandlers = new TreeMap<>(Comparator.comparing(player::distanceToSqr));
 
 		msg.controllerPositions().stream()
 				.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
@@ -112,8 +112,9 @@ public record DepositItemsMessage(int minSlot, int maxSlot,
 		}
 
 		if (player instanceof ServerPlayer serverPlayer) {
-			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncItemTransfersMessage(inserted, true));
-			PacketHandler.INSTANCE.sendToAllTracking(new SyncItemTransfersMessage(inserted, true), serverPlayer);
+			Vec3 playerPos = player.getEyePosition().add(0, -0.1, 0);
+			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncItemTransfersMessage(inserted, playerPos, true));
+			PacketHandler.INSTANCE.sendToAllTracking(new SyncItemTransfersMessage(inserted, playerPos, true), serverPlayer);
 		}
 
 		Component message;

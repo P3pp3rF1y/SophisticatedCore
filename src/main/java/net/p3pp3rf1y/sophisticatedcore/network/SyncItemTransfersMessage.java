@@ -18,19 +18,23 @@ import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public record SyncItemTransfersMessage(Map<Vec3, ItemStack> itemsTransferred, boolean fromPlayer) {
+public record SyncItemTransfersMessage(Map<Vec3, ItemStack> itemsTransferred, Vec3 playerPos, boolean fromPlayer) {
 	public static void encode(SyncItemTransfersMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeMap(msg.itemsTransferred(), (buf, vec) -> {
 			buf.writeDouble(vec.x());
 			buf.writeDouble(vec.y());
 			buf.writeDouble(vec.z());
 		}, FriendlyByteBuf::writeItem);
+		packetBuffer.writeDouble(msg.playerPos.x());
+		packetBuffer.writeDouble(msg.playerPos.y());
+		packetBuffer.writeDouble(msg.playerPos.z());
 		packetBuffer.writeBoolean(msg.fromPlayer);
 	}
 
 	public static SyncItemTransfersMessage decode(FriendlyByteBuf packetBuffer) {
 		return new SyncItemTransfersMessage(
 				packetBuffer.readMap(buf -> new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble()), FriendlyByteBuf::readItem),
+				new Vec3(packetBuffer.readDouble(), packetBuffer.readDouble(), packetBuffer.readDouble()),
 				packetBuffer.readBoolean()
 		);
 	}
@@ -45,9 +49,8 @@ public record SyncItemTransfersMessage(Map<Vec3, ItemStack> itemsTransferred, bo
 	public static void handleMessage(SyncItemTransfersMessage msg, NetworkEvent.Context context) {
 		msg.itemsTransferred().forEach((pos, stack) -> {
 			LocalPlayer player = Minecraft.getInstance().player;
-			Vec3 playerPos = player.getEyePosition().add(0, -0.1, 0);
-			Vec3 from = msg.fromPlayer() ? playerPos : pos;
-			Vec3 to = msg.fromPlayer() ? pos : playerPos;
+			Vec3 from = msg.fromPlayer() ? msg.playerPos : pos;
+			Vec3 to = msg.fromPlayer() ? pos : msg.playerPos;
 			Level level = player.level();
 			ItemFlightAnimator.startFlight(stack, from, to, level.getGameTime(), 10, level.getRandom());
 			level.playSound(player, to.x(), to.y(), to.z(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, RandHelper.getRandomMinusOneToOne(level.random) * 1.4F + 2.0F);
