@@ -32,5 +32,7 @@ public class ModPayloads {
 		registrar.playToClient(EmitConsumableClientParticlesAndSoundsPayload.TYPE, EmitConsumableClientParticlesAndSoundsPayload.STREAM_CODEC, EmitConsumableClientParticlesAndSoundsPayload::handlePayload);
 		registrar.playToServer(RequestItemHighlightsPayload.TYPE, RequestItemHighlightsPayload.STREAM_CODEC, RequestItemHighlightsPayload::handlePayload);
 		registrar.playToClient(SyncItemHighlightsPayload.TYPE, SyncItemHighlightsPayload.STREAM_CODEC, SyncItemHighlightsPayload::handlePayload);
+		registrar.playToServer(DepositItemsPayload.TYPE, DepositItemsPayload.STREAM_CODEC, DepositItemsPayload::handlePayload);
+		registrar.playToClient(SyncItemTransfersPayload.TYPE, SyncItemTransfersPayload.STREAM_CODEC, SyncItemTransfersPayload::handlePayload);
 	}
 }

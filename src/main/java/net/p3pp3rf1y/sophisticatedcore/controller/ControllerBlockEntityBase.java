@@ -893,4 +893,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		super.preRemoveSideEffects(pos, state);
 		detachFromStoragesAndUnlinkBlocks();
 	}
+
+	public boolean hasMatchingStackOrItem(ItemStackKey stackKey) {
+		Item item = stackKey.getStack().getItem();
+		return stackStorages.containsKey(stackKey) || itemStackKeys.containsKey(item) || memorizedStackStorages.containsKey(stackKey.hashCode()) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	}
 }
