@@ -35,6 +35,8 @@ public interface ISlotTracker {
 
 	boolean hasEmptySlots();
 
+	boolean hasStackMemorizedOrFiltered(ItemStack stack);
+
 	interface IItemHandlerInserter {
 		ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
 	}
@@ -97,6 +99,11 @@ public interface ISlotTracker {
 
 		@Override
 		public boolean hasEmptySlots() {
+			return false;
+		}
+
+		@Override
+		public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
 			return false;
 		}
 	}

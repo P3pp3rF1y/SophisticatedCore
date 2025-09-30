@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.network;
 
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -16,15 +15,14 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
-import net.p3pp3rf1y.sophisticatedcore.common.HighlightRequestPayloadHandlerRegistry;
-import net.p3pp3rf1y.sophisticatedcore.common.IHighlightRequestPayloadHandler;
+import net.p3pp3rf1y.sophisticatedcore.common.IItemActionPayloadHandler;
+import net.p3pp3rf1y.sophisticatedcore.common.ItemActionHandlerRegistry;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,41 +31,12 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 										   List<BlockPos> storagePositions,
 										   Map<ResourceLocation, Object> extras) implements CustomPacketPayload {
 	public static final Type<RequestItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getRL("request_item_highlights"));
-	private static final StreamCodec<ByteBuf, Map<ResourceLocation, Object>> EXTRAS_STREAM_CODEC = new StreamCodec<>() {
-		@Override
-		public void encode(ByteBuf buf, Map<ResourceLocation, Object> extras) {
-			buf.writeInt(extras.size());
-			for (var e : extras.entrySet()) {
-				ResourceLocation id = e.getKey();
-				HighlightRequestPayloadHandlerRegistry.get(id).ifPresent(h -> {
-					ResourceLocation.STREAM_CODEC.encode(buf, id);
-					encodeWith(h.requestCodec(), e.getValue(), buf);
-				});
-			}
-		}
-
-		@SuppressWarnings({"unchecked"})
-		private static <T> void encodeWith(StreamCodec<ByteBuf, T> c, Object v, ByteBuf buf) {
-			c.encode(buf, (T) v);
-		}
-
-		@Override
-		public Map<ResourceLocation, Object> decode(ByteBuf buf) {
-			int size = buf.readInt();
-			Map<ResourceLocation, Object> extras = new LinkedHashMap<>(size);
-			for (int i = 0; i < size; i++) {
-				ResourceLocation id = ResourceLocation.STREAM_CODEC.decode(buf);
-				HighlightRequestPayloadHandlerRegistry.get(id).ifPresent(h -> extras.put(id, h.requestCodec().decode(buf)));
-			}
-			return extras;
-		}
-	};
 	public static final StreamCodec<RegistryFriendlyByteBuf, RequestItemHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			ItemStack.STREAM_CODEC,
 			RequestItemHighlightsPayload::stack,
 			BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()),
 			RequestItemHighlightsPayload::storagePositions,
-			EXTRAS_STREAM_CODEC,
+			ItemActionHandlerRegistry.EXTRAS_STREAM_CODEC,
 			RequestItemHighlightsPayload::extras,
 			RequestItemHighlightsPayload::new);
 
@@ -100,8 +69,8 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 			stackMatchNumber.addAndGet(stackPositions.size());
 			itemMatchNumber.addAndGet(itemPositions.size());
 			PacketDistributor.sendToPlayer(serverPlayer, new SyncItemHighlightsPayload(stackPositions, itemPositions, List.of()));
-			payload.extras().forEach((id, extra) -> HighlightRequestPayloadHandlerRegistry.get(id).ifPresent(h -> {
-				IHighlightRequestPayloadHandler.HighlightResult result = compute(h, serverPlayer, stackKey, extra);
+			payload.extras().forEach((id, extra) -> ItemActionHandlerRegistry.get(id).ifPresent(h -> {
+				IItemActionPayloadHandler.HighlightResult result = compute(h, serverPlayer, stackKey, extra);
 				stackMatchNumber.addAndGet(result.stackCounts());
 				itemMatchNumber.addAndGet(result.itemCounts());
 			}));
@@ -127,8 +96,7 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 	}
 
 	@SuppressWarnings({"unchecked"})
-	private static <T> IHighlightRequestPayloadHandler.HighlightResult compute(IHighlightRequestPayloadHandler<T> handler, ServerPlayer serverPlayer, ItemStackKey stackKey, Object extra) {
-		return handler.compute(serverPlayer, stackKey, (T) extra);
+	private static <T> IItemActionPayloadHandler.HighlightResult compute(IItemActionPayloadHandler<T> handler, ServerPlayer serverPlayer, ItemStackKey stackKey, Object extra) {
+		return handler.computeHighlight(serverPlayer, stackKey, (T) extra);
 	}
-
 }
