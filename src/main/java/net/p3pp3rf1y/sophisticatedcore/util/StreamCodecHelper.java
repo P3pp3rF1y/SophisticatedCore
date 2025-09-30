@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -20,6 +21,20 @@ import java.util.function.Supplier;
 
 public class StreamCodecHelper {
 	private StreamCodecHelper() {}
+
+	public static final StreamCodec<ByteBuf, Vec3> VEC3 = new StreamCodec<>() {
+		@Override
+		public Vec3 decode(ByteBuf buffer) {
+			return new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+		}
+
+		@Override
+		public void encode(ByteBuf buffer, Vec3 value) {
+			buffer.writeDouble(value.x);
+			buffer.writeDouble(value.y);
+			buffer.writeDouble(value.z);
+		}
+	};
 
 	public static final StreamCodec<ByteBuf, BlockState> BLOCKSTATE = new StreamCodec<>() {
 		@Override
