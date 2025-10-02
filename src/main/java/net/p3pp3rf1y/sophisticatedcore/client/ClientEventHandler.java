@@ -153,6 +153,7 @@ public class ClientEventHandler {
 			}
 		} else {
 			slot = player.getInventory().getFreeSlot();
+			fillEmpty = true;
 			if (slot == -1) {
 				return;
 			}
