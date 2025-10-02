@@ -98,47 +98,48 @@ public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, bo
 		});
 
 		ItemStackKey filterStackKey = ItemStackKey.of(msg.filter());
-		Map<Vec3, ItemStack> restocked = new HashMap<>();
+		Map<Vec3, ItemStack> transferredItems = new HashMap<>();
+		Set<Integer> restockedPlayerSlots = new HashSet<>();
 		for (int playerInventorySlot = msg.minSlot(); playerInventorySlot < msg.maxSlot(); playerInventorySlot++) {
 			ItemStack playerInventoryStack = player.getInventory().getItem(playerInventorySlot);
 			if (!msg.filter().isEmpty()) {
 				if (playerInventoryStack.isEmpty() || ItemStack.isSameItemSameTags(playerInventoryStack, msg.filter())) {
-					restockSlot(restockHandlers, filterStackKey, playerInventoryStack, restocked, player, playerInventorySlot);
+					restockSlot(restockHandlers, filterStackKey, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot);
 				}
 			} else {
 				if (!playerInventoryStack.isEmpty()) {
-					restockSlot(restockHandlers, ItemStackKey.of(playerInventoryStack), playerInventoryStack, restocked, player, playerInventorySlot);
+					restockSlot(restockHandlers, ItemStackKey.of(playerInventoryStack), playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot);
 				}
 			}
 		}
 
 		if (player instanceof ServerPlayer serverPlayer) {
 			Vec3 playerPos = player.getEyePosition().add(0, -0.1, 0);
-			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncItemTransfersMessage(restocked, playerPos, false));
-			PacketHandler.INSTANCE.sendToAllTracking(new SyncItemTransfersMessage(restocked, playerPos, false), serverPlayer);
+			PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncItemTransfersMessage(transferredItems, playerPos, false));
+			PacketHandler.INSTANCE.sendToAllTracking(new SyncItemTransfersMessage(transferredItems, playerPos, false), serverPlayer);
 		}
 		Component message;
 		if (msg.maxSlot() - msg.minSlot() == 1) {
-			if (restocked.isEmpty()) {
+			if (transferredItems.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_item",
 						Component.literal(player.getInventory().getItem(msg.minSlot()).getHoverName().getString()).withStyle(ChatFormatting.RED));
 				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("restocked_item",
-						Component.literal(restocked.values().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
+						Component.literal(transferredItems.values().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
 			}
 		} else {
-			if (restocked.isEmpty()) {
+			if (transferredItems.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_items");
 				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
-				message = TranslationHelper.INSTANCE.translStatusMessage("restocked_items", Component.literal(String.valueOf(restocked.size())).withStyle(ChatFormatting.DARK_GREEN));
+				message = TranslationHelper.INSTANCE.translStatusMessage("restocked_items", Component.literal(String.valueOf(restockedPlayerSlots.size())).withStyle(ChatFormatting.DARK_GREEN));
 			}
 		}
 		player.displayClientMessage(message, true);
 	}
 
-	private static void restockSlot(Map<Vec3, InventoryHandler> restockHandlers, ItemStackKey stackKey, ItemStack playerInventoryStack, Map<Vec3, ItemStack> restocked, Player player, int playerInventorySlot) {
+	private static void restockSlot(Map<Vec3, InventoryHandler> restockHandlers, ItemStackKey stackKey, ItemStack playerInventoryStack, Map<Vec3, ItemStack> restocked, Set<Integer> restockedPlayerSlots, Player player, int playerInventorySlot) {
 		for (Map.Entry<Vec3, InventoryHandler> entry : restockHandlers.entrySet()) {
 			Vec3 pos = entry.getKey();
 			InventoryHandler handler = entry.getValue();
@@ -153,6 +154,7 @@ public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, bo
 						playerInventoryStack.grow(extracted.getCount());
 					}
 					player.getInventory().setItem(playerInventorySlot, playerInventoryStack);
+					restockedPlayerSlots.add(playerInventorySlot);
 				}
 				matchingStackSlot = handler.getSlotTracker().getFirstMatchingSlot(stackKey);
 			}
