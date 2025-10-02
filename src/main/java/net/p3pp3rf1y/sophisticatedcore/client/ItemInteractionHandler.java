@@ -86,7 +86,6 @@ public class ItemInteractionHandler {
 			playError(player, TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_full_stacks").setStyle(Style.EMPTY.withColor(0xFF5555)));
 			return;
 		}
-		//TODO check for full stacks in the slots make sure to not conflict with fillEmpty
 		Set<BlockPos> storages = new HashSet<>();
 		Set<BlockPos> visitedControllers = new HashSet<>();
 		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, ControllerBlockEntityBase.class).forEach(c -> {
