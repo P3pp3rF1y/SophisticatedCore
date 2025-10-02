@@ -74,7 +74,7 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 		Set<Integer> restockedPlayerSlots = new HashSet<>();
 		for (int playerInventorySlot = payload.minSlot(); playerInventorySlot < payload.maxSlot(); playerInventorySlot++) {
 			ItemStack playerInventoryStack = player.getInventory().getItem(playerInventorySlot);
-			if (!payload.filter().isEmpty()) {
+			if (payload.fillEmpty() && !payload.filter().isEmpty()) {
 				if (playerInventoryStack.isEmpty() || ItemStack.isSameItemSameComponents(playerInventoryStack, payload.filter())) {
 					restockSlot(restockHandlers, filterStackKey, playerInventoryStack, transferredItems, restockedPlayerSlots, player, playerInventorySlot);
 				}
@@ -93,8 +93,9 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 		Component message;
 		if (payload.maxSlot() - payload.minSlot() == 1) {
 			if (transferredItems.isEmpty()) {
+				ItemStack item = payload.fillEmpty() ? filterStackKey.getStack() : player.getInventory().getItem(payload.minSlot());
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_item",
-						Component.literal(player.getInventory().getItem(payload.minSlot()).getHoverName().getString()).withStyle(ChatFormatting.RED));
+						Component.literal(item.getHoverName().getString()).withStyle(ChatFormatting.RED));
 				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("restocked_item",
