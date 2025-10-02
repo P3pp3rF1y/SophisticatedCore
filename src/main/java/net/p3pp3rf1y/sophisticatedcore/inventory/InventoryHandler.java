@@ -64,6 +64,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> deserializeNBT(registryAccess, contentsNbt.getCompound(INVENTORY_TAG)));
 		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompound(PARTITIONER_TAG), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		initStackNbts();
+		getSlotTracker().refreshSlotIndexesFrom(this);
 
 		isInitializing = false;
 	}
@@ -276,15 +277,14 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	public void setSlotStack(int slot, ItemStack stack) {
 		stacks.set(slot, stack);
-		slotTracker.removeAndSetSlotIndexes(this, slot, stack);
+		getSlotTracker().removeAndSetSlotIndexes(this, slot, stack);
 		onContentsChanged(slot);
 	}
 
 	@Override
 	@Nonnull
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-		initSlotTracker();
-		return slotTracker.insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, slot, stack, simulate);
+		return getSlotTracker().insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, slot, stack, simulate);
 	}
 
 	@Nonnull
@@ -314,7 +314,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		ret = inventoryPartitioner.getPartBySlot(slot).insertItem(slot, ret, simulate, super::insertItem);
 
 		if (!simulate) {
-			slotTracker.removeAndSetSlotIndexes(this, slot, getStackInSlot(slot));
+			getSlotTracker().removeAndSetSlotIndexes(this, slot, getStackInSlot(slot));
 		}
 
 		if (ret == stack) {
@@ -357,7 +357,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	@Override
 	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
 		inventoryPartitioner.getPartBySlot(slot).setStackInSlot(slot, stack, super::setStackInSlot);
-		slotTracker.removeAndSetSlotIndexes(this, slot, stack);
+		getSlotTracker().removeAndSetSlotIndexes(this, slot, stack);
 	}
 
 	public void setPersistent(boolean persistent) {
@@ -425,8 +425,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public ItemStack insertItem(ItemStack stack, boolean simulate) {
-		initSlotTracker();
-		return slotTracker.insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, stack, simulate);
+		return getSlotTracker().insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, stack, simulate);
 	}
 
 	public void changeSlots(int diff) {
@@ -437,7 +436,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}
 		initStackNbts();
 		saveInventory();
-		slotTracker.refreshSlotIndexesFrom(this);
+		getSlotTracker().refreshSlotIndexesFrom(this);
 	}
 
 	@Override
@@ -450,8 +449,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
-		initSlotTracker();
-		slotTracker.registerListeners(onAddStackKey, onRemoveStackKey, onAddFirstEmptySlot, onRemoveLastEmptySlot);
+		getSlotTracker().registerListeners(onAddStackKey, onRemoveStackKey, onAddFirstEmptySlot, onRemoveLastEmptySlot);
 	}
 
 	@Override
@@ -518,7 +516,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
 		this.shouldInsertIntoEmpty = shouldInsertIntoEmpty;
-		slotTracker.setShouldInsertIntoEmpty(shouldInsertIntoEmpty);
+		getSlotTracker().setShouldInsertIntoEmpty(shouldInsertIntoEmpty);
 	}
 
 	public boolean isInfinite(int slot) {
