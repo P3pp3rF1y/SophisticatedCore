@@ -37,6 +37,8 @@ public interface ISlotTracker {
 
 	boolean hasStackMemorizedOrFiltered(ItemStack stack);
 
+	int getFirstMatchingSlot(ItemStackKey stackKey);
+
 	interface IItemHandlerInserter {
 		ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
 	}
@@ -105,6 +107,11 @@ public interface ISlotTracker {
 		@Override
 		public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
 			return false;
+		}
+
+		@Override
+		public int getFirstMatchingSlot(ItemStackKey stackKey) {
+			return -1;
 		}
 	}
 }

@@ -81,7 +81,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			if (!partiallyFilledStackSlots.containsKey(k)) {
 				onAddStackKey.accept(k);
 			}
-			return new HashSet<>();
+			return new TreeSet<>();
 		}).add(slot);
 		fullSlotStacks.put(slot, stackKey);
 		itemStackKeys.computeIfAbsent(stack.getItem(), i -> new HashSet<>()).add(stackKey);
@@ -438,5 +438,18 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			}
 		}
 		return remainingStack;
+	}
+
+	@Override
+	public int getFirstMatchingSlot(ItemStackKey stackKey) {
+		Set<Integer> slots = partiallyFilledStackSlots.get(stackKey);
+		if (slots != null && !slots.isEmpty()) {
+			return slots.iterator().next();
+		}
+		slots = fullStackSlots.get(stackKey);
+		if (slots != null && !slots.isEmpty()) {
+			return slots.iterator().next();
+		}
+		return -1;
 	}
 }
