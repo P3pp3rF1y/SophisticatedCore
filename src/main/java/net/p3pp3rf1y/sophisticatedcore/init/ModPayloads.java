@@ -34,5 +34,6 @@ public class ModPayloads {
 		registrar.playToClient(SyncItemHighlightsPayload.TYPE, SyncItemHighlightsPayload.STREAM_CODEC, SyncItemHighlightsPayload::handlePayload);
 		registrar.playToServer(DepositItemsPayload.TYPE, DepositItemsPayload.STREAM_CODEC, DepositItemsPayload::handlePayload);
 		registrar.playToClient(SyncItemTransfersPayload.TYPE, SyncItemTransfersPayload.STREAM_CODEC, SyncItemTransfersPayload::handlePayload);
+		registrar.playToServer(RestockItemsPayload.TYPE, RestockItemsPayload.STREAM_CODEC, RestockItemsPayload::handlePayload);
 	}
 }

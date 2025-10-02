@@ -42,8 +42,9 @@ public record SyncItemTransfersPayload(Map<Vec3, ItemStack> itemsTransferred, Ve
 			Vec3 from = payload.fromPlayer() ? payload.playerPos : pos;
 			Vec3 to = payload.fromPlayer() ? pos : payload.playerPos;
 			Level level = player.level();
-			ItemFlightAnimator.startFlight(stack, from, to, level.getGameTime(), 10, level.getRandom());
-			level.playSound(player, to.x(), to.y(), to.z(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.3F, RandHelper.getRandomMinusOneToOne(level.random) * 0.1F + 0.2F);
+			ItemFlightAnimator.startFlight(stack, from, to, level.getGameTime(), payload.fromPlayer() ? 10 : 5, level.getRandom());
+			float pitch = payload.fromPlayer() ? RandHelper.getRandomMinusOneToOne(level.random) * 0.1F + 0.2F : RandHelper.getRandomMinusOneToOne(level.random) * 1.4F + 2.0F;
+			level.playSound(player, to.x(), to.y(), to.z(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.3F, pitch);
 		});
 	}
 }

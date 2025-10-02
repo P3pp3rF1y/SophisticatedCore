@@ -60,7 +60,7 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 	public static void handlePayload(DepositItemsPayload payload, IPayloadContext context) {
 		Player player = context.player();
 		Level level = player.level();
-		Map<Vec3, IDepositHandler> depositHandlers = new TreeMap<>(Comparator.comparing(player::distanceToSqr));
+		Map<Vec3, IDepositHandler> depositHandlers = new TreeMap<>(Comparator.<Vec3>comparingDouble(player::distanceToSqr).thenComparingDouble(Vec3::x).thenComparingDouble(Vec3::y).thenComparingDouble(Vec3::z));
 
 		Set<BlockPos> controllerPositions = new HashSet<>(payload.controllerPositions());
 
@@ -119,6 +119,10 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 	private static void depositSlotsToHandlers(DepositItemsPayload payload, Player player, Map<Vec3, IDepositHandler> depositHandlers, Map<Vec3, ItemStack> inserted, Set<Integer> depositedFromSlots, boolean checkPresent) {
 		for (int slot = payload.minSlot(); slot < payload.maxSlot(); slot++) {
 			ItemStack stack = player.getInventory().getItem(slot);
+			if (stack.isEmpty()) {
+				continue;
+			}
+
 			ItemStackKey stackKey = ItemStackKey.of(stack);
 			for (Map.Entry<Vec3, IDepositHandler> entry : depositHandlers.entrySet()) {
 				Vec3 pos = entry.getKey();
