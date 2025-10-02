@@ -279,5 +279,21 @@
     "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
   "keybind.sophisticatedcore.category": "Sophisticated Mods",
   "keybind.sophisticatedcore.item_highlight": "Highlight Storage with Item",
-  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack"
+  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack",
+  "keybind.sophisticatedcore.deposit_item": "Deposit Item into Storage/Backpack",
+  "keybind.sophisticatedcore.restock_item": "Restock Item from Storage/Backpack",
+  "gui.sophisticatedcore.status.matching_stacks_found" : "Exact item found in %s locations.",
+  "gui.sophisticatedcore.status.matching_items_found" : "Item type found in %s locations.",
+  "gui.sophisticatedcore.status.no_matching_items_found" : "No exact item or item type found",
+  "gui.sophisticatedcore.status.no_storage_in_range" : "No storage was found in range",
+  "gui.sophisticatedcore.status.deposited_item" : "Deposited %s into storage",
+  "gui.sophisticatedcore.status.deposited_items" : "Deposited %s items into storage",
+  "gui.sophisticatedcore.status.cannot_deposit_item" : "Could not deposit %s into any storage",
+  "gui.sophisticatedcore.status.cannot_deposit_items" : "Could not deposit any items into storage",
+  "gui.sophisticatedcore.status.restocked_item" : "Restocked %s from storage",
+  "gui.sophisticatedcore.status.restocked_items" : "Restocked %s items from storage",
+  "gui.sophisticatedcore.status.cannot_restock_item" : "Could not restock %s from any storage",
+  "gui.sophisticatedcore.status.cannot_restock_items" : "Could not restock any items from storage",
+  "gui.sophisticatedcore.status.cannot_restock_full_stack" : "Stack %s is already full",
+  "gui.sophisticatedcore.status.cannot_restock_full_stacks" : "All stacks are already full"
 }

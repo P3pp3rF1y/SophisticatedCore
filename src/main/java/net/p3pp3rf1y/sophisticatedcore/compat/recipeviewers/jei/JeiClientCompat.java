@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
@@ -27,11 +28,15 @@ public class JeiClientCompat {
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
 		eventBus.addListener(JeiClientCompat::handleGuiKeyPress);
 		eventBus.addListener(JeiClientCompat::handleGuiMouseKeyPress);
+
+		ClientEventHandler.registerHoveredStackSupplier(() -> getStack().orElse(ItemStack.EMPTY));
 	}
 
 	private static Optional<ItemStack> getStack() {
 		return runtime == null ? Optional.empty() : runtime.getIngredientListOverlay().getIngredientUnderMouse()
-				.or(() -> runtime.getBookmarkOverlay().getIngredientUnderMouse()).flatMap(ITypedIngredient::getItemStack);
+				.or(() -> runtime.getBookmarkOverlay().getIngredientUnderMouse())
+				.flatMap(ITypedIngredient::getItemStack)
+				.or(() -> runtime.getRecipesGui().getIngredientUnderMouse(VanillaTypes.ITEM_STACK));
 	}
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
