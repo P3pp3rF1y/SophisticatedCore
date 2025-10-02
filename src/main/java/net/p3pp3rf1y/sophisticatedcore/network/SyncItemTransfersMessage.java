@@ -53,7 +53,7 @@ public record SyncItemTransfersMessage(Map<Vec3, ItemStack> itemsTransferred, Ve
 			Vec3 to = msg.fromPlayer() ? pos : msg.playerPos;
 			Level level = player.level();
 			ItemFlightAnimator.startFlight(stack, from, to, level.getGameTime(), 10, level.getRandom());
-			level.playSound(player, to.x(), to.y(), to.z(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, RandHelper.getRandomMinusOneToOne(level.random) * 1.4F + 2.0F);
+			level.playSound(player, to.x(), to.y(), to.z(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.3F, RandHelper.getRandomMinusOneToOne(level.random) * 0.1F + 0.2F);
 		});
 	}
 }

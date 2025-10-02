@@ -7,6 +7,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
@@ -15,6 +17,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.ItemActionHandlerRegistry;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
@@ -103,6 +106,7 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 		Component message = null;
 		if (stackMatchNumber.get() == 0 && itemMatchNumber.get() == 0) {
 			message = Component.translatable("gui.sophisticatedcore.status.no_matching_items_found");
+			player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 		} else {
 			if (stackMatchNumber.get() > 0) {
 				message = Component.translatable("gui.sophisticatedcore.status.matching_stacks_found", Component.literal(String.valueOf(stackMatchNumber.get())).withStyle(Style.EMPTY.withColor(0x4CAF50)));
@@ -115,6 +119,7 @@ public record RequestItemHighlightsMessage(ItemStack stack, List<BlockPos> stora
 					message = itemMessage;
 				}
 			}
+			player.playNotifySound(SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1, 0.95f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 		}
 
 		player.displayClientMessage(message, true);

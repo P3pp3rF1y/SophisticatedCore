@@ -6,21 +6,21 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllerBoundable;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.RequestItemHighlightsMessage;
-import net.p3pp3rf1y.sophisticatedcore.util.Easing;
-import net.p3pp3rf1y.sophisticatedcore.util.IDoubleBlock;
-import net.p3pp3rf1y.sophisticatedcore.util.VoxelOutliner;
-import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.*;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -52,10 +52,13 @@ public class ItemInStorageHighlightRenderer {
 		List<BlockPos> positions = WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), 32, IControllableStorage.class).stream().map(IControllerBoundable::getStorageBlockPos).toList();
 		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
 		highlightHandlers.forEach(h -> {
-			extras.put(h.getPayloadHandlerId(), h.buildClientRequestData(player));
+			h.buildClientRequestData(player).ifPresent(data -> extras.put(h.getPayloadHandlerId(), data));
 		});
 		if (!positions.isEmpty() || !extras.isEmpty()) {
 			PacketHandler.INSTANCE.sendToServer(new RequestItemHighlightsMessage(stack, positions, extras));
+		} else {
+			player.displayClientMessage(TranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)), true);
+			player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
 		}
 	}
 

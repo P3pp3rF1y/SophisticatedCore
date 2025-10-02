@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.client;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.render.IItemActionPayloadBuilder;
@@ -10,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.controller.ControllerBlockEntityBase;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.network.DepositItemsMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
+import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import java.util.*;
@@ -47,12 +49,13 @@ public class ItemInteractionHandler {
 
 		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
 		payloadBuilders.forEach(h -> {
-			extras.put(h.getPayloadHandlerId(), h.buildClientRequestData(player));
+			h.buildClientRequestData(player).ifPresent(data -> extras.put(h.getPayloadHandlerId(), data));
 		});
 		if (!storages.isEmpty() || !controllers.isEmpty() || !extras.isEmpty()) {
 			PacketHandler.INSTANCE.sendToServer(new DepositItemsMessage(minSlot, maxSlot, new ArrayList<>(storages), new ArrayList<>(controllers), extras, onlyMatching));
 		} else {
 			player.displayClientMessage(TranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)), true);
+			player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1, 0.45f + RandHelper.getRandomMinusOneToOne(player.level().random) * 0.1F);
 		}
 	}
 }

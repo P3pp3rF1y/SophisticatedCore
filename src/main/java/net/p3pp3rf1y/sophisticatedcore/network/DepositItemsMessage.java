@@ -6,6 +6,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,6 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import java.util.*;
@@ -86,15 +89,18 @@ public record DepositItemsMessage(int minSlot, int maxSlot,
 		Level level = player.level();
 		Map<Vec3, IDepositHandler> depositHandlers = new TreeMap<>(Comparator.comparing(player::distanceToSqr));
 
-		msg.controllerPositions().stream()
-				.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
-				.filter(Optional::isPresent).map(Optional::get)
-				.forEach(c -> depositHandlers.put(c.getBlockPos().getCenter(), new ControllerDepositHandler(c)));
+		Set<BlockPos> controllerPositions = new HashSet<>(msg.controllerPositions());
 
 		msg.storagePositions().stream()
 				.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
 				.filter(Optional::isPresent).map(Optional::get)
-				.forEach(s -> depositHandlers.put(s.getStorageBlockPos().getCenter(), new StorageDepositHandler(s.getStorageWrapper().getInventoryHandler())));
+				.forEach(s -> s.getControllerPos().ifPresentOrElse(controllerPositions::add,
+							() -> depositHandlers.put(s.getStorageBlockPos().getCenter(), new StorageDepositHandler(s.getStorageWrapper().getInventoryHandler()))));
+
+		controllerPositions.stream()
+				.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
+				.filter(Optional::isPresent).map(Optional::get)
+				.forEach(c -> depositHandlers.put(c.getBlockPos().getCenter(), new ControllerDepositHandler(c)));
 
 		msg.extras().forEach((id, extraData) -> {
 			ItemActionHandlerRegistry.get(id).ifPresent(handler -> {
@@ -122,6 +128,7 @@ public record DepositItemsMessage(int minSlot, int maxSlot,
 			if (inserted.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_deposit_item",
 						Component.literal(player.getInventory().getItem(msg.minSlot()).getHoverName().getString()).withStyle(ChatFormatting.RED));
+				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("deposited_item",
 						Component.literal(inserted.values().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
@@ -129,6 +136,7 @@ public record DepositItemsMessage(int minSlot, int maxSlot,
 		} else {
 			if (inserted.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_deposit_items");
+				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("deposited_items", Component.literal(String.valueOf(depositedFromSlots.size())).withStyle(ChatFormatting.DARK_GREEN));
 			}
