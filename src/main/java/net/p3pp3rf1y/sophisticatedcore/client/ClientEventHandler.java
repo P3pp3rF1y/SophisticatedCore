@@ -38,9 +38,11 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
@@ -53,10 +55,17 @@ public class ClientEventHandler {
 	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "keybind.sophisticatedcore.category";
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_highlight"),
 			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
-	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_deposit"),
+	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("deposit_item"),
 			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+	public static final KeyMapping ITEM_RESTOCK_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("restock_item"),
+			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping SORT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("sort"),
 			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+
+	private static final List<Supplier<ItemStack>> HOVERED_STACK_SUPPLIERS = new ArrayList<>();
+	public static void registerHoveredStackSupplier(Supplier<ItemStack> stackSupplier) {
+		HOVERED_STACK_SUPPLIERS.add(stackSupplier);
+	}
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
@@ -86,6 +95,7 @@ public class ClientEventHandler {
 		event.register(ITEM_HIGHLIGHT_KEYBIND);
 		event.register(SORT_KEYBIND);
 		event.register(ITEM_DEPOSIT_KEYBIND);
+		event.register(ITEM_RESTOCK_KEYBIND);
 	}
 
 	public static void onPostClientTick(ClientTickEvent.Post event) {
@@ -96,29 +106,86 @@ public class ClientEventHandler {
 
 	public static void handleKeyInput(InputEvent.Key event) {
 		if (ITEM_DEPOSIT_KEYBIND.getKey().getValue() == event.getKey() && event.getAction() == GLFW.GLFW_PRESS) {
-			LocalPlayer player = Minecraft.getInstance().player;
-			if (player == null) {
-				return;
+			tryDepositItem(event);
+		} else if (ITEM_RESTOCK_KEYBIND.getKey().getValue() == event.getKey() && event.getAction() == GLFW.GLFW_PRESS) {
+			tryRestockItem(event);
+		}
+	}
+
+	private static ItemStack getHoveredStack() {
+		for (Supplier<ItemStack> supplier : HOVERED_STACK_SUPPLIERS) {
+			ItemStack stack = supplier.get();
+			if (!stack.isEmpty()) {
+				return stack;
 			}
+		}
+		return ItemStack.EMPTY;
+	}
 
-			int mods = event.getModifiers();
-			boolean mainInventory = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
-			boolean onlyMatching = (mods & GLFW.GLFW_MOD_CONTROL) == 0;
-			boolean hotbar = (mods & GLFW.GLFW_MOD_ALT) != 0;
+	private static void tryRestockItem(InputEvent.Key event) {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player == null) {
+			return;
+		}
 
-			if (mainInventory || hotbar) {
-				tryDepositMultipleItems(player, mainInventory, hotbar, onlyMatching);
-				return;
-			}
+		int mods = event.getModifiers();
+		boolean mainInventory = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
+		boolean hotbar = (mods & GLFW.GLFW_MOD_ALT) != 0;
+		boolean fillEmpty = (mods & GLFW.GLFW_MOD_CONTROL) != 0;
 
-			Screen screen = Minecraft.getInstance().screen;
-			if (screen != null) {
-				if (screen instanceof AbstractContainerScreen<?> containerScreen) {
-					tryDepositItem(player, containerScreen.getSlotUnderMouse(), onlyMatching);
+		Screen screen = Minecraft.getInstance().screen;
+		ItemStack filter = getHoveredStack();
+		int slot;
+		if (filter.isEmpty()) {
+			if (screen instanceof AbstractContainerScreen<?> containerScreen) {
+				Slot slotUnderMouse = containerScreen.getSlotUnderMouse();
+				if (slotUnderMouse != null) {
+					filter = slotUnderMouse.getItem();
+					slot = slotUnderMouse.getSlotIndex();
+				} else {
+					filter = ItemStack.EMPTY;
+					slot = player.getInventory().selected;
 				}
 			} else {
-				tryDepositItem(player, onlyMatching);
+				filter = player.getMainHandItem();
+				slot = player.getInventory().selected;
 			}
+		} else {
+			slot = player.getInventory().getFreeSlot();
+			if (slot == -1) {
+				return;
+			}
+		}
+		if (mainInventory || hotbar) {
+			ItemInteractionHandler.restockMultipleItems(player, filter, mainInventory, hotbar, fillEmpty);
+		} else {
+			ItemInteractionHandler.restockItem(player, filter, slot, fillEmpty);
+		}
+	}
+
+	private static void tryDepositItem(InputEvent.Key event) {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player == null) {
+			return;
+		}
+
+		int mods = event.getModifiers();
+		boolean mainInventory = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
+		boolean onlyMatching = (mods & GLFW.GLFW_MOD_CONTROL) == 0;
+		boolean hotbar = (mods & GLFW.GLFW_MOD_ALT) != 0;
+
+		if (mainInventory || hotbar) {
+			tryDepositMultipleItems(player, mainInventory, hotbar, onlyMatching);
+			return;
+		}
+
+		Screen screen = Minecraft.getInstance().screen;
+		if (screen != null) {
+			if (screen instanceof AbstractContainerScreen<?> containerScreen) {
+				tryDepositItem(player, containerScreen.getSlotUnderMouse(), onlyMatching);
+			}
+		} else {
+			tryDepositItem(player, onlyMatching);
 		}
 	}
 
