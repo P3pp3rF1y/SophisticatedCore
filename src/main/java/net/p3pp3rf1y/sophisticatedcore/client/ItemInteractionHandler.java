@@ -22,7 +22,7 @@ import java.util.*;
 public class ItemInteractionHandler {
 	public static final int INTERACTION_RANGE = 10;
 
-	private static List<IItemActionPayloadBuilder<?>> payloadBuilders = new ArrayList<>();
+	private static final List<IItemActionPayloadBuilder<?>> payloadBuilders = new ArrayList<>();
 
 	public static void registerPayloadBuilder(IItemActionPayloadBuilder<?> payloadBuilder) {
 		payloadBuilders.add(payloadBuilder);
