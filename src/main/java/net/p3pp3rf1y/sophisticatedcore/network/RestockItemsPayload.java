@@ -8,6 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -58,10 +59,13 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 		Level level = player.level();
 		Map<Vec3, InventoryHandler> restockHandlers = new TreeMap<>(Comparator.<Vec3>comparingDouble(player::distanceToSqr).thenComparingDouble(Vec3::x).thenComparingDouble(Vec3::y).thenComparingDouble(Vec3::z));
 
-		payload.storagePositions().stream()
-				.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
-				.filter(Optional::isPresent).map(Optional::get)
-				.forEach(s -> restockHandlers.put(s.getStorageBlockPos().getCenter(), s.getStorageWrapper().getInventoryHandler()));
+		if (player.level() instanceof ServerLevel serverLevel) {
+			payload.storagePositions().stream()
+					.filter(pos -> player.mayInteract(serverLevel, pos))
+					.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
+					.filter(Optional::isPresent).map(Optional::get)
+					.forEach(s -> restockHandlers.put(s.getStorageBlockPos().getCenter(), s.getStorageWrapper().getInventoryHandler()));
+		}
 
 		payload.extras().forEach((id, extraData) -> {
 			ItemActionHandlerRegistry.get(id).ifPresent(handler -> {
