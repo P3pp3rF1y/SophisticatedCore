@@ -46,9 +46,9 @@ public class ItemInteractionHandler {
 		Set<BlockPos> storages = new HashSet<>();
 		Set<BlockPos> controllers = new HashSet<>();
 		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, IControllableStorage.class).forEach(s -> {
-			s.getControllerPos().ifPresentOrElse(controllers::add, () -> storages.add(s.getStorageBlockPos()));
+			s.getControllerPos().ifPresentOrElse(pos -> addIfPlayerCanInteractWith(player, controllers, pos), () -> addIfPlayerCanInteractWith(player, storages, s.getStorageBlockPos()));
 		});
-		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, ControllerBlockEntityBase.class).forEach(c -> controllers.add(c.getBlockPos()));
+		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, ControllerBlockEntityBase.class).forEach(c ->  addIfPlayerCanInteractWith(player, controllers, c.getBlockPos()));
 
 		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
 		payloadBuilders.forEach(h -> {
@@ -58,6 +58,12 @@ public class ItemInteractionHandler {
 			PacketDistributor.sendToServer(new DepositItemsPayload(minSlot, maxSlot, new ArrayList<>(storages), new ArrayList<>(controllers), extras, onlyMatching));
 		} else {
 			playError(player, TranslationHelper.INSTANCE.translStatusMessage("no_storage_in_range").setStyle(Style.EMPTY.withColor(0xFF5555)));
+		}
+	}
+
+	private static void addIfPlayerCanInteractWith(Player player, Set<BlockPos> positions, BlockPos pos) {
+		if (player.mayInteract(player.level(), pos)) {
+			positions.add(pos);
 		}
 	}
 
@@ -90,15 +96,16 @@ public class ItemInteractionHandler {
 		Set<BlockPos> visitedControllers = new HashSet<>();
 		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, ControllerBlockEntityBase.class).forEach(c -> {
 			visitedControllers.add(c.getBlockPos());
-			storages.addAll(c.getStoragePositions());
+			c.getStoragePositions().forEach(pos -> addIfPlayerCanInteractWith(player, storages, pos));
 		});
 		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, IControllableStorage.class).forEach(s -> {
 			s.getControllerPos().ifPresentOrElse(controllerPos -> {
 				if (!visitedControllers.contains(controllerPos)) {
 					visitedControllers.add(controllerPos);
-					storages.addAll(WorldHelper.getBlockEntity(player.level(), controllerPos, ControllerBlockEntityBase.class).map(ControllerBlockEntityBase::getStoragePositions).orElse(Collections.emptyList()));
+					List<BlockPos> storagePositions = WorldHelper.getBlockEntity(player.level(), controllerPos, ControllerBlockEntityBase.class).map(ControllerBlockEntityBase::getStoragePositions).orElse(Collections.emptyList());
+					storagePositions.forEach(pos -> addIfPlayerCanInteractWith(player, storages, pos));
 				}
-			}, () -> storages.add(s.getStorageBlockPos()));
+			}, () -> addIfPlayerCanInteractWith(player, storages, s.getStorageBlockPos()));
 		});
 
 		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
