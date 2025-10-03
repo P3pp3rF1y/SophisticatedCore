@@ -8,6 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -64,16 +65,20 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 
 		Set<BlockPos> controllerPositions = new HashSet<>(payload.controllerPositions());
 
-		payload.storagePositions().stream()
-				.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
-				.filter(Optional::isPresent).map(Optional::get)
-				.forEach(s -> s.getControllerPos().ifPresentOrElse(controllerPositions::add,
+		if (player.level() instanceof ServerLevel serverLevel) {
+			payload.storagePositions().stream()
+					.filter(pos -> player.mayInteract(serverLevel, pos))
+					.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
+					.filter(Optional::isPresent).map(Optional::get)
+					.forEach(s -> s.getControllerPos().ifPresentOrElse(controllerPositions::add,
 							() -> depositHandlers.put(s.getStorageBlockPos().getCenter(), new StorageDepositHandler(s.getStorageWrapper().getInventoryHandler()))));
 
-		controllerPositions.stream()
-				.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
-				.filter(Optional::isPresent).map(Optional::get)
-				.forEach(c -> depositHandlers.put(c.getBlockPos().getCenter(), new ControllerDepositHandler(c)));
+			controllerPositions.stream()
+					.filter(pos -> player.mayInteract(serverLevel, pos))
+					.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
+					.filter(Optional::isPresent).map(Optional::get)
+					.forEach(c -> depositHandlers.put(c.getBlockPos().getCenter(), new ControllerDepositHandler(c)));
+		}
 
 		payload.extras().forEach((id, extraData) -> {
 			ItemActionHandlerRegistry.get(id).ifPresent(handler -> {
