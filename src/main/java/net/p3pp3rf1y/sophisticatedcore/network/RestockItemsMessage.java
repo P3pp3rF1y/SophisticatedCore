@@ -87,6 +87,7 @@ public record RestockItemsMessage(ItemStack filter, int minSlot, int maxSlot, bo
 		Map<Vec3, InventoryHandler> restockHandlers = new TreeMap<>(Comparator.<Vec3>comparingDouble(player::distanceToSqr).thenComparingDouble(Vec3::x).thenComparingDouble(Vec3::y).thenComparingDouble(Vec3::z));
 
 		msg.storagePositions().stream()
+				.filter(pos -> player.mayInteract(level, pos))
 				.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
 				.filter(Optional::isPresent).map(Optional::get)
 				.forEach(s -> restockHandlers.put(s.getStorageBlockPos().getCenter(), s.getStorageWrapper().getInventoryHandler()));
