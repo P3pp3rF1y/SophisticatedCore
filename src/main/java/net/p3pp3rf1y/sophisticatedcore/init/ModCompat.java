@@ -6,6 +6,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.CompatRegistry;
 import net.p3pp3rf1y.sophisticatedcore.compat.craftingtweaks.CraftingTweaksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.create.CreateCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.ftbchunks.FTBChunksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.mousetweaks.MouseTweaksCompat;
@@ -31,6 +32,7 @@ public class ModCompat {
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.TRASH_SLOT), () -> mobBus -> new TrashSlotCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.RELIQUARY), () -> mobBus -> new ReliquaryCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.MOUSE_TWEAKS), () -> mobBus -> new MouseTweaksCompat());
+		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.FTB_CHUNKS), () -> mobBus -> new FTBChunksCompat());
 		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
 	}
 }
