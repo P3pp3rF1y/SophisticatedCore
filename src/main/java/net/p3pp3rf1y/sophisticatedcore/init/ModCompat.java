@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.ftbchunks.FTBChunksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.mousetweaks.MouseTweaksCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.openpartiesandclaims.OpenPACCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi.EmiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei.JeiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei.ReiCompat;
@@ -42,6 +43,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.MOUSE_TWEAKS, () -> MouseTweaksCompat::new);
 		compatFactories.put(CompatModIds.BOTANIA, () -> BotaniaCompat::new);
 		compatFactories.put(CompatModIds.FTB_CHUNKS, () -> FTBChunksCompat::new);
+		compatFactories.put(CompatModIds.OPEN_PARTIES_AND_CLAIMS_CHUNKS, () -> OpenPACCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 
