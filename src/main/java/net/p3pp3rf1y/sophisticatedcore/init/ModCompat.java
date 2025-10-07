@@ -4,9 +4,11 @@ import net.minecraftforge.fml.ModList;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatModIds;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.botania.BotaniaCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.craftingtweaks.CraftingTweaksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.create.CreateCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.curios.CuriosCompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.ftbchunks.FTBChunksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.mousetweaks.MouseTweaksCompat;
@@ -15,7 +17,6 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei.JeiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei.ReiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.reliquary.ReliquaryCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.trashslot.TrashSlotCompat;
-import net.p3pp3rf1y.sophisticatedcore.compat.botania.BotaniaCompat;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +41,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.RELIQUARY, () -> ReliquaryCompat::new);
 		compatFactories.put(CompatModIds.MOUSE_TWEAKS, () -> MouseTweaksCompat::new);
 		compatFactories.put(CompatModIds.BOTANIA, () -> BotaniaCompat::new);
+		compatFactories.put(CompatModIds.FTB_CHUNKS, () -> FTBChunksCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 
