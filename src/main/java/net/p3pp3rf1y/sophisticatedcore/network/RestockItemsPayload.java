@@ -61,7 +61,7 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 
 		if (player.level() instanceof ServerLevel serverLevel) {
 			payload.storagePositions().stream()
-					.filter(pos -> player.mayInteract(serverLevel, pos))
+					.filter(pos -> WorldHelper.playerMayInteract(player, pos))
 					.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
 					.filter(Optional::isPresent).map(Optional::get)
 					.forEach(s -> restockHandlers.put(s.getStorageBlockPos().getCenter(), s.getStorageWrapper().getInventoryHandler()));
