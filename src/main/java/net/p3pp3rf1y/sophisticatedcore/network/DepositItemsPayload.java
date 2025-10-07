@@ -67,14 +67,14 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 
 		if (player.level() instanceof ServerLevel serverLevel) {
 			payload.storagePositions().stream()
-					.filter(pos -> player.mayInteract(serverLevel, pos))
+					.filter(pos -> WorldHelper.playerMayInteract(player, pos))
 					.map(pos -> WorldHelper.getBlockEntity(level, pos, IControllableStorage.class))
 					.filter(Optional::isPresent).map(Optional::get)
 					.forEach(s -> s.getControllerPos().ifPresentOrElse(controllerPositions::add,
 							() -> depositHandlers.put(s.getStorageBlockPos().getCenter(), new StorageDepositHandler(s.getStorageWrapper().getInventoryHandler()))));
 
 			controllerPositions.stream()
-					.filter(pos -> player.mayInteract(serverLevel, pos))
+					.filter(pos -> WorldHelper.playerMayInteract(player, pos))
 					.map(pos -> WorldHelper.getBlockEntity(player.level(), pos, ControllerBlockEntityBase.class))
 					.filter(Optional::isPresent).map(Optional::get)
 					.forEach(c -> depositHandlers.put(c.getBlockPos().getCenter(), new ControllerDepositHandler(c)));
