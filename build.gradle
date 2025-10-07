@@ -185,6 +185,8 @@ dependencies {
     }
     compileOnly "dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}"
     compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
+
+    compileOnly "curse.maven:openpartiesandclaims-636608:${openpartiesandclaims_cf_file_id}"
 /*
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly "curse.maven:quark-243121:${quark_cf_file_id}")
