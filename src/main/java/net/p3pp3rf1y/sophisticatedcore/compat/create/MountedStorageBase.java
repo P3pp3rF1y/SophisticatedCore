@@ -13,9 +13,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 
 public abstract class MountedStorageBase extends MountedItemStorage implements SyncedMountedStorage {
-
 	private ItemStack storageStack;
-	private boolean dirty = false;
 
 	public MountedStorageBase(MountedItemStorageType<?> type, ItemStack storageStack) {
 		super(type);
@@ -30,25 +28,19 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 		storageStack = stack;
 	}
 
-	protected abstract void afterInitialSync();
-
 	@Override
 	public void afterSync(Contraption contraption, BlockPos localPos) {
-		afterInitialSync();
+		updateWithSyncedStorageStack(storageStack, true);
 	}
 
 	@Override
 	public void markClean() {
-		dirty = false;
+		//noop
 	}
 
 	@Override
 	public boolean isDirty() {
-		return dirty;
-	}
-
-	protected void setDirty() {
-		dirty = true;
+		return false;
 	}
 
 	public abstract void updateWithSyncedStorageStack(ItemStack storageStack, boolean refreshBlockRender);

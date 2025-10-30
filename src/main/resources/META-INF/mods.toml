@@ -64,3 +64,10 @@ mandatory = false
 versionRange="${jei_version_range}"
 ordering="NONE"
 side="CLIENT"
+
+[[dependencies.sophisticatedcore]]
+modId="create"
+mandatory = false
+versionRange="${create_version_range}"
+ordering="NONE"
+side="BOTH"
