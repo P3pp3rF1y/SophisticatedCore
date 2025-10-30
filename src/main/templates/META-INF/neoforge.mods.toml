@@ -30,3 +30,10 @@ type="required"
 versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="create"
+type="optional"
+versionRange="${create_version_range}"
+ordering="NONE"
+side="BOTH"
