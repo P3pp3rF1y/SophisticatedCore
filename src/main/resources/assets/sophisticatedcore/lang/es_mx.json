@@ -1,6 +1,6 @@
 {
   "itemGroup.sophisticatedcore": "Sophisticated Core",
-  "item.sophisticatedcore.xp_bucket": "Cubo de experiencia",
+  "item.sophisticatedcore.xp_bucket": "Cubeta de experiencia",
   "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "Haz clic derecho para añadir",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "Multiplicador de tamaño de stack: %s",
   "item.sophisticatedcore.storage.tooltip.energy": "%s EF",
