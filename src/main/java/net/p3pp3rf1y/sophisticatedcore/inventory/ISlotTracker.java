@@ -7,13 +7,14 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 
 public interface ISlotTracker {
 
 	void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty);
 
 	Set<ItemStackKey> getFullStacks();
+
+	Set<Integer> getFullSlots(ItemStackKey key);
 
 	Set<ItemStackKey> getPartialStacks();
 
@@ -25,10 +26,6 @@ public interface ISlotTracker {
 
 	void refreshSlotIndexesFrom(InventoryHandler itemHandler);
 
-	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate);
-
-	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate);
-
 	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
 
 	void unregisterStackKeyListeners();
@@ -38,6 +35,10 @@ public interface ISlotTracker {
 	boolean hasStackMemorizedOrFiltered(ItemStack stack);
 
 	int getFirstMatchingSlot(ItemStackKey stackKey);
+
+	Set<Integer> getPartialSlots(ItemStackKey key);
+
+	Set<Integer> getEmptySlots();
 
 	interface IItemHandlerInserter {
 		ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
@@ -80,16 +81,6 @@ public interface ISlotTracker {
 		}
 
 		@Override
-		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate) {
-			return stack;
-		}
-
-		@Override
-		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate) {
-			return inserter.insertItem(slot, stack, simulate);
-		}
-
-		@Override
 		public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
 			//noop
 		}
@@ -112,6 +103,21 @@ public interface ISlotTracker {
 		@Override
 		public int getFirstMatchingSlot(ItemStackKey stackKey) {
 			return -1;
+		}
+
+		@Override
+		public Set<Integer> getPartialSlots(ItemStackKey key) {
+			return Collections.emptySet();
+		}
+
+		@Override
+		public Set<Integer> getEmptySlots() {
+			return Collections.emptySet();
+		}
+
+		@Override
+		public Set<Integer> getFullSlots(ItemStackKey key) {
+			return Collections.emptySet();
 		}
 	}
 }

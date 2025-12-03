@@ -13,9 +13,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncAdditionalSlotInfoPayload;
@@ -76,7 +77,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 	public int getNumberOfStorageInventorySlots() {
-		return storageWrapper.getInventoryHandler().getSlots();
+		return storageWrapper.getInventoryHandler().size();
 	}
 
 	public S getStorageWrapper() {
@@ -93,7 +94,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 		int slotIndex = 0;
 
-		while (slotIndex < inventoryHandler.getSlots()) {
+		while (slotIndex < inventoryHandler.size()) {
 			int finalSlotIndex = slotIndex;
 			storageInventorySlots.add(addSlot(new ViewOnlyStorageInventorySlot(inventoryHandler, finalSlotIndex)));
 
@@ -171,7 +172,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 	public int getNumberOfSlots() {
-		return storageWrapper.getInventoryHandler().getSlots();
+		return storageWrapper.getInventoryHandler().size();
 	}
 
 	@Override
@@ -271,7 +272,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 
-	public <T extends ISettingsCategory<?>> Optional<T> getSelectedTemplatesCategory(Class<T> categoryClass) {
+	public <T extends ISettingsCategory<?, ?>> Optional<T> getSelectedTemplatesCategory(Class<T> categoryClass) {
 		return templatePersistanceContainer.getSelectedTemplate().map(selectedTemplate -> selectedTemplate.getTypeCategory(categoryClass));
 	}
 
@@ -287,9 +288,17 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return false;
 	}
 
-	private class ViewOnlyStorageInventorySlot extends SlotItemHandler {
-		public ViewOnlyStorageInventorySlot(IItemHandler inventoryHandler, int slotIndex) {
-			super(inventoryHandler, slotIndex, 0, 0);
+	private class ViewOnlyStorageInventorySlot extends ResourceHandlerSlot {
+		private final int slotIndex;
+
+		public ViewOnlyStorageInventorySlot(ResourceHandler<ItemResource> inventoryHandler, int slotIndex) {
+			super(inventoryHandler, (index, resource, amount) -> {/* noop */}, slotIndex, 0, 0);
+			this.slotIndex = slotIndex;
+		}
+
+		@Override
+		public int getSlotIndex() {
+			return slotIndex;
 		}
 
 		@Override
@@ -308,20 +317,20 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return storageWrapper.getNumberOfSlotRows();
 	}
 
-	protected static <C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> void addFactory(String categoryName, ISettingsContainerFactory<C, T> factory) {
+	protected static <C extends ISettingsCategory<?, ?>, T extends SettingsContainerBase<C>> void addFactory(String categoryName, ISettingsContainerFactory<C, T> factory) {
 		SETTINGS_CONTAINER_FACTORIES.put(categoryName, factory);
 	}
 
-	public interface ISettingsContainerFactory<C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> {
+	public interface ISettingsContainerFactory<C extends ISettingsCategory<?, ?>, T extends SettingsContainerBase<C>> {
 		T create(SettingsContainerMenu<?> settingsContainer, String categoryName, C category);
 	}
 
-	private static <C extends ISettingsCategory<?>> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name, C category) {
+	private <C extends ISettingsCategory<?, ?>> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name, C category) {
 		//noinspection unchecked
 		return (SettingsContainerBase<C>) getSettingsContainerFactory(name).create(settingsContainer, name, category);
 	}
 
-	private static <C extends ISettingsCategory<?>, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
+	protected <C extends ISettingsCategory<?, ?>, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
 		//noinspection unchecked
 		return (ISettingsContainerFactory<C, T>) SETTINGS_CONTAINER_FACTORIES.get(name);
 	}
@@ -335,7 +344,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 	protected boolean isServer() {
-		return !player.level().isClientSide;
+		return !player.level().isClientSide();
 	}
 
 	public void sendAdditionalSlotInfo() {
@@ -345,7 +354,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		Set<Integer> inaccessibleSlots = new HashSet<>();
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
 		Map<Integer, Holder<Item>> slotFilterItems = new HashMap<>();
-		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
+		for (int slot = 0; slot < inventoryHandler.size(); slot++) {
 			if (!inventoryHandler.isSlotAccessible(slot)) {
 				inaccessibleSlots.add(slot);
 			}
@@ -377,7 +386,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			return;
 		}
 		Map<ResourceLocation, Set<Integer>> noItemSlotTextures = new HashMap<>();
-		for (int slot = 0; slot < storageWrapper.getInventoryHandler().getSlots(); slot++) {
+		for (int slot = 0; slot < storageWrapper.getInventoryHandler().size(); slot++) {
 			ResourceLocation noItemIcon = storageWrapper.getInventoryHandler().getNoItemIcon(slot);
 			if (noItemIcon != null) {
 				noItemSlotTextures.computeIfAbsent(noItemIcon, rl -> new HashSet<>()).add(slot);

@@ -18,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.IItemActionPayloadHandler;
@@ -27,6 +28,7 @@ import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotTracker;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
@@ -155,11 +157,13 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 
 	private interface IDepositHandler {
 		boolean isPresent(ItemStackKey stackKey);
+
 		ItemStack deposit(ItemStack stack);
 	}
 
 	private static class ControllerDepositHandler implements IDepositHandler {
 		private final ControllerBlockEntityBase controller;
+
 		public ControllerDepositHandler(ControllerBlockEntityBase controller) {
 			this.controller = controller;
 		}
@@ -171,12 +175,14 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 
 		@Override
 		public ItemStack deposit(ItemStack stack) {
-			return controller.insertItem(stack, false);
+			int inserted = InventoryHelper.insert(controller, ItemResource.of(stack), stack.getCount());
+			return inserted == 0 ? stack : stack.copyWithCount(stack.getCount() - inserted);
 		}
 	}
 
 	private static class StorageDepositHandler implements IDepositHandler {
 		private final InventoryHandler inventoryHandler;
+
 		public StorageDepositHandler(InventoryHandler inventoryHandler) {
 			this.inventoryHandler = inventoryHandler;
 		}
@@ -184,14 +190,15 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 		@Override
 		public boolean isPresent(ItemStackKey stackKey) {
 			ISlotTracker slotTracker = inventoryHandler.getSlotTracker();
-			return slotTracker.getPartialStacks().contains(stackKey) || slotTracker.getFullStacks().contains(stackKey)
-					|| slotTracker.getItems().contains(stackKey.getStack().getItem())
-					|| slotTracker.hasStackMemorizedOrFiltered(stackKey.getStack());
+			if (slotTracker.getPartialStacks().contains(stackKey) || slotTracker.getFullStacks().contains(stackKey)
+					|| slotTracker.getItems().contains(stackKey.stack().getItem())) return true;
+			return slotTracker.hasStackMemorizedOrFiltered(stackKey.stack());
 		}
 
 		@Override
 		public ItemStack deposit(ItemStack stack) {
-			return inventoryHandler.insertItem(stack, false);
+			int inserted = InventoryHelper.insert(inventoryHandler, ItemResource.of(stack), stack.getCount());
+			return inserted == 0 ? stack : stack.copyWithCount(stack.getCount() - inserted);
 		}
 	}
 }

@@ -1,24 +1,34 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
-public enum Context {
-	PLAYER(0),
-	STORAGE(1);
+import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.StringRepresentable;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
-	private final int id;
+public enum Context implements StringRepresentable {
+	PLAYER("player"),
+	CONTAINER("container");
 
-	Context(int id) {
-		this.id = id;
+	public static final Codec<Context> CODEC = StringRepresentable.fromEnum(Context::values);
+	public static final StreamCodec<FriendlyByteBuf, Context> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(Context.class);
+
+	private final String name;
+
+	Context(String name) {
+		this.name = name;
 	}
 
-	public int getId() {
-		return id;
-	}
-
-	public static Context fromId(int id) {
-		if (PLAYER.id == id) {
+	public static Context fromName(String name) {
+		if (PLAYER.name.equals(name)) {
 			return PLAYER;
 		} else {
-			return STORAGE;
+			return CONTAINER;
 		}
+	}
+
+	@Override
+	public String getSerializedName() {
+		return name;
 	}
 }

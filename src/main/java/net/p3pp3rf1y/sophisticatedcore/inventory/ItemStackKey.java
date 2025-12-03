@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,9 +11,14 @@ public final class ItemStackKey {
 	private final ItemStack stack;
 
 	private static final Map<ItemStack, ItemStackKey> CACHE = new ConcurrentHashMap<>();
+	private static final Map<ItemResource, ItemStackKey> RESOURCE_CACHE = new ConcurrentHashMap<>();
 
 	public static ItemStackKey of(ItemStack stack) {
 		return CACHE.computeIfAbsent(stack, ItemStackKey::new);
+	}
+
+	public static ItemStackKey of(ItemResource resource) {
+		return RESOURCE_CACHE.computeIfAbsent(resource, r -> of(r.toStack()));
 	}
 
 	private boolean hashInitialized = false;
@@ -27,8 +33,8 @@ public final class ItemStackKey {
 		CACHE.clear();
 	}
 
-	public ItemStack getStack() {
-		return stack;
+	public ItemResource toResource() {
+		return ItemResource.of(stack);
 	}
 
 	@Override

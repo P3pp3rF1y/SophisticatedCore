@@ -9,7 +9,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
@@ -78,7 +79,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 			upgrades.clear();
 			tooltipLines.clear();
 			if (storageUuid != null) {
-				wrapper.onContentsNbtUpdated();
+				wrapper.onContentsUpdated();
 				sortedContents = InventoryHelper.getCompactedStacksSortedByCount(wrapper.getInventoryHandler());
 				upgrades = new ArrayList<>(wrapper.getUpgradeHandler().getSlotWrappers().values());
 				addMultiplierTooltip(wrapper);
@@ -154,8 +155,8 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	}
 
 	private void addEnergyTooltip(IStorageWrapper wrapper) {
-		wrapper.getEnergyStorage().ifPresent(energyStorage -> tooltipLines.add(Component.translatable(getEnergyTooltipTranslation(),
-				Component.literal(CountAbbreviator.abbreviate(energyStorage.getEnergyStored())).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED)
+		wrapper.getEnergyHandler().ifPresent(energyStorage -> tooltipLines.add(Component.translatable(getEnergyTooltipTranslation(),
+				Component.literal(CountAbbreviator.abbreviate(energyStorage.getAmountAsInt())).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED)
 		));
 	}
 
@@ -165,15 +166,14 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 
 	private void addFluidTooltip(IStorageWrapper wrapper) {
 		wrapper.getFluidHandler().ifPresent(fluidHandler -> {
-			for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
-				FluidStack fluid = fluidHandler.getFluidInTank(tank);
+			for (int tank = 0; tank < fluidHandler.size(); tank++) {
+				FluidResource fluid = fluidHandler.getResource(tank);
 				if (fluid.isEmpty()) {
 					tooltipLines.add(Component.translatable(getEmptyFluidTooltipTranslation()).withStyle(ChatFormatting.BLUE));
 				} else {
 					tooltipLines.add(Component.translatable(getFluidTooltipTranslation(),
-							Component.literal(CountAbbreviator.abbreviate(fluid.getAmount())).withStyle(ChatFormatting.WHITE),
-							Component.translatable(fluid.getFluidType().getDescriptionId(fluid)).withStyle(ChatFormatting.BLUE)
-
+							Component.literal(CountAbbreviator.abbreviate(fluidHandler.getAmountAsInt(tank))).withStyle(ChatFormatting.WHITE),
+							Component.translatable(fluid.getFluidType().getDescriptionId(fluid.toStack(FluidType.BUCKET_VOLUME))).withStyle(ChatFormatting.BLUE)
 					));
 				}
 			}

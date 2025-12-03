@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.VarInt;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
@@ -16,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -80,6 +82,10 @@ public class StreamCodecHelper {
 		};
 	}
 
+	public static <B extends ByteBuf, V> StreamCodec.CodecOperation<B, V, V> nullable() {
+		return StreamCodecHelper::ofNullable;
+	}
+
 	public static <B extends ByteBuf, V> StreamCodec<B, V> singleton(Supplier<V> instantiator) {
 		return new StreamCodec<B, V>() {
 			@Override
@@ -92,6 +98,15 @@ public class StreamCodecHelper {
 				//noop
 			}
 		};
+	}
+
+	public static <B extends ByteBuf, T> StreamCodec<B, T> defaulting(
+			StreamCodec<B, T> inner, T defaultVal, java.util.function.Predicate<T> isDefault) {
+		return ByteBufCodecs.optional(inner).map(
+				opt -> opt.orElse(defaultVal),                     // decode: missing -> default
+				val -> isDefault.test(val) ? Optional.empty()      // encode: default -> omit
+						: Optional.of(val)
+		);
 	}
 
 	public static <B extends ByteBuf, E, V extends Collection<E>> StreamCodec<B, V> ofCollection(StreamCodec<B, E> elementStreamCodec, Supplier<V> instantiator) {
@@ -117,13 +132,22 @@ public class StreamCodecHelper {
 	}
 
 	public static <B extends ByteBuf, K, V, M extends Map<K, V>> StreamCodec<B, M> ofMap(StreamCodec<? super B, K> keyStreamCodec, StreamCodec<? super B, V> valueStreamCodec, Supplier<M> instantiator) {
-		return new StreamCodec<B, M>() {
+		return ofMap(keyStreamCodec, k -> valueStreamCodec, instantiator);
+	}
+
+	public static <B extends ByteBuf, K, V, M extends Map<K, V>> StreamCodec<B,M> ofMap(
+			StreamCodec<? super B, K> keyStreamCodec,
+			Function<K, StreamCodec<? super B, V>> valueStreamCodec,
+			Supplier<M> instantiator) {
+		return new StreamCodec<>() {
 			@Override
 			public M decode(B buf) {
 				int size = buf.readInt();
 				M map = instantiator.get();
 				for (int i = 0; i < size; i++) {
-					map.put(keyStreamCodec.decode(buf), valueStreamCodec.decode(buf));
+					K key = keyStreamCodec.decode(buf);
+					V value = valueStreamCodec.apply(key).decode(buf);
+					map.put(key, value);
 				}
 				return map;
 			}
@@ -133,7 +157,7 @@ public class StreamCodecHelper {
 				buf.writeInt(map.size());
 				map.forEach((k, v) -> {
 					keyStreamCodec.encode(buf, k);
-					valueStreamCodec.encode(buf, v);
+					valueStreamCodec.apply(k).encode(buf, v);
 				});
 			}
 		};

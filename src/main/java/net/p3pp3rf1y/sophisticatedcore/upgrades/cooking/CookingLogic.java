@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -24,7 +25,9 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.ComponentItemHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.item.ItemAccessItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
@@ -430,39 +433,66 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		drainStoredExperience(i);
 	}
 
-	public class CookingComponentItemHandler extends ComponentItemHandler {
+	public class CookingComponentItemHandler extends ItemAccessItemHandler {
 		public CookingComponentItemHandler() {
-			super(CookingLogic.this.upgrade, ModCoreDataComponents.COOKING_INVENTORY.get(), 3);
+			super(ItemAccess.forStack(CookingLogic.this.upgrade), ModCoreDataComponents.COOKING_INVENTORY.get(), 3);
 		}
 
 		@Override
-		protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
-			super.onContentsChanged(slot, oldStack, newStack);
+		protected ItemResource update(ItemResource accessResource, int index, ItemResource newResource, int newAmount) {
+			ItemResource result = super.update(accessResource, index, newResource, newAmount);
 			save();
-			if (slot == COOK_INPUT_SLOT) {
+			if (index == COOK_INPUT_SLOT) {
 				cookingRecipeInitialized = false;
 			}
+			return result;
+		}
+
+		public ItemStack getStackInSlot(int slot) {
+			ItemContainerContents contents = getContentsFromStack();
+			return getStackFromContents(contents, slot);
 		}
 
 		@Override
-		public boolean isItemValid(int slot, ItemStack stack) {
-			if (stack.isEmpty() || ItemStack.isSameItemSameComponents(getStackInSlot(slot), stack)) {
+		public boolean isValid(int index, ItemResource resource) {
+			ItemStack stack = getStackInSlot(index);
+			if (resource.isEmpty() || resource.matches(stack)) {
 				return true;
 			}
 
-			return switch (slot) {
-				case COOK_INPUT_SLOT -> isInput.test(stack);
-				case FUEL_SLOT -> isFuel.test(stack);
+			return switch (index) {
+				case COOK_INPUT_SLOT -> isInput.test(resource.toStack());
+				case FUEL_SLOT -> isFuel.test(resource.toStack());
 				default -> true;
 			};
 		}
 
+		public void setStackInSlot(int index, ItemStack stack) {
+			ItemResource resource = ItemResource.of(stack);
+			if (!isValid(index, resource)) {
+				return;
+			}
+			setStackInSlotWithoutValidation(index, stack);
+			save();
+			if (index == COOK_INPUT_SLOT) {
+				cookingRecipeInitialized = false;
+			}
+
+		}
+
 		public void setStackInSlotWithoutValidation(int slot, ItemStack stack) {
-			ItemContainerContents contents = getContents();
+			ItemContainerContents contents = getContentsFromStack();
 			ItemStack existing = getStackFromContents(contents, slot);
 			if (!ItemStack.matches(stack, existing)) {
-				updateContents(contents, stack, slot);
+				NonNullList<ItemStack> list = NonNullList.withSize(Math.max(contents.getSlots(), this.size), ItemStack.EMPTY);
+				contents.copyInto(list);
+				list.set(slot, stack);
+				upgrade.set(component, ItemContainerContents.fromItems(list));
 			}
+		}
+
+		private ItemContainerContents getContentsFromStack() {
+			return CookingLogic.this.upgrade.getOrDefault(ModCoreDataComponents.COOKING_INVENTORY.get(), ItemContainerContents.EMPTY);
 		}
 	}
 }

@@ -1,25 +1,23 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
-import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderData;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderDataHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
-import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("java:S4144")
@@ -32,7 +30,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	@Nullable
 	private InventoryHandler inventoryHandler;
 	@Nullable
-	private RenderInfo renderInfo;
+	private RenderDataHandler renderDataHandler;
 	@Nullable
 	private SettingsHandler settingsHandler;
 
@@ -45,17 +43,17 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public ITrackedContentsItemHandler getInventoryForUpgradeProcessing() {
+	public ITrackedContentsItemResourceHandler getInventoryForUpgradeProcessing() {
 		return getInventoryHandler();
 	}
 
 	@Override
 	public InventoryHandler getInventoryHandler() {
 		if (inventoryHandler == null) {
-			inventoryHandler = new InventoryHandler(0, this, new CompoundTag(), () -> {
+			inventoryHandler = new InventoryHandler(0, this, new ContainerContents(), () -> {
 			}, 64, new StackUpgradeConfig(new ModConfigSpec.Builder())) {
 				@Override
-				protected boolean isAllowed(ItemStack stack) {
+				protected boolean isAllowed(ItemResource resource) {
 					return true;
 				}
 			};
@@ -64,37 +62,17 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public ITrackedContentsItemHandler getInventoryForInputOutput() {
+	public ITrackedContentsItemResourceHandler getInventoryForInputOutput() {
 		return getInventoryHandler();
 	}
 
 	@Override
 	public SettingsHandler getSettingsHandler() {
 		if (settingsHandler == null) {
-			settingsHandler = new SettingsHandler(new CompoundTag(), () -> {
-			}, this::getInventoryHandler, this::getRenderInfo) {
+			settingsHandler = new SettingsHandler(new ContainerContents.SettingsData(), () -> {
+			}, this::getInventoryHandler, this::getRenderDataHandler, "") {
 				@Override
-				protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
-					return contentsNbt;
-				}
-
-				@Override
-				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
-					//noop
-				}
-
-				@Override
-				public String getGlobalSettingsCategoryName() {
-					return "";
-				}
-
-				@Override
-				public ISettingsCategory<?> instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
-					return new MainSettingsCategory<>(categoryNbt, saveNbt, "");
-				}
-
-				@Override
-				protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
+				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
 					//noop
 				}
 			};
@@ -105,7 +83,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	@Override
 	public UpgradeHandler getUpgradeHandler() {
 		if (upgradeHandler == null) {
-			upgradeHandler = new UpgradeHandler(0, this, new CompoundTag(), () -> {
+			upgradeHandler = new UpgradeHandler(0, this, new ContainerContents(), () -> {
 			}, () -> {
 			});
 		}
@@ -164,7 +142,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public void onContentsNbtUpdated() {
+	public void onContentsUpdated() {
 		//noop
 	}
 
@@ -189,23 +167,13 @@ public class NoopStorageWrapper implements IStorageWrapper {
 	}
 
 	@Override
-	public RenderInfo getRenderInfo() {
-		if (renderInfo == null) {
-			renderInfo = new RenderInfo(() -> () -> {
+	public RenderDataHandler getRenderDataHandler() {
+		if (renderDataHandler == null) {
+			renderDataHandler = new RenderDataHandler(new RenderData(), renderData -> {
 			}) {
-
-				@Override
-				protected void serializeRenderInfo(CompoundTag renderInfo) {
-					//noop
-				}
-
-				@Override
-				protected Optional<CompoundTag> getRenderInfoTag() {
-					return Optional.empty();
-				}
 			};
 		}
-		return renderInfo;
+		return renderDataHandler;
 	}
 
 	@Override

@@ -1,9 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
@@ -14,27 +10,27 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class InventoryPartitioner {
-	public static final String BASE_INDEXES_TAG = "baseIndexes";
 	private IInventoryPartHandler[] inventoryPartHandlers;
 
-	private int[] baseIndexes;
+	private ContainerContents.PartitionerData partitionerData;
 	private final InventoryHandler parent;
 
-	public InventoryPartitioner(CompoundTag tag, InventoryHandler parent, Supplier<MemorySettingsCategory> getMemorySettings) {
+	public InventoryPartitioner(ContainerContents.PartitionerData partitionerData, InventoryHandler parent, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.parent = parent;
-		deserializeNBT(tag, getMemorySettings);
+		this.partitionerData = partitionerData;
+		initPartHandlers(partitionerData, getMemorySettings);
 	}
 
 	private int getIndexForSlot(int slot) {
 		if (slot < 0) {return -1;}
 
-		if (baseIndexes.length == 1) {
+		if (partitionerData.baseIndexes().length == 1) {
 			return 0;
 		}
 
 		int i = 0;
-		for (; i < baseIndexes.length; i++) {
-			if (slot - baseIndexes[i] < 0) {
+		for (; i < partitionerData.baseIndexes().length; i++) {
+			if (slot - partitionerData.baseIndexes()[i] < 0) {
 				return i - 1;
 			}
 		}
@@ -42,7 +38,7 @@ public class InventoryPartitioner {
 	}
 
 	public IInventoryPartHandler getPartBySlot(int slot) {
-		if (slot < 0 || slot >= parent.getSlots()) {
+		if (slot < 0 || slot >= parent.size()) {
 			return IInventoryPartHandler.EMPTY;
 		}
 		int index = getIndexForSlot(slot);
@@ -100,10 +96,10 @@ public class InventoryPartitioner {
 	public Optional<SlotRange> getFirstSpace(int maxNumberOfSlots) {
 		for (int partIndex = 0; partIndex < inventoryPartHandlers.length; partIndex++) {
 			if (inventoryPartHandlers[partIndex].canBeReplaced()) {
-				int firstSlot = baseIndexes[partIndex];
-				int numberOfSlots = baseIndexes.length > partIndex + 1 ? baseIndexes[partIndex + 1] - firstSlot : parent.getSlots() - firstSlot;
+				int firstSlot = partitionerData.baseIndexes()[partIndex];
+				int numberOfSlots = partitionerData.baseIndexes().length > partIndex + 1 ? partitionerData.baseIndexes()[partIndex + 1] - firstSlot : parent.size() - firstSlot;
 				numberOfSlots = Math.min(numberOfSlots, maxNumberOfSlots);
-				return numberOfSlots > 0 ? Optional.of(new SlotRange(baseIndexes[partIndex], numberOfSlots)) : Optional.empty();
+				return numberOfSlots > 0 ? Optional.of(new SlotRange(partitionerData.baseIndexes()[partIndex], numberOfSlots)) : Optional.empty();
 			}
 		}
 		return Optional.empty();
@@ -111,7 +107,7 @@ public class InventoryPartitioner {
 
 	public void addInventoryPart(int inventorySlot, int numberOfSlots, IInventoryPartHandler inventoryPartHandler) {
 		int index = getIndexForSlot(inventorySlot);
-		if (index < 0 || index >= inventoryPartHandlers.length || baseIndexes[index] != inventorySlot) {
+		if (index < 0 || index >= inventoryPartHandlers.length || partitionerData.baseIndexes()[index] != inventorySlot) {
 			return;
 		}
 
@@ -120,21 +116,21 @@ public class InventoryPartitioner {
 
 		for (int i = 0; i < index; i++) {
 			newParts.add(inventoryPartHandlers[i]);
-			newBaseIndexes.add(baseIndexes[i]);
+			newBaseIndexes.add(partitionerData.baseIndexes()[i]);
 		}
 
 		newParts.add(inventoryPartHandler);
 		newBaseIndexes.add(inventorySlot);
 
 		int newNextSlot = inventorySlot + numberOfSlots;
-		if (inventoryPartHandlers[index].getSlots() > newNextSlot) {
-			newParts.add(new IInventoryPartHandler.Default(parent, parent.getSlots() - newNextSlot));
+		if (inventoryPartHandlers[index].size() > newNextSlot) {
+			newParts.add(new IInventoryPartHandler.Default(parent, parent.size() - newNextSlot));
 			newBaseIndexes.add(newNextSlot);
 		}
 
 		for (int i = index + 1; i < inventoryPartHandlers.length; i++) {
 			newParts.add(inventoryPartHandlers[i]);
-			newBaseIndexes.add(baseIndexes[i]);
+			newBaseIndexes.add(partitionerData.baseIndexes()[i]);
 		}
 
 		updatePartsAndIndexesFromLists(newParts, newBaseIndexes);
@@ -146,49 +142,49 @@ public class InventoryPartitioner {
 	public void removeInventoryPart(int inventorySlot) {
 		int index = getIndexForSlot(inventorySlot);
 
-		if (index < 0 || index >= inventoryPartHandlers.length || baseIndexes[index] != inventorySlot) {
+		if (index < 0 || index >= inventoryPartHandlers.length || partitionerData.baseIndexes()[index] != inventorySlot) {
 			return;
 		}
 
 		if (inventoryPartHandlers.length == 1) {
-			updatePartsAndIndexesFromLists(List.of(new IInventoryPartHandler.Default(parent, parent.getSlots())), List.of(0));
+			updatePartsAndIndexesFromLists(List.of(new IInventoryPartHandler.Default(parent, parent.size())), List.of(0));
 			parent.onFilterItemsChanged();
 			return;
 		}
 
-		int slotsAtPartIndex = (baseIndexes.length > index + 1 ? baseIndexes[index + 1] : parent.getSlots()) - baseIndexes[index];
+		int slotsAtPartIndex = (partitionerData.baseIndexes().length > index + 1 ? partitionerData.baseIndexes()[index + 1] : parent.size()) - partitionerData.baseIndexes()[index];
 
 		List<IInventoryPartHandler> newParts = new ArrayList<>();
 		List<Integer> newBaseIndexes = new ArrayList<>();
 
 		boolean replacedNext = false;
 		for (int i = 0; i < index; i++) {
-			if (i == index - 1 && inventoryPartHandlers[i] instanceof IInventoryPartHandler.Default && baseIndexes.length > index + 1 && inventoryPartHandlers[index + 1] instanceof IInventoryPartHandler.Default) {
-				newParts.add(new IInventoryPartHandler.Default(parent, inventoryPartHandlers[i].getSlots() + inventoryPartHandlers[index + 1].getSlots() + slotsAtPartIndex));
-				newBaseIndexes.add(baseIndexes[i]);
+			if (i == index - 1 && inventoryPartHandlers[i] instanceof IInventoryPartHandler.Default && partitionerData.baseIndexes().length > index + 1 && inventoryPartHandlers[index + 1] instanceof IInventoryPartHandler.Default) {
+				newParts.add(new IInventoryPartHandler.Default(parent, inventoryPartHandlers[i].size() + inventoryPartHandlers[index + 1].size() + slotsAtPartIndex));
+				newBaseIndexes.add(partitionerData.baseIndexes()[i]);
 				replacedNext = true;
 				continue;
 			}
 
 			newParts.add(inventoryPartHandlers[i]);
-			newBaseIndexes.add(baseIndexes[i]);
+			newBaseIndexes.add(partitionerData.baseIndexes()[i]);
 		}
 
-		if (!replacedNext && baseIndexes.length > index + 1) {
+		if (!replacedNext && partitionerData.baseIndexes().length > index + 1) {
 			if (inventoryPartHandlers[index + 1] instanceof IInventoryPartHandler.Default) {
-				newParts.add(new IInventoryPartHandler.Default(parent, inventoryPartHandlers[index + 1].getSlots() + slotsAtPartIndex));
+				newParts.add(new IInventoryPartHandler.Default(parent, inventoryPartHandlers[index + 1].size() + slotsAtPartIndex));
 				newBaseIndexes.add(inventorySlot);
 			} else {
 				newParts.add(new IInventoryPartHandler.Default(parent, slotsAtPartIndex));
 				newBaseIndexes.add(inventorySlot);
 				newParts.add(inventoryPartHandlers[index + 1]);
-				newBaseIndexes.add(baseIndexes[index + 1]);
+				newBaseIndexes.add(partitionerData.baseIndexes()[index + 1]);
 			}
 		}
 
 		for (int i = index + 2; i < inventoryPartHandlers.length; i++) {
 			newParts.add(inventoryPartHandlers[i]);
-			newBaseIndexes.add(baseIndexes[i]);
+			newBaseIndexes.add(partitionerData.baseIndexes()[i]);
 		}
 
 		updatePartsAndIndexesFromLists(newParts, newBaseIndexes);
@@ -198,41 +194,22 @@ public class InventoryPartitioner {
 
 	private void updatePartsAndIndexesFromLists(List<IInventoryPartHandler> newParts, List<Integer> newBaseIndexes) {
 		inventoryPartHandlers = newParts.toArray(new IInventoryPartHandler[0]);
-		baseIndexes = new int[newBaseIndexes.size()];
+		int[] baseIndexes = newBaseIndexes.stream().mapToInt(i -> i).toArray();
+		List<String> partNames = new ArrayList<>();
 		for (int i = 0; i < newBaseIndexes.size(); i++) {
-			baseIndexes[i] = newBaseIndexes.get(i);
+			partNames.add(inventoryPartHandlers[i].getName());
 		}
+		partitionerData.setPartBaseIndexesAndNames(baseIndexes, partNames);
 		parent.saveInventory();
 	}
 
-	public CompoundTag serializeNBT() {
-		CompoundTag ret = new CompoundTag();
-		ret.putIntArray(BASE_INDEXES_TAG, baseIndexes);
-		ListTag partNames = new ListTag();
-		for (IInventoryPartHandler inventoryPartHandler : inventoryPartHandlers) {
-			partNames.add(StringTag.valueOf(inventoryPartHandler.getName()));
-		}
-		ret.put("inventoryPartNames", partNames);
-		return ret;
-	}
-
-	private void deserializeNBT(CompoundTag tag, Supplier<MemorySettingsCategory> getMemorySettings) {
-		if (!tag.contains(BASE_INDEXES_TAG)) {
-			this.inventoryPartHandlers = new IInventoryPartHandler[] {new IInventoryPartHandler.Default(parent, parent.getSlots())};
-			this.baseIndexes = new int[] {0};
-			return;
-		}
-
-		baseIndexes = tag.getIntArray(BASE_INDEXES_TAG).orElse(new int[] {0});
-		inventoryPartHandlers = new IInventoryPartHandler[baseIndexes.length];
-		ListTag partNamesTag = tag.getListOrEmpty("inventoryPartNames");
+	private void initPartHandlers(ContainerContents.PartitionerData partitionerData, Supplier<MemorySettingsCategory> getMemorySettings) {
+		inventoryPartHandlers = new IInventoryPartHandler[partitionerData.baseIndexes().length];
 		int i = 0;
-		for (Tag t : partNamesTag) {
-			SlotRange slotRange = new SlotRange(baseIndexes[i], (i + 1 < baseIndexes.length ? baseIndexes[i + 1] : parent.getSlots()) - baseIndexes[i]);
+		for (String partName : partitionerData.partNames()) {
+			SlotRange slotRange = new SlotRange(partitionerData.baseIndexes()[i], (i + 1 < partitionerData.baseIndexes().length ? partitionerData.baseIndexes()[i + 1] : parent.size()) - partitionerData.baseIndexes()[i]);
 			int finalI = i;
-			t.asString().ifPresent(partName -> {
-				inventoryPartHandlers[finalI] = InventoryPartRegistry.instantiatePart(partName, parent, slotRange, getMemorySettings);
-			});
+			inventoryPartHandlers[finalI] = InventoryPartRegistry.instantiatePart(partName, parent, slotRange, getMemorySettings);
 			i++;
 		}
 	}

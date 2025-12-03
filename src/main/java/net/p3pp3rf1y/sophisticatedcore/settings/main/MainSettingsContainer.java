@@ -3,35 +3,40 @@ package net.p3pp3rf1y.sophisticatedcore.settings.main;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
-import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsContainerBase;
-import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
 
-public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCategory<?>> {
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCategory> {
 	private static final String CONTEXT_TAG = "context";
-	private Context context = Context.PLAYER;
+	private static final String SHIFT_CLICK_INTO_OPEN_TAB_FIRST = "shiftClickIntoOpenTabFirst";
+	private static final String KEEP_TAB_OPEN_TAG = "keepTabOpen";
+	private static final String KEEP_SEARCH_PHRASE_TAG = "keepSearchPhrase";
 
-	public MainSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MainSettingsCategory<?> category) {
+	public MainSettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, MainSettingsCategory category) {
 		super(settingsContainer, categoryName, category);
 	}
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		data.getInt(CONTEXT_TAG).ifPresent(contextId -> {
-			context = Context.fromId(contextId);
-		});
-		for (String tagName : data.keySet()) {
-			SettingsManager.getSetting(tagName).ifPresent(setting -> setSettingValue(getPlayer(), setting, data));
-		}
+		data.getString(CONTEXT_TAG).ifPresent(name -> getCategory().setContext(Context.fromName(name)));
+		data.getBoolean(SHIFT_CLICK_INTO_OPEN_TAB_FIRST).ifPresent(this::setShiftClickIntoOpenTab);
+		data.getBoolean(KEEP_TAB_OPEN_TAG).ifPresent(this::setKeepTabOpen);
+		data.getBoolean(KEEP_SEARCH_PHRASE_TAG).ifPresent(this::setKeepSearchPhrase);
+	}
+
+	private void setShiftClickIntoOpenTab(boolean value) {
+		setSettingValue(data -> data.setShiftClickIntoOpenTab(value), tag -> tag.putBoolean(SHIFT_CLICK_INTO_OPEN_TAB_FIRST, value));
 	}
 
 	public void toggleContext() {
-		context = context == Context.PLAYER ? Context.STORAGE : Context.PLAYER;
-		sendIntToServer(CONTEXT_TAG, context.getId());
+		getCategory().toggleContext();
+		sendStringToServer(CONTEXT_TAG, getContext().getSerializedName());
 	}
 
 	public Context getContext() {
-		return context;
+		return getCategory().getContext();
 	}
 
 	protected Player getPlayer() {
@@ -39,73 +44,51 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 	}
 
 	public void toggleShiftClickIntoOpenTab() {
-		toggleBooleanSetting(getPlayer(), SettingsManager.SHIFT_CLICK_INTO_OPEN_TAB_FIRST);
+		setShiftClickIntoOpenTab(!shouldShiftClickIntoOpenTab());
 	}
 
 	public boolean shouldShiftClickIntoOpenTab() {
-		return getSettingValue(SettingsManager.SHIFT_CLICK_INTO_OPEN_TAB_FIRST);
+		return getSettingValue(MainSettingsCategoryData::shiftClickIntoOpenTab);
+	}
+
+	private void setKeepTabOpen(boolean value) {
+		setSettingValue(data -> data.setKeepTabOpen(value), tag -> tag.putBoolean(KEEP_TAB_OPEN_TAG, value));
 	}
 
 	public void toggleKeepTabOpen() {
-		toggleBooleanSetting(getPlayer(), SettingsManager.KEEP_TAB_OPEN);
+		setKeepTabOpen(!shouldKeepTabOpen());
+	}
+
+	private void setKeepSearchPhrase(boolean value) {
+		setSettingValue(data -> data.setKeepSearchPhrase(value), tag -> tag.putBoolean(KEEP_SEARCH_PHRASE_TAG, value));
 	}
 
 	public void toggleKeepSearchPhrase() {
-		toggleBooleanSetting(getPlayer(), SettingsManager.KEEP_SEARCH_PHRASE);
-		clearSearchPhraseIfOff(getPlayer());
-	}
-
-	private void clearSearchPhraseIfOff(Player player) {
-		if (!shouldKeepSearchPhrase() && !getSettingValue(SettingsManager.SEARCH_PHRASE).isEmpty()) {
-			if (context == Context.PLAYER) {
-				SettingsManager.setPlayerSetting(player, getCategory().getPlayerSettingsTagName(), SettingsManager.SEARCH_PHRASE, "");
-			} else {
-				SettingsManager.setSetting(player, getCategory().getPlayerSettingsTagName(), getCategory(), SettingsManager.SEARCH_PHRASE, "");
-			}
-			sendSettingValueToServer(SettingsManager.SEARCH_PHRASE, "");
-		}
+		setKeepSearchPhrase(!shouldKeepSearchPhrase());
 	}
 
 	public boolean shouldKeepTabOpen() {
-		return getSettingValue(SettingsManager.KEEP_TAB_OPEN);
+		return getSettingValue(MainSettingsCategoryData::keepTabOpen);
 	}
 
 	public boolean shouldKeepSearchPhrase() {
-		return getSettingValue(SettingsManager.KEEP_SEARCH_PHRASE);
+		return getSettingValue(MainSettingsCategoryData::keepSearchPhrase);
 	}
 
-	protected  <S> S getSettingValue(MainSetting<S> setting) {
-		if (context == Context.PLAYER) {
-			return SettingsManager.getPlayerSettingOrDefault(getPlayer(), getCategory().getPlayerSettingsTagName(), setting);
+	protected <T> T getSettingValue(Function<MainSettingsCategoryData, T> getter) {
+		return getSettingsContainer().getStorageWrapper().getSettingsHandler().getMainSettingValue(getPlayer(), getter);
+	}
+
+	public void setSettingValue(Consumer<MainSettingsCategoryData> setter, Consumer<CompoundTag> dataSetter) {
+		if (getContext() == Context.PLAYER) {
+			PlayerMainSettingsSavedData.get().setvalue(getPlayer().getUUID(), getCategory().getPlayerSettingsName(), setter);
 		} else {
-			return SettingsManager.getSettingValue(getPlayer(), getCategory().getPlayerSettingsTagName(), getCategory(), setting);
+			getCategory().setValue(setter);
 		}
-	}
-
-	private <S> void setSettingValue(Player player, MainSetting<S> setting, CompoundTag data) {
-		setting.getValue(data).ifPresent(value -> {
-			if (context == Context.PLAYER) {
-				SettingsManager.setPlayerSetting(player, getCategory().getPlayerSettingsTagName(), setting, value);
-			} else {
-				SettingsManager.setSetting(player, getCategory().getPlayerSettingsTagName(), getCategory(), setting, value);
-			}
+		sendDataToServer(() -> {
+			CompoundTag data = new CompoundTag();
+			dataSetter.accept(data);
+			return data;
 		});
-	}
-
-	protected void toggleBooleanSetting(Player player, MainSetting<Boolean> setting) {
-		if (context == Context.PLAYER) {
-			boolean value = !SettingsManager.getPlayerSettingOrDefault(player, getCategory().getPlayerSettingsTagName(), setting);
-			SettingsManager.setPlayerSetting(player, getCategory().getPlayerSettingsTagName(), setting, value);
-			sendSettingValueToServer(setting, value);
-		} else {
-			boolean value = !SettingsManager.getSettingValue(player, getCategory().getPlayerSettingsTagName(), getCategory(), setting);
-			sendSettingValueToServer(setting, value);
-		}
-	}
-
-	private <T> void sendSettingValueToServer(MainSetting<T> setting, T value) {
-		CompoundTag data = new CompoundTag();
-		setting.setValue(data, value);
-		sendDataToServer(() -> data);
 	}
 }

@@ -4,6 +4,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 
 import java.util.Collections;
@@ -39,6 +40,19 @@ public class FluidFilterLogic {
 				return;
 			}
 		}
+	}
+
+	public boolean fluidMatches(FluidResource resource) {
+		return noFilter || matchesFluidFilter(resource);
+	}
+
+	private boolean matchesFluidFilter(FluidResource resource) {
+		for (FluidStack fluidFilter : fluidFilters) {
+			if (resource.matches(fluidFilter)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean fluidMatches(FluidStack fluid) {

@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.ItemActionHandlerRegistry;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RandHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
@@ -97,7 +98,12 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 		Component message;
 		if (payload.maxSlot() - payload.minSlot() == 1) {
 			if (transferredItems.isEmpty()) {
-				ItemStack item = payload.fillEmpty() ? filterStackKey.getStack() : player.getInventory().getItem(payload.minSlot());
+				ItemStack item;
+				if (payload.fillEmpty()) {
+					item = filterStackKey.stack();
+				} else {
+					item = player.getInventory().getItem(payload.minSlot());
+				}
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_item",
 						Component.literal(item.getHoverName().getString()).withStyle(ChatFormatting.RED));
 				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
@@ -122,13 +128,13 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 			InventoryHandler handler = entry.getValue();
 			int matchingStackSlot = handler.getSlotTracker().getFirstMatchingSlot(stackKey);
 			while (matchingStackSlot != -1 && playerInventoryStack.getCount() < playerInventoryStack.getMaxStackSize()) {
-				ItemStack extracted = handler.extractItem(matchingStackSlot, playerInventoryStack.getMaxStackSize() - playerInventoryStack.getCount(), false);
-				if (!extracted.isEmpty()) {
-					restocked.put(pos, extracted.copyWithCount(restocked.getOrDefault(pos, ItemStack.EMPTY).getCount() + extracted.getCount()));
+				int extracted = InventoryHelper.extract(handler, matchingStackSlot, stackKey.toResource(), playerInventoryStack.getMaxStackSize() - playerInventoryStack.getCount());
+				if (extracted > 0) {
+					restocked.put(pos, stackKey.stack().copyWithCount(restocked.getOrDefault(pos, ItemStack.EMPTY).getCount() + extracted));
 					if (playerInventoryStack.isEmpty()) {
-						playerInventoryStack = extracted.copy();
+						playerInventoryStack = stackKey.stack().copyWithCount(extracted);
 					} else {
-						playerInventoryStack.grow(extracted.getCount());
+						playerInventoryStack.grow(extracted);
 					}
 					player.getInventory().setItem(playerInventorySlot, playerInventoryStack);
 					restockedPlayerSlots.add(playerInventorySlot);

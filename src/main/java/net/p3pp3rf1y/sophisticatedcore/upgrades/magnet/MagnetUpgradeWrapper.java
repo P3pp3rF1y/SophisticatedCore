@@ -9,18 +9,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.XpHelper;
@@ -39,6 +39,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	private static final int COOLDOWN_TICKS = 10;
 
 	private static long nextTickTime = Long.MIN_VALUE;
+
 	public static void globalPostTick(LevelTickEvent.Pre event) {
 		if (event.getLevel().isClientSide()) {
 			return;
@@ -49,6 +50,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 			nextTickTime = gameTime + COOLDOWN_TICKS;
 		}
 	}
+
 	public static void onWorldUnload(LevelEvent.Unload evt) {
 		nextTickTime = Long.MIN_VALUE;
 	}
@@ -83,12 +85,12 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	}
 
 	@Override
-	public ItemStack pickup(Level level, ItemStack stack, boolean simulate) {
-		if (!shouldPickupItems() || !filterLogic.matchesFilter(stack)) {
-			return stack;
+	public int pickup(Level level, ItemResource resource, int amount, TransactionContext tx) {
+		if (!shouldPickupItems() || !filterLogic.matchesFilter(resource)) {
+			return 0;
 		}
 
-		return storageWrapper.getInventoryForUpgradeProcessing().insertItem(stack, simulate);
+		return storageWrapper.getInventoryForUpgradeProcessing().insert(resource, amount, tx);
 	}
 
 	@Override
@@ -107,7 +109,11 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	}
 
 	private boolean canFillStorageWithXp() {
-		return storageWrapper.getFluidHandler().map(fluidHandler -> fluidHandler.fill(ModFluids.EXPERIENCE_TAG, 1, ModFluids.XP_STILL.get(), IFluidHandler.FluidAction.SIMULATE) > 0).orElse(false);
+		return storageWrapper.getFluidHandler().map(fluidHandler -> {
+			try (Transaction tx = Transaction.openRoot()) {
+				return fluidHandler.insert(ModFluids.EXPERIENCE_TAG, 1, ModFluids.XP_STILL.get(), tx) > 0;
+			}
+		}).orElse(false);
 	}
 
 	private int pickupXpOrbs(@Nullable Entity entity, Level level, BlockPos pos) {
@@ -130,7 +136,13 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		int amountToTransfer = XpHelper.experienceToLiquid(xpOrb.getValue());
 
 		return storageWrapper.getFluidHandler().map(fluidHandler -> {
-			int amountAdded = fluidHandler.fill(ModFluids.EXPERIENCE_TAG, amountToTransfer, ModFluids.XP_STILL.get(), IFluidHandler.FluidAction.EXECUTE);
+			int amountAdded;
+			try (Transaction tx = Transaction.openRoot()) {
+				amountAdded = fluidHandler.insert(ModFluids.EXPERIENCE_TAG, amountToTransfer, ModFluids.XP_STILL.get(), tx);
+				if (amountAdded > 0) {
+					tx.commit();
+				}
+			}
 
 			if (amountAdded > 0) {
 				Vec3 pos = xpOrb.position();
@@ -175,12 +187,14 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		return cooldown;
 	}
 
-	@SuppressWarnings("squid:S1764") // this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
+	@SuppressWarnings("squid:S1764")
+	// this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
 	private static void playItemPickupSound(Level level, @Nonnull Player player) {
 		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, (level.random.nextFloat() - level.random.nextFloat()) * 1.4F + 2.0F);
 	}
 
-	@SuppressWarnings("squid:S1764") // this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
+	@SuppressWarnings("squid:S1764")
+	// this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
 	private static void playXpPickupSound(Level level, @Nonnull Player player) {
 		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.1F, (level.random.nextFloat() - level.random.nextFloat()) * 0.35F + 0.9F);
 	}
@@ -205,20 +219,21 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 
 	private boolean tryToInsertItem(@Nullable Player player, ItemEntity itemEntity) {
 		ItemStack stack = itemEntity.getItem();
-		IItemHandlerSimpleInserter inventory = storageWrapper.getInventoryForUpgradeProcessing();
-		ItemStack remaining = inventory.insertItem(stack, true);
-		boolean insertedSomething = false;
-		if (remaining.getCount() != stack.getCount()) {
-			insertedSomething = true;
-			int originalCount = stack.getCount();
-			Item item = stack.getItem();
-			remaining = inventory.insertItem(stack, false);
-			itemEntity.setItem(remaining);
-			if (player != null) {
-				player.awardStat(Stats.ITEM_PICKED_UP.get(item), originalCount - remaining.getCount());
+		ItemResource resource = ItemResource.of(stack);
+
+		int inserted;
+		try (Transaction tx = Transaction.openRoot()) {
+			inserted = storageWrapper.getInventoryForUpgradeProcessing().insert(resource, stack.getCount(), tx);
+			if (inserted == 0) {
+				return false;
 			}
+			tx.commit();
 		}
-		return insertedSomething;
+		itemEntity.setItem(resource.toStack(stack.getCount() - inserted));
+		if (player != null) {
+			player.awardStat(Stats.ITEM_PICKED_UP.get(stack.getItem()), stack.getCount() - inserted);
+		}
+		return true;
 	}
 
 	public void setPickupItems(boolean pickupItems) {

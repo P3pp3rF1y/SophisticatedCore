@@ -6,21 +6,22 @@ import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CraftingItemHandler extends TransientCraftingContainer {
-	private final Supplier<IItemHandlerModifiable> supplyInventory;
+	private final Supplier<ResourceHandler<ItemResource>> supplyInventory;
 	private final Consumer<Container> onCraftingMatrixChanged;
 	private boolean itemsInitialized = false;
 	private List<ItemStack> items = List.of();
 
-	public CraftingItemHandler(Supplier<IItemHandlerModifiable> supplyInventory, Consumer<Container> onCraftingMatrixChanged) {
+	public CraftingItemHandler(Supplier<ResourceHandler<ItemResource>> supplyInventory, Consumer<Container> onCraftingMatrixChanged) {
 		super(new AbstractContainerMenu(null, -1) {
 			@Override
 			public ItemStack quickMoveStack(Player player, int index) {
@@ -38,27 +39,24 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 
 	@Override
 	public int getContainerSize() {
-		return supplyInventory.get().getSlots();
+		return supplyInventory.get().size();
 	}
 
 	@Override
 	public boolean isEmpty() {
-		return InventoryHelper.isEmpty(supplyInventory.get());
+		return ResourceHandlerUtil.isEmpty(supplyInventory.get());
 	}
 
 	@Override
 	public ItemStack getItem(int index) {
-		IItemHandlerModifiable itemHandler = supplyInventory.get();
-		return index >= itemHandler.getSlots() ? ItemStack.EMPTY : itemHandler.getStackInSlot(index);
+		ResourceHandler<ItemResource> itemHandler = supplyInventory.get();
+		return index >= itemHandler.size() ? ItemStack.EMPTY : itemHandler.getResource(index).toStack(itemHandler.getAmountAsInt(index));
 	}
 
 	@Override
 	public List<ItemStack> getItems() {
 		if (!itemsInitialized) {
-			items = new ArrayList<>();
-			for (int slot = 0; slot < supplyInventory.get().getSlots(); slot++) {
-				items.add(supplyInventory.get().getStackInSlot(slot));
-			}
+			items = InventoryHelper.getStacks(supplyInventory.get());
 			itemsInitialized = true;
 		}
 		return items;
@@ -71,18 +69,20 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 
 	@Override
 	public ItemStack removeItem(int index, int count) {
-		ItemStack itemstack = supplyInventory.get().extractItem(index, count, false);
-		if (!itemstack.isEmpty()) {
+		ResourceHandler<ItemResource> inventory = supplyInventory.get();
+		ItemResource resource = inventory.getResource(index);
+		int extracted = InventoryHelper.extract(supplyInventory.get(), resource, count);
+		if (extracted > 0) {
 			itemsInitialized = false;
 			onCraftingMatrixChanged.accept(this);
 		}
 
-		return itemstack;
+		return resource.toStack(extracted);
 	}
 
 	@Override
 	public void setItem(int index, ItemStack stack) {
-		supplyInventory.get().setStackInSlot(index, stack);
+		InventoryHelper.set(supplyInventory.get(), index, ItemResource.of(stack), stack.getCount());
 		onCraftingMatrixChanged.accept(this);
 		itemsInitialized = false;
 	}
@@ -95,7 +95,7 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 
 	@Override
 	public void fillStackedContents(StackedItemContents helper) {
-		InventoryHelper.iterate(supplyInventory.get(), (slot, stack) -> helper.accountSimpleStack(stack));
+		InventoryHelper.iterate(supplyInventory.get(), (slot, resource, amount) -> helper.accountSimpleStack(resource.toStack(amount)));
 	}
 
 }

@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
@@ -58,7 +59,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 	}
 
 	@Override
-	public boolean handleMouseReleased(double mouseX, double mouseY, int button) {
+	public boolean handleMouseReleased(MouseButtonEvent event) {
 		return false;
 	}
 

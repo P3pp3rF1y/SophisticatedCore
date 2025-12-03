@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
@@ -20,15 +20,16 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 
 	public JukeboxUpgradeContainer(Player player, int upgradeContainerId, JukeboxUpgradeWrapper upgradeWrapper, UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		for (int slot = 0; slot < upgradeWrapper.getDiscInventory().getSlots(); slot++) {
-			slots.add(new SlotItemHandler(upgradeWrapper.getDiscInventory(), slot, -100, -100) {
-				@Override
-				public void setChanged() {
-					super.setChanged();
-					if (upgradeWrapper.isPlaying() && getSlotIndex() == upgradeWrapper.getDiscSlotActive()) {
-						upgradeWrapper.stop(player);
-					}
-				}
+		for (int slot = 0; slot < upgradeWrapper.getDiscInventory().size(); slot++) {
+			int finalSlot = slot;
+			slots.add(new ResourceHandlerSlot(upgradeWrapper.getDiscInventory(),
+					(index, resource, amount) -> {
+						upgradeWrapper.getDiscInventory().set(index, resource, amount);
+						if (upgradeWrapper.isPlaying() && finalSlot == upgradeWrapper.getDiscSlotActive()) {
+							upgradeWrapper.stop(player);
+						}
+					},
+					slot, -100, -100) {
 			});
 		}
 	}

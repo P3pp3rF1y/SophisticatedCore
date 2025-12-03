@@ -5,6 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -152,7 +153,7 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
 		clickedOnScroll = false;
 		if (hasItemsInInputSlot) {
 			int listInnerLeftX = x + 1;
@@ -161,8 +162,8 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 
 			for (int recipeIndex = recipeIndexOffset; recipeIndex < maxRecipeIndexOffset; ++recipeIndex) {
 				int visibleRecipeIndex = recipeIndex - recipeIndexOffset;
-				double relativeX = mouseX - (listInnerLeftX + visibleRecipeIndex % 4 * 16);
-				double relativeY = mouseY - (listInnerTopY + Math.floorDiv(visibleRecipeIndex, 4) * 18);
+				double relativeX = event.x() - (listInnerLeftX + visibleRecipeIndex % 4 * 16);
+				double relativeY = event.y() - (listInnerTopY + Math.floorDiv(visibleRecipeIndex, 4) * 18);
 				if (relativeX >= 0.0D && relativeY >= 0.0D && relativeX < 16.0D && relativeY < 18.0D && container.selectRecipeIndex(recipeIndex)) {
 					Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_STONECUTTER_SELECT_RECIPE, 1.0F));
 					return true;
@@ -170,26 +171,26 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 			}
 
 			int sliderLeftX = listInnerLeftX + 67;
-			if (mouseX >= sliderLeftX && mouseX < sliderLeftX + 12 && mouseY >= listInnerTopY && mouseY < listInnerTopY + 54) {
+			if (event.x() >= sliderLeftX && event.x() < sliderLeftX + 12 && event.y() >= listInnerTopY && event.y() < listInnerTopY + 54) {
 				clickedOnScroll = true;
 				return true;
 			}
 		}
 
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(event, doubleClicked);
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+	public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
 		if (clickedOnScroll && canScroll()) {
 			int listTopY = y + LIST_Y_OFFSET;
 			int listBottomY = listTopY + 54;
-			sliderProgress = ((float) mouseY - listTopY - 7.5F) / ((listBottomY - listTopY) - 15.0F);
+			sliderProgress = ((float) event.y() - listTopY - 7.5F) / ((listBottomY - listTopY) - 15.0F);
 			sliderProgress = Mth.clamp(sliderProgress, 0.0F, 1.0F);
 			recipeIndexOffset = (int) ((sliderProgress * getHiddenRows()) + 0.5D) * 4;
 			return true;
 		} else {
-			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+			return super.mouseDragged(event, dragX, dragY);
 		}
 	}
 

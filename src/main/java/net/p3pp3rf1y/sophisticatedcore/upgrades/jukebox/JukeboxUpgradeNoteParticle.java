@@ -1,14 +1,19 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.*;
+import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 
 import javax.annotation.Nullable;
 
-public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
-	protected JukeboxUpgradeNoteParticle(ClientLevel level, double x, double y, double z) {
-		super(level, x, y, z, 0.0D, 0.0D, 0.0D);
+public class JukeboxUpgradeNoteParticle extends SingleQuadParticle {
+	protected JukeboxUpgradeNoteParticle(ClientLevel level, double x, double y, double z, TextureAtlasSprite sprite) {
+		super(level, x, y, z, 0.0D, 0.0D, 0.0D, sprite);
 		xd *= 0.01F;
 		yd *= 0.05F;
 		zd *= 0.01F;
@@ -22,8 +27,8 @@ public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
 	}
 
 	@Override
-	public ParticleRenderType getRenderType() {
-		return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+	protected Layer getLayer() {
+		return Layer.OPAQUE;
 	}
 
 	@Override
@@ -60,10 +65,8 @@ public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
 
 		@Nullable
 		@Override
-		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-			JukeboxUpgradeNoteParticle particle = new JukeboxUpgradeNoteParticle(level, x, y, z);
-			particle.pickSprite(spriteSet);
-			return particle;
+		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, RandomSource randomSource) {
+			return new JukeboxUpgradeNoteParticle(level, x, y, z, spriteSet.get(randomSource));
 		}
 	}
 }

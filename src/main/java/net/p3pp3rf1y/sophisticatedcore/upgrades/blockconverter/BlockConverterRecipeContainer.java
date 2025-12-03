@@ -28,7 +28,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, W extends BlockConverterUpgradeWrapper<?, ?>, RC extends BlockConverterRecipeContainer<R, W, RC, C>,  C extends BlockConverterUpgradeContainer<R, W, C, RC>> {
+public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, W extends BlockConverterUpgradeWrapper<?, ?>, RC extends BlockConverterRecipeContainer<R, W, RC, C>, C extends BlockConverterUpgradeContainer<R, W, C, RC>> {
 	private static final String DATA_SELECTED_RECIPE_INDEX = "selectedRecipeIndex";
 	private final Slot inputSlot;
 	private final IServerUpdater serverUpdater;
@@ -39,7 +39,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	private final DataSlot selectedRecipe = DataSlot.standalone();
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
-	private Runnable inventoryUpdateListener = () -> {};
+	private Runnable inventoryUpdateListener = () -> {
+	};
 	private final Supplier<Optional<ResourceKey<Recipe<?>>>> getLastSelectedRecipeId;
 	private final Consumer<ResourceKey<Recipe<?>>> setLastSelectedRecipeId;
 	private long lastOnTake = -1;
@@ -48,26 +49,11 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	public BlockConverterRecipeContainer(C upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level, SoundEvent craftSound) {
 		this.level = level;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
-			private boolean countIncreased = false;
-
 			@Override
-			public void setChanged() {
-				super.setChanged();
+			protected void setStackCopy(ItemStack stack) {
+				boolean countIncreased = getStackCopy().getCount() < stack.getCount();
+				super.setStackCopy(stack);
 				onCraftMatrixChanged(inputInventory, countIncreased);
-			}
-
-			@Override
-			public ItemStack safeInsert(ItemStack stack, int increment) {
-				countIncreased = increment > 0;
-				return super.safeInsert(stack, increment);
-			}
-
-			@Override
-			public ItemStack remove(int amount) {
-				ItemStack ret = super.remove(amount);
-				setChanged();
-				countIncreased = false;
-				return ret;
 			}
 		};
 		this.craftSound = craftSound;

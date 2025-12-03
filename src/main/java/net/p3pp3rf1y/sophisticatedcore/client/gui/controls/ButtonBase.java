@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import net.p3pp3rf1y.sophisticatedcore.Config;
@@ -22,11 +23,11 @@ public abstract class ButtonBase extends WidgetBase {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		if (!isMouseOver(mouseX, mouseY)) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		if (!isMouseOver(event.x(), event.y())) {
 			return false;
 		}
-		onClick.accept(button);
+		onClick.accept(event.button());
 		if (Boolean.TRUE.equals(Config.CLIENT.playButtonSound.get())) {
 			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
 		}

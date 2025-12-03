@@ -8,7 +8,7 @@ public class CraftingTweaksCompat implements ICompat {
 	@Override
 	public void setup() {
 		CraftingTweaksAPI.registerCraftingGridProvider(new CraftingUpgradeTweakProvider());
-		if (FMLEnvironment.dist.isClient()) {
+		if (FMLEnvironment.getDist().isClient()) {
 			CraftingTweaksCompatClient.setup();
 		}
 	}

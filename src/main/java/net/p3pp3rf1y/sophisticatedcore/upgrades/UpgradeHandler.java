@@ -1,29 +1,30 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.transfer.IndexModifier;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotStackAccessor;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderDataHandler;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.TankPosition;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-public class UpgradeHandler extends ItemStackHandler {
+public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotStackAccessor, IndexModifier<ItemResource> {
 	public static final String UPGRADE_INVENTORY_TAG = "upgradeInventory";
 	private final IStorageWrapper storageWrapper;
 	private final Runnable contentsSaveHandler;
 	private final Runnable onInvalidateUpgradeCaches;
-	private final CompoundTag contentsNbt;
+	private final ContainerContents.UpgradeData upgradeData;
 	@Nullable
 	private Runnable refreshCallBack = null;
 	private final Map<Integer, IUpgradeWrapper> slotWrappers = new LinkedHashMap<>();
@@ -36,15 +37,23 @@ public class UpgradeHandler extends ItemStackHandler {
 	private boolean persistent = true;
 	private final Map<Class<? extends IUpgradeWrapper>, Consumer<? extends IUpgradeWrapper>> upgradeDefaultsHandlers = new HashMap<>();
 
-	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
+	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
 		super(numberOfUpgradeSlots);
-		this.contentsNbt = contentsNbt;
+		this.upgradeData = containerContents.upgrades();
 		this.storageWrapper = storageWrapper;
 		this.contentsSaveHandler = contentsSaveHandler;
 		this.onInvalidateUpgradeCaches = onInvalidateUpgradeCaches;
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.getCompound(UPGRADE_INVENTORY_TAG).ifPresent(invTag -> deserialize(ValueIOHelper.inputFromCompoundTag(registryAccess, invTag))));
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderInfo().getUpgradeItems().size() != getSlots()) {
+		loadUpgradesFromData();
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderDataHandler().getUpgradeItems().size() != size()) {
 			setRenderUpgradeItems();
+		}
+	}
+
+	private void loadUpgradesFromData() {
+		stacks = NonNullList.withSize(Math.max(stacks.size(), upgradeData.stacks().size()), ItemStack.EMPTY);
+		for (int slot = 0; slot < upgradeData.stacks().size(); slot++) {
+			ItemStack stack = upgradeData.stacks().get(slot);
+			stacks.set(slot, stack);
 		}
 	}
 
@@ -53,13 +62,13 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	@Override
-	public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-		return stack.isEmpty() || stack.getItem() instanceof IUpgradeItem;
+	public boolean isValid(int index, ItemResource resource) {
+		return resource.isEmpty() || resource.getItem() instanceof IUpgradeItem<?>;
 	}
 
 	@Override
-	protected void onContentsChanged(int slot) {
-		super.onContentsChanged(slot);
+	protected void onContentsChanged(int slot, ItemStack previousContents) {
+		super.onContentsChanged(slot, previousContents);
 		if (persistent) {
 			saveInventory();
 			contentsSaveHandler.run();
@@ -72,17 +81,29 @@ public class UpgradeHandler extends ItemStackHandler {
 
 	public void setRenderUpgradeItems() {
 		List<ItemStack> upgradeItems = new ArrayList<>();
-		InventoryHelper.iterate(this, (upgradeSlot, upgrade) -> upgradeItems.add(upgrade.copyWithCount(1)));
-		storageWrapper.getRenderInfo().setUpgradeItems(upgradeItems);
+		InventoryHelper.iterate(this, (upgradeSlot, resource, amount) -> upgradeItems.add(resource.toStack(1)));
+		storageWrapper.getRenderDataHandler().setUpgradeItems(upgradeItems);
 	}
 
 	@Override
-	public void setSize(int size) {
-		super.setSize(stacks.size());
+	public void deserialize(ValueInput input) {
+		input.read("stacks", this.codec).ifPresent(list -> {
+			NonNullList<ItemStack> maxSized = list;
+			if (stacks.size() != list.size()) {
+				int newSize = Math.max(stacks.size(), list.size());
+				maxSized = NonNullList.withSize(newSize, ItemStack.EMPTY);
+				Collections.copy(maxSized, list);
+			}
+			this.stacks = maxSized;
+		});
 	}
 
 	public void saveInventory() {
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(UPGRADE_INVENTORY_TAG, ValueIOHelper.collectOutputToTag(registryAccess, this::serialize)));
+		NonNullList<ItemStack> stacksCopy = NonNullList.withSize(stacks.size(), ItemStack.EMPTY);
+		for (int slot = 0; slot < stacks.size(); slot++) {
+			stacksCopy.set(slot, stacks.get(slot));
+		}
+		upgradeData.setStacks(stacksCopy);
 	}
 
 	public void setPersistent(boolean persistent) {
@@ -108,12 +129,12 @@ public class UpgradeHandler extends ItemStackHandler {
 			wrapperAccessor.clearCache();
 		}
 
-		InventoryHelper.iterate(this, (slot, upgrade) -> {
-			if (upgrade.isEmpty() || !(upgrade.getItem() instanceof IUpgradeItem<?>)) {
+		InventoryHelper.iterate(this, (slot, stack) -> {
+			if (stack.isEmpty() || !(stack.getItem() instanceof IUpgradeItem<?>)) {
 				return;
 			}
-			UpgradeType<?> type = ((IUpgradeItem<?>) upgrade.getItem()).getType();
-			IUpgradeWrapper wrapper = type.create(storageWrapper, upgrade, upgradeStack -> {
+			UpgradeType<?> type = ((IUpgradeItem<?>) stack.getItem()).getType();
+			IUpgradeWrapper wrapper = type.create(storageWrapper, stack, upgradeStack -> {
 				justSavingNbtChange = true;
 				setStackInSlot(slot, upgradeStack);
 				justSavingNbtChange = false;
@@ -122,18 +143,7 @@ public class UpgradeHandler extends ItemStackHandler {
 			slotWrappers.put(slot, wrapper);
 		});
 
-		initRenderInfoCallbacks(false);
-	}
-
-	@Nonnull
-	@Override
-	public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
-		ItemStack result = super.insertItem(slot, stack, simulate);
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && result.isEmpty() && !stack.isEmpty()) {
-			onUpgradeAdded(slot);
-		}
-
-		return result;
+		initRenderDataCallbacks(false);
 	}
 
 	private void onUpgradeAdded(int slot) {
@@ -154,33 +164,16 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	@Override
-	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
-		ItemStack originalStack = getStackInSlot(slot);
-		Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
-		boolean itemsDiffer = !ItemStack.isSameItemSameComponents(originalStack, stack);
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer && wrappers.containsKey(slot)) {
-			wrappers.get(slot).onBeforeRemoved();
-		}
-
-		super.setStackInSlot(slot, stack);
-
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && itemsDiffer) {
-			onUpgradeAdded(slot);
-		}
+	public void set(int index, ItemResource resource, int amount) {
+		setStackInSlot(index, resource.toStack(amount));
 	}
 
 	@Override
-	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		if (!simulate && Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER) {
-			ItemStack slotStack = getStackInSlot(slot);
-			if (persistent && !slotStack.isEmpty() && amount == 1) {
-				Map<Integer, IUpgradeWrapper> wrappers = getSlotWrappers();
-				if (wrappers.containsKey(slot)) {
-					wrappers.get(slot).onBeforeRemoved();
-				}
-			}
-		}
-		return super.extractItem(slot, amount, simulate);
+	public void setStackInSlot(int slot, ItemStack stack) {
+		ItemStack originalStack = getStackInSlot(slot);
+		Objects.checkIndex(slot, size());
+		stacks.set(slot, stack);
+		onContentsChanged(slot, originalStack);
 	}
 
 	private void initializeTypeWrappers() {
@@ -200,7 +193,7 @@ public class UpgradeHandler extends ItemStackHandler {
 			}
 		});
 
-		initRenderInfoCallbacks(false);
+		initRenderDataCallbacks(false);
 	}
 
 	private <T extends IUpgradeWrapper> void addTypeWrapper(UpgradeType<?> type, T wrapper) {
@@ -285,34 +278,34 @@ public class UpgradeHandler extends ItemStackHandler {
 		}
 		onInvalidateUpgradeCaches.run();
 
-		initRenderInfoCallbacks(true);
+		initRenderDataCallbacks(true);
 	}
 
-	private void initRenderInfoCallbacks(boolean forceUpdateRenderInfo) {
-		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		if (forceUpdateRenderInfo) {
-			renderInfo.resetUpgradeInfo(false);
+	private void initRenderDataCallbacks(boolean forceUpdateRenderData) {
+		RenderDataHandler renderDataHandler = storageWrapper.getRenderDataHandler();
+		if (forceUpdateRenderData) {
+			renderDataHandler.resetUpgradeInfo(false);
 		}
 
-		initTankRenderInfoCallbacks(forceUpdateRenderInfo, renderInfo);
-		initBatteryRenderInfoCallbacks(forceUpdateRenderInfo, renderInfo);
+		initTankRenderDataCallbacks(forceUpdateRenderData, renderDataHandler);
+		initBatteryRenderDataCallbacks(forceUpdateRenderData, renderDataHandler);
 	}
 
-	private void initBatteryRenderInfoCallbacks(boolean forceUpdateRenderInfo, RenderInfo renderInfo) {
+	private void initBatteryRenderDataCallbacks(boolean forceUpdateRenderData, RenderDataHandler renderDataHandler) {
 		getSlotWrappers().forEach((slot, wrapper) -> {
 			if (wrapper instanceof IRenderedBatteryUpgrade batteryWrapper) {
-				batteryWrapper.setBatteryRenderInfoUpdateCallback(renderInfo::setBatteryRenderInfo);
-				if (forceUpdateRenderInfo) {
-					batteryWrapper.forceUpdateBatteryRenderInfo();
+				batteryWrapper.setBatteryRenderDataUpdateCallback(renderDataHandler::setBatteryRenderData);
+				if (forceUpdateRenderData) {
+					batteryWrapper.forceUpdateBatteryRenderData();
 				}
 			}
 		});
 	}
 
-	private void initTankRenderInfoCallbacks(boolean forceUpdateRenderInfo, RenderInfo renderInfo) {
+	private void initTankRenderDataCallbacks(boolean forceUpdateRenderData, RenderDataHandler renderDataHandler) {
 		AtomicBoolean singleTankRight = new AtomicBoolean(false);
 		List<IRenderedTankUpgrade> tankRenderWrappers = new ArrayList<>();
-		int minRightSlot = getSlots() / 2;
+		int minRightSlot = size() / 2;
 		getSlotWrappers().forEach((slot, wrapper) -> {
 			if (wrapper instanceof IRenderedTankUpgrade tankUpgrade) {
 				tankRenderWrappers.add(tankUpgrade);
@@ -325,9 +318,9 @@ public class UpgradeHandler extends ItemStackHandler {
 		TankPosition currentTankPos = tankRenderWrappers.size() == 1 && singleTankRight.get() ? TankPosition.RIGHT : TankPosition.LEFT;
 		for (IRenderedTankUpgrade tankRenderWrapper : tankRenderWrappers) {
 			TankPosition finalCurrentTankPos = currentTankPos;
-			tankRenderWrapper.setTankRenderInfoUpdateCallback(tankRenderInfo -> renderInfo.setTankRenderInfo(finalCurrentTankPos, tankRenderInfo));
-			if (forceUpdateRenderInfo) {
-				tankRenderWrapper.forceUpdateTankRenderInfo();
+			tankRenderWrapper.setTankRenderDataUpdateCallback(data -> renderDataHandler.setTankRenderData(finalCurrentTankPos, data));
+			if (forceUpdateRenderData) {
+				tankRenderWrapper.forceUpdateTankRenderData();
 			}
 			currentTankPos = TankPosition.RIGHT;
 		}
@@ -344,8 +337,14 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	@Override
-	public int getSlotLimit(int slot) {
+	protected int getCapacity(int index, ItemResource resource) {
 		return 1;
+	}
+
+	@Override
+	public ItemStack getStackInSlot(int slot) {
+		Objects.checkIndex(slot, size());
+		return stacks.get(slot);
 	}
 
 	private static class Accessor implements IUpgradeWrapperAccessor {

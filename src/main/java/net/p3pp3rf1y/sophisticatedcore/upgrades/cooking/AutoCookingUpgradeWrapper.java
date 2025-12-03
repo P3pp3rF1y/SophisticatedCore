@@ -6,14 +6,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderDataHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
@@ -64,20 +64,20 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 	@Override
 	public void setEnabled(boolean enabled) {
 		if (!enabled) {
-			pauseAndRemoveRenderInfo();
+			pauseAndRemoveRenderData();
 		}
 		super.setEnabled(enabled);
 	}
 
-	private void pauseAndRemoveRenderInfo() {
+	private void pauseAndRemoveRenderData() {
 		cookingLogic.pause();
-		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
+		RenderDataHandler renderDataHandler = storageWrapper.getRenderDataHandler();
+		renderDataHandler.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 	}
 
 	@Override
 	public void onBeforeRemoved() {
-		pauseAndRemoveRenderInfo();
+		pauseAndRemoveRenderData();
 	}
 
 	private void tryPushingOutput() {
@@ -87,34 +87,40 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 		}
 
 		ItemStack output = cookingLogic.getCookOutput();
-		IItemHandlerSimpleInserter inventory = storageWrapper.getInventoryForUpgradeProcessing();
-		if (!output.isEmpty() && inventory.insertItem(output, true).getCount() < output.getCount()) {
-			ItemStack ret = inventory.insertItem(output, false);
-			cookingLogic.getCookingInventory().extractItem(CookingLogic.COOK_OUTPUT_SLOT, output.getCount() - ret.getCount(), false);
+		ITrackedContentsItemResourceHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
+		ItemResource resource = ItemResource.of(output);
+		int inserted = output.isEmpty() ? 0 : InventoryHelper.insert(inventory, resource, output.getCount());
+		if (inserted > 0) {
+			InventoryHelper.extract(cookingLogic.getCookingInventory(), resource, inserted);
 			tryPushingXpToTanks();
 		} else {
 			outputCooldown = NO_INVENTORY_SPACE_COOLDOWN;
 		}
 
 		ItemStack fuel = cookingLogic.getFuel();
-		if (!fuel.isEmpty() && fuel.getBurnTime(recipeType, WorldHelper.getFuelValues()) <= 0 && inventory.insertItem(fuel, true).getCount() < fuel.getCount()) {
-			ItemStack ret = inventory.insertItem(fuel, false);
-			cookingLogic.getCookingInventory().extractItem(CookingLogic.FUEL_SLOT, fuel.getCount() - ret.getCount(), false);
+		if (!fuel.isEmpty() && fuel.getBurnTime(recipeType, WorldHelper.getFuelValues()) <= 0) {
+			resource = ItemResource.of(fuel);
+			inserted = InventoryHelper.insert(inventory, resource, fuel.getCount());
+			if (inserted > 0) {
+				InventoryHelper.extract(cookingLogic.getCookingInventory(), CookingLogic.FUEL_SLOT, resource, inserted);
+			}
 		}
 	}
 
 	private void tryPushingXpToTanks() {
 		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
 			float storedExperience = cookingLogic.getStoredExperience();
-			for (int i = 0; i < fluidHandler.getTanks(); i++) {
-				FluidStack xpFluidStack = new FluidStack(ModFluids.XP_STILL.get(), XpHelper.experienceToLiquid(storedExperience));
-				int filled = fluidHandler.fill(xpFluidStack, IFluidHandler.FluidAction.SIMULATE);
-				if (filled > 0) {
-					fluidHandler.fill(xpFluidStack, IFluidHandler.FluidAction.EXECUTE);
-					cookingLogic.drainStoredExperience(XpHelper.liquidToExperience(filled));
-					storedExperience -= XpHelper.liquidToExperience(filled);
-					if (storedExperience <= 0) {
-						break;
+			for (int i = 0; i < fluidHandler.size(); i++) {
+				FluidResource xpFluid = FluidResource.of(ModFluids.XP_STILL.get());
+				try (Transaction tx = Transaction.openRoot()) {
+					int filled = fluidHandler.insert(xpFluid, XpHelper.experienceToLiquid(storedExperience), tx);
+					if (filled > 0) {
+						tx.commit();
+						cookingLogic.drainStoredExperience(XpHelper.liquidToExperience(filled));
+						storedExperience -= XpHelper.liquidToExperience(filled);
+						if (storedExperience <= 0) {
+							break;
+						}
 					}
 				}
 			}
@@ -134,12 +140,12 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 			setCooldown(level, NOTHING_TO_DO_COOLDOWN);
 		}
 		boolean isBurning = cookingLogic.isBurning(level);
-		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		if (renderInfo.getUpgradeClientData(CookingUpgradeClientData.TYPE).map(CookingUpgradeClientData::isBurning).orElse(false) != isBurning) {
+		RenderDataHandler renderDataHandler = storageWrapper.getRenderDataHandler();
+		if (renderDataHandler.getUpgradeClientData(CookingUpgradeClientData.TYPE).map(CookingUpgradeClientData::burning).orElse(false) != isBurning) {
 			if (isBurning) {
-				renderInfo.setUpgradeClientData(CookingUpgradeClientData.TYPE, new CookingUpgradeClientData(true));
+				renderDataHandler.setUpgradeClientData(CookingUpgradeClientData.TYPE, new CookingUpgradeClientData(true));
 			} else {
-				renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
+				renderDataHandler.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 			}
 		}
 	}
@@ -168,7 +174,7 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 
 	private boolean tryPullingGetUnsucessful(ItemStack stack, Consumer<ItemStack> setSlot, Predicate<ItemStack> isItemValid) {
 		ItemStack toExtract;
-		IItemHandlerModifiable inventory = storageWrapper.getInventoryForUpgradeProcessing();
+		ITrackedContentsItemResourceHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		if (stack.isEmpty()) {
 			AtomicReference<ItemStack> ret = new AtomicReference<>(ItemStack.EMPTY);
 			InventoryHelper.iterate(inventory, (slot, st) -> {
@@ -189,10 +195,9 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 			toExtract.setCount(stack.getMaxStackSize() - stack.getCount());
 		}
 
-		if (InventoryHelper.extractFromInventory(toExtract, inventory, true).getCount() > 0) {
-			ItemStack toSet = InventoryHelper.extractFromInventory(toExtract, inventory, false);
-			toSet.grow(stack.getCount());
-			setSlot.accept(toSet);
+		int extracted = InventoryHelper.extract(inventory, toExtract);
+		if (extracted > 0) {
+			setSlot.accept(toExtract.copyWithCount(extracted + stack.getCount()));
 		} else {
 			return true;
 		}

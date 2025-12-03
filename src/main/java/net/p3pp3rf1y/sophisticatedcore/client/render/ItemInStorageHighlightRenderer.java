@@ -5,6 +5,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -62,7 +64,8 @@ public class ItemInStorageHighlightRenderer {
 		}
 	}
 
-	private record HighlightedBlock(BlockPos pos, List<VoxelOutliner.Edge> edges, Vec3 pivot) {}
+	private record HighlightedBlock(BlockPos pos, List<VoxelOutliner.Edge> edges, Vec3 pivot) {
+	}
 
 	public static void setHighlightedPositions(List<BlockPos> stackPositions, List<BlockPos> itemPositions, List<BlockPos> emptyTargetPositions) {
 		highlightedStackPositions = stackPositions;
@@ -100,22 +103,22 @@ public class ItemInStorageHighlightRenderer {
 		if (cachedEmptyTargetHighlights == null) {
 			cachedEmptyTargetHighlights = highlightedEmptyTargetPositions.stream().map(pos -> getHighlightedBlock(mc, pos)).toList();
 		}
+		SubmitNodeStorage submitNodeStorage = mc.gameRenderer.getSubmitNodeStorage();
+		cachedMatchingStackHighlights.forEach(bh -> submitHighlightedBlock(submitNodeStorage, poseStack, partialTick, cameraPos, bh, mc, buffer, MATCHING_STACK_HIGHLIGHT_COLOR));
+		cachedMatchingItemHighlights.forEach(bh -> submitHighlightedBlock(submitNodeStorage, poseStack, partialTick, cameraPos, bh, mc, buffer, MATCHING_ITEM_HIGHLIGHT_COLOR));
+		cachedEmptyTargetHighlights.forEach(bh -> submitHighlightedBlock(submitNodeStorage, poseStack, partialTick, cameraPos, bh, mc, buffer, 0xFFEB3B));
 
-		cachedMatchingStackHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, MATCHING_STACK_HIGHLIGHT_COLOR));
-		cachedMatchingItemHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, MATCHING_ITEM_HIGHLIGHT_COLOR));
-		cachedEmptyTargetHighlights.forEach(bh -> renderHighlightedBlock(poseStack, partialTick, cameraPos, bh, mc, buffer, 0xFFEB3B));
-
-		highlightHandlers.forEach(callback -> callback.render(poseStack, partialTick, cameraPos));
+		highlightHandlers.forEach(callback -> callback.submit(submitNodeStorage, poseStack, partialTick, cameraPos));
 	}
 
-	private static void renderHighlightedBlock(PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedBlock bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
+	private static void submitHighlightedBlock(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedBlock bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
 		poseStack.pushPose();
 		poseStack.translate(bh.pos.getX() - cameraPos.x(), bh.pos.getY() - cameraPos.y(), bh.pos.getZ() - cameraPos.z());
 		poseStack.translate(bh.pivot.x, bh.pivot.y, bh.pivot.z);
 		float scale = 1 + Easing.EASE_IN_OUT_CUBIC.ease((float) tri01(mc.level.getGameTime(), 15, partialTick)) * 0.05f;
 		poseStack.scale(scale, scale, scale);
 		poseStack.translate(-bh.pivot.x, -bh.pivot.y, -bh.pivot.z);
-		BlockHighlightRenderHelper.renderThickEdges(poseStack, buffer, color, bh.edges(), bh.pos().getX(), bh.pos().getY(), bh.pos().getZ());
+		BlockHighlightRenderHelper.submitThickEdges(submitNodeCollector, poseStack, color, bh.edges(), bh.pos().getX(), bh.pos().getY(), bh.pos().getZ());
 		poseStack.popPose();
 	}
 

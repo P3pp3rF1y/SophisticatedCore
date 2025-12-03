@@ -63,7 +63,7 @@ public class WorldHelper {
 	}
 
 	public static FuelValues getFuelValues() {
-		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER && FMLEnvironment.dist.isClient()) {
+		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER && FMLEnvironment.getDist().isClient()) {
 			return ClientLevelHelper.getFuelValues();
 		}
 		MinecraftServer currentServer = ServerLifecycleHooks.getCurrentServer();

@@ -4,11 +4,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.textures.FluidSpriteCache;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -43,14 +43,16 @@ public class FluidFilterControl extends WidgetBase {
 			if (!fluid.isEmpty()) {
 				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
 				ResourceLocation texture = renderProperties.getStillTexture(fluid);
-				TextureAtlasSprite still = minecraft.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
+				TextureAtlasSprite still = FluidSpriteCache.getSprite(texture);
 				GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		double mouseX = event.x();
+		double mouseY = event.y();
 		if (!isMouseOver(mouseX, mouseY)) {
 			return false;
 		}

@@ -14,9 +14,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IFilteredUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
@@ -77,11 +78,11 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 	}
 
 	private boolean tryFeedingFoodFromStorage(Level level, int hungerLevel, Player player) {
-		ITrackedContentsItemHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
+		ITrackedContentsItemResourceHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		return InventoryHelper.iterate(inventory, (slot, stack) -> tryFeedingStack(level, hungerLevel, player, slot, stack, inventory), () -> false, ret -> ret);
 	}
 
-	private boolean tryFeedingStack(Level level, int hungerLevel, Player player, Integer slot, ItemStack stack, ITrackedContentsItemHandler inventory) {
+	private boolean tryFeedingStack(Level level, int hungerLevel, Player player, Integer slot, ItemStack stack, ITrackedContentsItemResourceHandler inventory) {
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
 		if (isEdible(stack) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 			ItemStack mainHandItem = player.getMainHandItem();
@@ -96,10 +97,11 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 				ItemStack resultItem = EventHooks.onItemUseFinish(player, singleItemCopy.copy(), 0, singleItemCopy.getItem().finishUsingItem(singleItemCopy, level, player));
 				if (!resultItem.isEmpty()) {
-					ItemStack insertResult = inventory.insertItem(resultItem, false);
-					if (!insertResult.isEmpty()) {
-						CapabilityHelper.runOnCapability(player, Capabilities.ItemHandler.ENTITY, null, playerInventory ->
-								InventoryHelper.insertOrDropItem(player, insertResult, playerInventory));
+					int inserted = InventoryHelper.insert(inventory, ItemResource.of(resultItem), resultItem.getCount());
+					if (inserted < resultItem.getCount()) {
+						ItemStack remaining = resultItem.copyWithCount(resultItem.getCount() - inserted);
+						CapabilityHelper.runOnCapability(player, Capabilities.Item.ENTITY, null, playerInventory ->
+								InventoryHelper.insertOrDropItem(player, remaining, playerInventory));
 					}
 				}
 

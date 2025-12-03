@@ -1,6 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
@@ -9,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class ContentsFilterLogic extends FilterLogic {
 
@@ -46,22 +50,21 @@ public class ContentsFilterLogic extends FilterLogic {
 	}
 
 	@Override
-	public boolean matchesFilter(ItemStack stack) {
+	protected boolean matchesFilter(Stream<TagKey<Item>> tags, Item item, int damageValue, boolean empty, DataComponentMap components) {
 		if (!shouldFilterByStorage()) {
-			return super.matchesFilter(stack);
+			return super.matchesFilter(tags, item, damageValue, empty, components);
 		}
-
 		for (ItemStackKey filterStack : getInventoryHandler.get().getSlotTracker().getFullStacks()) {
-			if (stackMatchesFilter(stack, filterStack.getStack())) {
+			if (stackMatchesFilter(filterStack.stack(), item, damageValue, empty, components)) {
 				return true;
 			}
 		}
 		for (ItemStackKey filterStack : getInventoryHandler.get().getSlotTracker().getPartialStacks()) {
-			if (stackMatchesFilter(stack, filterStack.getStack())) {
+			if (stackMatchesFilter(filterStack.stack(), item, damageValue, empty, components)) {
 				return true;
 			}
 		}
-		return memorySettings.matchesFilter(stack);
+		return memorySettings.matchesFilter(item, components);
 	}
 
 	private void setFilterByStorage(boolean filterByStorage) {

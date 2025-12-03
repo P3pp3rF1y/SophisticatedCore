@@ -7,7 +7,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 public class MouseTweaksCompat implements ICompat {
 	@Override
 	public void setup() {
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		if (FMLEnvironment.getDist() == Dist.CLIENT) {
 			MouseTweaksCompatClient.restrictSophisticatedScrollInteraction();
 		}
 	}

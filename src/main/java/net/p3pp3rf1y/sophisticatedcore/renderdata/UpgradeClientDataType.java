@@ -1,19 +1,22 @@
 package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.serialization.Codec;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 public class UpgradeClientDataType<T extends IUpgradeClientData> {
 	private final String name;
 	private final Class<T> clazz;
-	private final Function<CompoundTag, T> deserialize;
+	private final Codec<T> codec;
+	private StreamCodec<? extends ByteBuf, T> streamCodec;
 
-	public UpgradeClientDataType(String name, Class<T> clazz, Function<CompoundTag, T> deserialize) {
+	public UpgradeClientDataType(String name, Class<T> clazz, Codec<T> codec, StreamCodec<? extends ByteBuf, T> streamCodec) {
 		this.name = name;
 		this.clazz = clazz;
-		this.deserialize = deserialize;
+		this.codec = codec;
+		this.streamCodec = streamCodec;
 	}
 
 	public String getName() {
@@ -27,7 +30,11 @@ public class UpgradeClientDataType<T extends IUpgradeClientData> {
 		return Optional.empty();
 	}
 
-	public T deserialize(CompoundTag nbt) {
-		return deserialize.apply(nbt);
+	public Codec<T> codec() {
+		return codec;
+	}
+
+	public StreamCodec<? extends ByteBuf, T> streamCodec() {
+		return streamCodec;
 	}
 }

@@ -14,7 +14,7 @@ public class BlockTransformationUpgradeContainer extends UpgradeContainerBase<Bl
 
 	public BlockTransformationUpgradeContainer(Player player, int upgradeContainerId, BlockTransformationUpgradeWrapper upgradeWrapper, UpgradeContainerType<BlockTransformationUpgradeWrapper, BlockTransformationUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		ContainerLevelAccess worldPosCallable = player.level().isClientSide ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
+		ContainerLevelAccess worldPosCallable = player.level().isClientSide() ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
 		recipeContainer = new BlockTransformationRecipeContainer(this, upgradeWrapper.getRecipeType(), slots::add, this, worldPosCallable);
 	}
 

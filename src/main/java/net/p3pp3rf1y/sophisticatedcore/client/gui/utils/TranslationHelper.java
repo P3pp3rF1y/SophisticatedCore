@@ -34,7 +34,7 @@ public class TranslationHelper {
 
 	public TranslationHelper(String modId) {
 		guiPrefix = "gui." + modId + ".";
-		keybindPrefix = "keybind." + modId + ".";
+		keybindPrefix = "key." + modId + ".";
 		itemUpgradePrefix = "item." + modId + ".";
 		blockPrefix = "block." + modId + ".";
 		upgradeGroupPrefix = "upgrade_group." + modId + ".";

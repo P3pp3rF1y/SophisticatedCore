@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.utils;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;

@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.TextBox;
@@ -40,21 +41,21 @@ class SearchBox extends TextBox {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		if (!isMouseOver(mouseX, mouseY)) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		if (!isMouseOver(event.x(), event.y())) {
 			return false;
 		}
 
 		if (isEditable()) {
-			if (button == 0) {
+			if (event.button() == 0) {
 				setFocused(true);
 				screen.setFocused(this);
-			} else if (button == 1) {
+			} else if (event.button() == 1) {
 				setValue("");
 			}
 			return true;
 		}
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(event, doubleClicked);
 	}
 
 	@Override

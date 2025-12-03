@@ -7,7 +7,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.bus.api.IEventBus;
@@ -16,6 +15,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.EntityMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterAttributes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyFilterAttribute;
@@ -52,8 +52,8 @@ public class ModCoreDataComponents {
 	public static final Supplier<DataComponentType<SortBy>> SORT_BY = DATA_COMPONENT_TYPES.register("sort_by",
 			() -> new DataComponentType.Builder<SortBy>().persistent(SortBy.CODEC).networkSynchronized(SortBy.STREAM_CODEC).build());
 
-	public static final Supplier<DataComponentType<CustomData>> RENDER_INFO_TAG = DATA_COMPONENT_TYPES.register("render_info_tag",
-			() -> new DataComponentType.Builder<CustomData>().persistent(CustomData.CODEC).networkSynchronized(CustomData.STREAM_CODEC).build());
+	public static final Supplier<DataComponentType<RenderData>> RENDER_DATA = DATA_COMPONENT_TYPES.register("render_data",
+			() -> new DataComponentType.Builder<RenderData>().persistent(RenderData.CODEC).networkSynchronized(RenderData.STREAM_CODEC).build());
 
 	public static final Supplier<DataComponentType<Boolean>> SHIFT_CLICK_INTO_STORAGE = DATA_COMPONENT_TYPES.register("shift_click_into_storage",
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
@@ -201,6 +201,7 @@ public class ModCoreDataComponents {
 			() -> new DataComponentType.Builder<Float>().persistent(Codec.FLOAT).networkSynchronized(ByteBufCodecs.FLOAT).build());
 
 	public static void register(IEventBus modBus) {
+		DATA_COMPONENT_TYPES.addAlias(SophisticatedCore.getRL("render_info_tag"), SophisticatedCore.getRL("render_data"));
 		DATA_COMPONENT_TYPES.register(modBus);
 	}
 }

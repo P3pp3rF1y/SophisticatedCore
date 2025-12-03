@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.INameableEmptySlot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
@@ -39,7 +40,7 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	}
 
 	public int getTankCapacity() {
-		return upgradeWrapper.getTankCapacity();
+		return upgradeWrapper.getCapacity();
 	}
 
 	private static class TankIOSlot extends SlotSuppliedHandler implements INameableEmptySlot {
@@ -64,7 +65,7 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			return itemHandlerSupplier.get().isItemValid(getSlotIndex(), stack);
+			return itemHandlerSupplier.get().isValid(slot, ItemResource.of(stack));
 		}
 
 		@Override

@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.FilterSlotItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
@@ -23,11 +24,11 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 
 	public AlchemyUpgradeContainer(Player player, int upgradeContainerId, AlchemyUpgradeWrapper upgradeWrapper, UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(), (slot, stack) ->
+		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(), (slot, resource, amount) ->
 				slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
 					@Override
 					public boolean mayPlace(ItemStack stack) {
-						return stack.isEmpty() || getItemHandler().isItemValid(slot, stack);
+						return stack.isEmpty() || getResourceHandler().isValid(slot, ItemResource.of(stack));
 					}
 				}.setBackground(EMPTY_POTION_SLOT_BACKGROUND)));
 	}
@@ -62,7 +63,7 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 	}
 
 	public void toggleCondition(int slot) {
-		if (upgradeWrapper.getFilterHandler().getStackInSlot(slot).isEmpty()) {
+		if (upgradeWrapper.getFilterHandler().getResource(slot).isEmpty()) {
 			return;
 		}
 

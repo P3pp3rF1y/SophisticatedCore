@@ -13,7 +13,7 @@ import java.util.function.UnaryOperator;
 public class CookingUpgradeClientTickHandler implements IUpgradeClientTickHandler<CookingUpgradeClientData> {
 	@Override
 	public void onClientTick(Level level, RandomSource rand, UnaryOperator<Vector3f> getPositionFromOffset, CookingUpgradeClientData upgradeClientData) {
-		if (!upgradeClientData.isBurning()) {
+		if (!upgradeClientData.burning()) {
 			return;
 		}
 

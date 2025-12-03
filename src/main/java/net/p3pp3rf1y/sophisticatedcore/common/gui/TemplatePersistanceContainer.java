@@ -5,6 +5,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.structures.NbtToSnbt;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.SnbtPrinterTagVisitor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -15,14 +16,16 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncDatapackSettingsTemplatePayload;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderDataHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsTemplateStorage;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategoryData;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
@@ -35,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -139,7 +141,7 @@ public class TemplatePersistanceContainer {
 		}
 	}
 
-	private <T extends ISettingsCategory<T>> void overwriteCategory(Class<T> categoryClazz, ISettingsCategory<?> currentCategory, ISettingsCategory<?> otherCategory) {
+	private <T extends ISettingsCategory<T, ?>> void overwriteCategory(Class<T> categoryClazz, ISettingsCategory<?, ?> currentCategory, ISettingsCategory<?, ?> otherCategory) {
 		//noinspection unchecked
 		((T) currentCategory).overwriteWith(((T) otherCategory));
 	}
@@ -149,7 +151,7 @@ public class TemplatePersistanceContainer {
 
 		IPersistanceSlot saveSlot = saveSlots.get(saveSlotIndex);
 		saveSlot.setSlotName(slotName);
-		saveSlot.persistTo(getPlayer(), settingsTemplateStorage, settingsContainer.getStorageWrapper().getSettingsHandler().getNbt().copy());
+		saveSlot.persistTo(getPlayer(), settingsTemplateStorage, settingsContainer.getStorageWrapper().getSettingsHandler().getSettingsData().copy());
 
 		sendDataToServer(() -> NBTHelper.putString(NBTHelper.putString(new CompoundTag(), ACTION_TAG, "saveTemplate"), "slotName", slotName));
 
@@ -205,8 +207,8 @@ public class TemplatePersistanceContainer {
 
 	private void updateSelectedTemplate() {
 		if (loadSlotIndex > -1 && loadSlotIndex < loadSlots.size()) {
-			CompoundTag settingsTag = loadSlots.get(loadSlotIndex).getSettingsNbt(getPlayer(), SettingsTemplateStorage.get());
-			selectedTemplate = new TemplateSettingsHandler(settingsTag, registryAccess) {
+			ContainerContents.SettingsData data = loadSlots.get(loadSlotIndex).getSettingsData(getPlayer(), SettingsTemplateStorage.get());
+			selectedTemplate = new TemplateSettingsHandler(data, registryAccess, settingsContainer.getStorageWrapper().getSettingsHandler().getPlayerSettingsName()) {
 				@Override
 				protected SettingsHandler getCurrentSettingsHandler() {
 					return settingsContainer.getStorageWrapper().getSettingsHandler();
@@ -281,17 +283,18 @@ public class TemplatePersistanceContainer {
 			}
 
 			Path exportPath = templatesDir.resolve(fileName + ".snbt");
-			CompoundTag settingsNbt = settingsContainer.getStorageWrapper().getSettingsHandler().getNbt().copy();
+			ContainerContents.SettingsData data = settingsContainer.getStorageWrapper().getSettingsHandler().getSettingsData().copy();
 			try {
-				NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, exportPath, (new SnbtPrinterTagVisitor()).visit(settingsNbt));
+				NbtOps ops = NbtOps.INSTANCE;
+				NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, exportPath, (new SnbtPrinterTagVisitor()).visit(ContainerContents.SettingsData.CODEC.encode(data, ops, ops.empty()).getOrThrow()));
 			} catch (IOException e) {
 				SophisticatedCore.LOGGER.error("Error writing template export", e);
 				return;
 			}
 
-			DatapackSettingsTemplateManager.putTemplate(playersFolder, fileName, settingsNbt);
+			DatapackSettingsTemplateManager.putTemplate(playersFolder, fileName, data);
 
-			PacketDistributor.sendToPlayer(serverPlayer, new SyncDatapackSettingsTemplatePayload(playersFolder, fileName, settingsNbt));
+			PacketDistributor.sendToPlayer(serverPlayer, new SyncDatapackSettingsTemplatePayload(playersFolder, fileName, data));
 
 			initSlots();
 
@@ -317,7 +320,7 @@ public class TemplatePersistanceContainer {
 
 	public boolean templateHasTooManySlots() {
 		return selectedTemplate != null && selectedTemplate.getSettingsCategories().values().stream()
-				.anyMatch(category -> category.isLargerThanNumberOfSlots(settingsContainer.getStorageWrapper().getInventoryHandler().getSlots()));
+				.anyMatch(category -> category.isLargerThanNumberOfSlots(settingsContainer.getStorageWrapper().getInventoryHandler().size()));
 	}
 
 
@@ -353,38 +356,19 @@ public class TemplatePersistanceContainer {
 
 	public abstract static class TemplateSettingsHandler extends SettingsHandler {
 
-		protected TemplateSettingsHandler(CompoundTag contentsNbt, RegistryAccess registryAccess) {
-			super(contentsNbt, () -> {
-			}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderInfo);
+		protected TemplateSettingsHandler(ContainerContents.SettingsData settingsData, RegistryAccess registryAccess, String playerSettingsName) {
+			super(settingsData, () -> {
+			}, NoopStorageWrapper.INSTANCE::getInventoryHandler, NoopStorageWrapper.INSTANCE::getRenderDataHandler, playerSettingsName);
 		}
 
 		protected abstract SettingsHandler getCurrentSettingsHandler();
 
-		@Override
-		protected CompoundTag getSettingsNbtFromContentsNbt(CompoundTag contentsNbt) {
-			return contentsNbt;
-		}
 
 		@Override
-		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
+		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
 			int itemNumberLimit = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).getItemNumberLimit();
-			addSettingsCategory(settingsNbt, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) ->
-					new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderInfoSupplier, categoryNbt, saveNbt, itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)));
-		}
-
-		@Override
-		public String getGlobalSettingsCategoryName() {
-			return getCurrentSettingsHandler().getGlobalSettingsCategoryName();
-		}
-
-		@Override
-		public ISettingsCategory<?> instantiateGlobalSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
-			return getCurrentSettingsHandler().instantiateGlobalSettingsCategory(categoryNbt, saveNbt);
-		}
-
-		@Override
-		protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
-			//noop
+			this.addSettingsCategory(settingsData, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryData, saveNbt) ->
+					new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, categoryData, saveNbt, itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)), ItemDisplaySettingsCategoryData::new);
 		}
 	}
 
@@ -397,7 +381,7 @@ public class TemplatePersistanceContainer {
 			tag.putString("name", getName());
 		}
 
-		default void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, CompoundTag settingsCopy) {
+		default void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, ContainerContents.SettingsData settingsData) {
 			//noop
 		}
 
@@ -413,7 +397,7 @@ public class TemplatePersistanceContainer {
 			return Component.literal(getSlotName());
 		}
 
-		CompoundTag getSettingsNbt(Player player, SettingsTemplateStorage settingsTemplateStorage);
+		ContainerContents.SettingsData getSettingsData(Player player, SettingsTemplateStorage settingsTemplateStorage);
 
 		default Optional<String> getSlotSource() {
 			return Optional.empty();
@@ -444,13 +428,13 @@ public class TemplatePersistanceContainer {
 		}
 
 		@Override
-		public void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, CompoundTag settingsCopy) {
-			settingsTemplateStorage.putPlayerTemplate(player, slot, settingsCopy);
+		public void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, ContainerContents.SettingsData settingsData) {
+			settingsTemplateStorage.putPlayerTemplate(player, slot, settingsData);
 		}
 
 		@Override
-		public CompoundTag getSettingsNbt(Player player, SettingsTemplateStorage settingsTemplateStorage) {
-			return settingsTemplateStorage.getPlayerTemplates(player).getOrDefault(slot, new CompoundTag());
+		public ContainerContents.SettingsData getSettingsData(Player player, SettingsTemplateStorage settingsTemplateStorage) {
+			return settingsTemplateStorage.getPlayerTemplates(player).getOrDefault(slot, new ContainerContents.SettingsData());
 		}
 	}
 
@@ -478,13 +462,13 @@ public class TemplatePersistanceContainer {
 		}
 
 		@Override
-		public void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, CompoundTag settingsCopy) {
+		public void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, ContainerContents.SettingsData settingsCopy) {
 			settingsTemplateStorage.putPlayerNamedTemplate(player, slotName, settingsCopy);
 		}
 
 		@Override
-		public CompoundTag getSettingsNbt(Player player, SettingsTemplateStorage settingsTemplateStorage) {
-			return settingsTemplateStorage.getPlayerNamedTemplates(player).getOrDefault(slotName, new CompoundTag());
+		public ContainerContents.SettingsData getSettingsData(Player player, SettingsTemplateStorage settingsTemplateStorage) {
+			return settingsTemplateStorage.getPlayerNamedTemplates(player).getOrDefault(slotName, new ContainerContents.SettingsData());
 		}
 	}
 
@@ -509,8 +493,8 @@ public class TemplatePersistanceContainer {
 		}
 
 		@Override
-		public CompoundTag getSettingsNbt(Player player, SettingsTemplateStorage settingsTemplateStorage) {
-			return DatapackSettingsTemplateManager.getTemplateNbt(datapackName, templateName).orElseGet(CompoundTag::new);
+		public ContainerContents.SettingsData getSettingsData(Player player, SettingsTemplateStorage settingsTemplateStorage) {
+			return DatapackSettingsTemplateManager.getTemplateData(datapackName, templateName).orElseGet(ContainerContents.SettingsData::new);
 		}
 
 		@Override

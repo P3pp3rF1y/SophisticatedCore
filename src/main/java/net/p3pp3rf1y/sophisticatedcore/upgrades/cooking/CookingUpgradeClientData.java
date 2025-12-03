@@ -1,29 +1,23 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.IUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeClientDataType;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-public class CookingUpgradeClientData implements IUpgradeClientData {
-	public static final UpgradeClientDataType<CookingUpgradeClientData> TYPE = new UpgradeClientDataType<>("smelting", CookingUpgradeClientData.class, CookingUpgradeClientData::deserializeNBT);
-
-	private final boolean burning;
-
-	public CookingUpgradeClientData(boolean burning) {
-		this.burning = burning;
-	}
-
-	public boolean isBurning() {
-		return burning;
-	}
+public record CookingUpgradeClientData(boolean burning) implements IUpgradeClientData {
+	public static final UpgradeClientDataType<CookingUpgradeClientData> TYPE =
+			new UpgradeClientDataType<>("smelting", CookingUpgradeClientData.class,
+					RecordCodecBuilder.create(inst -> inst.group(
+							Codec.BOOL.fieldOf("burning").forGetter(CookingUpgradeClientData::burning)
+					).apply(inst, CookingUpgradeClientData::new)),
+					StreamCodec.composite(ByteBufCodecs.BOOL, CookingUpgradeClientData::burning, CookingUpgradeClientData::new)
+			);
 
 	@Override
-	public CompoundTag serializeNBT() {
-		return NBTHelper.putBoolean(new CompoundTag(), "burning", burning);
-	}
-
-	public static CookingUpgradeClientData deserializeNBT(CompoundTag nbt) {
-		return new CookingUpgradeClientData(nbt.getBooleanOr("burning", false));
+	public IUpgradeClientData copy() {
+		return new CookingUpgradeClientData(burning);
 	}
 }

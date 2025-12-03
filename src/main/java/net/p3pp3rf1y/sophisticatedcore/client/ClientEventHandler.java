@@ -55,17 +55,18 @@ public class ClientEventHandler {
 	}
 
 	private static final int MIDDLE_BUTTON = 2;
-	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "keybind.sophisticatedcore.category";
+	private static final KeyMapping.Category SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedCore.getRL("main"));
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_highlight"),
-			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("deposit_item"),
-			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping ITEM_RESTOCK_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("restock_item"),
-			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping SORT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("sort"),
-			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), SOPHISTICATEDCORE_CATEGORY);
 
 	private static final List<Supplier<ItemStack>> HOVERED_STACK_SUPPLIERS = new ArrayList<>();
+
 	public static void registerHoveredStackSupplier(Supplier<ItemStack> stackSupplier) {
 		HOVERED_STACK_SUPPLIERS.add(stackSupplier);
 	}
@@ -87,10 +88,10 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 	}
 
-	private static void renderLevelStage(RenderLevelStageEvent.AfterBlockEntities event) {
-		float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-		ItemInStorageHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
-		ItemFlightAnimator.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
+	private static void renderLevelStage(RenderLevelStageEvent.AfterEntities event) {
+		float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
+		ItemInStorageHighlightRenderer.render(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
+		ItemFlightAnimator.submitItems(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
 	}
 
 	private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
@@ -98,6 +99,7 @@ public class ClientEventHandler {
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+		event.registerCategory(SOPHISTICATEDCORE_CATEGORY);
 		event.register(ITEM_HIGHLIGHT_KEYBIND);
 		event.register(SORT_KEYBIND);
 		event.register(ITEM_DEPOSIT_KEYBIND);
@@ -215,7 +217,7 @@ public class ClientEventHandler {
 	}
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
-		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
+		InputConstants.Key key = InputConstants.getKey(event.getKeyEvent());
 		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && event.getScreen() instanceof AbstractContainerScreen<?> screen && tryHighlightItem(screen.getSlotUnderMouse())) {
 			screen.onClose();
 			event.setCanceled(true);

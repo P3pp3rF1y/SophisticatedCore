@@ -4,6 +4,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -47,15 +49,15 @@ public class TextBox extends WidgetBase {
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+	public boolean keyPressed(KeyEvent event) {
 		if (!editBox.isFocused()) {
 			return false;
 		}
-		editBox.keyPressed(keyCode, scanCode, modifiers);
-		if (keyCode == GLFW.GLFW_KEY_ENTER) {
+		editBox.keyPressed(event);
+		if (event.key() == GLFW.GLFW_KEY_ENTER) {
 			onEnterPressed();
 		}
-		return keyCode != GLFW.GLFW_KEY_ESCAPE;
+		return event.key() != GLFW.GLFW_KEY_ESCAPE;
 	}
 
 	protected void onEnterPressed() {
@@ -67,8 +69,8 @@ public class TextBox extends WidgetBase {
 	}
 
 	@Override
-	public boolean charTyped(char codePoint, int modifiers) {
-		return editBox.charTyped(codePoint, modifiers);
+	public boolean charTyped(CharacterEvent event) {
+		return editBox.charTyped(event);
 	}
 
 	@Override

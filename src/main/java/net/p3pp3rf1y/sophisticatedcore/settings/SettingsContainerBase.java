@@ -8,7 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.function.Supplier;
 
-public abstract class SettingsContainerBase<C extends ISettingsCategory<?>> {
+public abstract class SettingsContainerBase<C extends ISettingsCategory<?, ?>> {
 	private final SettingsContainerMenu<?> settingsContainer;
 	private final String categoryName;
 	private final C category;
@@ -57,7 +57,7 @@ public abstract class SettingsContainerBase<C extends ISettingsCategory<?>> {
 	}
 
 	protected boolean isServer() {
-		return !settingsContainer.getPlayer().level().isClientSide;
+		return !settingsContainer.getPlayer().level().isClientSide();
 	}
 
 	public abstract void handlePacket(CompoundTag data);

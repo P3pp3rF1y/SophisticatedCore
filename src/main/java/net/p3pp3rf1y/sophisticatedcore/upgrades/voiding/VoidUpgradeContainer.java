@@ -44,6 +44,6 @@ public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrappe
 	}
 
 	public boolean shouldVoidOverflow() {
-		return upgradeWrapper.shouldVoidOverflow();
+		return upgradeWrapper.voidsOverflow();
 	}
 }

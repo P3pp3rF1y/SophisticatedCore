@@ -6,7 +6,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 public class ItemBordersCompat implements ICompat {
 	@Override
 	public void setup() {
-		if (FMLEnvironment.dist.isClient()) {
+		if (FMLEnvironment.getDist().isClient()) {
 			ItemBordersCompatClient.registerBorderDecorationRenderer();
 		}
 	}

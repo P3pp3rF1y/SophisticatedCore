@@ -1,51 +1,43 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
-import net.minecraft.nbt.CompoundTag;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.settings.MainSetting;
 
-import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class MainSettingsCategory<T extends MainSettingsCategory<?>> implements ISettingsCategory<T> {
+public class MainSettingsCategory implements ISettingsCategory<MainSettingsCategory, MainSettingsCategoryData> {
 	public static final String NAME = "global";
-	private CompoundTag categoryNbt;
-	private final Consumer<CompoundTag> saveNbt;
+	private final Runnable save;
 
-	private final String playerSettingsTagName;
+	private final String playerSettingsName;
+	private final ContainerContents.SettingsData settingsData;
+	private MainSettingsCategoryData data;
 
-	public MainSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, String playerSettingsTagName) {
-		this.categoryNbt = categoryNbt;
-		this.saveNbt = saveNbt;
-		this.playerSettingsTagName = playerSettingsTagName;
+	public MainSettingsCategory(ContainerContents.SettingsData settingsData, MainSettingsCategoryData data, Runnable save, String playerSettingsName) {
+		this.settingsData = settingsData;
+		this.data = data;
+		this.save = save;
+		this.playerSettingsName = playerSettingsName;
 	}
 
-	public String getPlayerSettingsTagName() {
-		return playerSettingsTagName;
-	}
-
-	public <S> Optional<S> getSettingValue(MainSetting<S> setting) {
-		return setting.getValue(categoryNbt);
-	}
-
-	public <S> void setSettingValue(MainSetting<S> setting, S value) {
-		setting.setValue(categoryNbt, value);
-		saveNbt.accept(categoryNbt);
-	}
-
-	public <S> void removeSetting(MainSetting<S> setting) {
-		setting.removeFrom(categoryNbt);
-		saveNbt.accept(categoryNbt);
+	public String getPlayerSettingsName() {
+		return playerSettingsName;
 	}
 
 	@Override
-	public void reloadFrom(CompoundTag categoryNbt) {
-		this.categoryNbt = categoryNbt;
+	public void reloadFrom(MainSettingsCategoryData data) {
+		this.data = data;
 	}
 
 	@Override
-	public void overwriteWith(T otherCategory) {
+	public void overwriteWith(MainSettingsCategory otherCategory) {
 		//noop for now
+	}
+
+	public void toggleContext() {
+		setContext(getContext() == Context.PLAYER ? Context.CONTAINER : Context.PLAYER);
+		save.run();
 	}
 
 	@Override
@@ -54,12 +46,30 @@ public class MainSettingsCategory<T extends MainSettingsCategory<?>> implements 
 	}
 
 	@Override
-	public void copyTo(T otherCategory, int startFromSlot, int slotOffset) {
+	public void copyTo(MainSettingsCategory otherCategory, int startFromSlot, int slotOffset) {
 		//noop just letting the other retain its state
 	}
 
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
 		//noop no slots to delete
+	}
+
+	public Context getContext() {
+		return settingsData.mainSettingsContext();
+	}
+
+	public void setContext(Context context) {
+		settingsData.setMainSettingsContext(context);
+		save.run();
+	}
+
+	public void setValue(Consumer<MainSettingsCategoryData> setter) {
+		setter.accept(data);
+		save.run();
+	}
+
+	public <T> T getValue(Function<MainSettingsCategoryData, T> getter) {
+		return getter.apply(data);
 	}
 }

@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
@@ -49,11 +50,11 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		return getChildAt(mouseX, mouseY).map(l -> {
-			if (l.mouseClicked(mouseX, mouseY, button)) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		return getChildAt(event.x(), event.y()).map(l -> {
+			if (l.mouseClicked(event, doubleClicked)) {
 				setFocused(l);
-				if (button == 0) {
+				if (event.button() == 0) {
 					setDragging(true);
 				}
 				return true;
@@ -63,8 +64,8 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-		return getChildAt(mouseX, mouseY).map(l -> l.mouseDragged(mouseX, mouseY, button, dragX, dragY)).orElse(false);
+	public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+		return getChildAt(event.x(), event.y()).map(l -> l.mouseDragged(event, dragX, dragY)).orElse(false);
 	}
 
 	@Override

@@ -5,9 +5,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.transfer.IndexModifier;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
-import org.apache.commons.lang3.function.TriFunction;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -28,39 +30,33 @@ public interface IInventoryPartHandler {
 		return false;
 	}
 
-	default int getStackLimit(int slot, ItemStack stack) {
+	default int getCapacity(int slot, ItemResource resource) {
 		return 0;
 	}
 
-	default ItemStack extractItem(int slot, int amount, boolean simulate) {
-		return ItemStack.EMPTY;
+	default int extract(int slot, ItemResource resource, int amount, TransactionContext transaction, IResourceExtractor extractSuper) {
+		return 0;
 	}
 
-	default ItemStack insertItem(int slot, ItemStack stack, boolean simulate, TriFunction<Integer, ItemStack, Boolean, ItemStack> insertSuper) {
-		return stack;
+	default int insert(int slot, ItemResource resource, int amount, TransactionContext transaction, IResourceInserter insertSuper) {
+		return 0;
 	}
 
-	default void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
+	default void set(int slot, ItemResource resource, int amount, IndexModifier<ItemResource> setSuper) {
 		//noop
 	}
 
-	default void onContentsChanged(int slot, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
-		//noop
-	}
-
-	default boolean isItemValid(int slot, ItemStack stack, @Nullable Player player, BiPredicate<Integer, ItemStack> isItemValidSuper) {
+	default boolean isValid(int slot, ItemResource resource, @Nullable Player player, BiPredicate<Integer, ItemResource> isValidSuper) {
 		return false;
-	}
-
-	default ItemStack getStackInSlot(int slot, IntFunction<ItemStack> getStackInSlotSuper) {
-		return ItemStack.EMPTY;
 	}
 
 	default boolean canBeReplaced() {
 		return false;
 	}
 
-	default int getSlots() { return 0;}
+	default int size() {
+		return 0;
+	}
 
 	String getName();
 
@@ -101,6 +97,22 @@ public interface IInventoryPartHandler {
 		return false;
 	}
 
+	default ItemResource getResource(int index, IntFunction<ItemResource> getResourceSuper) {
+		return ItemResource.EMPTY;
+	}
+
+	default long getAmountAsLong(int index, IntFunction<Long> amountAsLongSuper) {
+		return 0;
+	}
+
+	default ItemStack getStackInSlot(int slot, IntFunction<ItemStack> getStackInSlotSuper) {
+		return ItemStack.EMPTY;
+	}
+
+	default void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotInternal) {
+		//noop
+	}
+
 	class Default implements IInventoryPartHandler {
 		public static final String NAME = "default";
 		private final InventoryHandler parent;
@@ -117,33 +129,28 @@ public interface IInventoryPartHandler {
 		}
 
 		@Override
-		public int getStackLimit(int slot, ItemStack stack) {
-			return parent.getBaseStackLimit(stack);
+		public int getCapacity(int slot, ItemResource resource) {
+			return parent.getBaseCapacity(resource);
 		}
 
 		@Override
-		public ItemStack extractItem(int slot, int amount, boolean simulate) {
-			return parent.extractItemInternal(slot, amount, simulate);
+		public int extract(int slot, ItemResource resource, int amount, TransactionContext transaction, IResourceExtractor extractSuper) {
+			return extractSuper.extract(slot, resource, amount, transaction);
 		}
 
 		@Override
-		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate, TriFunction<Integer, ItemStack, Boolean, ItemStack> insertSuper) {
-			return insertSuper.apply(slot, stack, simulate);
+		public int insert(int slot, ItemResource resource, int amount, TransactionContext transaction, IResourceInserter insertSuper) {
+			return insertSuper.insert(slot, resource, amount, transaction);
 		}
 
 		@Override
-		public void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
-			setStackInSlotSuper.accept(slot, stack);
+		public void set(int slot, ItemResource resource, int amount, IndexModifier<ItemResource> setSuper) {
+			setSuper.set(slot, resource, amount);
 		}
 
 		@Override
-		public boolean isItemValid(int slot, ItemStack stack, @Nullable Player player, BiPredicate<Integer, ItemStack> isItemValidSuper) {
+		public boolean isValid(int slot, ItemResource resource, @Nullable Player player, BiPredicate<Integer, ItemResource> isValidSuper) {
 			return true;
-		}
-
-		@Override
-		public ItemStack getStackInSlot(int slot, IntFunction<ItemStack> getStackInSlotSuper) {
-			return getStackInSlotSuper.apply(slot);
 		}
 
 		@Override
@@ -157,13 +164,33 @@ public interface IInventoryPartHandler {
 		}
 
 		@Override
-		public int getSlots() {
+		public int size() {
 			return slots;
 		}
 
 		@Override
 		public String getName() {
 			return NAME;
+		}
+
+		@Override
+		public ItemResource getResource(int index, IntFunction<ItemResource> getResourceSuper) {
+			return getResourceSuper.apply(index);
+		}
+
+		@Override
+		public long getAmountAsLong(int index, IntFunction<Long> amountAsLongSuper) {
+			return amountAsLongSuper.apply(index);
+		}
+
+		@Override
+		public ItemStack getStackInSlot(int slot, IntFunction<ItemStack> getStackInSlotSuper) {
+			return getStackInSlotSuper.apply(slot);
+		}
+
+		@Override
+		public void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotInternal) {
+			setStackInSlotInternal.accept(slot, stack);
 		}
 	}
 

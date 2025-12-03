@@ -1,7 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
 import com.google.common.collect.ImmutableMap;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
+import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 import java.util.Map;
 
@@ -9,6 +13,9 @@ public enum DisplaySide implements StringRepresentable {
 	FRONT("front"), LEFT("left"), RIGHT("right");
 
 	private final String name;
+
+	public static final Codec<DisplaySide> CODEC = StringRepresentable.fromEnum(DisplaySide::values);
+	public static final StreamCodec<FriendlyByteBuf, DisplaySide> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(DisplaySide.class);
 
 	DisplaySide(String name) {
 		this.name = name;

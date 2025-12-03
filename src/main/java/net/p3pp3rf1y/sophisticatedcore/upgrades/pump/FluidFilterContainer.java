@@ -6,7 +6,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
@@ -65,10 +66,12 @@ public class FluidFilterContainer {
 			return;
 		}
 
-		CapabilityHelper.runOnCapability(carried, Capabilities.FluidHandler.ITEM, null, itemFluidHandler -> {
-			FluidStack containedFluid = itemFluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
-			if (!containedFluid.isEmpty()) {
-				setFluid(index, containedFluid);
+		CapabilityHelper.runOnCapability(ItemAccess.forStack(carried), Capabilities.Fluid.ITEM, itemFluidHandler -> {
+			if (itemFluidHandler.size() > 0) {
+				FluidResource resource = itemFluidHandler.getResource(0);
+				if (!resource.isEmpty()) {
+					setFluid(index, resource.toStack(FluidType.BUCKET_VOLUME));
+				}
 			}
 		});
 	}

@@ -3,7 +3,6 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.TypedDataComponent;
-import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -11,14 +10,14 @@ import java.util.Objects;
 public class ItemStackHelper {
 	private ItemStackHelper() {}
 
-	public static boolean areItemStackComponentsEqualIgnoreDurability(ItemStack stackA, ItemStack stackB) {
-		if (stackA.isEmpty() && stackB.isEmpty()) {
+	public static boolean areItemStackComponentsEqualIgnoreDurability(boolean aIsEmpty, DataComponentMap componentsA, boolean bIsEmpty, DataComponentMap componentsB) {
+		if (aIsEmpty && bIsEmpty) {
 			return true;
-		} else if (!stackA.isEmpty() && !stackB.isEmpty()) {
-			if (stackA.getComponents().isEmpty() && !stackB.getComponents().isEmpty()) {
+		} else if (!aIsEmpty && !bIsEmpty) {
+			if (componentsA.isEmpty() && !componentsB.isEmpty()) {
 				return false;
 			} else {
-				return (stackA.getComponents().isEmpty() || areComponentsEqualIgnoreDurability(stackA.getComponents(), stackB.getComponents()));
+				return (componentsA.isEmpty() || areComponentsEqualIgnoreDurability(componentsA, componentsB));
 			}
 		} else {
 			return false;

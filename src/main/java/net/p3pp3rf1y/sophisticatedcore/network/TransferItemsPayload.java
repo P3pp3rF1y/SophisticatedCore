@@ -4,25 +4,22 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
-import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
-import net.neoforged.neoforge.items.wrapper.RangedWrapper;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 
 public record TransferItemsPayload(boolean transferToInventory,
@@ -49,8 +46,19 @@ public record TransferItemsPayload(boolean transferToInventory,
 				mergeToPlayersInventory(storageWrapper, player);
 			}
 		} else {
-			InventoryHelper.transfer(new PlayerMainInvWithoutHotbarWrapper(player.getInventory()), new FilteredStorageItemHandler(storageWrapper, payload.filterByContents), s -> {
-			});
+			try(Transaction tx = Transaction.openRoot()) {
+				FilteredStorageItemHandler filteredStorage = new FilteredStorageItemHandler(storageWrapper, payload.filterByContents);
+				InventoryHelper.iteratePlayerInventory(player, (slot, stack) -> {
+					if (slot < 9 || stack.isEmpty()) {
+						return;
+					}
+					int moved = filteredStorage.insert(ItemResource.of(stack), stack.getCount(), tx);
+					if (moved > 0) {
+						player.getInventory().setItem(slot, stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
+					}
+				});
+				tx.commit();
+			}
 		}
 	}
 
@@ -60,24 +68,24 @@ public record TransferItemsPayload(boolean transferToInventory,
 				return;
 			}
 
-			ItemStack result = InventoryHelper.mergeIntoPlayerInventory(player, stack, 9);
-			if (result.getCount() != stack.getCount()) {
-				storageWrapper.getInventoryHandler().setStackInSlot(slot, result);
+			int moved = InventoryHelper.mergeIntoPlayerInventory(player, stack, 9);
+			if (moved > 0) {
+				storageWrapper.getInventoryHandler().setStackInSlot(slot, stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
 			}
-		});
+		}, () -> false, false);
 	}
 
 	private static void mergeToPlayersInventoryFiltered(Player player, IStorageWrapper storageWrapper) {
-		Set<ItemStackKey> uniqueStacks = InventoryHelper.getUniqueStacks(new PlayerMainInvWrapper(player.getInventory()));
+		Set<ItemStackKey> uniqueStacks = InventoryHelper.getUniqueStacks(PlayerInventoryWrapper.of(player).getMainSlots());
 		InventoryHelper.iterate(storageWrapper.getInventoryHandler(), (slot, stack) -> {
 			if (stack.isEmpty() || !uniqueStacks.contains(ItemStackKey.of(stack))) {
 				return;
 			}
-			ItemStack result = InventoryHelper.mergeIntoPlayerInventory(player, stack, 0);
-			if (result.getCount() != stack.getCount()) {
-				storageWrapper.getInventoryHandler().setStackInSlot(slot, result);
+			int moved = InventoryHelper.mergeIntoPlayerInventory(player, stack, 0);
+			if (moved > 0) {
+				storageWrapper.getInventoryHandler().setStackInSlot(slot, stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
 			}
-		});
+		}, () -> false, false);
 	}
 
 	@Override
@@ -85,124 +93,71 @@ public record TransferItemsPayload(boolean transferToInventory,
 		return TYPE;
 	}
 
-	private static class PlayerMainInvWithoutHotbarWrapper extends RangedWrapper {
-		private final Inventory inventoryPlayer;
-
-		public PlayerMainInvWithoutHotbarWrapper(Inventory inv) {
-			super(new InvWrapper(inv), 9, inv.getNonEquipmentItems().size());
-			this.inventoryPlayer = inv;
-		}
-
-		@Override
-		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-			ItemStack rest = super.insertItem(slot, stack, simulate);
-			if (rest.getCount() != stack.getCount()) {
-				ItemStack inSlot = this.getStackInSlot(slot);
-				if (!inSlot.isEmpty()) {
-					if (this.getInventoryPlayer().player.level().isClientSide) {
-						inSlot.setPopTime(5);
-					} else if (this.getInventoryPlayer().player instanceof ServerPlayer) {
-						this.getInventoryPlayer().player.containerMenu.broadcastChanges();
-					}
-				}
-			}
-
-			return rest;
-		}
-
-		public Inventory getInventoryPlayer() {
-			return this.inventoryPlayer;
-		}
-	}
-
-	private static class FilteredStorageItemHandler extends TransferItemsPayload.FilteredItemHandler<ITrackedContentsItemHandler> implements IItemHandlerSimpleInserter {
+	private static class FilteredStorageItemHandler implements ResourceHandler<ItemResource> {
+		protected final boolean matchContents;
+		private final Set<ItemStackKey> uniqueStacks;
 		private final IStorageWrapper storageWrapper;
 
-		public FilteredStorageItemHandler(IStorageWrapper storageWrapper, boolean smart) {
-			super(storageWrapper.getInventoryHandler(), smart);
+		public FilteredStorageItemHandler(IStorageWrapper storageWrapper, boolean matchContents) {
 			this.storageWrapper = storageWrapper;
+			this.matchContents = matchContents;
+			uniqueStacks = getUniqueStacks(storageWrapper.getInventoryHandler());
 		}
 
-		@Override
-		protected Set<ItemStackKey> getUniqueStacks(ITrackedContentsItemHandler itemHandler) {
+		protected Set<ItemStackKey> getUniqueStacks(ITrackedContentsItemResourceHandler itemHandler) {
 			return itemHandler.getTrackedStacks();
 		}
 
-		@Override
-		protected boolean matchesFilter(ItemStack stack) {
-			return super.matchesFilter(stack) || storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(stack);
+		protected boolean matchesFilter(ItemResource resource) {
+			return uniqueStacks.contains(ItemStackKey.of(resource)) || storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(resource.getItem(), resource.getComponents());
 		}
 
-		@Nonnull
 		@Override
-		public ItemStack insertItem(ItemStack stack, boolean simulate) {
-			if (!matchContents || matchesFilter(stack)) {
-				return itemHandler.insertItem(stack, simulate);
+		public int size() {
+			return storageWrapper.getInventoryHandler().size();
+		}
+
+		@Override
+		public ItemResource getResource(int i) {
+			return storageWrapper.getInventoryHandler().getResource(i);
+		}
+
+		@Override
+		public long getAmountAsLong(int i) {
+			return storageWrapper.getInventoryHandler().getAmountAsLong(i);
+		}
+
+		@Override
+		public int insert(ItemResource resource, int amount, TransactionContext transaction) {
+			if (!matchContents || matchesFilter(resource)) {
+				return storageWrapper.getInventoryHandler().insert(resource, amount, transaction);
 			} else {
-				return stack;
+				return 0;
 			}
 		}
 
 		@Override
-		public void setStackInSlot(int slot, ItemStack stack) {
-			itemHandler.setStackInSlot(slot, stack);
-		}
-	}
-
-	private static class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
-		protected final T itemHandler;
-		protected final boolean matchContents;
-		private final Set<ItemStackKey> uniqueStacks;
-
-		public FilteredItemHandler(T itemHandler, boolean matchContents) {
-			this.itemHandler = itemHandler;
-			this.matchContents = matchContents;
-			uniqueStacks = getUniqueStacks(itemHandler);
-		}
-
-		protected Set<ItemStackKey> getUniqueStacks(T itemHandler) {
-			return InventoryHelper.getUniqueStacks(itemHandler);
-		}
-
-		@Override
-		public int getSlots() {
-			return itemHandler.getSlots();
-		}
-
-		@Nonnull
-		@Override
-		public ItemStack getStackInSlot(int slot) {
-			return itemHandler.getStackInSlot(slot);
-		}
-
-		@Nonnull
-		@Override
-		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-			if (!matchContents || matchesFilter(stack)) {
-				return itemHandler.insertItem(slot, stack, simulate);
+		public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
+			if (!matchContents || matchesFilter(resource)) {
+				return storageWrapper.getInventoryHandler().insert(index, resource, amount, transaction);
 			} else {
-				return stack;
+				return 0;
 			}
 		}
 
-		protected boolean matchesFilter(ItemStack stack) {
-			return uniqueStacks.contains(ItemStackKey.of(stack));
-		}
-
-		@Nonnull
 		@Override
-		public ItemStack extractItem(int slot, int amount, boolean simulate) {
-			return itemHandler.extractItem(slot, amount, simulate);
+		public int extract(int index, ItemResource resource, int amount, TransactionContext transaction) {
+			return storageWrapper.getInventoryHandler().extract(index, resource, amount, transaction);
 		}
 
 		@Override
-		public int getSlotLimit(int slot) {
-			return itemHandler.getSlotLimit(slot);
+		public long getCapacityAsLong(int i, ItemResource resource) {
+			return storageWrapper.getInventoryHandler().getOverflowAwareCapacity(i, resource);
 		}
 
 		@Override
-		public boolean isItemValid(int slot, ItemStack stack) {
-			return itemHandler.isItemValid(slot, stack);
+		public boolean isValid(int i, ItemResource resource) {
+			return storageWrapper.getInventoryHandler().isValid(i, resource);
 		}
 	}
 }

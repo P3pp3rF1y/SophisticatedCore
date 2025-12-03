@@ -5,6 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
@@ -158,8 +159,10 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
 		clickedOnScroll = false;
+		double mouseX = event.x();
+		double mouseY = event.y();
 		if (hasItemsInInputSlot) {
 			int listInnerLeftX = x + 1;
 			int listInnerTopY = y + LIST_Y_OFFSET + 1;
@@ -182,22 +185,22 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 			}
 		}
 
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(event, doubleClicked);
 	}
 
 	protected abstract SoundEvent getSelectRecipeSound();
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+	public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
 		if (clickedOnScroll && canScroll()) {
 			int listTopY = y + LIST_Y_OFFSET;
 			int listBottomY = listTopY + 54;
-			sliderProgress = ((float) mouseY - listTopY - 7.5F) / ((listBottomY - listTopY) - 15.0F);
+			sliderProgress = ((float) event.y() - listTopY - 7.5F) / ((listBottomY - listTopY) - 15.0F);
 			sliderProgress = Mth.clamp(sliderProgress, 0.0F, 1.0F);
 			recipeIndexOffset = (int) ((sliderProgress * getHiddenRows()) + 0.5D) * 4;
 			return true;
 		} else {
-			return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+			return super.mouseDragged(event, dragX, dragY);
 		}
 	}
 

@@ -1,9 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+
 import java.util.Set;
 import java.util.function.Consumer;
 
-public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter {
+public interface ITrackedContentsItemResourceHandler extends ResourceHandler<ItemResource>, ISlotStackAccessor {
 
 	Set<ItemStackKey> getTrackedStacks();
 

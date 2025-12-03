@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderDataHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
@@ -38,12 +38,12 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 		}
 
 		boolean isBurning = cookingLogic.isBurning(level);
-		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		if (renderInfo.getUpgradeClientData(CookingUpgradeClientData.TYPE).map(CookingUpgradeClientData::isBurning).orElse(false) != isBurning) {
+		RenderDataHandler renderDataHandler = storageWrapper.getRenderDataHandler();
+		if (renderDataHandler.getUpgradeClientData(CookingUpgradeClientData.TYPE).map(CookingUpgradeClientData::burning).orElse(false) != isBurning) {
 			if (isBurning) {
-				renderInfo.setUpgradeClientData(CookingUpgradeClientData.TYPE, new CookingUpgradeClientData(true));
+				renderDataHandler.setUpgradeClientData(CookingUpgradeClientData.TYPE, new CookingUpgradeClientData(true));
 			} else {
-				renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
+				renderDataHandler.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 			}
 		}
 	}
@@ -51,20 +51,20 @@ public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U
 	@Override
 	public void setEnabled(boolean enabled) {
 		if (!enabled) {
-			pauseAndRemoveRenderInfo();
+			pauseAndRemoveRenderData();
 		}
 		super.setEnabled(enabled);
 	}
 
 	@Override
 	public void onBeforeRemoved() {
-		pauseAndRemoveRenderInfo();
+		pauseAndRemoveRenderData();
 	}
 
-	private void pauseAndRemoveRenderInfo() {
+	private void pauseAndRemoveRenderData() {
 		cookingLogic.pause();
-		RenderInfo renderInfo = storageWrapper.getRenderInfo();
-		renderInfo.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
+		RenderDataHandler renderDataHandler = storageWrapper.getRenderDataHandler();
+		renderDataHandler.removeUpgradeClientData(CookingUpgradeClientData.TYPE);
 	}
 
 	public CookingLogic<R> getCookingLogic() {

@@ -1,13 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.util.FilterItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
@@ -67,28 +70,36 @@ public class FilterLogic {
 	}
 
 	public boolean matchesFilter(ItemStack stack) {
+		return matchesFilter(stack.getTags(), stack.getItem(), stack.getDamageValue(), stack.isEmpty(), stack.getComponents());
+	}
+
+	protected boolean matchesFilter(Stream<TagKey<Item>> tags, Item item, int damageValue, boolean empty, DataComponentMap components) {
 		if (isAllowList()) {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
-				return isTagMatch(stack);
+				return isTagMatch(tags);
 			} else {
 				return (getFilterHandler().hasOnlyEmptyFilters() && emptyAllowListMatchesEverything)
-						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> stackMatchesFilter(stack, filter), () -> false, returnValue -> returnValue);
+						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> stackMatchesFilter(filter, item, damageValue, empty, components), () -> false, returnValue -> returnValue);
 			}
 		} else {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
-				return !isTagMatch(stack);
+				return !isTagMatch(tags);
 			} else {
 				return getFilterHandler().hasOnlyEmptyFilters()
-						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> !stackMatchesFilter(stack, filter), () -> true, returnValue -> !returnValue);
+						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> !stackMatchesFilter(filter, item, damageValue, empty, components), () -> true, returnValue -> !returnValue);
 			}
 		}
 	}
 
-	private boolean isTagMatch(ItemStack stack) {
+	public boolean matchesFilter(ItemResource resource) {
+		return matchesFilter(resource.getItem().builtInRegistryHolder().tags(), resource.getItem(), resource.getOrDefault(DataComponents.DAMAGE, 0), resource.isEmpty(), resource.getComponents());
+	}
+
+	private boolean isTagMatch(Stream<TagKey<Item>> tags) {
 		if (shouldMatchAnyTag()) {
-			return anyTagMatches(stack.getTags());
+			return anyTagMatches(tags);
 		}
-		return allTagsMatch(stack.getTags());
+		return allTagsMatch(tags);
 	}
 
 	private boolean allTagsMatch(Stream<TagKey<Item>> tagsStream) {
@@ -134,25 +145,25 @@ public class FilterLogic {
 		saveHandler.accept(upgrade);
 	}
 
-	public boolean stackMatchesFilter(ItemStack stack, ItemStack filter) {
+	public boolean stackMatchesFilter(ItemStack filter, Item item, int damageValue, boolean isEmpty, DataComponentMap components) {
 		if (filter.isEmpty()) {
 			return false;
 		}
 
 		PrimaryMatch primaryMatch = getPrimaryMatch();
 		if (primaryMatch == PrimaryMatch.MOD) {
-			if (!BuiltInRegistries.ITEM.getKey(stack.getItem()).getNamespace().equals(BuiltInRegistries.ITEM.getKey(filter.getItem()).getNamespace())) {
+			if (!BuiltInRegistries.ITEM.getKey(item).getNamespace().equals(BuiltInRegistries.ITEM.getKey(filter.getItem()).getNamespace())) {
 				return false;
 			}
-		} else if (primaryMatch == PrimaryMatch.ITEM && stack.getItem() != filter.getItem()) {
+		} else if (primaryMatch == PrimaryMatch.ITEM && item != filter.getItem()) {
 			return false;
 		}
 
-		if (shouldMatchDurability() && stack.getDamageValue() != filter.getDamageValue()) {
+		if (shouldMatchDurability() && damageValue != filter.getDamageValue()) {
 			return false;
 		}
 
-		return !shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack, filter);
+		return !shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(filter.isEmpty(), filter.getComponents(), isEmpty, components);
 	}
 
 	public Set<TagKey<Item>> getTagKeys() {
@@ -248,8 +259,8 @@ public class FilterLogic {
 		}
 
 		@Override
-		protected void onContentsChanged(int slot) {
-			super.onContentsChanged(slot);
+		protected void onContentsChanged(int slot, ItemStack previousContents) {
+			super.onContentsChanged(slot, previousContents);
 			setAttributes(contents -> contents.setFilterItem(slot, stacks.get(slot)));
 			save();
 			onSlotChange.accept(slot);
@@ -260,19 +271,22 @@ public class FilterLogic {
 		}
 
 		@Override
-		public boolean isItemValid(int slot, ItemStack stack) {
-			return stack.isEmpty() || (doesNotContain(stack) && isItemValid.test(stack));
+		public boolean isValid(int slot, ItemResource resource) {
+			return resource.isEmpty() || (doesNotContain(resource) && isItemValid.test(resource.toStack()));
 		}
 
-		private boolean doesNotContain(ItemStack stack) {
-			return !InventoryHelper.hasItem(this, s -> ItemStack.isSameItemSameComponents(s, stack));
+		private boolean doesNotContain(ItemResource resource) {
+			return !InventoryHelper.hasItem(this, s -> s.equals(resource));
 		}
 
 		public void initFilters(List<ItemStack> filterItems) {
 			for (int slot = 0; slot < filterItems.size(); slot++) {
-				setStackInSlot(slot, filterItems.get(slot));
+				ItemStack filterStack = filterItems.get(slot);
+				if (!filterStack.isEmpty()) {
+					set(slot, ItemResource.of(filterStack), 1);
+				}
 			}
-			onLoad();
+			updateEmptyFilters();
 		}
 	}
 }

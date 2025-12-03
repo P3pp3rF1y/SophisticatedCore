@@ -2,6 +2,8 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.pickup;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
@@ -24,12 +26,12 @@ public class PickupUpgradeWrapper extends UpgradeWrapperBase<PickupUpgradeWrappe
 	}
 
 	@Override
-	public ItemStack pickup(Level level, ItemStack stack, boolean simulate) {
-		if (!filterLogic.matchesFilter(stack)) {
-			return stack;
+	public int pickup(Level level, ItemResource resource, int amount, TransactionContext tx) {
+		if (!filterLogic.matchesFilter(resource)) {
+			return 0;
 		}
 
-		return storageWrapper.getInventoryForUpgradeProcessing().insertItem(stack, simulate);
+		return storageWrapper.getInventoryForUpgradeProcessing().insert(resource, amount, tx);
 	}
 
 	@Override

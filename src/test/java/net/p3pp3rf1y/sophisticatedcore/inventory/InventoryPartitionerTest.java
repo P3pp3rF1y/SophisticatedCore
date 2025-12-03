@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import net.minecraft.nbt.CompoundTag;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +22,7 @@ class InventoryPartitionerTest {
 
 	private InventoryHandler getInventoryHandler(int slots) {
 		InventoryHandler inventoryHandler = Mockito.mock(InventoryHandler.class);
-		when(inventoryHandler.getSlots()).thenReturn(slots);
+		when(inventoryHandler.size()).thenReturn(slots);
 		return inventoryHandler;
 	}
 
@@ -31,7 +30,7 @@ class InventoryPartitionerTest {
 	void addInventoryPartWithMaxIntSlotsAddsItForAllSlotsFromTheBaseIndex() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, Integer.MAX_VALUE, dummyPartHandler);
@@ -44,7 +43,7 @@ class InventoryPartitionerTest {
 	void addInventoryPartAtTheBeginningProperlyUpdatesParts() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 9, dummyPartHandler);
@@ -57,7 +56,7 @@ class InventoryPartitionerTest {
 	void addTwoAndRemoveInventoryPartProperlyUpdatesParts() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 9, dummyPartHandler);
@@ -67,14 +66,14 @@ class InventoryPartitionerTest {
 		Assertions.assertEquals(dummyPartHandler, partitioner.getPartBySlot(0));
 		Assertions.assertInstanceOf(IInventoryPartHandler.Default.class, partitioner.getPartBySlot(9));
 		Assertions.assertEquals(partitioner.getPartBySlot(9), partitioner.getPartBySlot(80));
-		Assertions.assertEquals(72, partitioner.getPartBySlot(9).getSlots());
+		Assertions.assertEquals(72, partitioner.getPartBySlot(9).size());
 	}
 
 	@Test
 	void AddTwoAndRemoveOneProperlyShowsSlotAfterFirstAsReplaceable() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 9, dummyPartHandler);
@@ -90,21 +89,21 @@ class InventoryPartitionerTest {
 	void addTwoAndRemoveFirstProperlyUpdatesFirstsSlots() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 9, dummyPartHandler);
 		partitioner.addInventoryPart(9, 9, () -> "dummy2");
 		partitioner.removeInventoryPart(0);
 
-		Assertions.assertEquals(9, partitioner.getPartBySlot(0).getSlots());
+		Assertions.assertEquals(9, partitioner.getPartBySlot(0).size());
 	}
 
 	@Test
 	void addTwoThanRemoveFirstAndThenSecondShowsAllSlotsAsReplaceable() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 9, dummyPartHandler);
@@ -116,14 +115,14 @@ class InventoryPartitionerTest {
 		Assertions.assertTrue(firstSpace.isPresent());
 		Assertions.assertEquals(firstSpace.get().firstSlot(), 0);
 		Assertions.assertEquals(partitioner.getPartBySlot(0), partitioner.getPartBySlot(80));
-		Assertions.assertEquals(81, partitioner.getPartBySlot(0).getSlots());
+		Assertions.assertEquals(81, partitioner.getPartBySlot(0).size());
 	}
 
 	@Test
 	void addPartReplacingAllSlotsAndRemovingThatProperlyUpdatesToDefault() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 81, dummyPartHandler);
@@ -132,14 +131,14 @@ class InventoryPartitionerTest {
 		Assertions.assertInstanceOf(IInventoryPartHandler.Default.class, partitioner.getPartBySlot(0));
 		Assertions.assertInstanceOf(IInventoryPartHandler.Default.class, partitioner.getPartBySlot(80));
 		Assertions.assertEquals(partitioner.getPartBySlot(0), partitioner.getPartBySlot(80));
-		Assertions.assertEquals(81, partitioner.getPartBySlot(0).getSlots());
+		Assertions.assertEquals(81, partitioner.getPartBySlot(0).size());
 	}
 
 	@Test
 	void addPartReplacingAllSlotsReturnsEmptyPartFromMaxSlotPlusOne() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		IInventoryPartHandler dummyPartHandler = () -> "dummy";
 		partitioner.addInventoryPart(0, 81, dummyPartHandler);
@@ -152,11 +151,11 @@ class InventoryPartitionerTest {
 	void getFirstSpaceReturnsCorrectRangeForSmallInventories(int slots) {
 		InventoryHandler invHandler = getInventoryHandler(slots);
 
-		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
 
 		Optional<SlotRange> firstSpace = partitioner.getFirstSpace(9);
 		Assertions.assertTrue(firstSpace.isPresent());
-		Assertions.assertEquals(slots, firstSpace.get().numberOfSlots());
+		Assertions.assertEquals(slots, firstSpace.get().size());
 		Assertions.assertEquals(0, firstSpace.get().firstSlot());
 	}
 }

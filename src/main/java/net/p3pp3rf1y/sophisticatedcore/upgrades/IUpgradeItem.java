@@ -42,8 +42,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 
 	default UpgradeSlotChangeResult checkThisForConflictsWithExistingUpgrades(ItemStack upgradeStack, IStorageWrapper storageWrapper, int excludeUpgradeSlot) {
 		AtomicReference<UpgradeSlotChangeResult> result = new AtomicReference<>(UpgradeSlotChangeResult.success());
-		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, stack) -> {
-			if (slot != excludeUpgradeSlot && stack.getItem() instanceof IUpgradeItem<?> upgradeItem) {
+		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, resource, amount) -> {
+			if (slot != excludeUpgradeSlot && resource.getItem() instanceof IUpgradeItem<?> upgradeItem) {
 				for (UpgradeConflictDefinition conflictDefinition : upgradeItem.getUpgradeConflicts()) {
 					//only checking for single item conflicts here would need to be expanded to support multiple,
 					// but there isn't a case like that at the moment because the other conflict check (the one where item inserted checks items that exist) covers all multiple item cases
@@ -61,8 +61,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		for (UpgradeConflictDefinition conflictDefinition : upgradeConflicts) {
 			AtomicInteger conflictingCount = new AtomicInteger(0);
 			Set<Integer> conflictingSlots = new HashSet<>();
-			InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, stack) -> {
-				if (slot != excludeUpgradeSlot && !stack.isEmpty() && conflictDefinition.isConflictingItem.test(stack.getItem())) {
+			InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, resource, amount) -> {
+				if (slot != excludeUpgradeSlot && !resource.isEmpty() && conflictDefinition.isConflictingItem.test(resource.getItem())) {
 					conflictingCount.incrementAndGet();
 					conflictingSlots.add(slot);
 				}
@@ -92,8 +92,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		}
 
 		Set<Integer> slotsWithUpgrade = new HashSet<>();
-		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, stack) -> {
-			if (stack.getItem() == this) {
+		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, resource, amount) -> {
+			if (resource.getItem() == this) {
 				slotsWithUpgrade.add(slot);
 			}
 		});
@@ -103,8 +103,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		}
 
 		Set<Integer> slotsWithUgradeGroup = new HashSet<>();
-		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, stack) -> {
-			if (stack.getItem() instanceof IUpgradeItem<?> upgradeItem && upgradeItem.getUpgradeGroup() == getUpgradeGroup()) {
+		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, resource, amount) -> {
+			if (resource.getItem() instanceof IUpgradeItem<?> upgradeItem && upgradeItem.getUpgradeGroup() == getUpgradeGroup()) {
 				slotsWithUgradeGroup.add(slot);
 			}
 		});

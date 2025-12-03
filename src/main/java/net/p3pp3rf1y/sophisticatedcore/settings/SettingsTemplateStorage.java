@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.settings;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ExtraCodecs;
@@ -14,50 +13,52 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
+import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
-
+//TODO after 1.22 remove support for legacy UUID deserialization via strings
 public class SettingsTemplateStorage extends SavedData {
 	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_settings_templates", SettingsTemplateStorage::new,
 			RecordCodecBuilder.create(
 					builder -> builder.group(
-							Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, CompoundTag.CODEC))
+							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, ContainerContents.SettingsData.CODEC))
 									.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
-							Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, CompoundTag.CODEC))
+							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, ContainerContents.SettingsData.CODEC))
 									.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates)
 					).apply(builder, SettingsTemplateStorage::new)
 			));
 
-	private Map<UUID, Map<Integer, CompoundTag>> playerTemplates = new HashMap<>();
-	private Map<UUID, Map<String, CompoundTag>> playerNamedTemplates = new HashMap<>();
+	private Map<UUID, Map<Integer, ContainerContents.SettingsData>> playerTemplates = new HashMap<>();
+	private Map<UUID, Map<String, ContainerContents.SettingsData>> playerNamedTemplates = new HashMap<>();
 	private static final SettingsTemplateStorage clientStorageCopy = new SettingsTemplateStorage();
 
 	private SettingsTemplateStorage() {
 	}
 
-	private SettingsTemplateStorage(Map<UUID, Map<Integer, CompoundTag>> playerTemplates, Map<UUID, Map<String, CompoundTag>> playerNamedTemplates) {
+	private SettingsTemplateStorage(Map<UUID, Map<Integer, ContainerContents.SettingsData>> playerTemplates, Map<UUID, Map<String, ContainerContents.SettingsData>> playerNamedTemplates) {
 		this.playerTemplates = playerTemplates;
 		this.playerNamedTemplates = playerNamedTemplates;
 	}
 
-	public void putPlayerTemplate(Player player, int slot, CompoundTag settingsTag) {
-		playerTemplates.computeIfAbsent(player.getUUID(), u -> new HashMap<>()).put(slot, settingsTag);
+	public void putPlayerTemplate(Player player, int slot, ContainerContents.SettingsData data) {
+		playerTemplates.computeIfAbsent(player.getUUID(), u -> new HashMap<>()).put(slot, data);
 		setDirty();
 	}
 
-	public void putPlayerNamedTemplate(Player player, String name, CompoundTag settingsTag) {
-		playerNamedTemplates.computeIfAbsent(player.getUUID(), u -> new TreeMap<>()).put(name, settingsTag);
+	public void putPlayerNamedTemplate(Player player, String name, ContainerContents.SettingsData data) {
+		playerNamedTemplates.computeIfAbsent(player.getUUID(), u -> new TreeMap<>()).put(name, data);
 		setDirty();
 	}
 
-	public Map<Integer, CompoundTag> getPlayerTemplates(Player player) {
+	public Map<Integer, ContainerContents.SettingsData> getPlayerTemplates(Player player) {
 		return playerTemplates.getOrDefault(player.getUUID(), new HashMap<>());
 	}
 
-	public Map<String, CompoundTag> getPlayerNamedTemplates(Player player) {
+	public Map<String, ContainerContents.SettingsData> getPlayerNamedTemplates(Player player) {
 		return playerNamedTemplates.getOrDefault(player.getUUID(), new TreeMap<>());
 	}
 

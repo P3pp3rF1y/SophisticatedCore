@@ -1,10 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
-import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 
 public interface IInsertResponseUpgrade {
-	ItemStack onBeforeInsert(IItemHandlerSimpleInserter inventoryHandler, int slot, ItemStack stack, boolean simulate);
+	int onBeforeInsert(InventoryHandler inventoryHandler, int slot, ItemResource resource, int amount);
 
-	void onAfterInsert(IItemHandlerSimpleInserter inventoryHandler, int slot);
+	void onAfterInsert(InventoryHandler inventoryHandler, int slot, TransactionContext tx);
 }

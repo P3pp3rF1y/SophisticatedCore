@@ -13,7 +13,7 @@ public class InventoryPartRegistry {
 	private static final Map<String, IInventoryPartHandler.Factory> INVENTORY_PART_FACTORIES = new HashMap<>();
 
 	static {
-		registerFactory(IInventoryPartHandler.Default.NAME, (parent, slotRange, getMemorySettings) -> new IInventoryPartHandler.Default(parent, slotRange.numberOfSlots()));
+		registerFactory(IInventoryPartHandler.Default.NAME, (parent, slotRange, getMemorySettings) -> new IInventoryPartHandler.Default(parent, slotRange.size()));
 	}
 
 	public static void registerFactory(String name, IInventoryPartHandler.Factory factory) {

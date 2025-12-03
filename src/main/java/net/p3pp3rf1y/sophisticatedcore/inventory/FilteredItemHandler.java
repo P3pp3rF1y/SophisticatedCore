@@ -1,16 +1,17 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 
-import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
+public class FilteredItemHandler<T extends ResourceHandler<ItemResource>> implements ResourceHandler<ItemResource> {
 	protected final T inventoryHandler;
 	protected final List<FilterLogic> inputFilters;
 	private final List<FilterLogic> outputFilters;
@@ -22,58 +23,70 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 	}
 
 	@Override
-	public int getSlots() {
-		return inventoryHandler.getSlots();
+	public int size() {
+		return inventoryHandler.size();
 	}
 
-	@Nonnull
 	@Override
-	public ItemStack getStackInSlot(int slot) {
-		return inventoryHandler.getStackInSlot(slot);
+	public ItemResource getResource(int i) {
+		return inventoryHandler.getResource(i);
 	}
 
-	@Nonnull
 	@Override
-	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-		if (inputFilters.isEmpty()) {
-			return inventoryHandler.insertItem(slot, stack, simulate);
-		}
-
-		if (matchesFilters(stack, inputFilters)) {
-			return inventoryHandler.insertItem(slot, stack, simulate);
-		}
-
-		return stack;
+	public long getAmountAsLong(int i) {
+		return inventoryHandler.getAmountAsLong(i);
 	}
 
-	@Nonnull
 	@Override
-	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		if (outputFilters.isEmpty()) {
-			return inventoryHandler.extractItem(slot, amount, simulate);
+	public int insert(int index, ItemResource resource, int amount, TransactionContext transactionContext) {
+		if (matchesFilters(resource, inputFilters)) {
+			return inventoryHandler.insert(index, resource, amount, transactionContext);
 		}
-
-		if (matchesFilters(getStackInSlot(slot), outputFilters)) {
-			return inventoryHandler.extractItem(slot, amount, simulate);
-		}
-
-		return ItemStack.EMPTY;
+		return 0;
 	}
 
-	protected boolean matchesFilters(ItemStack stack, List<FilterLogic> filters) {
+	@Override
+	public int insert(ItemResource resource, int amount, TransactionContext transaction) {
+		if (matchesFilters(resource, inputFilters)) {
+			return inventoryHandler.insert(resource, amount, transaction);
+		}
+		return 0;
+	}
+
+	@Override
+	public int extract(ItemResource resource, int amount, TransactionContext transaction) {
+		if (matchesFilters(resource, outputFilters)) {
+			return inventoryHandler.extract(resource, amount, transaction);
+		}
+		return 0;
+	}
+
+	@Override
+	public int extract(int index, ItemResource resource, int amount, TransactionContext transactionContext) {
+		if (matchesFilters(resource, outputFilters)) {
+			return inventoryHandler.extract(index, resource, amount, transactionContext);
+		}
+		return 0;
+	}
+
+	protected boolean matchesFilters(ItemResource resource, List<FilterLogic> filters) {
+		if (filters.isEmpty()) {
+			return true;
+		}
+
 		boolean matchAll = shouldMatchAllFilters(filters);
 
 		for (FilterLogic filter : filters) {
-			if (matchAll && !filter.matchesFilter(stack)) {
+			if (matchAll && !filter.matchesFilter(resource)) {
 				return false;
-			} else if (!matchAll && filter.matchesFilter(stack)) {
+			} else if (!matchAll && filter.matchesFilter(resource)) {
 				return true;
 			}
 		}
 		return matchAll;
 	}
 
-	private boolean shouldMatchAllFilters(List<FilterLogic> filters) {
+	protected boolean shouldMatchAllFilters(List<FilterLogic> filters) {
 		if (filters.size() < 2) {
 			return false;
 		}
@@ -87,20 +100,20 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 	}
 
 	@Override
-	public int getSlotLimit(int slot) {
-		return inventoryHandler.getSlotLimit(slot);
+	public long getCapacityAsLong(int i, ItemResource resource) {
+		return inventoryHandler.getCapacityAsLong(i, resource);
 	}
 
 	@Override
-	public boolean isItemValid(int slot, ItemStack stack) {
-		if (matchesFilters(stack, inputFilters)) {
-			return inventoryHandler.isItemValid(slot, stack);
+	public boolean isValid(int i, ItemResource resource) {
+		if (matchesFilters(resource, inputFilters)) {
+			return inventoryHandler.isValid(i, resource);
 		}
 		return false;
 	}
 
-	public static class Modifiable extends FilteredItemHandler<ITrackedContentsItemHandler> implements ITrackedContentsItemHandler {
-		public Modifiable(ITrackedContentsItemHandler inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
+	public static class Modifiable extends FilteredItemHandler<ITrackedContentsItemResourceHandler> implements ITrackedContentsItemResourceHandler {
+		public Modifiable(ITrackedContentsItemResourceHandler inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 			super(inventoryHandler, inputFilters, outputFilters);
 		}
 
@@ -110,16 +123,35 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		}
 
 		@Override
-		public ItemStack insertItem(ItemStack stack, boolean simulate) {
-			if (inputFilters.isEmpty()) {
-				return inventoryHandler.insertItem(stack, simulate);
+		public int insert(int index, ItemResource resource, int amount, TransactionContext transactionContext) {
+			return super.insert(index, resource, amount, transactionContext);
+		}
+
+		@Override
+		public ItemStack getStackInSlot(int slot) {
+			return inventoryHandler.getStackInSlot(slot);
+		}
+
+		@Override
+		public int insert(ItemResource resource, int amount, TransactionContext transaction) {
+			return super.insert(resource, amount, transaction);
+		}
+
+		protected boolean matchesFilters(ItemStack stack, List<FilterLogic> filters) {
+			if (filters.isEmpty()) {
+				return true;
 			}
 
-			if (matchesFilters(stack, inputFilters)) {
-				return inventoryHandler.insertItem(stack, simulate);
-			}
+			boolean matchAll = shouldMatchAllFilters(filters);
 
-			return stack;
+			for (FilterLogic filter : filters) {
+				if (matchAll && !filter.matchesFilter(stack)) {
+					return false;
+				} else if (!matchAll && filter.matchesFilter(stack)) {
+					return true;
+				}
+			}
+			return matchAll;
 		}
 
 		@Override

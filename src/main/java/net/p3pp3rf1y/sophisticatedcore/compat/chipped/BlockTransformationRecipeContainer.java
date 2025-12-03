@@ -53,18 +53,9 @@ public class BlockTransformationRecipeContainer {
 	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
-			public void setChanged() {
-				super.setChanged();
+			protected void setStackCopy(ItemStack stack) {
+				super.setStackCopy(stack);
 				onCraftMatrixChanged(inputInventory);
-			}
-
-			@Override
-			public ItemStack remove(int amount) {
-				ItemStack ret = super.remove(amount);
-				if (getItem().isEmpty()) {
-					setChanged();
-				}
-				return ret;
 			}
 		};
 		this.recipeType = recipeType;

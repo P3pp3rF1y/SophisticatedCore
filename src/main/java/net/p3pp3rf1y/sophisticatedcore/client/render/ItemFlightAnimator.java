@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -32,7 +32,7 @@ public class ItemFlightAnimator {
 		startFlightFromPayload(new FlightPayload(stack.copy(), from, to, startGameTime, durationTicks), rng);
 	}
 
-	public static void render(PoseStack poseStack, float partialTick, Vec3 cameraPos) {
+	public static void submitItems(PoseStack poseStack, float partialTick, Vec3 cameraPos) {
 		Minecraft mc = Minecraft.getInstance();
 		if (flights.isEmpty() || mc.level == null) return;
 
@@ -59,27 +59,25 @@ public class ItemFlightAnimator {
 			poseStack.translate(0, -0.15, 0);
 			poseStack.scale(scale, scale, scale);
 
-			MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
-			mc.getItemRenderer().renderStatic(
-					flight.stack,
-					ItemDisplayContext.GROUND,
+			ItemStackRenderState itemStackRenderState = new ItemStackRenderState();
+			mc.getItemModelResolver().updateForTopItem(itemStackRenderState, flight.stack, ItemDisplayContext.GROUND, mc.level, null, 0);
+			itemStackRenderState.submit(
+					poseStack,
+					mc.gameRenderer.getSubmitNodeStorage(),
 					LevelRenderer.getLightColor(mc.level, new BlockPos((int) pos.x, (int) pos.y, (int) pos.z)),
 					OverlayTexture.NO_OVERLAY,
-					poseStack,
-					buffer,
-					mc.level,
 					0
 			);
-
 			poseStack.popPose();
 
-			if (time >= 1.0)  {
+			if (time >= 1.0) {
 				it.remove();
 			}
 		}
 	}
 
-	public record FlightPayload(ItemStack stack, Vec3 from, Vec3 to, long startGameTime, int durationTicks) {}
+	public record FlightPayload(ItemStack stack, Vec3 from, Vec3 to, long startGameTime, int durationTicks) {
+	}
 
 	private static final class Flight {
 		final ItemStack stack;

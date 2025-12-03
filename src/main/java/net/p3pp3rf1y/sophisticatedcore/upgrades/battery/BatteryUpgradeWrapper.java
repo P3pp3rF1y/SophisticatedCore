@@ -1,16 +1,25 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.ComponentItemHandler;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.item.ItemAccessItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedBatteryUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IStackableContentsUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
@@ -20,15 +29,17 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrapper, BatteryUpgradeItem>
-		implements IRenderedBatteryUpgrade, IEnergyStorage, ITickableUpgrade, IStackableContentsUpgrade {
+		implements IRenderedBatteryUpgrade, EnergyHandler, ITickableUpgrade, IStackableContentsUpgrade {
 	public static final int INPUT_SLOT = 0;
 	public static final int OUTPUT_SLOT = 1;
-	private Consumer<BatteryRenderInfo> updateTankRenderInfoCallback;
+	private Consumer<RenderData.BatteryRenderData> updateBatteryRenderDataCallback;
 	private final BatteryComponentItemHandler inventory;
 	private int energyStored;
+	private final EnergyJournal energyJournal;
 
 	protected BatteryUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
+		energyJournal = new EnergyJournal();
 		inventory = new BatteryComponentItemHandler(upgrade);
 		energyStored = getEnergyStored(upgrade);
 	}
@@ -38,136 +49,112 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	}
 
 	@Override
-	public int receiveEnergy(int maxReceive, boolean simulate) {
-		return innerReceiveEnergy(maxReceive, simulate);
+	public int insert(int amount, TransactionContext tx) {
+		return innerReceiveEnergy(amount, tx);
 	}
 
-	private int innerReceiveEnergy(int maxReceive, boolean simulate) {
-		int ret = Math.min(getMaxEnergyStored() - energyStored, Math.min(getMaxInOut(), maxReceive));
-		if (!simulate) {
-			energyStored += ret;
-			serializeEnergyStored();
-		}
+	private int innerReceiveEnergy(int maxReceive, TransactionContext tx) {
+		int ret = (int) Math.min(getCapacityAsLong() - energyStored, Math.min(getMaxInOut(), maxReceive));
+		energyJournal.updateSnapshots(tx);
+		energyStored += ret;
 		return ret;
 	}
 
 	private void serializeEnergyStored() {
 		upgrade.set(ModCoreDataComponents.ENERGY_STORED, energyStored);
 		save();
-		forceUpdateBatteryRenderInfo();
+		forceUpdateBatteryRenderData();
 	}
 
 	@Override
-	public int extractEnergy(int maxExtract, boolean simulate) {
-		return innerExtractEnergy(maxExtract, simulate);
+	public int extract(int amount, TransactionContext tx) {
+		return innerExtractEnergy(amount, tx);
 	}
 
-	private int innerExtractEnergy(int maxExtract, boolean simulate) {
+	private int innerExtractEnergy(int maxExtract, TransactionContext tx) {
 		int ret = Math.min(energyStored, Math.min(getMaxInOut(), maxExtract));
-
-		if (!simulate) {
-			energyStored -= ret;
-			serializeEnergyStored();
-		}
+		energyJournal.updateSnapshots(tx);
+		energyStored -= ret;
 		return ret;
 	}
 
 	@Override
-	public int getEnergyStored() {
+	public long getAmountAsLong() {
 		return energyStored;
 	}
 
 	@Override
-	public int getMaxEnergyStored() {
+	public long getCapacityAsLong() {
 		return upgradeItem.getMaxEnergyStored(storageWrapper);
-	}
-
-	@Override
-	public boolean canExtract() {
-		return true;
-	}
-
-	@Override
-	public boolean canReceive() {
-		return true;
 	}
 
 	private int getMaxInOut() {
 		double stackMultiplier = upgradeItem.getAdjustedStackMultiplier(storageWrapper);
 		int baseInOut = upgradeItem.getBatteryUpgradeConfig().maxInputOutput.get() * storageWrapper.getNumberOfSlotRows();
-		return stackMultiplier > Integer.MAX_VALUE / baseInOut ? Integer.MAX_VALUE : (int) (baseInOut * stackMultiplier);
-	}
-
-	private boolean isValidEnergyItem(ItemStack stack, boolean isOutput) {
-		IEnergyStorage energyStorage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
-
-		if (energyStorage == null) {
-			return false;
-		}
-
-		if (isOutput) {
-			return energyStorage.canReceive();
-		} else {
-			return energyStorage.canExtract() && energyStorage.getEnergyStored() > 0;
-		}
+		return stackMultiplier > (double) Integer.MAX_VALUE / baseInOut ? Integer.MAX_VALUE : (int) (baseInOut * stackMultiplier);
 	}
 
 	@Override
-	public void setBatteryRenderInfoUpdateCallback(Consumer<BatteryRenderInfo> updateTankRenderInfoCallback) {
-		this.updateTankRenderInfoCallback = updateTankRenderInfoCallback;
+	public void setBatteryRenderDataUpdateCallback(Consumer<RenderData.BatteryRenderData> updateBatteryRenderDataCallback) {
+		this.updateBatteryRenderDataCallback = updateBatteryRenderDataCallback;
 	}
 
 	@Override
-	public void forceUpdateBatteryRenderInfo() {
-		BatteryRenderInfo batteryRenderInfo = new BatteryRenderInfo(1f);
-		batteryRenderInfo.setChargeRatio((float) energyStored / getMaxEnergyStored());
-		updateTankRenderInfoCallback.accept(batteryRenderInfo);
+	public void forceUpdateBatteryRenderData() {
+		RenderData.BatteryRenderData batteryRenderData = new RenderData.BatteryRenderData(Mth.clamp((float) energyStored / getCapacityAsLong(), 0, 1));
+		updateBatteryRenderDataCallback.accept(batteryRenderData);
 	}
 
 	@Override
 	public void tick(@Nullable Entity entity, Level level, BlockPos pos) {
-		if (energyStored < getMaxEnergyStored()) {
+		if (energyStored < getCapacityAsLong()) {
 			ItemStack energyContainer = inventory.getStackInSlot(INPUT_SLOT);
-			IEnergyStorage energyStorage = energyContainer.getCapability(Capabilities.EnergyStorage.ITEM);
-			if (energyStorage != null) {
-				receiveFromStorage(energyContainer, energyStorage);
+			if (!energyContainer.isEmpty()) {
+				ItemAccess itemAccess = ItemAccess.forStack(energyContainer);
+				EnergyHandler energyHandler = itemAccess.getCapability(Capabilities.Energy.ITEM);
+				if (energyHandler != null) {
+					receiveFromStorage(energyContainer, energyHandler);
+				}
 			}
 		}
 
 		if (energyStored > 0) {
 			ItemStack energyContainer = inventory.getStackInSlot(OUTPUT_SLOT);
-			IEnergyStorage energyStorage = energyContainer.getCapability(Capabilities.EnergyStorage.ITEM);
-			if (energyStorage != null) {
-				extractToStorage(energyContainer, energyStorage);
+			if (!energyContainer.isEmpty()) {
+				ItemAccess itemAccess = ItemAccess.forStack(energyContainer);
+				EnergyHandler energyStorage = itemAccess.getCapability(Capabilities.Energy.ITEM);
+				if (energyStorage != null) {
+					extractToStorage(energyContainer, energyStorage);
+				}
 			}
 		}
 	}
 
-	private void extractToStorage(ItemStack energyContainer, IEnergyStorage energyStorage) {
-		int toExtract = innerExtractEnergy(getMaxInOut(), true);
-		if (toExtract > 0) {
-			toExtract = energyStorage.receiveEnergy(toExtract, true);
-			if (toExtract > 0) {
-				energyStorage.receiveEnergy(toExtract, false);
-				innerExtractEnergy(toExtract, false);
-				inventory.setStackInSlotWithoutValidation(OUTPUT_SLOT, energyContainer);
+	private void extractToStorage(ItemStack energyContainer, EnergyHandler energyStorage) {
+		try (Transaction tx = Transaction.openRoot()) {
+			int maxToInsert = Math.min(energyStored, getMaxInOut());
+			int inserted = energyStorage.insert(maxToInsert, tx);
+			if (inserted > 0) {
+				extract(inserted, tx);
+				inventory.setStackInSlot(OUTPUT_SLOT, energyContainer);
+				tx.commit();
 			}
 		}
 	}
 
-	private void receiveFromStorage(ItemStack energyContainer, IEnergyStorage energyStorage) {
-		int toReceive = innerReceiveEnergy(getMaxInOut(), true);
-		if (toReceive > 0) {
-			toReceive = energyStorage.extractEnergy(toReceive, true);
-			if (toReceive > 0) {
-				energyStorage.extractEnergy(toReceive, false);
-				innerReceiveEnergy(toReceive, false);
-				inventory.setStackInSlotWithoutValidation(INPUT_SLOT, energyContainer);
+	private void receiveFromStorage(ItemStack energyContainer, EnergyHandler energyStorage) {
+		try (Transaction tx = Transaction.openRoot()) {
+			int toReceive = (int) Math.min(getCapacityAsLong() - energyStored, getMaxInOut());
+			int received = energyStorage.extract(toReceive, tx);
+			if (received > 0) {
+				innerReceiveEnergy(toReceive, tx);
+				inventory.setStackInSlot(INPUT_SLOT, energyContainer);
+				tx.commit();
 			}
 		}
 	}
 
-	public IItemHandler getInventory() {
+	public ResourceHandler<ItemResource> getInventory() {
 		return inventory;
 	}
 
@@ -181,42 +168,63 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 		return false;
 	}
 
-	private class BatteryComponentItemHandler extends ComponentItemHandler {
+	private class BatteryComponentItemHandler extends ItemAccessItemHandler {
+		private final ItemStack upgrade;
+
 		public BatteryComponentItemHandler(ItemStack upgrade) {
-			super(upgrade, DataComponents.CONTAINER, 2);
+			super(ItemAccess.forStack(upgrade), DataComponents.CONTAINER, 2);
+			this.upgrade = upgrade;
 		}
 
 		@Override
-		protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
-			super.onContentsChanged(slot, oldStack, newStack);
+		protected ItemResource update(ItemResource accessResource, int index, ItemResource newResource, int newAmount) {
+			ItemResource result = super.update(accessResource, index, newResource, newAmount);
 			save();
+			return result;
 		}
 
 		@Override
-		public boolean isItemValid(int slot, ItemStack stack) {
-			if (slot == INPUT_SLOT) {
-				return stack.isEmpty() || isValidInputItem(stack);
-			} else if (slot == OUTPUT_SLOT) {
-				return stack.isEmpty() || isValidOutputItem(stack);
-			}
-			return false;
+		public boolean isValid(int slot, ItemResource resource) {
+			return isEnergyHandler(ItemAccess.forHandlerIndex(this, slot));
 		}
 
-		private boolean isValidInputItem(ItemStack stack) {
-			return isValidEnergyItem(stack, false);
+		private boolean isEnergyHandler(ItemAccess itemAccess) {
+			return itemAccess.getCapability(Capabilities.Energy.ITEM) != null;
 		}
 
-		private boolean isValidOutputItem(ItemStack stack) {
-			return isValidEnergyItem(stack, true);
+		public ItemStack getStackInSlot(int slot) {
+			ItemContainerContents contents = getContents(itemAccess.getResource());
+			return getStackFromContents(contents, slot);
+		}
+
+		public void setStackInSlot(int slot, ItemStack stack) {
+			ItemContainerContents contents = getContents(itemAccess.getResource());
+			NonNullList<ItemStack> list = NonNullList.withSize(Math.max(contents.getSlots(), this.size), ItemStack.EMPTY);
+			contents.copyInto(list);
+			list.set(slot, stack);
+			upgrade.set(component, ItemContainerContents.fromItems(list));
 		}
 
 		@Override
-		public int getSlotLimit(int slot) {
+		protected int getCapacity(int index, ItemResource resource) {
 			return 1;
 		}
+	}
 
-		public void setStackInSlotWithoutValidation(int slot, ItemStack stack) {
-			super.updateContents(getContents(), stack, slot);
+	private class EnergyJournal extends SnapshotJournal<Integer> {
+		protected Integer createSnapshot() {
+			return BatteryUpgradeWrapper.this.energyStored;
+		}
+
+		protected void revertToSnapshot(Integer snapshot) {
+			BatteryUpgradeWrapper.this.energyStored = snapshot;
+		}
+
+		protected void onRootCommit(Integer originalState) {
+			int previousAmount = originalState;
+			if (BatteryUpgradeWrapper.this.energyStored != previousAmount) {
+				BatteryUpgradeWrapper.this.serializeEnergyStored();
+			}
 		}
 	}
 }

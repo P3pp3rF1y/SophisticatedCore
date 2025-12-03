@@ -3,35 +3,36 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
-import net.p3pp3rf1y.sophisticatedcore.inventory.StatefulComponentItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ComponentItemStacksHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import java.util.function.Consumer;
 
 public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWrapper, CraftingUpgradeItem> {
-	private final StatefulComponentItemHandler inventory;
+	private final ComponentItemStacksHandler inventory;
 
 	public CraftingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
-		inventory = new StatefulComponentItemHandler(upgrade, DataComponents.CONTAINER, 9) {
+		inventory = new ComponentItemStacksHandler(upgrade, DataComponents.CONTAINER, 9) {
 			@Override
-			protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
-				super.onContentsChanged(slot, oldStack, newStack);
+			protected void onContentsChanged(int index, ItemStack previousContents) {
+				super.onContentsChanged(index, previousContents);
 				save();
 			}
 
 			@Override
-			public boolean isItemValid(int slot, ItemStack stack) {
+			public boolean isValid(int slot, ItemResource resource) {
 				return true;
 			}
 		};
 	}
 
-	public StatefulComponentItemHandler getInventory() {
+	public ComponentItemStacksHandler getInventory() {
 		return inventory;
 	}
 
@@ -72,14 +73,6 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 	}
 
 	private boolean extractFromStorage(ItemStack stack) {
-		return !InventoryHelper.extractFromInventory(s -> ItemStack.isSameItemSameComponents(s, stack), 1, storageWrapper.getInventoryHandler(), false).isEmpty();
-	}
-
-	public boolean insertIntoStorageOrPlayer(Player player, ItemStack stack) {
-		if (shouldShiftClickIntoStorage() && InventoryHelper.insertIntoInventory(stack, storageWrapper.getInventoryHandler(), false).isEmpty()) {
-			return true;
-		}
-
-		return player.getInventory().add(stack);
+		return InventoryHelper.extractMatching(storageWrapper.getInventoryHandler(), s -> ItemStack.isSameItemSameComponents(s, stack), 1) > 0;
 	}
 }

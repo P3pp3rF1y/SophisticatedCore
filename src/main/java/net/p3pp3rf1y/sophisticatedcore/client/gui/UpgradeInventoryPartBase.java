@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 public abstract class UpgradeInventoryPartBase<C extends UpgradeContainerBase<?, ?>> {
@@ -14,7 +15,7 @@ public abstract class UpgradeInventoryPartBase<C extends UpgradeContainerBase<?,
 
 	public abstract void render(GuiGraphics guiGraphics, int mouseX, int mouseY);
 
-	public abstract boolean handleMouseReleased(double mouseX, double mouseY, int button);
+	public abstract boolean handleMouseReleased(MouseButtonEvent event);
 
 	public abstract void renderErrorOverlay(GuiGraphics guiGraphics);
 

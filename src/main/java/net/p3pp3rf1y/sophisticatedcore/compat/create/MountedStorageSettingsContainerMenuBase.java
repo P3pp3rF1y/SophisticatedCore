@@ -9,13 +9,14 @@ import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.UUID;
 
 public abstract class MountedStorageSettingsContainerMenuBase extends SettingsContainerMenu<IStorageWrapper> {
 	private final int contraptionEntityId;
 	private final BlockPos localPos;
-	private CompoundTag lastSettingsNbt = null;
+	private ContainerContents.SettingsData lastSettingsData = null;
 
 	public MountedStorageSettingsContainerMenuBase(MenuType<?> menuType, int windowId, Player player, IStorageWrapper storageWrapper, int contraptionEntityId, BlockPos localPos) {
 		super(menuType, windowId, player, storageWrapper);
@@ -25,10 +26,8 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 
 	@Override
 	public void detectSettingsChangeAndReload() {
-		if (player.level().isClientSide) {
-			storageWrapper.getContentsUuid().ifPresent(uuid -> {
-				updateFromContents(uuid);
-			});
+		if (player.level().isClientSide()) {
+			storageWrapper.getContentsUuid().ifPresent(this::updateFromContents);
 		}
 	}
 
@@ -41,27 +40,23 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 	}
 
 	private void sendStorageSettingsToClient() {
-		if (player.level().isClientSide) {
+		if (player.level().isClientSide()) {
 			return;
 		}
 
-		if (lastSettingsNbt == null || !lastSettingsNbt.equals(storageWrapper.getSettingsHandler().getNbt())) {
-			lastSettingsNbt = storageWrapper.getSettingsHandler().getNbt().copy();
+		if (lastSettingsData == null || !lastSettingsData.equals(storageWrapper.getSettingsHandler().getSettingsData())) {
+			lastSettingsData = storageWrapper.getSettingsHandler().getSettingsData().copy();
 
 			storageWrapper.getContentsUuid().ifPresent(uuid -> {
-				CompoundTag settingsContents = new CompoundTag();
-				CompoundTag settingsNbt = storageWrapper.getSettingsHandler().getNbt();
-				if (!settingsNbt.isEmpty()) {
-					settingsContents.put(IStorageWrapper.SETTINGS_TAG, settingsNbt);
-					if (player instanceof ServerPlayer serverPlayer) {
-						PacketDistributor.sendToPlayer(serverPlayer, instantiateSettingsPayload(uuid, settingsContents));
-					}
+				ContainerContents.SettingsData settingsData = storageWrapper.getSettingsHandler().getSettingsData();
+				if (player instanceof ServerPlayer serverPlayer) {
+					PacketDistributor.sendToPlayer(serverPlayer, instantiateSettingsPayload(uuid, settingsData));
 				}
 			});
 		}
 	}
 
-	protected abstract CustomPacketPayload instantiateSettingsPayload(UUID uuid, CompoundTag settingsContents);
+	protected abstract CustomPacketPayload instantiateSettingsPayload(UUID uuid, ContainerContents.SettingsData settingsContents);
 
 	@Override
 	public void broadcastChanges() {

@@ -1,25 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.reliquary;
 
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyUpgradeWrapper;
-import reliquary.entity.potion.ThrownPotion;
-import reliquary.init.ModItems;
-
-import java.lang.reflect.Method;
 
 public class ReliquaryCompat implements ICompat {
 	@Override
 	public void setup() {
-		AlchemyUpgradeWrapper.addItemDefinition(new AlchemyUpgradeWrapper.AlchemyItemDefinition(stack -> stack.getItem() == ModItems.POTION.get(), AlchemyUpgradeWrapper::getDefaultConditionForPotion,
+/*		AlchemyUpgradeWrapper.addItemDefinition(new AlchemyUpgradeWrapper.AlchemyItemDefinition(stack -> stack.getItem() == ModItems.POTION.get(), AlchemyUpgradeWrapper::getDefaultConditionForPotion,
 				AlchemyUpgradeWrapper::shouldApplyPotionEffectsTo, AlchemyUpgradeWrapper::stackPotionEffectsMatch, ItemStack::getUseDuration,
 				(stack, livingEntity) -> {
 					ItemStack remainingItem = stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity);
@@ -38,10 +24,10 @@ public class ReliquaryCompat implements ICompat {
 					onHit(thrownPotion, new EntityHitResult(livingEntity, new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
 					return 1;
 				}, (stack, livingEntity) -> ItemStack.EMPTY, false)
-		);
+		);*/
 	}
 
-	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownPotion.class, "onHit", HitResult.class);
+/*	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownPotion.class, "onHit", HitResult.class);
 
 	private static void onHit(ThrownPotion thrownPotion, HitResult hitResult) {
 		try {
@@ -49,5 +35,5 @@ public class ReliquaryCompat implements ICompat {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
+	}*/
 }

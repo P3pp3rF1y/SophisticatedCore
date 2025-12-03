@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
@@ -183,13 +184,13 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		boolean ret = super.mouseClicked(mouseX, mouseY, button);
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		boolean ret = super.mouseClicked(event, doubleClicked);
 		if (ret) {
 			return true;
 		}
 
-		return getResultChoiceHovered((int) mouseX, (int) mouseY).map(i -> {
+		return getResultChoiceHovered((int) event.x(), (int) event.y()).map(i -> {
 			getContainer().selectCraftingResult(i);
 			resultSelectionShown = false;
 			return true;

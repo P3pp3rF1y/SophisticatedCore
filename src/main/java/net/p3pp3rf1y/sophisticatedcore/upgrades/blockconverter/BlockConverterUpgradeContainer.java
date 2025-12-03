@@ -15,7 +15,7 @@ public abstract class BlockConverterUpgradeContainer<R extends SingleItemRecipe,
 
 	public BlockConverterUpgradeContainer(Player player, int upgradeContainerId, W upgradeWrapper, UpgradeContainerType<W, C> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		ContainerLevelAccess worldPosCallable = player.level().isClientSide ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
+		ContainerLevelAccess worldPosCallable = player.level().isClientSide() ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
 		recipeContainer = createRecipeContainer(worldPosCallable);
 	}
 

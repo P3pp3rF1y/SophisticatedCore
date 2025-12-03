@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.api;
 
-import net.minecraft.nbt.CompoundTag;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.UUID;
 
 public interface IStorageSavedData {
-	CompoundTag getContents(UUID storageId);
-	void setContents(UUID storageId, CompoundTag contents);
+	ContainerContents getContents(UUID storageId);
+	void setContents(UUID storageId, ContainerContents contents);
 	void markChanged();
 }

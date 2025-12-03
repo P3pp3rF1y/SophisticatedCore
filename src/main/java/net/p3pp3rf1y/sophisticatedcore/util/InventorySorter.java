@@ -5,7 +5,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 
@@ -16,14 +17,18 @@ public class InventorySorter {
 	private InventorySorter() {
 	}
 
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getHoverName().getString().toLowerCase());
+	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> {
+		return o.getKey().stack().getHoverName().getString().toLowerCase();
+	});
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
 			Comparator
 					.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
-						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().getStack().getItem());
+						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().stack().getItem());
 						return registryName.getNamespace();
 					})
-					.thenComparing(o -> o.getKey().getStack().getHoverName().getString());
+					.thenComparing(o -> {
+						return o.getKey().stack().getHoverName().getString();
+					});
 
 
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_COUNT = (first, second) -> {
@@ -34,9 +39,9 @@ public class InventorySorter {
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_TAGS = new Comparator<>() {
 		@Override
 		public int compare(Map.Entry<ItemStackKey, Integer> first, Map.Entry<ItemStackKey, Integer> second) {
-			ItemStack firstStack = first.getKey().getStack();
+			ItemStack firstStack = first.getKey().stack();
 			Item firstItem = firstStack.getItem();
-			ItemStack secondStack = second.getKey().getStack();
+			ItemStack secondStack = second.getKey().stack();
 			Item secondItem = secondStack.getItem();
 			if (firstItem == secondItem) {
 				return 0;
@@ -71,22 +76,22 @@ public class InventorySorter {
 	};
 
 	private static String getRegistryName(ItemStackKey itemStackKey) {
-		return BuiltInRegistries.ITEM.getKey(itemStackKey.getStack().getItem()).toString();
+		return BuiltInRegistries.ITEM.getKey(itemStackKey.stack().getItem()).toString();
 	}
 
-	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {
+	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {
 		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, noSortSlots, false);
 		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(comparator);
 
-		int slots = handler.getSlots();
+		int slots = handler.size();
 
 		sortIntoNoSortSlots(handler, noSortSlots, sortedList);
 
 		sortIntoOtherSlots(handler, noSortSlots, sortedList, slots);
 	}
 
-	private static void sortIntoOtherSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList, int slots) {
+	private static void sortIntoOtherSlots(InventoryHandler handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList, int slots) {
 		Iterator<Map.Entry<ItemStackKey, Integer>> ite = sortedList.iterator();
 		ItemStackKey current = null;
 		int count = 0;
@@ -108,7 +113,7 @@ public class InventorySorter {
 		}
 	}
 
-	private static void sortIntoNoSortSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList) {
+	private static void sortIntoNoSortSlots(InventoryHandler handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList) {
 		Iterator<Map.Entry<ItemStackKey, Integer>> it = sortedList.iterator();
 		if (!noSortSlots.isEmpty()) {
 			while (it.hasNext()) {
@@ -118,7 +123,7 @@ public class InventorySorter {
 
 				for (int slot : noSortSlots) {
 					ItemStack slotStack = handler.getStackInSlot(slot);
-					if (ItemStack.isSameItemSameComponents(slotStack, current.getStack())) {
+					if (ItemStack.isSameItemSameComponents(slotStack, current.stack())) {
 						int placedCount = placeStack(handler, current, count, slot, true);
 						count -= placedCount;
 						entry.setValue(count);
@@ -133,27 +138,24 @@ public class InventorySorter {
 		}
 	}
 
-	private static void emptySlot(IItemHandlerModifiable handler, int slot) {
-		if (!handler.getStackInSlot(slot).isEmpty()) {
+	private static void emptySlot(ResourceHandler<ItemResource> handler, int slot) {
+		ItemResource resource = handler.getResource(slot);
+		if (!resource.isEmpty()) {
 			if (handler instanceof InventoryHandler inventoryHandler) {
-				inventoryHandler.setSlotStack(slot, ItemStack.EMPTY);
+				inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
 			} else {
-				handler.setStackInSlot(slot, ItemStack.EMPTY);
+				InventoryHelper.extract(handler, resource, handler.getAmountAsInt(slot));
 			}
 		}
 	}
 
-	private static int placeStack(IItemHandlerModifiable handler, ItemStackKey current, int count, int slot, boolean countWithCurrentStack) {
-		if (handler instanceof InventoryHandler inventoryHandler) {
-			return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> inventoryHandler.getBaseStackLimit(stack), inventoryHandler::getSlotStack, inventoryHandler::setSlotStack);
-		} else {
-			return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getSlotLimit(s), handler::getStackInSlot, handler::setStackInSlot);
-		}
+	private static int placeStack(InventoryHandler handler, ItemStackKey current, int count, int slot, boolean countWithCurrentStack) {
+		return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getBaseCapacity(ItemResource.of(stack)), handler::getInternalStack, handler::setStackInSlot);
 	}
 
 	private static int placeStack(ItemStackKey current, int count, int slot, boolean countWithCurrentStack,
 								  IStackLimitGetter stackLimitGetter, ISlotStackGetter slotStackGetter, ISlotStackSetter slotStackSetter) {
-		ItemStack copy = current.getStack().copy();
+		ItemStack copy = current.stack().copy();
 		int slotLimit = stackLimitGetter.getStackLimit(slot, copy);
 		int existingCount = slotStackGetter.getSlotStack(slot).getCount();
 		if (countWithCurrentStack) {

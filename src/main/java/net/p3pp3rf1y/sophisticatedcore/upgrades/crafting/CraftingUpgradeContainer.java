@@ -43,13 +43,13 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		super(player, upgradeContainerId, upgradeWrapper, type);
 
 		int slot;
-		for (slot = 0; slot < upgradeWrapper.getInventory().getSlots(); slot++) {
+		for (slot = 0; slot < upgradeWrapper.getInventory().size(); slot++) {
 			slots.add(new SlotSuppliedHandler(upgradeWrapper::getInventory, slot, -100, -100) {
 				@Override
-				public void setChanged() {
-					super.setChanged();
-					updateCraftingResult(player.level(), player, craftMatrix, craftResult, craftingResultSlot);
+				protected void setStackCopy(ItemStack stack) {
+					super.setStackCopy(stack);
 					craftMatrix.setChanged();
+					updateCraftingResult(player.level(), player, craftMatrix, craftResult, craftingResultSlot);
 				}
 
 				@Override
@@ -168,7 +168,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	}
 
 	private void updateCraftingResult(Level level, Player player, CraftingContainer inventory, ResultContainer inventoryResult, ResultSlot craftingResultSlot) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			ServerPlayer serverplayerentity = (ServerPlayer) player;
 			ItemStack itemstack = ItemStack.EMPTY;
 			CraftingInput craftInput = inventory.asCraftInput();
@@ -182,8 +182,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						matchedCraftingRecipes = recipes;
 						matchedCraftingResults.clear();
 						selectedCraftingResultIndex = 0;
-					RecipeHolder<CraftingRecipe> craftingRecipe = matchedCraftingRecipes.getFirst();
-					if (inventoryResult.setRecipeUsed(serverplayerentity, craftingRecipe)) {
+						RecipeHolder<CraftingRecipe> craftingRecipe = matchedCraftingRecipes.getFirst();
+						if (inventoryResult.setRecipeUsed(serverplayerentity, craftingRecipe)) {
 							lastRecipe = craftingRecipe;
 							itemstack = lastRecipe.value().assemble(craftInput, level.registryAccess());
 							matchedCraftingResults.add(itemstack.copy());

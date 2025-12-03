@@ -13,7 +13,7 @@ public class JeiCompat implements ICompat {
 	@Override
 	public void init(IEventBus modBus) {
 		modBus.addListener(this::registerPackets);
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		if (FMLEnvironment.getDist() == Dist.CLIENT) {
 			JeiClientCompat.init();
 		}
 	}

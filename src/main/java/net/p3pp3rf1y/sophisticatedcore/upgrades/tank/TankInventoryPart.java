@@ -1,8 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.tank;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -11,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.client.textures.FluidSpriteCache;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
@@ -59,9 +59,9 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 	}
 
 	@Override
-	public boolean handleMouseReleased(double mouseX, double mouseY, int button) {
-		if (mouseX < screen.getGuiLeft() + getTankLeft() || mouseX >= screen.getGuiLeft() + getTankLeft() + 18 ||
-				mouseY < screen.getGuiTop() + pos.y() || mouseY >= screen.getGuiTop() + pos.y() + height) {
+	public boolean handleMouseReleased(MouseButtonEvent event) {
+		if (event.x() < screen.getGuiLeft() + getTankLeft() || event.x() >= screen.getGuiLeft() + getTankLeft() + 18 ||
+				event.y() < screen.getGuiTop() + pos.y() || event.y() >= screen.getGuiTop() + pos.y() + height) {
 			return false;
 		}
 
@@ -123,7 +123,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		int displayLevel = (int) ((height - 2) * ((float) fill / capacity));
 		IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
 		ResourceLocation texture = renderProperties.getStillTexture(contents);
-		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
+		TextureAtlasSprite still = FluidSpriteCache.getSprite(texture);
 		GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
 

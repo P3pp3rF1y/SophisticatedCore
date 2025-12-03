@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.Rect2i;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
@@ -27,8 +29,8 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 		if (ingredient.getType() == VanillaTypes.ITEM_STACK) {
 			StorageContainerMenuBase<?> container = gui.getMenu();
 			ingredient.getItemStack().ifPresent(ghostStack -> {
-						FluidStack fluidStack = CapabilityHelper.getFromCapability(ghostStack, Capabilities.FluidHandler.ITEM,
-								null, fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0) : FluidStack.EMPTY, FluidStack.EMPTY);
+						FluidStack fluidStack = CapabilityHelper.getFromCapability(ItemAccess.forStack(ghostStack), Capabilities.Fluid.ITEM,
+								fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getResource(0).toStack(FluidType.BUCKET_VOLUME) : FluidStack.EMPTY, FluidStack.EMPTY);
 						if (!fluidStack.isEmpty()) {
 							gui.getUpgradeSettingsControl()
 									.getOpenTab()

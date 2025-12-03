@@ -1,36 +1,28 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.memory;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.ItemResourceHelper;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsCategory> {
+public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsCategory, MemorySettingsCategoryData> {
 	public static final String NAME = "memory";
-	private static final String SLOT_FILTER_ITEMS_TAG = "slotFilterItems";
-	private static final String SLOT_FILTER_STACKS_TAG = "slotFilterStacks";
-	private static final String IGNORE_NBT_TAG = "ignoreNbt";
 	private final Supplier<InventoryHandler> inventoryHandlerSupplier;
-	private CompoundTag categoryNbt;
-	private final Consumer<CompoundTag> saveNbt;
-	private final Map<Integer, Item> slotFilterItems = new LinkedHashMap<>();
-	private final Map<Integer, ItemStackKey> slotFilterStacks = new LinkedHashMap<>();
+	private MemorySettingsCategoryData data;
+	private final Runnable save;
 	private final Map<Item, Set<Integer>> filterItemSlots = new HashMap<>();
 
 	private final Map<Integer, Set<Integer>> filterStackSlots = new HashMap<>();
 
-	private boolean ignoreNbt = true;
 	private Consumer<Item> onItemAdded = i -> {
 	};
 
@@ -41,44 +33,47 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	private Consumer<Integer> onStackRemoved = i -> {
 	};
 
-	public MemorySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
+	public MemorySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, MemorySettingsCategoryData data, Runnable save) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
-		this.categoryNbt = categoryNbt;
-		this.saveNbt = saveNbt;
+		this.data = data;
+		this.save = save;
 
-		deserialize();
+		initItemAndStackSlots();
 	}
 
-	private void deserialize() {
-		NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG,
-						Integer::valueOf,
-						(k, v) -> BuiltInRegistries.ITEM.getOptional(v.asString().map(ResourceLocation::parse).orElse(null)))
-				.ifPresent(map -> map.forEach(this::addSlotItem));
-
-		NBTHelper.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG,
-						Integer::valueOf,
-						(k, v) -> v instanceof CompoundTag tag ? NBTHelper.deserializeStackFromTag(tag) : Optional.empty())
-				.ifPresent(map -> map.forEach(this::addSlotStack));
-		ignoreNbt = NBTHelper.getBoolean(categoryNbt, IGNORE_NBT_TAG).orElse(true);
+	private void initItemAndStackSlots() {
+		data.slotFilterItems().forEach(this::addFilterItemSlot);
+		data.slotFilterStacks().forEach(this::addFilterStackSlot);
 	}
 
 	public boolean matchesFilter(int slotNumber, ItemStack stack) {
-		if (slotFilterItems.containsKey(slotNumber)) {
-			return !stack.isEmpty() && stack.getItem() == slotFilterItems.get(slotNumber);
+		if (data.slotFilterItems().containsKey(slotNumber)) {
+			return !stack.isEmpty() && stack.getItem() == data.slotFilterItems().get(slotNumber);
 		}
-		if (slotFilterStacks.containsKey(slotNumber)) {
-			return !stack.isEmpty() && slotFilterStacks.get(slotNumber).matches(stack);
+		if (data.slotFilterStacks().containsKey(slotNumber)) {
+			return !stack.isEmpty() && data.slotFilterStacks().get(slotNumber).matches(stack);
+		}
+
+		return true;
+	}
+
+	public boolean matchesFilter(int slotNumber, ItemResource resource) {
+		if (data.slotFilterItems().containsKey(slotNumber)) {
+			return resource.getItem() == data.slotFilterItems().get(slotNumber);
+		}
+		if (data.slotFilterStacks().containsKey(slotNumber)) {
+			return resource.matches(data.slotFilterStacks().get(slotNumber).stack());
 		}
 
 		return true;
 	}
 
 	public Optional<ItemStack> getSlotFilterStack(int slotNumber, boolean copy) {
-		if (slotFilterItems.containsKey(slotNumber)) {
-			return Optional.of(new ItemStack(slotFilterItems.get(slotNumber)));
+		if (data.slotFilterItems().containsKey(slotNumber)) {
+			return Optional.of(new ItemStack(data.slotFilterItems().get(slotNumber)));
 		}
-		if (slotFilterStacks.containsKey(slotNumber)) {
-			ItemStack filterStack = slotFilterStacks.get(slotNumber).getStack();
+		if (data.slotFilterStacks().containsKey(slotNumber)) {
+			ItemStack filterStack = data.slotFilterStacks().get(slotNumber).stack();
 			return Optional.of(copy ? filterStack.copy() : filterStack);
 		}
 
@@ -86,25 +81,29 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public boolean isSlotSelected(int slotNumber) {
-		return slotFilterItems.containsKey(slotNumber) || slotFilterStacks.containsKey(slotNumber);
+		return data.slotFilterItems().containsKey(slotNumber) || data.slotFilterStacks().containsKey(slotNumber);
 	}
 
 	public void unselectAllSlots() {
 		unselectAllFilterItemSlots();
 		unselectAllFilteStackSlots();
 
-		serializeFilterItems();
+		save();
+	}
+
+	private void save() {
+		save.run();
 	}
 
 	private void unselectAllFilteStackSlots() {
 		filterStackSlots.keySet().forEach(i -> onStackRemoved.accept(i));
-		slotFilterStacks.clear();
+		data.clearSlotFilterStacks();
 		filterStackSlots.clear();
 	}
 
 	private void unselectAllFilterItemSlots() {
 		filterItemSlots.keySet().forEach(i -> onItemRemoved.accept(i));
-		slotFilterItems.clear();
+		data.clearSlotFilterItems();
 		filterItemSlots.clear();
 	}
 
@@ -118,10 +117,10 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	public void selectSlots(int minSlot, int maxSlot) {
 		for (int slot = minSlot; slot < maxSlot; slot++) {
 			InventoryHandler inventoryHandler = getInventoryHandler();
-			if (slot < inventoryHandler.getSlots()) {
+			if (slot < inventoryHandler.size()) {
 				ItemStack stackInSlot = inventoryHandler.getStackInSlot(slot);
 				if (!stackInSlot.isEmpty()) {
-					if (ignoreNbt) {
+					if (data.ignoreNbt()) {
 						Item item = stackInSlot.getItem();
 						addSlotItem(slot, item);
 					} else {
@@ -130,7 +129,7 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 				} else {
 					Item filterItem = inventoryHandler.getFilterItem(slot);
 					if (filterItem != Items.AIR) {
-						if (ignoreNbt) {
+						if (data.ignoreNbt()) {
 							addSlotItem(slot, filterItem);
 						} else {
 							addSlotStack(slot, new ItemStack(filterItem));
@@ -139,7 +138,7 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 				}
 			}
 		}
-		serializeFilterItems();
+		save();
 	}
 
 	private InventoryHandler getInventoryHandler() {
@@ -147,7 +146,11 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void addSlotItem(int slot, Item item) {
-		slotFilterItems.put(slot, item);
+		data.slotFilterItems().put(slot, item);
+		addFilterItemSlot(slot, item);
+	}
+
+	private void addFilterItemSlot(int slot, Item item) {
 		filterItemSlots.computeIfAbsent(item, k -> {
 			onItemAdded.accept(k);
 			return new TreeSet<>();
@@ -155,9 +158,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void addSlotStack(int slot, ItemStack stack) {
-		ItemStackKey isk = ItemStackKey.of(stack);
-		slotFilterStacks.put(slot, isk);
-		int stackHash = isk.hashCode();
+		ItemStackKey stackKey = ItemStackKey.of(stack);
+		data.addSlotStack(slot, stackKey);
+		addFilterStackSlot(slot, stackKey);
+	}
+
+	private void addFilterStackSlot(int slot, ItemStackKey stackKey) {
+		int stackHash = stackKey.hashCode();
 		filterStackSlots.computeIfAbsent(stackHash, k -> {
 			onStackAdded.accept(stackHash);
 			return new TreeSet<>();
@@ -171,15 +178,15 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	public void unselectSlot(int slotNumber) {
 		unselectFilterItemSlot(slotNumber);
 		unselectFilterStackSlot(slotNumber);
-		serializeFilterItems();
+		save();
 	}
 
 	private void unselectFilterItemSlot(int slotNumber) {
-		if (!slotFilterItems.containsKey(slotNumber)) {
+		if (!data.slotFilterItems().containsKey(slotNumber)) {
 			return;
 		}
 
-		Item item = slotFilterItems.remove(slotNumber);
+		Item item = data.slotFilterItems().remove(slotNumber);
 		Set<Integer> itemSlots = filterItemSlots.get(item);
 		itemSlots.remove(slotNumber);
 		if (itemSlots.isEmpty()) {
@@ -189,11 +196,11 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void unselectFilterStackSlot(int slotNumber) {
-		if (!slotFilterStacks.containsKey(slotNumber)) {
+		if (!data.slotFilterStacks().containsKey(slotNumber)) {
 			return;
 		}
 
-		ItemStackKey isk = slotFilterStacks.remove(slotNumber);
+		ItemStackKey isk = data.slotFilterStacks().remove(slotNumber);
 		int stackHash = isk.hashCode();
 		Set<Integer> stackSlots = filterStackSlots.get(stackHash);
 		stackSlots.remove(slotNumber);
@@ -204,17 +211,17 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public boolean ignoresNbt() {
-		return ignoreNbt;
+		return data.ignoreNbt();
 	}
 
 	public void setIgnoreNbt(boolean ignoreNbt) {
-		if (this.ignoreNbt == ignoreNbt) {
+		if (data.ignoreNbt() == ignoreNbt) {
 			return;
 		}
 
 		Set<Integer> slotIndexes = getSlotIndexes();
-		if (this.ignoreNbt && !ignoreNbt) {
-			slotFilterItems.forEach((slot, item) -> {
+		if (data.ignoreNbt() && !ignoreNbt) {
+			data.slotFilterItems().forEach((slot, item) -> {
 				ItemStack stack = inventoryHandlerSupplier.get().getStackInSlot(slot);
 				if (stack.isEmpty()) {
 					stack = new ItemStack(item);
@@ -223,72 +230,53 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 			});
 			unselectAllFilterItemSlots();
 		} else {
-			slotFilterStacks.forEach((slot, isk) -> addSlotItem(slot, isk.getStack().getItem()));
+			data.slotFilterStacks().forEach((slot, isk) -> {
+				addSlotItem(slot, isk.stack().getItem());
+			});
 			unselectAllFilteStackSlots();
 		}
-		serializeFilterItems();
-
-		this.ignoreNbt = ignoreNbt;
-		serializeIgnoreNbt();
+		data.setIgnoreNbt(ignoreNbt);
+		save();
 		slotIndexes.forEach(this::selectSlot);
 	}
 
-	private void serializeIgnoreNbt() {
-		categoryNbt.putBoolean(IGNORE_NBT_TAG, ignoreNbt);
-		saveNbt.accept(categoryNbt);
-	}
-
-	private void serializeFilterItems() {
-		NBTHelper.putMap(categoryNbt, SLOT_FILTER_ITEMS_TAG, slotFilterItems, String::valueOf, i -> StringTag.valueOf(BuiltInRegistries.ITEM.getKey(i).toString()));
-		NBTHelper.putMap(categoryNbt, SLOT_FILTER_STACKS_TAG, slotFilterStacks, String::valueOf,
-				isk -> isk.stack().isEmpty() ? new CompoundTag() : NBTHelper.serializeStackToTag(isk.stack()).orElse(new CompoundTag()));
-		saveNbt.accept(categoryNbt);
-	}
-
 	@Override
-	public void reloadFrom(CompoundTag categoryNbt) {
-		this.categoryNbt = categoryNbt;
-		slotFilterItems.clear();
-		filterItemSlots.clear();
-		slotFilterStacks.clear();
-		filterStackSlots.clear();
-		deserialize();
+	public void reloadFrom(MemorySettingsCategoryData data) {
+		this.data = data;
 	}
 
 	@Override
 	public void overwriteWith(MemorySettingsCategory otherCategory) {
 		unselectAllSlots();
 
-		ignoreNbt = otherCategory.ignoreNbt;
+		data.setIgnoreNbt(otherCategory.ignoresNbt());
 
-
-		if (ignoreNbt) {
+		if (data.ignoreNbt()) {
 			overwriteFilterItems(otherCategory);
 		} else {
 			overwriteFilterStacks(otherCategory);
 		}
-		serializeIgnoreNbt();
-		serializeFilterItems();
+		save();
 	}
 
 	private void overwriteFilterStacks(MemorySettingsCategory otherCategory) {
 		InventoryHandler inventoryHandler = getInventoryHandler();
-		otherCategory.slotFilterStacks.forEach((slot, isk) -> {
-			if (slot >= inventoryHandler.getSlots()) {
+		otherCategory.data.slotFilterStacks().forEach((slot, isk) -> {
+			if (slot >= inventoryHandler.size()) {
 				return;
 			}
 
 			ItemStack stackInSlot = inventoryHandler.getStackInSlot(slot);
 			if (stackInSlot.isEmpty() || otherCategory.matchesFilter(slot, stackInSlot)) {
-				addSlotStack(slot, isk.getStack());
+				addSlotStack(slot, isk.stack());
 			}
 		});
 	}
 
 	private void overwriteFilterItems(MemorySettingsCategory otherCategory) {
 		InventoryHandler inventoryHandler = getInventoryHandler();
-		otherCategory.slotFilterItems.forEach((slot, item) -> {
-			if (slot >= inventoryHandler.getSlots()) {
+		otherCategory.data.slotFilterItems().forEach((slot, item) -> {
+			if (slot >= inventoryHandler.size()) {
 				return;
 			}
 
@@ -300,8 +288,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public Set<Integer> getSlotIndexes() {
-		HashSet<Integer> slots = new HashSet<>(slotFilterItems.keySet());
-		slots.addAll(slotFilterStacks.keySet());
+		HashSet<Integer> slots = new HashSet<>(data.slotFilterItems().keySet());
+		slots.addAll(data.slotFilterStacks().keySet());
 		return slots;
 	}
 
@@ -314,7 +302,24 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public boolean matchesFilter(ItemStack stack) {
-		return filterItemSlots.containsKey(stack.getItem()) || !filterStackSlots.isEmpty() && filterStackSlots.containsKey(ItemStack.hashItemAndComponents(stack));
+		return matchesFilter(stack.getItem(), ItemStack.hashItemAndComponents(stack));
+	}
+
+	private boolean matchesFilter(Item item, int componentHash) {
+		return filterItemSlots.containsKey(item) || !filterStackSlots.isEmpty() && filterStackSlots.containsKey(componentHash);
+	}
+
+	public boolean matchesFilter(ItemResource resource) {
+		return matchesFilter(resource.getItem(), ItemResourceHelper.hashItemAndComponents(resource));
+	}
+
+	public boolean matchesFilter(Item item, DataComponentMap components) {
+		if (filterItemSlots.containsKey(item)) {
+			return true;
+		}
+		int hash = 31 + item.hashCode();
+		hash = 31 * hash + components.hashCode();
+		return filterStackSlots.containsKey(hash);
 	}
 
 	public void registerListeners(Consumer<Item> onItemAdded, Consumer<Item> onItemRemoved, Consumer<Integer> onStackAdded, Consumer<Integer> onStackRemoved) {
@@ -337,10 +342,10 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	public void setFilter(int slot, ItemStack filter) {
 		InventoryHandler inventoryHandler = getInventoryHandler();
-		if (slot < inventoryHandler.getSlots()) {
+		if (slot < inventoryHandler.size()) {
 			ItemStack stackInSlot = inventoryHandler.getStackInSlot(slot);
 			if (stackInSlot.isEmpty()) {
-				if (ignoreNbt) {
+				if (data.ignoreNbt()) {
 					Item item = filter.getItem();
 					addSlotItem(slot, item);
 				} else {
@@ -348,35 +353,35 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 				}
 			}
 		}
-		serializeFilterItems();
+		save();
 	}
 
 	@Override
 	public boolean isLargerThanNumberOfSlots(int slots) {
-		return slotFilterItems.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots) || slotFilterStacks.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
+		return data.slotFilterItems().keySet().stream().anyMatch(slotIndex -> slotIndex >= slots) || data.slotFilterStacks().keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
 
 	@Override
 	public void copyTo(MemorySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		slotFilterItems.forEach((slotIndex, item) -> {
+		data.slotFilterItems().forEach((slotIndex, item) -> {
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.slotFilterItems.put(slotIndex + slotOffset, item);
+			otherCategory.data.slotFilterItems().put(slotIndex + slotOffset, item);
 		});
-		slotFilterStacks.forEach((slotIndex, isk) -> {
+		data.slotFilterStacks().forEach((slotIndex, isk) -> {
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.slotFilterStacks.put(slotIndex + slotOffset, isk);
+			otherCategory.data.slotFilterStacks().put(slotIndex + slotOffset, isk);
 		});
-		otherCategory.serializeFilterItems();
+		otherCategory.save();
 	}
 
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
-		slotFilterItems.entrySet().removeIf(e -> e.getKey() >= slotIndex);
-		slotFilterStacks.entrySet().removeIf(e -> e.getKey() >= slotIndex);
-		serializeFilterItems();
+		data.removeFilterItemSlot(slotIndex);
+		data.removeFilterStackSlot(slotIndex);
+		save();
 	}
 }

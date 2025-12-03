@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,6 +15,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -403,6 +403,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	private void addUpgradeSwitches() {
+		upgradeSwitches.forEach(this::removeWidget);
 		upgradeSwitches.clear();
 		int switchTop = topPos + 8;
 		for (int slot = 0; slot < numberOfUpgradeSlots; slot++) {
@@ -439,7 +440,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 						}
 					}
 				};
-				addWidget(upgradeSwitch);
+				addRenderableWidget(upgradeSwitch);
 				upgradeSwitches.add(upgradeSwitch);
 			}
 			switchTop += UPGRADE_SLOT_HEIGHT;
@@ -461,13 +462,13 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				Minecraft.getInstance().player.displayClientMessage(Component.literal("Sorted"), true);
 			}
 		});
-		addWidget(sortButton);
+		addRenderableWidget(sortButton);
 		sortByButton = new ToggleButton<>(new Position(pos.x() + 12, pos.y()), ButtonDefinitions.SORT_BY, button -> {
 			if (button == 0) {
 				getMenu().setSortBy(getMenu().getSortBy().next());
 			}
 		}, () -> getMenu().getSortBy());
-		addWidget(sortByButton);
+		addRenderableWidget(sortByButton);
 	}
 
 	private Position getSortButtonsPosition(SortButtonsPosition sortButtonsPosition) {
@@ -504,11 +505,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		renderTransparentBackground(guiGraphics);
-	}
-
-	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
@@ -517,35 +513,27 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updateNoResultsLabel();
 			updateTransferButtonsPositions();
 		}
-		renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+		renderTransparentBackground(guiGraphics);
 		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
+		renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+	}
 
+	@Override
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
 
 		settingsTabControl.renderForeground(guiGraphics, mouseX, mouseY, partialTicks);
 
-		if (searchBox != null) {
-			searchBox.render(guiGraphics, mouseX, mouseY, partialTicks);
+		if (getMenu().getCarried().isEmpty()) {
+			settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		}
-
-		settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
-		if (sortButton != null && sortByButton != null) {
-			sortButton.render(guiGraphics, mouseX, mouseY, partialTicks);
-			sortByButton.render(guiGraphics, mouseX, mouseY, partialTicks);
-		}
-		upgradeSwitches.forEach(us -> us.render(guiGraphics, mouseX, mouseY, partialTicks));
 		renderErrorOverlay(guiGraphics);
 		renderTooltip(guiGraphics, mouseX, mouseY);
 	}
 
-	@SuppressWarnings("java:S4449")
-	//renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
 	private void renderSuper(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) { //copy of super.render with storage inventory slots rendering and snap rendering removed
 		int i = leftPos;
 		int j = topPos;
-		renderBg(guiGraphics, partialTick, mouseX, mouseY);
-		//noinspection UnstableApiUsage
-		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Background(this, guiGraphics, mouseX, mouseY));
 
 		for (Renderable widget : renderables) {
 			widget.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -558,6 +546,15 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		renderLabels(guiGraphics, mouseX, mouseY);
 		//noinspection UnstableApiUsage
 		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, mouseX, mouseY));
+
+		pose.popMatrix();
+
+		if (searchBox != null) {
+			searchBox.render(guiGraphics, mouseX, mouseY, partialTick);
+		}
+
+		pose.pushMatrix();
+		pose.translate(i, j);
 
 		ItemStack itemstack = draggingItem.isEmpty() ? menu.getCarried() : draggingItem;
 		if (!itemstack.isEmpty()) {
@@ -572,7 +569,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				}
 			}
 
-			//noinspection ConstantConditions - renderFloatingItem should really have altText as nullable as it is then only passed to nullable parameter
 			renderFloatingItem(guiGraphics, itemstack, mouseX - i - 8, mouseY - j - l, s);
 		}
 
@@ -804,8 +800,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+		if (!getMenu().getCarried().isEmpty()) {
+			return;
+		}
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, guiGraphics, x, y));
-		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
+		if (hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
 				super.renderTooltip(guiGraphics, x, y);
 			} else if (hoveredSlot instanceof INameableEmptySlot emptySlot && emptySlot.hasEmptyTooltip()) {
@@ -877,21 +876,21 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public boolean mouseReleased(double mouseX, double mouseY, int button) {
+	public boolean mouseReleased(MouseButtonEvent event) {
 		for (UpgradeInventoryPartBase<?> inventoryPart : inventoryParts.values()) {
-			if (inventoryPart.handleMouseReleased(mouseX, mouseY, button)) {
+			if (inventoryPart.handleMouseReleased(event)) {
 				return true;
 			}
 		}
 
-		handleQuickMoveAll(mouseX, mouseY, button);
+		handleQuickMoveAll(event.x(), event.y(), event.button());
 
-		return super.mouseReleased(mouseX, mouseY, button);
+		return super.mouseReleased(event);
 	}
 
 	private void handleQuickMoveAll(double mouseX, double mouseY, int button) {
 		Slot slot = getHoveredSlot(mouseX, mouseY);
-		if (doubleclick && !getMenu().getCarried().isEmpty() && slot != null && button == 0 && menu.canTakeItemForPickAll(ItemStack.EMPTY, slot) && hasShiftDown() && !lastQuickMoved.isEmpty()) {
+		if (doubleclick && !getMenu().getCarried().isEmpty() && slot != null && button == 0 && menu.canTakeItemForPickAll(ItemStack.EMPTY, slot) && Minecraft.getInstance().hasShiftDown() && !lastQuickMoved.isEmpty()) {
 			for (Slot slot2 : menu.realInventorySlots) {
 				tryQuickMoveSlot(button, slot, slot2);
 			}
@@ -977,111 +976,108 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		Slot slot = getHoveredSlot(mouseX, mouseY);
-		if (hasShiftDown() && hasControlDown() && slot instanceof StorageInventorySlot && button == 0) {
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		Slot slot = getHoveredSlot(event.x(), event.y());
+		if (event.hasShiftDown() && event.hasControlDown() && slot instanceof StorageInventorySlot && event.button() == 0) {
 			ClientPacketDistributor.sendToServer(new TransferFullSlotPayload(slot.index));
 			return true;
 		}
 		GuiEventListener focused = getFocused();
-		if (focused != null && !focused.isMouseOver(mouseX, mouseY) && (focused instanceof WidgetBase widgetBase)) {
+		if (focused != null && !focused.isMouseOver(event.x(), event.y()) && (focused instanceof WidgetBase widgetBase)) {
 			widgetBase.setFocused(false);
 		}
 
-		return superMouseClicked(mouseX, mouseY, button);
+		return superMouseClicked(event, doubleClicked);
 	}
 
 	// The only modification here is calling of the containerEventHandlerMouseClicked method
-	private boolean superMouseClicked(double mouseX, double mouseY, int button) {
-		if (containerEventHandlerMouseClicked(mouseX, mouseY, button)) {
+	private boolean superMouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		if (containerEventHandlerMouseClicked(event, doubleClicked)) {
 			return true;
 		} else {
-			InputConstants.Key mouseKey = InputConstants.Type.MOUSE.getOrCreate(button);
-			boolean flag = minecraft.options.keyPickItem.isActiveAndMatches(mouseKey);
-			Slot slot = getHoveredSlot(mouseX, mouseY);
-			long i = Util.getMillis();
-			doubleclick = lastClickSlot == slot && i - lastClickTime < 250L && lastClickButton == button;
-			skipNextRelease = false;
-			if (button != 0 && button != 1 && !flag) {
-				checkHotbarMouseClicked(button);
+			InputConstants.Key mouseKey = InputConstants.Type.MOUSE.getOrCreate(event.button());
+			boolean flag = this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey);
+			Slot slot = this.getHoveredSlot(event.x(), event.y());
+			this.doubleclick = this.lastClickSlot == slot && doubleClicked;
+			this.skipNextRelease = false;
+			if (event.button() != 0 && event.button() != 1 && !flag) {
+				this.checkHotbarMouseClicked(event);
 			} else {
-				int j = leftPos;
-				int k = topPos;
-				boolean flag1 = hasClickedOutside(mouseX, mouseY, j, k, button);
+				int i = this.leftPos;
+				int j = this.topPos;
+				boolean flag1 = this.hasClickedOutside(event.x(), event.y(), i, j);
 				if (slot != null) {
 					flag1 = false;
 				}
 
-				int l = -1;
+				int k = -1;
 				if (slot != null) {
-					l = slot.index;
+					k = slot.index;
 				}
 
 				if (flag1) {
-					l = -999;
+					k = -999;
 				}
 
-				if (minecraft.options.touchscreen().get() && flag1 && menu.getCarried().isEmpty()) {
-					onClose();
+				if ((Boolean) this.minecraft.options.touchscreen().get() && flag1 && this.menu.getCarried().isEmpty()) {
+					this.onClose();
 					return true;
 				}
 
-				if (l != -1) {
-					if (minecraft.options.touchscreen().get()) {
+				if (k != -1) {
+					if ((Boolean) this.minecraft.options.touchscreen().get()) {
 						if (slot != null && slot.hasItem()) {
-							clickedSlot = slot;
-							draggingItem = ItemStack.EMPTY;
-							isSplittingStack = button == 1;
+							this.clickedSlot = slot;
+							this.draggingItem = ItemStack.EMPTY;
+							this.isSplittingStack = event.button() == 1;
 						} else {
-							clickedSlot = null;
+							this.clickedSlot = null;
 						}
-					} else if (!isQuickCrafting) {
-						if (menu.getCarried().isEmpty()) {
-							if (minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
-								slotClicked(slot, l, button, ClickType.CLONE);
+					} else if (!this.isQuickCrafting) {
+						if (this.menu.getCarried().isEmpty()) {
+							if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
+								this.slotClicked(slot, k, event.button(), ClickType.CLONE);
 							} else {
-								boolean flag2 = l != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
+								boolean flag2 = k != -999 && event.hasShiftDown();
 								ClickType clicktype = ClickType.PICKUP;
 								if (flag2) {
-									lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
+									this.lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
 									clicktype = ClickType.QUICK_MOVE;
-								} else if (l == -999) {
+								} else if (k == -999) {
 									clicktype = ClickType.THROW;
 								}
 
-								slotClicked(slot, l, button, clicktype);
+								this.slotClicked(slot, k, event.button(), clicktype);
 							}
 
-							skipNextRelease = true;
+							this.skipNextRelease = true;
 						} else {
-							isQuickCrafting = true;
-							quickCraftingButton = button;
-							quickCraftSlots.clear();
-							if (button == 0) {
-								quickCraftingType = 0;
-							} else if (button == 1) {
-								quickCraftingType = 1;
-							} else if (minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
-								quickCraftingType = 2;
+							this.isQuickCrafting = true;
+							this.quickCraftingButton = event.button();
+							this.quickCraftSlots.clear();
+							if (event.button() == 0) {
+								this.quickCraftingType = 0;
+							} else if (event.button() == 1) {
+								this.quickCraftingType = 1;
+							} else if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
+								this.quickCraftingType = 2;
 							}
 						}
 					}
 				}
 			}
 
-			lastClickSlot = slot;
-			lastClickTime = i;
-			lastClickButton = button;
+			this.lastClickSlot = slot;
 			return true;
 		}
 	}
 
 	//Modified to actually return false if child didn't handle the click
-	private boolean containerEventHandlerMouseClicked(double mouseX, double mouseY, int button) {
-		return getChildAt(mouseX, mouseY).map(child -> {
-			if (child.mouseClicked(mouseX, mouseY, button)) {
+	private boolean containerEventHandlerMouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		return getChildAt(event.x(), event.y()).map(child -> {
+			if (child.mouseClicked(event, doubleClicked)) {
 				setFocused(child);
-				if (button == 0) {
+				if (event.button() == 0) {
 					setDragging(true);
 				}
 				return true;
@@ -1100,9 +1096,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+	public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+		double mouseX = event.x();
+		double mouseY = event.y();
 		for (GuiEventListener child : children()) {
-			if (child.isMouseOver(mouseX, mouseY) && child.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
+			if (child.isMouseOver(mouseX, mouseY) && child.mouseDragged(event, dragX, dragY)) {
 				return true;
 			}
 		}
@@ -1120,7 +1118,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			return true;
 		}
 
-		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+		return super.mouseDragged(event, dragX, dragY);
 	}
 
 	private boolean isAllowedSlotCombination(Slot slot, ItemStack carried) {
@@ -1131,8 +1129,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeftIn, int guiTopIn, int mouseButton) {
-		return super.hasClickedOutside(mouseX, mouseY, guiLeftIn, guiTopIn, mouseButton) && hasClickedOutsideOfUpgradeSlots(mouseX, mouseY)
+	protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeftIn, int guiTopIn) {
+		return super.hasClickedOutside(mouseX, mouseY, guiLeftIn, guiTopIn) && hasClickedOutsideOfUpgradeSlots(mouseX, mouseY)
 				&& hasClickedOutsideOfUpgradeSettings(mouseX, mouseY);
 	}
 
@@ -1286,7 +1284,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		public TransferButton(Consumer<Boolean> transferItems, ButtonDefinition shiftDefinition, ButtonDefinition definition) {
 			super(new Position(leftPos, topPos), definition, button -> {
 				if (button == 0) {
-					transferItems.accept(!Screen.hasShiftDown());
+					transferItems.accept(!Minecraft.getInstance().hasShiftDown());
 				}
 			});
 			this.shiftDefinition = shiftDefinition;
@@ -1295,7 +1293,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		@Override
 		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-			if (hasShiftDown()) {
+			if (Minecraft.getInstance().hasShiftDown()) {
 				if (shiftDefinition.getForegroundTexture() != null) {
 					GuiHelper.blit(guiGraphics, x, y, shiftDefinition.getForegroundTexture());
 				}
@@ -1308,7 +1306,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		@Override
 		protected List<Component> getTooltip() {
-			if (hasShiftDown()) {
+			if (Minecraft.getInstance().hasShiftDown()) {
 				return shiftDefinition.getTooltip();
 			} else {
 				return definition.getTooltip();

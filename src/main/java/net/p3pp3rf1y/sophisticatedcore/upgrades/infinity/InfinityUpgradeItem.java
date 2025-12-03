@@ -78,7 +78,7 @@ public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wra
 			super.onAdded();
 
 			InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
-			inventoryHandler.getInventoryPartitioner().addInventoryPart(0, Integer.MAX_VALUE, upgradeItem.createInventoryPartHandler(inventoryHandler, new SlotRange(0, inventoryHandler.getSlots())));
+			inventoryHandler.getInventoryPartitioner().addInventoryPart(0, Integer.MAX_VALUE, upgradeItem.createInventoryPartHandler(inventoryHandler, new SlotRange(0, inventoryHandler.size())));
 			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemsChanged();
 		}
 

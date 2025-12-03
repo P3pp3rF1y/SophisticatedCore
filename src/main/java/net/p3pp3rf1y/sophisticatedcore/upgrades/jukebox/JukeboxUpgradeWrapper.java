@@ -10,10 +10,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
-import net.p3pp3rf1y.sophisticatedcore.inventory.StatefulComponentItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ComponentItemStacksHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 
 public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrapper, JukeboxUpgradeItem> implements ITickableUpgrade {
 	private static final int KEEP_ALIVE_SEND_INTERVAL = 5;
-	private final StatefulComponentItemHandler discInventory;
+	private final ComponentItemStacksHandler discInventory;
 	private long lastKeepAliveSendTime = 0;
 	private boolean isPlaying;
 
@@ -44,23 +44,24 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 	protected JukeboxUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		discInventory = new StatefulComponentItemHandler(upgrade, DataComponents.CONTAINER, upgradeItem.getNumberOfSlots()) {
+		discInventory = new ComponentItemStacksHandler(upgrade, DataComponents.CONTAINER, upgradeItem.getNumberOfSlots()) {
 			@Override
-			protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
-				super.onContentsChanged(slot, oldStack, newStack);
+			protected void onContentsChanged(int index, ItemStack previousContents) {
+				super.onContentsChanged(index, previousContents);
 				save();
-				if (oldStack.isEmpty() && !newStack.isEmpty()) {
-					discsAdded.add(slot);
-					discsRemoved.remove(slot);
-				} else if (!oldStack.isEmpty() && newStack.isEmpty()) {
-					discsRemoved.add(slot);
-					discsAdded.remove(slot);
+				ItemStack currentContents = getStackInSlot(index);
+				if (previousContents.isEmpty() && !currentContents.isEmpty()) {
+					discsAdded.add(index);
+					discsRemoved.remove(index);
+				} else if (!previousContents.isEmpty() && currentContents.isEmpty()) {
+					discsRemoved.add(index);
+					discsAdded.remove(index);
 				}
 			}
 
 			@Override
-			public boolean isItemValid(int slot, ItemStack stack) {
-				return stack.isEmpty() || stack.has(DataComponents.JUKEBOX_PLAYABLE);
+			public boolean isValid(int slot, ItemResource resource) {
+				return resource.isEmpty() || resource.has(DataComponents.JUKEBOX_PLAYABLE);
 			}
 		};
 		isPlaying = upgrade.getOrDefault(ModCoreDataComponents.IS_PLAYING, false);
@@ -155,7 +156,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		isPlaying = playing;
 		upgrade.set(ModCoreDataComponents.IS_PLAYING, playing);
 		if (isPlaying) {
-			storageWrapper.getRenderInfo().setUpgradeClientData(JukeboxUpgradeClientData.TYPE, new JukeboxUpgradeClientData(true));
+			storageWrapper.getRenderDataHandler().setUpgradeClientData(JukeboxUpgradeClientData.TYPE, new JukeboxUpgradeClientData(true));
 		} else {
 			removeClientData();
 			setDiscSlotActive(-1);
@@ -164,7 +165,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 	}
 
 	private void removeClientData() {
-		storageWrapper.getRenderInfo().removeUpgradeClientData(JukeboxUpgradeClientData.TYPE);
+		storageWrapper.getRenderDataHandler().removeUpgradeClientData(JukeboxUpgradeClientData.TYPE);
 	}
 
 	public void stop(LivingEntity entity) {
@@ -181,7 +182,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		history.clear();
 	}
 
-	public IItemHandler getDiscInventory() {
+	public ComponentItemStacksHandler getDiscInventory() {
 		return discInventory;
 	}
 
@@ -238,7 +239,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		}
 		if (getDiscSlotActive() != -1) {
 			history.add(getDiscSlotActive());
-			if (history.size() > discInventory.getSlots()) {
+			if (history.size() > discInventory.size()) {
 				history.poll();
 			}
 		}
@@ -253,7 +254,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 	private void initPlaylist(boolean excludeActive) {
 		playlist.clear();
-		for (int i = 0; i < discInventory.getSlots(); i++) {
+		for (int i = 0; i < discInventory.size(); i++) {
 			if (!discInventory.getStackInSlot(i).isEmpty() && (!excludeActive || !isPlaying || i != getDiscSlotActive())) {
 				playlist.add(i);
 			}

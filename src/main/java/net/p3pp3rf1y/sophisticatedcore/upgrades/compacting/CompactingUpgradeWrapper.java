@@ -4,11 +4,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
@@ -35,62 +39,70 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	}
 
 	@Override
-	public ItemStack onBeforeInsert(IItemHandlerSimpleInserter inventoryHandler, int slot, ItemStack stack, boolean simulate) {
-		return stack;
+	public int onBeforeInsert(InventoryHandler inventoryHandler, int slot, ItemResource resource, int amount) {
+		return 0;
 	}
 
 	@Override
-	public void onAfterInsert(IItemHandlerSimpleInserter inventoryHandler, int slot) {
-		compactSlot(inventoryHandler, slot);
+	public void onAfterInsert(InventoryHandler inventoryHandler, int slot, TransactionContext tx) {
+		compactSlot(inventoryHandler, slot, tx);
 	}
 
-	private void compactSlot(IItemHandlerSimpleInserter inventoryHandler, int slot) {
-		ItemStack slotStack = inventoryHandler.getStackInSlot(slot);
+	private void compactSlot(ITrackedContentsItemResourceHandler inventoryHandler, int slot, TransactionContext tx) {
+		ItemStack stack = inventoryHandler.getStackInSlot(slot);
 
-		if (slotStack.isEmpty() || !filterLogic.matchesFilter(slotStack)) {
+		if (stack.isEmpty() || !filterLogic.matchesFilter(stack)) {
 			return;
 		}
 
-		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(slotStack);
+		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(stack);
 
 		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
-			tryCompacting(inventoryHandler, slotStack, 3, 3);
+			tryCompacting(inventoryHandler, stack, 3, 3, tx);
 		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
-			tryCompacting(inventoryHandler, slotStack, 2, 2);
+			tryCompacting(inventoryHandler, stack, 2, 2, tx);
 		}
 	}
 
-	private void tryCompacting(IItemHandlerSimpleInserter inventoryHandler, ItemStack stack, int width, int height) {
+	private void tryCompacting(ResourceHandler<ItemResource> inventoryHandler, ItemStack stack, int width, int height, TransactionContext tx) {
 		int totalCount = width * height;
 		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(stack, width, height);
 		if (!compactingResult.getResult().isEmpty()) {
-			ItemStack extractedStack = InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), inventoryHandler, true);
-			if (extractedStack.getCount() != totalCount) {
-				return;
-			}
+			try (Transaction childTx = Transaction.open(tx)) {
+				ItemResource resource = ItemResource.of(stack);
+				int extracted = inventoryHandler.extract(resource, totalCount, childTx);
+				boolean hasCompacted = false;
+				int insertBackIntoSlot = -1;
+				while (extracted == totalCount) {
+					ItemStack resultCopy = compactingResult.getResult().copy();
+					List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
 
-			while (extractedStack.getCount() == totalCount) {
-				ItemStack resultCopy = compactingResult.getResult().copy();
-				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
+					if (inventoryHandler.insert(ItemResource.of(resultCopy), resultCopy.getCount(), childTx) != resultCopy.getCount() || !InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, childTx).isEmpty()) {
+						return;
+					}
+					hasCompacted = true;
 
-				if (!fitsResultAndRemainingItems(inventoryHandler, remainingItemsCopy, resultCopy)) {
-					break;
+					extracted = 0;
+					for (int slot = 0; slot < inventoryHandler.size(); slot++) {
+						extracted += inventoryHandler.extract(slot, resource, totalCount, childTx);
+						if (extracted > 0) {
+							if (insertBackIntoSlot == -1) {
+								insertBackIntoSlot = slot;
+							}
+							if (extracted == totalCount) {
+								break;
+							}
+						}
+					}
 				}
-				InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), inventoryHandler, false);
-				inventoryHandler.insertItem(resultCopy, false);
-				InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, false);
-				extractedStack = InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), inventoryHandler, true);
+				if (hasCompacted) {
+					if (extracted > 0) {
+						inventoryHandler.insert(insertBackIntoSlot, resource, extracted, childTx);
+					}
+					childTx.commit();
+				}
 			}
 		}
-	}
-
-	private boolean fitsResultAndRemainingItems(IItemHandler inventoryHandler, List<ItemStack> remainingItems, ItemStack result) {
-		if (!remainingItems.isEmpty()) {
-			IItemHandler clonedHandler = InventoryHelper.cloneInventory(inventoryHandler);
-			return InventoryHelper.insertIntoInventory(result, clonedHandler, false).isEmpty()
-					&& InventoryHelper.insertIntoInventory(remainingItems, clonedHandler, false).isEmpty();
-		}
-		return InventoryHelper.insertIntoInventory(result, inventoryHandler, true).isEmpty();
 	}
 
 	@Override
@@ -108,7 +120,7 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	}
 
 	@Override
-	public void onSlotChange(IItemHandler inventoryHandler, int slot) {
+	public void onSlotChange(InventoryHandler inventoryHandler, int slot) {
 		if (shouldWorkInGUI()) {
 			slotsToCompact.add(slot);
 		}
@@ -129,8 +141,11 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 			return;
 		}
 
-		for (int slot : slotsToCompact) {
-			compactSlot(storageWrapper.getInventoryHandler(), slot);
+		try (Transaction tx = Transaction.openRoot()) {
+			for (int slot : slotsToCompact) {
+				compactSlot(storageWrapper.getInventoryForUpgradeProcessing(), slot, tx);
+			}
+			tx.commit();
 		}
 
 		slotsToCompact.clear();

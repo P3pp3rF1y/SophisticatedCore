@@ -1,48 +1,29 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.nosort;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
-import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
-public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsCategory>, ISlotColorCategory {
+public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsCategory, NoSortSettingsCategoryData>, ISlotColorCategory {
 	public static final String NAME = "no_sort";
-	private static final String COLOR_TAG = "color";
-	private static final String SELECTED_SLOTS_TAG = "selectedSlots";
-	private CompoundTag categoryNbt;
-	private final Consumer<CompoundTag> saveNbt;
-	private final Set<Integer> selectedSlots = new HashSet<>();
-	private DyeColor color = DyeColor.LIME;
+	private final Runnable save;
+	private NoSortSettingsCategoryData data;
 
-	public NoSortSettingsCategory(CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt) {
-		this.categoryNbt = categoryNbt;
-		this.saveNbt = saveNbt;
-
-		deserialize();
-	}
-
-	private void deserialize() {
-		categoryNbt.getIntArray(SELECTED_SLOTS_TAG).ifPresent(slotNumbers -> {
-			for (int slotNumber : slotNumbers) {
-				selectedSlots.add(slotNumber);
-			}
-		});
-		NBTHelper.getInt(categoryNbt, COLOR_TAG).ifPresent(c -> color = DyeColor.byId(c));
+	public NoSortSettingsCategory(NoSortSettingsCategoryData data, Runnable save) {
+		this.data = data;
+		this.save = save;
 	}
 
 	public boolean isSlotSelected(int slotNumber) {
-		return selectedSlots.contains(slotNumber);
+		return data.selectedSlots().contains(slotNumber);
 	}
 
 	public void unselectAllSlots() {
-		selectedSlots.clear();
-		serializeSelectedSlots();
+		data.clearSelectedSlots();
+		save();
 	}
 
 	/**
@@ -54,9 +35,9 @@ public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsC
 
 	public void selectSlots(int minSlot, int maxSlot) {
 		for (int slot = minSlot; slot < maxSlot; slot++) {
-			selectedSlots.add(slot);
+			data.addSelectedSlot(slot);
 		}
-		serializeSelectedSlots();
+		save();
 	}
 
 	public void selectSlot(int slotNumber) {
@@ -64,74 +45,64 @@ public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsC
 	}
 
 	public void unselectSlot(int slotNumber) {
-		selectedSlots.remove(slotNumber);
-		serializeSelectedSlots();
+		data.removeSelectedSlot(slotNumber);
+		save();
 	}
 
-	private void serializeSelectedSlots() {
-		int[] slots = new int[selectedSlots.size()];
-		int i = 0;
-		for (int slotNumber : selectedSlots) {
-			slots[i++] = slotNumber;
-		}
-		categoryNbt.putIntArray(SELECTED_SLOTS_TAG, slots);
-		saveNbt.accept(categoryNbt);
+	private void save() {
+		save.run();
 	}
 
 	public void setColor(DyeColor color) {
-		this.color = color;
-		categoryNbt.putInt(COLOR_TAG, color.getId());
-		saveNbt.accept(categoryNbt);
+		data.setColor(color);
+		save();
 	}
 
 	public DyeColor getColor() {
-		return color;
+		return data.color();
 	}
 
 	@Override
 	public Optional<Integer> getSlotColor(int slotNumber) {
-		return selectedSlots.contains(slotNumber) ? Optional.of(color.getTextureDiffuseColor()) : Optional.empty();
+		return data.selectedSlots().contains(slotNumber) ? Optional.of(data.color().getTextureDiffuseColor()) : Optional.empty();
 	}
 
 	public Set<Integer> getNoSortSlots() {
-		return selectedSlots;
+		return data.selectedSlots();
 	}
 
 	@Override
-	public void reloadFrom(CompoundTag categoryNbt) {
-		this.categoryNbt = categoryNbt;
-		selectedSlots.clear();
-		color = DyeColor.LIME;
-		deserialize();
+	public void reloadFrom(NoSortSettingsCategoryData data) {
+		this.data = data;
 	}
 
 	@Override
 	public void overwriteWith(NoSortSettingsCategory otherCategory) {
-		selectedSlots.clear();
-		selectedSlots.addAll(otherCategory.getNoSortSlots());
-		serializeSelectedSlots();
-		setColor(otherCategory.getColor());
+		data.clearSelectedSlots();
+		data.addSelectedSlots(otherCategory.getNoSortSlots());
+		data.setColor(otherCategory.getColor());
+		save();
 	}
 
 	@Override
 	public boolean isLargerThanNumberOfSlots(int slots) {
-		return selectedSlots.stream().anyMatch(slotIndex -> slotIndex >= slots);
+		return data.selectedSlots().stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
 
 	@Override
 	public void copyTo(NoSortSettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		selectedSlots.forEach(slotIndex -> {
+		data.selectedSlots().forEach(slotIndex -> {
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.selectedSlots.add(slotIndex + slotOffset);
+			otherCategory.data.addSelectedSlot(slotIndex + slotOffset);
 		});
-		otherCategory.serializeSelectedSlots();
+		otherCategory.save();
 	}
 
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
-		selectedSlots.removeIf(slot -> slot >= slotIndex);
-		serializeSelectedSlots();
+		data.removeSelectedSlotAtOrAfter(slotIndex);
+		save();
 	}
 }

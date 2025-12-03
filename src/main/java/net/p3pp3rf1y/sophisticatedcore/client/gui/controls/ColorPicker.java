@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
@@ -41,12 +42,12 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		addChild(colorPreview);
 		textColorEntry = new TextBox(new Position(0, 0), new Dimension(COLOR_ENTRY_WIDTH, 12)) {
 			@Override
-			public boolean mouseClicked(double mouseX, double mouseY, int button) {
+			public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
 				if (isEditable()) {
 					setFocused(true);
 					screen.setFocused(textColorEntry);
 				}
-				return super.mouseClicked(mouseX, mouseY, button);
+				return super.mouseClicked(event, doubleClicked);
 			}
 		};
 		addChild(textColorEntry);
@@ -198,7 +199,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y - 1, 0), this.x + getWidth(), this.y + Math.min(y, getHeight()), 0xFF_FFFFFF);
 			pose.popMatrix();
 			pose.pushMatrix();
-			pose.translate(0, - 0.8f);
+			pose.translate(0, -0.8f);
 			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y + 1, 0), this.x + getWidth(), this.y + Math.min(y + 2, getHeight()), 0xFF_FFFFFF);
 			pose.popMatrix();
 			pose.pushMatrix();
@@ -214,8 +215,8 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		public boolean mouseClicked(double mouseX, double mouseY, int button) {
-			setColorBasedOnMouseCoords(mouseX, mouseY);
+		public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+			setColorBasedOnMouseCoords(event.x(), event.y());
 			return true;
 		}
 
@@ -229,8 +230,8 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-			setColorBasedOnMouseCoords(mouseX, mouseY);
+		public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+			setColorBasedOnMouseCoords(event.x(), event.y());
 			return true;
 		}
 	}
@@ -267,15 +268,15 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker - 1, x + getWidth(), y + getHeight() - hueMarker - 2, 0xFF_FFFFFF);
 			pose.popMatrix();
 			pose.pushMatrix();
-			pose.translate(0, - 0.8f);
+			pose.translate(0, -0.8f);
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker + 1, 0xFF_FFFFFF);
 			pose.popMatrix();
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker - 1, 0xFF_000000);
 		}
 
 		@Override
-		public boolean mouseClicked(double mouseX, double mouseY, int button) {
-			setHueBasedOnMouseY(mouseY);
+		public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+			setHueBasedOnMouseY(event.y());
 			return true;
 		}
 
@@ -286,8 +287,8 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-			setHueBasedOnMouseY(mouseY);
+		public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+			setHueBasedOnMouseY(event.y());
 			return true;
 		}
 	}

@@ -9,9 +9,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
+//TODO this definitely needs rework once Create updates to 1.21.9+
 public abstract class MountedStorageBase extends MountedItemStorage implements SyncedMountedStorage {
 	private ItemStack storageStack;
 
@@ -47,43 +51,60 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 
 	public abstract IStorageWrapper getStorageWrapper();
 
-	protected IItemHandlerModifiable getExternalItemHandler() {
+	protected ResourceHandler<ItemResource> getExternalItemHandler() {
 		return getStorageWrapper().getInventoryForInputOutput();
 	}
 
 	@Override
 	public void setStackInSlot(int i, ItemStack itemStack) {
-		getExternalItemHandler().setStackInSlot(i, itemStack);
+		InventoryHelper.set(getExternalItemHandler(), i, ItemResource.of(itemStack), itemStack.getCount());
 	}
 
 	@Override
 	public int getSlots() {
-		return getExternalItemHandler().getSlots();
+		return getExternalItemHandler().size();
 	}
 
 	@Override
 	public ItemStack getStackInSlot(int i) {
-		return getExternalItemHandler().getStackInSlot(i);
+		return getExternalItemHandler().getResource(i).toStack(getExternalItemHandler().getAmountAsInt(i));
 	}
 
 	@Override
 	public ItemStack insertItem(int i, ItemStack itemStack, boolean b) {
-		return getExternalItemHandler().insertItem(i, itemStack, b);
+		int moved;
+		try (Transaction tx = Transaction.openRoot()) {
+			moved = getExternalItemHandler().insert(i, ItemResource.of(itemStack), itemStack.getCount(), tx);
+			if (!b) {
+				tx.commit();
+			}
+		}
+
+		return moved == itemStack.getCount() ? ItemStack.EMPTY : itemStack.copyWithCount(itemStack.getCount() - moved);
 	}
 
 	@Override
-	public ItemStack extractItem(int i, int i1, boolean b) {
-		return getExternalItemHandler().extractItem(i, i1, b);
+	public ItemStack extractItem(int index, int amount, boolean simulate) {
+		int extracted;
+		ItemResource resource = getExternalItemHandler().getResource(index);
+		try (Transaction tx = Transaction.openRoot()) {
+			extracted = getExternalItemHandler().extract(index, resource, amount, tx);
+			if (!simulate) {
+				tx.commit();
+			}
+		}
+
+		return resource.toStack(extracted);
 	}
 
 	@Override
 	public int getSlotLimit(int i) {
-		return getExternalItemHandler().getSlotLimit(i);
+		return getExternalItemHandler().getCapacityAsInt(i, ItemResource.EMPTY);
 	}
 
 	@Override
 	public boolean isItemValid(int i, ItemStack itemStack) {
-		return getExternalItemHandler().isItemValid(i, itemStack);
+		return getExternalItemHandler().isValid(i, ItemResource.of(itemStack));
 	}
 
 	public void onClose(Player player, Vec3 pos) {

@@ -7,11 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.EventHooks;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -20,10 +22,8 @@ public class CookingLogicContainer<T extends AbstractCookingRecipe> {
 
 	private final List<Slot> smeltingSlots = new ArrayList<>();
 	private int removeCount;
-	private final Player player;
 
 	public CookingLogicContainer(Player player, Supplier<CookingLogic<T>> supplyCoookingLogic, Consumer<Slot> addSlot) {
-		this.player = player;
 		this.supplyCoookingLogic = supplyCoookingLogic;
 
 		addSmeltingSlot(addSlot, new CookingSlot(() -> supplyCoookingLogic.get().getCookingInventory(), CookingLogic.COOK_INPUT_SLOT, -100, -100));
@@ -35,12 +35,10 @@ public class CookingLogicContainer<T extends AbstractCookingRecipe> {
 			}
 
 			@Override
-			public ItemStack remove(int amount) {
-				if (hasItem()) {
-					removeCount = removeCount + Math.min(amount, getItem().getCount());
-				}
-
-				return super.remove(amount);
+			public Optional<ItemStack> tryRemove(int amount, int max, Player player) {
+				Optional<ItemStack> removed = super.tryRemove(amount, max, player);
+				removeCount = removeCount + removed.map(ItemStack::getCount).orElse(0);
+				return removed;
 			}
 
 			@Override
@@ -96,7 +94,7 @@ public class CookingLogicContainer<T extends AbstractCookingRecipe> {
 	}
 
 	private static class CookingSlot extends SlotSuppliedHandler {
-		public CookingSlot(Supplier<IItemHandler> itemHandlerSupplier, int slot, int xPosition, int yPosition) {
+		public CookingSlot(Supplier<ResourceHandler<ItemResource>> itemHandlerSupplier, int slot, int xPosition, int yPosition) {
 			super(itemHandlerSupplier, slot, xPosition, yPosition);
 		}
 

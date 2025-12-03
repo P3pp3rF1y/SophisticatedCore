@@ -1,47 +1,42 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.neoforged.neoforge.transfer.IndexModifier;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.ISlotLimitUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
-import net.p3pp3rf1y.sophisticatedcore.util.*;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.SlotValueMap;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public abstract class InventoryHandler extends ItemStackHandler implements ITrackedContentsItemHandler {
+public abstract class InventoryHandler extends ItemStacksResourceHandler implements ITrackedContentsItemResourceHandler, IndexModifier<ItemResource> {
 	public static final String INVENTORY_TAG = "inventory";
-	private static final String PARTITIONER_TAG = "partitioner";
 	protected final IStorageWrapper storageWrapper;
-	private final CompoundTag contentsNbt;
+	private final ContainerContents.InventoryData inventoryData;
 	private final Runnable saveHandler;
 	private final List<IntConsumer> onContentsChangedListeners = new ArrayList<>();
 	private boolean persistent = true;
-	private final Map<Integer, Tag> stackNbts = new LinkedHashMap<>();
 
 	private ISlotTracker slotTracker = new ISlotTracker.Noop();
 
 	private int baseSlotLimit;
-	private int slotLimit;
 	private double maxStackSizeMultiplier;
 	private boolean isInitializing;
 	private final StackUpgradeConfig stackUpgradeConfig;
@@ -51,21 +46,35 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private final SlotValueMap<Item> filterItemSlots = new SlotValueMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
 	private boolean slotLimitInitialized = false;
+	private final List<FilterLogic> overflowFilters = new ArrayList<>();
+	private final SlotTrackerJournal slotTrackerJournal = new SlotTrackerJournal();
 
-	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
+	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
 		this.stackUpgradeConfig = stackUpgradeConfig;
 		isInitializing = true;
 		this.storageWrapper = storageWrapper;
-		this.contentsNbt = contentsNbt;
+		this.inventoryData = containerContents.inventory();
 		this.saveHandler = saveHandler;
 		setBaseSlotLimit(baseSlotLimit);
-		contentsNbt.getCompound(INVENTORY_TAG).ifPresent(this::deserializeNBT);
-		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompoundOrEmpty(PARTITIONER_TAG), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
-		initStackNbts();
+		loadStacksFromData();
+		inventoryPartitioner = new InventoryPartitioner(containerContents.partitioner(), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		getSlotTracker().refreshSlotIndexesFrom(this);
 
 		isInitializing = false;
+	}
+
+	protected final void directSet(int index, ItemResource resource, int amount) {
+		if (amount == 0) {
+			super.set(index, ItemResource.EMPTY, 0);
+			return;
+		}
+		super.set(index, resource, amount);
+	}
+
+	@Override
+	public void set(int index, ItemResource resource, int amount) {
+		inventoryPartitioner.getPartBySlot(index).set(index, resource, amount, this::directSet);
 	}
 
 	public ISlotTracker getSlotTracker() {
@@ -74,28 +83,22 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	@Override
-	public void setSize(int size) {
-		super.setSize(stacks.size());
-	}
+	protected void onContentsChanged(int index, ItemStack previousContents) {
+		super.onContentsChanged(index, previousContents);
 
-	private void initStackNbts() {
-		stackNbts.clear();
-		for (int slot = 0; slot < stacks.size(); slot++) {
-			ItemStack slotStack = stacks.get(slot);
-			if (!slotStack.isEmpty()) {
-				stackNbts.put(slot, getSlotsStackNbt(slot, slotStack));
-			}
-		}
-	}
+		ItemStack current = getInternalStack(index);
+		getSlotTracker().removeAndSetSlotIndexes(this, index, current);
 
-	@Override
-	public void onContentsChanged(int slot) {
-		super.onContentsChanged(slot);
-		inventoryPartitioner.getPartBySlot(slot).onContentsChanged(slot, super::setStackInSlot);
-		if (persistent && updateSlotNbt(slot)) {
+		if (persistent && updateSlotStack(index)) {
 			saveInventory();
-			triggerOnChangeListeners(slot);
+			triggerOnChangeListeners(index);
 		}
+	}
+
+	private void runOnAfterInsert(int index, TransactionContext tx) {
+		storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class)
+				.forEach(u -> u.onAfterInsert(this, index, tx));
 	}
 
 	public void triggerOnChangeListeners(int slot) {
@@ -106,52 +109,26 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@SuppressWarnings("java:S3824")
 	//compute use here would be difficult as then there's no way of telling that value was newly created vs different than the one that needs to be set
-	private boolean updateSlotNbt(int slot) {
-		ItemStack slotStack = getSlotStack(slot);
-		if (slotStack.isEmpty()) {
-			if (stackNbts.containsKey(slot)) {
-				stackNbts.remove(slot);
-				return true;
-			}
-		} else {
-			Tag itemTag = getSlotsStackNbt(slot, slotStack);
-			if (!stackNbts.containsKey(slot) || !stackNbts.get(slot).equals(itemTag)) {
-				stackNbts.put(slot, itemTag);
-				return true;
-			}
+	private boolean updateSlotStack(int slot) {
+		ItemStack slotStack = getInternalStack(slot);
+		if (inventoryData.stacks().size() > slot && (!ItemStack.isSameItemSameComponents(inventoryData.stacks().get(slot), slotStack) || inventoryData.stacks().get(slot).getCount() != slotStack.getCount())) {
+			inventoryData.stacks().set(slot, slotStack.copy());
+			return true;
 		}
 		return false;
 	}
 
-	private Tag getSlotsStackNbt(int slot, ItemStack slotStack) {
-		CompoundTag itemTag = new CompoundTag();
-		itemTag.putInt("Slot", slot);
-		return RegistryHelper.getRegistryAccess().map(registryAccess -> CodecHelper.OVERSIZED_ITEM_STACK_CODEC.encode(slotStack, registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag).getOrThrow()).orElse(itemTag);
-	}
-
-	private Optional<ItemStack> getStackFromNbt(Tag itemTag, RegistryAccess registryAccess) {
-		return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
-				.resultOrPartial(itemName -> SophisticatedCore.LOGGER.error("Tried to load invalid item: '{}'", itemName));
-	}
-
-	public void deserializeNBT(CompoundTag nbt) {
+	private void loadStacksFromData() {
 		slotTracker.clear();
-		setSize(nbt.contains("Size") ? nbt.getIntOr("Size", 0) : stacks.size());
-		ListTag tagList = nbt.getListOrEmpty("Items");
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
-			for (int i = 0; i < tagList.size(); i++) {
-				tagList.getCompound(i).ifPresent(itemTag -> {
-					int slot = itemTag.getIntOr("Slot", 0);
-					if (slot >= 0 && slot < stacks.size()) {
-						getStackFromNbt(itemTag, registryAccess).ifPresent(stack -> {
-							stacks.set(slot, stack);
-						});
-					}
-				});
-			}
-		});
+		if (inventoryData.stacks().size() < stacks.size()) {
+			inventoryData.resize(stacks.size());
+		}
+
+		for (int slot = 0; slot < stacks.size() && slot < inventoryData.stacks().size(); slot++) {
+			ItemStack stack = inventoryData.stacks().get(slot);
+			stacks.set(slot, stack.copy());
+		}
 		slotTracker.refreshSlotIndexesFrom(this);
-		onLoad();
 	}
 
 	public int getBaseSlotLimit() {
@@ -163,22 +140,42 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		return inventoryPartitioner.getPartBySlot(slot).getSlotLimit(slot);
 	}
 
-	@Override
-	public int getSlotLimit(int slot) {
+	protected int getCapacityNoInit(int index, ItemResource resource) {
+		return inventoryPartitioner.getPartBySlot(index).getCapacity(index, resource);
+	}
+
+	public int getOverflowAwareCapacity(int index, ItemResource resource) {
 		if (!slotLimitInitialized) {
 			slotLimitInitialized = true;
-			updateSlotLimit();
+			updateOverflowFilters();
 			inventoryPartitioner.onSlotLimitChange();
 		}
 
-		return slotLimit > baseSlotLimit ? slotLimit : inventoryPartitioner.getPartBySlot(slot).getSlotLimit(slot);
+		for (FilterLogic filter : overflowFilters) {
+			if (filter.matchesFilter(resource)) {
+				return Integer.MAX_VALUE;
+			}
+		}
+
+		return inventoryPartitioner.getPartBySlot(index).getCapacity(index, resource);
 	}
 
-	public int getBaseStackLimit(ItemStack stack) {
-		if (!stackUpgradeConfig.canStackItem(stack.getItem())) {
-			return stack.getMaxStackSize();
+	@Override
+	protected int getCapacity(int index, ItemResource resource) {
+		return inventoryPartitioner.getPartBySlot(index).getCapacity(index, resource);
+	}
+
+	@Override
+	public long getCapacityAsLong(int index, ItemResource resource) {
+		Objects.checkIndex(index, this.size());
+		return getCapacity(index, resource);
+	}
+
+	public int getBaseCapacity(ItemResource resource) {
+		if (!stackUpgradeConfig.canStackItem(resource.getItem())) {
+			return resource.getMaxStackSize();
 		}
-		int maxStackSize = stack.isEmpty() ? getBaseSlotLimit() : stack.getMaxStackSize();
+		int maxStackSize = resource.isEmpty() ? getBaseSlotLimit() : resource.getMaxStackSize();
 
 		if (baseSlotLimit < 64) {
 			return (int) Math.max(1, (double) maxStackSize * baseSlotLimit / 64);
@@ -190,11 +187,6 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			limit = MathHelper.intMaxCappedAddition(limit, remainder * maxStackSize / 64);
 		}
 		return limit;
-	}
-
-	@Override
-	public int getStackLimit(int slot, ItemStack stack) {
-		return inventoryPartitioner.getPartBySlot(slot).getStackLimit(slot, stack);
 	}
 
 	public Item getFilterItem(int slot) {
@@ -219,81 +211,203 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}
 	}
 
-	private void updateSlotLimit() {
-		AtomicInteger slotLimitOverride = new AtomicInteger(baseSlotLimit);
-		storageWrapper.getUpgradeHandler().getWrappersThatImplement(ISlotLimitUpgrade.class).forEach(slu -> {
-			if (slu.getSlotLimit() > slotLimitOverride.get()) {
-				slotLimitOverride.set(slu.getSlotLimit());
+	private void updateOverflowFilters() {
+		overflowFilters.clear();
+		storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class).forEach(overflowUpgrade -> {
+			if (overflowUpgrade.voidsOverflow()) {
+				overflowFilters.add(overflowUpgrade.getFilterLogic());
 			}
 		});
-		slotLimit = slotLimitOverride.get();
-	}
-
-	public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
-		if (amount == 0) {
-			return ItemStack.EMPTY;
-		}
-
-		validateSlotIndex(slot);
-		ItemStack existing = getSlotStack(slot);
-
-		if (existing.isEmpty()) {
-			return ItemStack.EMPTY;
-		}
-
-		int toExtract = Math.min(amount, existing.getMaxStackSize());
-
-		if (existing.getCount() <= toExtract) {
-			if (!simulate) {
-				setSlotStack(slot, ItemStack.EMPTY);
-				return existing;
-			} else {
-				return existing.copy();
-			}
-		} else {
-			if (!simulate) {
-				setSlotStack(slot, existing.copyWithCount(existing.getCount() - toExtract));
-			}
-
-			return existing.copyWithCount(toExtract);
-		}
 	}
 
 	@Override
-	@Nonnull
-	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		return inventoryPartitioner.getPartBySlot(slot).extractItem(slot, amount, simulate);
+	public int extract(ItemResource resource, int amount, TransactionContext transaction) {
+		ISlotTracker tracker = getSlotTracker();
+		int extracted = 0;
+
+		ItemStackKey stackKey = ItemStackKey.of(resource);
+		int originalSize = tracker.getFullSlots(stackKey).size();
+		int i = 0;
+
+		while (extracted < amount && i++ < originalSize) {
+			int slot = tracker.getFullSlots(stackKey).iterator().next();
+			extracted += extract(slot, resource, amount - extracted, transaction);
+		}
+
+		if (extracted >= amount) {
+			return extracted;
+		}
+
+		originalSize = tracker.getPartialSlots(stackKey).size();
+		i = 0;
+
+		while (extracted < amount && i++ < originalSize) {
+			int slot = tracker.getPartialSlots(stackKey).iterator().next();
+			extracted += extract(slot, resource, amount - extracted, transaction);
+		}
+
+		return extracted;
 	}
 
 	@Override
-	public void validateSlotIndex(int slot) {
-		super.validateSlotIndex(slot);
+	public int extract(int index, ItemResource resource, int amount, TransactionContext transaction) {
+		int result = inventoryPartitioner.getPartBySlot(index).extract(index, resource, amount, transaction, super::extract);
+		if (result > 0) {
+			slotTrackerJournal.updateSnapshots(transaction);
+			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
+		}
+		return result;
 	}
 
-	public ItemStack getSlotStack(int slot) {
+	@Override
+	public ItemResource getResource(int index) {
+		return inventoryPartitioner.getPartBySlot(index).getResource(index, super::getResource);
+	}
+
+	@Override
+	public long getAmountAsLong(int index) {
+		return inventoryPartitioner.getPartBySlot(index).getAmountAsLong(index, super::getAmountAsLong);
+	}
+
+	public ItemStack getInternalStack(int slot) {
 		return stacks.get(slot);
 	}
 
-	public void setSlotStack(int slot, ItemStack stack) {
+	@Override
+	public void setStackInSlot(int slot, ItemStack stack) {
+		inventoryPartitioner.getPartBySlot(slot).setStackInSlot(slot, stack, this::setStackInSlotInternal);
+	}
+
+	public void setStackInSlotInternal(int slot, ItemStack stack) {
+		ItemStack previousContents = stacks.get(slot);
 		stacks.set(slot, stack);
 		getSlotTracker().removeAndSetSlotIndexes(this, slot, stack);
-		onContentsChanged(slot);
+		onContentsChanged(slot, previousContents);
 	}
 
 	@Override
-	@Nonnull
-	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-		return getSlotTracker().insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, slot, stack, simulate);
-	}
+	public int insert(ItemResource resource, int amount, TransactionContext tx) {
+		ISlotTracker tracker = getSlotTracker();
+		MemorySettingsCategory mem = storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
+		Item item = resource.getItem();
+		ItemStackKey key = ItemStackKey.of(resource);
+		int moved = 0;
 
-	@Nonnull
-	public ItemStack insertItemOnlyToSlot(int slot, ItemStack stack, boolean simulate) {
-		initSlotTracker();
-		if (ItemStack.isSameItemSameComponents(getStackInSlot(slot), stack)) {
-			return triggerOverflowUpgrades(insertItemInternal(slot, stack, simulate));
+		if (!overflowFilters.isEmpty()) {
+			moved += handleOverflow(resource, amount);
 		}
 
-		return insertItemInternal(slot, stack, simulate);
+		if (moved >= amount) {
+			return moved;
+		}
+
+		for (int slot : tracker.getPartialSlots(key)) {
+			if (moved >= amount) {
+				break;
+			}
+			moved += insert(slot, resource, amount - moved, tx);
+		}
+
+		if (moved >= amount) {
+			return moved;
+		}
+
+		for (int slot : mem.getFilterItemSlots().getOrDefault(item, Collections.emptySet())) {
+			if (moved >= amount) {
+				break;
+			}
+			if (tracker.getEmptySlots().contains(slot)) {
+				moved += insert(slot, resource, amount - moved, tx);
+			}
+		}
+
+		if (moved >= amount) {
+			return moved;
+		}
+
+		for (int slot : mem.getFilterStackSlots().getOrDefault(key.hashCode(), Collections.emptySet())) {
+			if (moved >= amount) {
+				break;
+			}
+			if (tracker.getEmptySlots().contains(slot)) {
+				moved += insert(slot, resource, amount - moved, tx);
+			}
+		}
+
+		if (moved >= amount) {
+			return moved;
+		}
+
+		for (int slot : filterItemSlots.getSlots(item)) {
+			if (moved >= amount) {
+				break;
+			}
+			if (tracker.getEmptySlots().contains(slot)) {
+				moved += insert(slot, resource, amount - moved, tx);
+			}
+		}
+
+		if (moved >= amount) {
+			return moved;
+		}
+
+		if (shouldInsertIntoEmpty.getAsBoolean()) {
+			int sizeBefore = tracker.getEmptySlots().size();
+			int i = 0;
+			while (moved < amount && i++ < sizeBefore) {
+				int slot = pickNextPlaceableEmptySlot(tracker.getEmptySlots(), mem, resource);
+				if (slot == -1) {
+					break;
+				}
+				moved += insert(slot, resource, amount - moved, tx);
+			}
+		}
+		return moved;
+	}
+
+	private int pickNextPlaceableEmptySlot(Set<Integer> slots, MemorySettingsCategory mem, ItemResource resource) {
+		for (int slot : slots) {
+			if ((mem.isSlotSelected(slot) && !mem.matchesFilter(slot, resource)
+					|| filterItemSlots.containsSlot(slot) && !filterItemSlots.getSlots(resource.getItem()).contains(slot))) {
+				continue;
+			}
+			return slot;
+		}
+		return -1;
+	}
+
+	@Override
+	public int insert(int index, ItemResource resource, int amount, TransactionContext tx) {
+		int inserted = runOnBeforeInsert(index, resource, amount, storageWrapper);
+		if (inserted >= amount) {
+			return amount;
+		}
+
+		inserted += handleOverflow(resource, amount);
+
+		int result = inventoryPartitioner.getPartBySlot(index).insert(index, resource, amount - inserted, tx, super::insert);
+		if (result > 0) {
+			slotTrackerJournal.updateSnapshots(tx);
+			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
+		}
+
+		inserted += result;
+
+		inserted += handleOverflow(resource, amount);
+
+		runOnAfterInsert(index, tx);
+
+		return inserted;
+	}
+
+	public ItemStack insertItemOnlyToSlot(int slot, ItemStack stack) {
+		initSlotTracker();
+		ItemResource resource = getResource(slot);
+		if (resource.matches(stack)) {
+			return triggerOverflowUpgrades(insertItem(slot, stack));
+		}
+
+		return insertItem(slot, stack);
 	}
 
 	private void initSlotTracker() {
@@ -304,25 +418,40 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}
 	}
 
-	private ItemStack insertItemInternal(int slot, ItemStack stack, boolean simulate) {
-		ItemStack ret = runOnBeforeInsert(slot, stack, simulate, this, storageWrapper);
-		if (ret.isEmpty()) {
-			return ret;
+	private ItemStack insertItem(int slot, ItemStack stack) {
+		ItemResource resource = ItemResource.of(stack);
+		int amount = stack.getCount();
+		int inserted;
+		try (Transaction tx = Transaction.openRoot()) {
+			inserted = insert(slot, resource, amount, tx);
+			if (inserted > 0) {
+				tx.commit();
+			}
 		}
 
-		ret = inventoryPartitioner.getPartBySlot(slot).insertItem(slot, ret, simulate, super::insertItem);
-
-		if (!simulate) {
-			getSlotTracker().removeAndSetSlotIndexes(this, slot, getStackInSlot(slot));
+		if (inserted == 0) {
+			return stack;
+		} else if (inserted >= amount) {
+			return ItemStack.EMPTY;
 		}
 
-		if (ret == stack) {
-			return ret;
+		return stack.copyWithCount(amount - inserted);
+	}
+
+	private int handleOverflow(ItemResource resource, int amount) {
+		if (overflowFilters.isEmpty()) {
+			return 0;
 		}
+		ItemStackKey stackKey = ItemStackKey.of(resource);
 
-		runOnAfterInsert(slot, simulate, this, storageWrapper);
+		if (hasOneFullStackOfItem(stackKey)) {
+			 return triggerOverflowUpgrades(resource, amount);
+		}
+		return 0;
+	}
 
-		return ret;
+	private boolean hasOneFullStackOfItem(ItemStackKey stackKey) {
+		return getSlotTracker().getFullStacks().contains(stackKey) && !getSlotTracker().getFullSlots(stackKey).isEmpty();
 	}
 
 	private ItemStack triggerOverflowUpgrades(ItemStack ret) {
@@ -334,60 +463,55 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}
 		return ret;
 	}
-
-	private void runOnAfterInsert(int slot, boolean simulate, IItemHandlerSimpleInserter handler, IStorageWrapper storageWrapper) {
-		if (!simulate) {
-			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class).forEach(u -> u.onAfterInsert(handler, slot));
-		}
-	}
-
-	private ItemStack runOnBeforeInsert(int slot, ItemStack stack, boolean simulate, IItemHandlerSimpleInserter handler, IStorageWrapper storageWrapper) {
-		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class);
-		ItemStack remaining = stack;
-		for (IInsertResponseUpgrade upgrade : wrappers) {
-			remaining = upgrade.onBeforeInsert(handler, slot, remaining, simulate);
-			if (remaining.isEmpty()) {
-				return ItemStack.EMPTY;
+	private int triggerOverflowUpgrades(ItemResource resource, int amount) {
+		int ret = 0;
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
+			ret = overflowUpgrade.onOverflow(resource, amount);
+			if (ret >= amount) {
+				break;
 			}
 		}
-		return remaining;
+		return ret;
 	}
 
-	@Override
-	public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
-		inventoryPartitioner.getPartBySlot(slot).setStackInSlot(slot, stack, super::setStackInSlot);
-		getSlotTracker().removeAndSetSlotIndexes(this, slot, stack);
+	private int runOnBeforeInsert(int slot, ItemResource resource, int amount, IStorageWrapper storageWrapper) {
+		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class);
+		int moved = 0;
+		for (IInsertResponseUpgrade upgrade : wrappers) {
+			moved += upgrade.onBeforeInsert(this, slot, resource, amount - moved);
+			if (moved == amount) {
+				return amount;
+			}
+		}
+		return moved;
 	}
 
 	public void setPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
 
-	public boolean isItemValid(int slot, ItemStack stack, @Nullable Player player) {
-		return inventoryPartitioner.getPartBySlot(slot).isItemValid(slot, stack, player, super::isItemValid)
-				&& isAllowed(stack) && storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, stack);
-	}
 
-	@Override
 	public boolean isItemValid(int slot, ItemStack stack) {
 		return isItemValid(slot, stack, null);
 	}
 
-	@Nonnull
-	@Override
-	public ItemStack getStackInSlot(int slot) {
-		return inventoryPartitioner.getPartBySlot(slot).getStackInSlot(slot, super::getStackInSlot);
+	public boolean isItemValid(int slot, ItemStack stack, @Nullable Player player) {
+		return isItemValid(slot, ItemResource.of(stack), player);
 	}
 
-	protected abstract boolean isAllowed(ItemStack stack);
+	public boolean isItemValid(int slot, ItemResource resource, @Nullable Player player) {
+		return inventoryPartitioner.getPartBySlot(slot).isValid(slot, resource, player, super::isValid)
+				&& isAllowed(resource) && storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, resource);
+	}
+
+	@Override
+	public boolean isValid(int slot, ItemResource resource) {
+		return isItemValid(slot, resource, null);
+	}
+
+	protected abstract boolean isAllowed(ItemResource resource);
 
 	public void saveInventory() {
-		contentsNbt.put(INVENTORY_TAG, serializeNBT());
-		if (inventoryPartitioner != null) {
-			//inventory parts may affect inventory slots during their initialization in Inventory Partitioner deserialize,
-			// but there's no reason to serialize partitioner at that point as its nbt can't during init/deserialization.
-			contentsNbt.put(PARTITIONER_TAG, inventoryPartitioner.serializeNBT());
-		}
 		saveHandler.run();
 	}
 
@@ -408,33 +532,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		onContentsChangedListeners.clear();
 	}
 
-	public CompoundTag serializeNBT() {
-		ListTag nbtTagList = new ListTag();
-		nbtTagList.addAll(stackNbts.values());
-		CompoundTag nbt = new CompoundTag();
-		nbt.put("Items", nbtTagList);
-		nbt.putInt("Size", getSlots());
-		return nbt;
-	}
-
 	public double getStackSizeMultiplier() {
 		return maxStackSizeMultiplier;
-	}
-
-	@Override
-	public ItemStack insertItem(ItemStack stack, boolean simulate) {
-		return getSlotTracker().insertItemIntoHandler(this, this::insertItemInternal, this::triggerOverflowUpgrades, stack, simulate);
-	}
-
-	public void changeSlots(int diff) {
-		NonNullList<ItemStack> previousStacks = stacks;
-		stacks = NonNullList.withSize(previousStacks.size() + diff, ItemStack.EMPTY);
-		for (int slot = 0; slot < previousStacks.size() && slot < stacks.size(); slot++) {
-			stacks.set(slot, previousStacks.get(slot));
-		}
-		initStackNbts();
-		saveInventory();
-		getSlotTracker().refreshSlotIndexesFrom(this);
 	}
 
 	@Override
@@ -519,5 +618,22 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	public boolean isInfinite(int slot) {
 		return inventoryPartitioner.isInfinite(slot);
+	}
+
+	public ItemStack getStackInSlot(int index) {
+		Objects.checkIndex(index, this.size());
+		return inventoryPartitioner.getPartBySlot(index).getStackInSlot(index, slot -> stacks.get(slot));
+	}
+
+	private class SlotTrackerJournal extends SnapshotJournal<Void> {
+		@Override
+		protected Void createSnapshot() {
+			return null;
+		}
+
+		@Override
+		protected void revertToSnapshot(Void unused) {
+			getSlotTracker().refreshSlotIndexesFrom(InventoryHandler.this);
+		}
 	}
 }

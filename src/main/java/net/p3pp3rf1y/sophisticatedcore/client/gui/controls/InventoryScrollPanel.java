@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.gui.widget.ScrollPanel;
@@ -118,16 +119,16 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	@Override
-	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-		boolean ret = super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+	public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+		boolean ret = super.mouseDragged(event, dragX, dragY);
 		updateSlotsPosition();
 		return ret;
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		if (isMouseOver(mouseX, mouseY)) {
-			return super.mouseClicked(mouseX, mouseY, button);
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
+		if (isMouseOver(event.x(), event.y())) {
+			return super.mouseClicked(event, doubleClicked);
 		}
 		return false;
 	}

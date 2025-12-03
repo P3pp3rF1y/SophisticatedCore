@@ -32,6 +32,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
@@ -130,7 +131,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				stackBeingAplied = ItemStack.EMPTY;
 				applyingToEntity = null;
 				defBeingApplied = null;
-				storageWrapper.getInventoryForUpgradeProcessing().insertItem(remainingStack, false);
+				InventoryHelper.insert(storageWrapper.getInventoryForUpgradeProcessing(), ItemResource.of(remainingStack), remainingStack.getCount());
 				nextCheckTime = level.getGameTime() + CHECK_INTERVAL;
 			} else if (shouldTriggerItemUseEffects()) {
 				triggerItemUseEffects();
@@ -229,7 +230,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> !le.hasEffect(MobEffects.BAD_OMEN),
 				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> stack.getItem() == Items.OMINOUS_BOTTLE,
 				ItemStack::getUseDuration,
-				(stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity)
+				(stack, livingEntity) -> stack.finishUsingItem(livingEntity.level(), livingEntity)
 		));
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.SPLASH_POTION, AlchemyUpgradeWrapper::getDefaultConditionForPotion,
 				AlchemyUpgradeWrapper::shouldApplyPotionEffectsTo, AlchemyUpgradeWrapper::stackPotionEffectsMatch,
@@ -243,7 +244,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.POTION, AlchemyUpgradeWrapper::getDefaultConditionForPotion,
 				AlchemyUpgradeWrapper::shouldApplyPotionEffectsTo, AlchemyUpgradeWrapper::stackPotionEffectsMatch, ItemStack::getUseDuration,
 				(stack, livingEntity) -> {
-					ItemStack remainingItem = stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity);
+					ItemStack remainingItem = stack.finishUsingItem(livingEntity.level(), livingEntity);
 					if (livingEntity instanceof Player) {
 						return remainingItem;
 					}
@@ -266,7 +267,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 						return ItemStack.EMPTY;
 					}
 
-					return stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity);
+					return stack.finishUsingItem(livingEntity.level(), livingEntity);
 				}));
 		addItemDefinition(new AlchemyItemDefinition(
 				AlchemyUpgradeWrapper::isEffectAffectingConsumable,
@@ -278,7 +279,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 					return false;
 				},
 				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
-				ItemStack::getUseDuration, (stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity))
+				ItemStack::getUseDuration, (stack, livingEntity) -> stack.finishUsingItem(livingEntity.level(), livingEntity))
 		);
 	}
 
@@ -471,7 +472,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 	}
 
 	public boolean isValidAlchemyItem(ItemStack stack) {
-		return itemDefinitions.stream().anyMatch(def -> def.filter.test(stack)) && !InventoryHelper.hasItem(getFilterHandler(), s -> ItemStack.isSameItemSameComponents(s, stack));
+		return itemDefinitions.stream().anyMatch(def -> def.filter.test(stack)) && !InventoryHelper.hasItem(getFilterHandler(), s -> s.matches(stack));
 	}
 
 	public ObservableFilterItemStackHandler getFilterHandler() {
@@ -562,26 +563,26 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		}
 
 		@Override
-		protected void onContentsChanged(int slot) {
-			super.onContentsChanged(slot);
+		protected void onContentsChanged(int slot, ItemStack previousContents) {
+			super.onContentsChanged(slot, previousContents);
 			setFilter(slot, stacks.get(slot));
 			save();
 		}
 
 		@Override
-		public boolean isItemValid(int slot, ItemStack stack) {
-			return stack.isEmpty() || (doesNotContain(stack) && isValidAlchemyItem(stack));
+		public boolean isValid(int index, ItemResource resource) {
+			return resource.isEmpty() || (doesNotContain(resource) && isValidAlchemyItem(resource.toStack()));
 		}
 
-		private boolean doesNotContain(ItemStack stack) {
-			return !InventoryHelper.hasItem(this, s -> ItemStack.isSameItemSameComponents(s, stack));
+		private boolean doesNotContain(ItemResource resource) {
+			return !InventoryHelper.hasItem(this, s -> s.equals(resource));
 		}
 
 		public void initFilters(List<AlchemyFilterAttribute> filterAttributes) {
 			for (int slot = 0; slot < filterAttributes.size(); slot++) {
 				setStackInSlot(slot, filterAttributes.get(slot).filter().copy());
 			}
-			onLoad();
+			updateEmptyFilters();
 		}
 	}
 }

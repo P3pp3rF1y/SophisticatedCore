@@ -43,7 +43,7 @@ public class JeiClientCompat {
 		if (runtime == null) {
 			return;
 		}
-		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
+		InputConstants.Key key = InputConstants.getKey(event.getKeyEvent());
 		if (ClientEventHandler.ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && getStack().map(JeiClientCompat::tryHighlightItem).orElse(false)) {
 			event.getScreen().onClose();
 			event.setCanceled(true);

@@ -11,7 +11,7 @@ import java.util.function.UnaryOperator;
 public class JukeboxUpgradeClientTickHandler implements IUpgradeClientTickHandler<JukeboxUpgradeClientData> {
 	@Override
 	public void onClientTick(Level level, RandomSource rand, UnaryOperator<Vector3f> getPositionFromOffset, JukeboxUpgradeClientData upgradeClientData) {
-		if (!upgradeClientData.isPlaying() || rand.nextInt(2) != 0) {
+		if (!upgradeClientData.playing() || rand.nextInt(2) != 0) {
 			return;
 		}
 

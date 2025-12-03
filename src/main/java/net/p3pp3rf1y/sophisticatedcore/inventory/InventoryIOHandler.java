@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InventoryIOHandler {
-	private final ITrackedContentsItemHandler filteredItemHandler;
+	private final ITrackedContentsItemResourceHandler filteredItemHandler;
 
 	public InventoryIOHandler(IStorageWrapper storageWrapper) {
 		List<FilterLogic> inputFilters = new ArrayList<>();
@@ -16,7 +16,7 @@ public class InventoryIOHandler {
 
 		addFilters(storageWrapper, inputFilters, outputFilters);
 
-		ITrackedContentsItemHandler modifiedInventory = storageWrapper.getInventoryForUpgradeProcessing();
+		ITrackedContentsItemResourceHandler modifiedInventory = storageWrapper.getInventoryForUpgradeProcessing();
 		if (inputFilters.isEmpty() && outputFilters.isEmpty()) {
 			filteredItemHandler = modifiedInventory;
 		} else {
@@ -24,7 +24,7 @@ public class InventoryIOHandler {
 		}
 	}
 
-	public ITrackedContentsItemHandler getFilteredItemHandler() {
+	public ITrackedContentsItemResourceHandler getFilteredItemHandler() {
 		return filteredItemHandler;
 	}
 
