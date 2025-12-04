@@ -301,11 +301,16 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 			return moved;
 		}
 
-		for (int slot : tracker.getPartialSlots(key)) {
-			if (moved >= amount) {
-				break;
+		if (!tracker.getPartialSlots(key).isEmpty()) {
+			int sizeBefore = tracker.getPartialSlots(key).size();
+			int i = 0;
+			while (moved < amount && i++ < sizeBefore) {
+				int slot = tracker.getPartialSlots(key).iterator().next();
+				if (slot == -1) {
+					break;
+				}
+				moved += insert(slot, resource, amount - moved, tx);
 			}
-			moved += insert(slot, resource, amount - moved, tx);
 		}
 
 		if (moved >= amount) {
