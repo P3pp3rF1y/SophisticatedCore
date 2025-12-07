@@ -30,10 +30,6 @@ public class NoSortSettingsCategoryData implements ContainerContents.ISettingsCa
 			NoSortSettingsCategoryData::new
 	);
 
-	static {
-		ContainerContents.SettingsCategoryDataRegistry.register(CODEC, STREAM_CODEC, NoSortSettingsCategory.NAME);
-	}
-
 	private Set<Integer> selectedSlots = new HashSet<>();
 	private DyeColor color = DyeColor.LIME;
 

@@ -23,6 +23,8 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategoryData;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.Context;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategoryData;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategoryData;
 import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsCategory;
@@ -338,6 +340,13 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 	public static class SettingsCategoryDataRegistry {
 		private static final Map<String, Codec<? extends ISettingsCategoryData<?>>> CODECS = new HashMap<>();
 		private static final Map<String, StreamCodec<RegistryFriendlyByteBuf, ? extends ISettingsCategoryData<?>>> STREAM_CODECS = new HashMap<>();
+
+		static {
+			register(MainSettingsCategoryData.CODEC, MainSettingsCategoryData.STREAM_CODEC, MainSettingsCategory.NAME);
+			register(NoSortSettingsCategoryData.CODEC, NoSortSettingsCategoryData.STREAM_CODEC, NoSortSettingsCategory.NAME);
+			register(MemorySettingsCategoryData.CODEC, MemorySettingsCategoryData.STREAM_CODEC, MemorySettingsCategory.NAME);
+			register(ItemDisplaySettingsCategoryData.CODEC, ItemDisplaySettingsCategoryData.STREAM_CODEC, ItemDisplaySettingsCategory.NAME);
+		}
 
 		private SettingsCategoryDataRegistry() {
 		}

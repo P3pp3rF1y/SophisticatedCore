@@ -33,10 +33,6 @@ public class ItemDisplaySettingsCategoryData implements ContainerContents.ISetti
 			ItemDisplaySettingsCategoryData::new
 	);
 
-	static {
-		ContainerContents.SettingsCategoryDataRegistry.register(CODEC, STREAM_CODEC, ItemDisplaySettingsCategory.NAME);
-	}
-
 	private DyeColor color = DyeColor.RED;
 	private List<Integer> slotIndexes = new LinkedList<>();
 	private Map<Integer, Integer> slotRotations = new HashMap<>();

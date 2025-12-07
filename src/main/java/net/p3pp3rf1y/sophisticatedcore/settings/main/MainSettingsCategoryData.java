@@ -30,12 +30,6 @@ public class MainSettingsCategoryData implements ContainerContents.ISettingsCate
 			data -> data.anotherPlayerCanOpen,
 			MainSettingsCategoryData::new);
 
-	//TODO figure out if I need to serialize context here
-
-	static {
-		ContainerContents.SettingsCategoryDataRegistry.register(CODEC, STREAM_CODEC, MainSettingsCategory.NAME);
-	}
-
 	private boolean shiftClickIntoOpenTab = false;
 	private boolean keepTabOpen = true;
 	private boolean keepSearchPhrase = true;

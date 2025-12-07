@@ -35,10 +35,6 @@ public class MemorySettingsCategoryData implements ContainerContents.ISettingsCa
 			MemorySettingsCategoryData::new
 	);
 
-	static {
-		ContainerContents.SettingsCategoryDataRegistry.register(CODEC, STREAM_CODEC, MemorySettingsCategory.NAME);
-	}
-
 	private Map<Integer, Item> slotFilterItems = new LinkedHashMap<>();
 	private Map<Integer, ItemStackKey> slotFilterStacks = new LinkedHashMap<>();
 	private boolean ignoreNbt = true;
