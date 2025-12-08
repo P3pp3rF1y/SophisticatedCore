@@ -71,7 +71,7 @@ public class CraftingItemHandler extends TransientCraftingContainer {
 	public ItemStack removeItem(int index, int count) {
 		ResourceHandler<ItemResource> inventory = supplyInventory.get();
 		ItemResource resource = inventory.getResource(index);
-		int extracted = InventoryHelper.extract(supplyInventory.get(), resource, count);
+		int extracted = InventoryHelper.extract(supplyInventory.get(), index, resource, count);
 		if (extracted > 0) {
 			itemsInitialized = false;
 			onCraftingMatrixChanged.accept(this);
