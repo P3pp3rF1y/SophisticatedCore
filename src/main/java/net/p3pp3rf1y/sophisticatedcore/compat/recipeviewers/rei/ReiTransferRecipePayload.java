@@ -5,6 +5,7 @@ import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.entry.InputIngredient;
 import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes;
 import me.shedaniel.rei.api.common.transfer.ItemRecipeFinder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -58,7 +59,7 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 
 		Player player = context.player();
 		AbstractContainerMenu container = player.containerMenu;
-		List<InputIngredient<ItemStack>> inputs = readInputs(payload.tag.getListOrEmpty("Inputs"));
+		List<InputIngredient<ItemStack>> inputs = readInputs(payload.tag.getListOrEmpty("Inputs"), player.registryAccess());
 
 		ItemRecipeFinder recipeFinder = new ItemRecipeFinder();
 		for (int slotId : payload.inventorySlots) {
@@ -85,11 +86,12 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 		}
 	}
 
-	private static List<InputIngredient<ItemStack>> readInputs(ListTag tag) {
+	private static List<InputIngredient<ItemStack>> readInputs(ListTag tag, RegistryAccess registryAccess) {
 		List<InputIngredient<ItemStack>> inputs = new ArrayList<>();
 		for (Tag t : tag) {
 			CompoundTag compoundTag = (CompoundTag) t;
-			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getIntOr("Index", 0), EntryIngredient.codec().parse(NbtOps.INSTANCE, compoundTag.getListOrEmpty("Ingredient")).getOrThrow());
+			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getIntOr("Index", 0),
+					EntryIngredient.codec().parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), compoundTag.getListOrEmpty("Ingredient")).getOrThrow());
 			inputs.add(InputIngredient.withType(stacks, VanillaEntryTypes.ITEM));
 		}
 		return inputs;

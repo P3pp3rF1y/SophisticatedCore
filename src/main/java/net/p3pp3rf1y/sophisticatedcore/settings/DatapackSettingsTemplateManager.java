@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -86,7 +87,8 @@ public class DatapackSettingsTemplateManager {
 				) {
 					String fileContents = IOUtils.toString(reader);
 
-					Pair<ContainerContents.SettingsData, Tag> decodeResult = ContainerContents.SettingsData.CODEC.decode(NbtOps.INSTANCE, TagParser.parseCompoundFully(fileContents)).getOrThrow();
+					RegistryOps<Tag> ops = getRegistryLookup().createSerializationContext(NbtOps.INSTANCE);
+					Pair<ContainerContents.SettingsData, Tag> decodeResult = ContainerContents.SettingsData.CODEC.decode(ops, TagParser.parseCompoundFully(fileContents)).getOrThrow();
 					if (map.put(resourceLocationWithoutSuffix, decodeResult.getFirst()) != null) {
 						throw new IllegalStateException("Duplicate data file ignored with ID " + resourceLocationWithoutSuffix);
 					}

@@ -7,8 +7,10 @@ import net.minecraft.data.structures.NbtToSnbt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.SnbtPrinterTagVisitor;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -29,6 +31,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsC
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -285,7 +288,7 @@ public class TemplatePersistanceContainer {
 			Path exportPath = templatesDir.resolve(fileName + ".snbt");
 			ContainerContents.SettingsData data = settingsContainer.getStorageWrapper().getSettingsHandler().getSettingsData().copy();
 			try {
-				NbtOps ops = NbtOps.INSTANCE;
+				RegistryOps<Tag> ops = RegistryHelper.getRegistryAccess().orElseThrow().createSerializationContext(NbtOps.INSTANCE);
 				NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, exportPath, (new SnbtPrinterTagVisitor()).visit(ContainerContents.SettingsData.CODEC.encode(data, ops, ops.empty()).getOrThrow()));
 			} catch (IOException e) {
 				SophisticatedCore.LOGGER.error("Error writing template export", e);

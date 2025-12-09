@@ -26,6 +26,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
+import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import java.util.List;
 
@@ -148,7 +149,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 
 		for (InputIngredient<ItemStack> input : inputs) {
 			CompoundTag innerTag = new CompoundTag();
-			innerTag.put("Ingredient", EntryIngredient.codec().encodeStart(NbtOps.INSTANCE, EntryIngredients.ofItemStacks(input.get())).getOrThrow());
+			innerTag.put("Ingredient", EntryIngredient.codec().encodeStart(RegistryHelper.getRegistryAccess().orElseThrow().createSerializationContext(NbtOps.INSTANCE), EntryIngredients.ofItemStacks(input.get())).getOrThrow());
 			innerTag.putInt("Index", input.getIndex());
 			tag.add(innerTag);
 		}
