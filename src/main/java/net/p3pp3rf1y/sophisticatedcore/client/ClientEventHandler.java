@@ -113,6 +113,10 @@ public class ClientEventHandler {
 	}
 
 	public static void handleKeyInput(InputEvent.Key event) {
+		if (Minecraft.getInstance().screen instanceof Screen screen && screen.isFocused()) {
+			return;
+		}
+
 		if (!ITEM_DEPOSIT_KEYBIND.isUnbound() && ITEM_DEPOSIT_KEYBIND.getKey().getValue() == event.getKey() && event.getAction() == GLFW.GLFW_PRESS) {
 			tryDepositItem(event);
 		} else if (!ITEM_RESTOCK_KEYBIND.isUnbound() && ITEM_RESTOCK_KEYBIND.getKey().getValue() == event.getKey() && event.getAction() == GLFW.GLFW_PRESS) {
