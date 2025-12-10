@@ -283,5 +283,21 @@
   "gui.sophisticatedcore.tooltip.stack_count": "数量：%s",
   "key.category.sophisticatedcore.main": "精妙模组",
   "key.sophisticatedcore.item_highlight": "高亮存有物品的容器",
-  "key.sophisticatedcore.sort": "整理容器/背包"
+  "key.sophisticatedcore.sort": "整理容器/背包",
+  "key.sophisticatedcore.deposit_item": "将物品卸货至容器/背包",
+  "key.sophisticatedcore.restock_item": "从容器/背包中补充物品",
+  "gui.sophisticatedcore.status.matching_stacks_found" : "在%s个位置中找到精确物品。",
+  "gui.sophisticatedcore.status.matching_items_found" : "在%s个位置中找到物品类型。",
+  "gui.sophisticatedcore.status.no_matching_items_found" : "未找到精确物品或物品类型",
+  "gui.sophisticatedcore.status.no_storage_in_range" : "范围内未找到容器",
+  "gui.sophisticatedcore.status.deposited_item" : "已将%s卸货至容器",
+  "gui.sophisticatedcore.status.deposited_items" : "已将%s格物品卸货至容器",
+  "gui.sophisticatedcore.status.cannot_deposit_item" : "无法将%s卸货至任何容器",
+  "gui.sophisticatedcore.status.cannot_deposit_items" : "无法将任何物品卸货至容器",
+  "gui.sophisticatedcore.status.restocked_item" : "已从容器中补充%s",
+  "gui.sophisticatedcore.status.restocked_items" : "已从容器中补充格%s",
+  "gui.sophisticatedcore.status.cannot_restock_item" : "无法从任何容器中补充%s",
+  "gui.sophisticatedcore.status.cannot_restock_items" : "无法从容器中补充任何物品",
+  "gui.sophisticatedcore.status.cannot_restock_full_stack" : "堆叠%s已满",
+  "gui.sophisticatedcore.status.cannot_restock_full_stacks" : "所有堆叠均已满"
 }
