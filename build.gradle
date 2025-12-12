@@ -76,6 +76,12 @@ repositories {
             includeGroupByRegex "reliquary.*"
         }
     }
+    maven {
+        url = 'https://maven.wispforest.io/releases'
+        content {
+            includeGroup "io.wispforest"
+        }
+    }
 }
 
 base {
@@ -187,6 +193,9 @@ dependencies {
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly "curse.maven:quark-243121:${quark_cf_file_id}")
 */
+    dependencies.compileOnly("io.wispforest:accessories-neoforge:${accessories_version}") {
+        transitive = false
+    }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.+'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.11.+'
