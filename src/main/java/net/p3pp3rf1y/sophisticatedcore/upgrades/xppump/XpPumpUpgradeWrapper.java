@@ -107,7 +107,7 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 				ItemResource resource = handler.getResource(slot);
 				int amount = handler.getAmountAsInt(slot);
 				if (ItemResourceHelper.isDamageable(resource)) {
-					ItemStack stack = resource.toStack();
+					ItemStack stack = resource.toStack(amount);
 					if (stack.getItem().isDamaged(stack)) {
 						ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
 
