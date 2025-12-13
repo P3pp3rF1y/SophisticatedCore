@@ -4,6 +4,7 @@ import net.minecraftforge.fml.ModList;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.CompatModIds;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
+import net.p3pp3rf1y.sophisticatedcore.compat.accessories.AccessoriesCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.botania.BotaniaCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.craftingtweaks.CraftingTweaksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.create.CreateCompat;
@@ -25,7 +26,8 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public class ModCompat {
-	private ModCompat() {}
+	private ModCompat() {
+	}
 
 	private static final Map<String, Supplier<Callable<ICompat>>> compatFactories = new HashMap<>();
 
@@ -44,6 +46,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.BOTANIA, () -> BotaniaCompat::new);
 		compatFactories.put(CompatModIds.FTB_CHUNKS, () -> FTBChunksCompat::new);
 		compatFactories.put(CompatModIds.OPEN_PARTIES_AND_CLAIMS_CHUNKS, () -> OpenPACCompat::new);
+		compatFactories.put(CompatModIds.ACCESSORIES, () -> AccessoriesCompat::new);
 		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 
@@ -52,8 +55,7 @@ public class ModCompat {
 			if (ModList.get().isLoaded(entry.getKey())) {
 				try {
 					entry.getValue().get().call().setup();
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					SophisticatedCore.LOGGER.error("Error instantiating compatibility ", e);
 				}
 			}
