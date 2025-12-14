@@ -1855,25 +1855,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		@Override
 		protected void setStackCopy(ItemStack stack) {
 			boolean wasEmpty = upgradeHandler.getResource(slotIndex).isEmpty();
-			if (!player.level().isClientSide() && stack.isEmpty()) {
-				ItemStack slotStack = upgradeHandler.getStackInSlot(slotIndex);
-				if (!slotStack.isEmpty()) {
-					Map<Integer, IUpgradeWrapper> wrappers = upgradeHandler.getSlotWrappers();
-					if (wrappers.containsKey(slotIndex)) {
-						wrappers.get(slotIndex).onBeforeRemoved();
-					}
-				}
-			}
+
 			upgradeHandler.setStackInSlot(slotIndex, stack);
-			if (!player.level().isClientSide() && wasEmpty && !stack.isEmpty()) {
-				ItemStack slotStack = upgradeHandler.getStackInSlot(slotIndex);
-				if (!slotStack.isEmpty()) {
-					Map<Integer, IUpgradeWrapper> wrappers = upgradeHandler.getSlotWrappers();
-					if (wrappers.containsKey(slotIndex)) {
-						wrappers.get(slotIndex).onAdded();
-					}
-				}
-			}
 
 			if ((!isUpdatingFromPacket && wasEmpty != stack.isEmpty()) || updateWrappersAndCheckForReloadNeeded()) {
 				reloadUpgradeControl();

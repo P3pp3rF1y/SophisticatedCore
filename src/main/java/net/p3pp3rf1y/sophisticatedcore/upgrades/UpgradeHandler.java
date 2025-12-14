@@ -73,9 +73,19 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 			saveInventory();
 			contentsSaveHandler.run();
 		}
+		ItemStack currentStack = getStackInSlot(slot);
+
 		if (!justSavingNbtChange) {
 			refreshUpgradeWrappers();
 			setRenderUpgradeItems();
+		}
+
+		if (ItemStack.isSameItemSameComponents(previousContents, currentStack)) {
+			return;
+		}
+
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && !currentStack.isEmpty()) {
+			onUpgradeAdded(slot);
 		}
 	}
 
@@ -172,6 +182,13 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 	public void setStackInSlot(int slot, ItemStack stack) {
 		ItemStack originalStack = getStackInSlot(slot);
 		Objects.checkIndex(slot, size());
+
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && !originalStack.isEmpty()) {
+			if (!ItemStack.isSameItemSameComponents(originalStack, stack)) {
+				getSlotWrappers().get(slot).onBeforeRemoved();
+			}
+		}
+
 		stacks.set(slot, stack);
 		onContentsChanged(slot, originalStack);
 	}
