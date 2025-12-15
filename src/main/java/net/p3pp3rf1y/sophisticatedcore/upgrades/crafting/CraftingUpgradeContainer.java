@@ -76,7 +76,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					ItemStack craftMatrixItem = craftMatrix.getItem(i);
 					ItemStack remainingItem = remainingItems.get(i);
 					if (!craftMatrixItem.isEmpty()) {
-						if (shouldRefillCraftingGrid() && upgradeWrapper.extractFromStorageOrPlayer(player, craftMatrixItem)) {
+						if (remainingItem.isEmpty() && shouldRefillCraftingGrid() && upgradeWrapper.extractFromStorageOrPlayer(player, craftMatrixItem)) {
 							onCraftMatrixChanged(craftMatrix);
 						} else {
 							craftMatrix.removeItem(i, 1);
