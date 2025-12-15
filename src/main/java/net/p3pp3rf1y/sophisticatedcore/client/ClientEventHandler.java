@@ -113,7 +113,8 @@ public class ClientEventHandler {
 	}
 
 	public static void handleKeyInput(InputEvent.Key event) {
-		if (Minecraft.getInstance().screen instanceof Screen screen && screen.isFocused()) {
+		Screen screen = Minecraft.getInstance().screen;
+		if (screen != null && screen.isFocused()) {
 			return;
 		}
 
@@ -149,14 +150,17 @@ public class ClientEventHandler {
 		ItemStack filter = getHoveredStack();
 		int slot;
 		if (filter.isEmpty()) {
-			if (screen instanceof AbstractContainerScreen<?> containerScreen) {
-				Slot slotUnderMouse = containerScreen.getSlotUnderMouse();
-				if (slotUnderMouse != null) {
-					filter = slotUnderMouse.getItem();
-					slot = slotUnderMouse.getSlotIndex();
+			if (screen != null) {
+				if (screen instanceof AbstractContainerScreen<?> containerScreen) {
+					Slot slotUnderMouse = containerScreen.getSlotUnderMouse();
+					if (slotUnderMouse != null && !slotUnderMouse.getItem().isEmpty()) {
+						filter = slotUnderMouse.getItem();
+						slot = slotUnderMouse.getSlotIndex();
+					} else {
+						return; // exit if not hovering over a slot
+					}
 				} else {
-					filter = ItemStack.EMPTY;
-					slot = player.getInventory().getSelectedSlot();
+					return; // exit if not in a container screen
 				}
 			} else {
 				filter = player.getMainHandItem();
