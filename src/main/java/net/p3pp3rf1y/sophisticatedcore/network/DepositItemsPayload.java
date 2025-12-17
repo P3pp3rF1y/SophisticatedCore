@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -37,9 +37,9 @@ import java.util.*;
 public record DepositItemsPayload(int minSlot, int maxSlot,
 								  List<BlockPos> storagePositions,
 								  List<BlockPos> controllerPositions,
-								  Map<ResourceLocation, Object> extras,
+								  Map<Identifier, Object> extras,
 								  boolean onlyMatching) implements CustomPacketPayload {
-	public static final Type<DepositItemsPayload> TYPE = new Type<>(SophisticatedCore.getRL("deposit_items"));
+	public static final Type<DepositItemsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("deposit_items"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, DepositItemsPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			DepositItemsPayload::minSlot,
@@ -107,7 +107,7 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 			if (inserted.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_deposit_item",
 						Component.literal(player.getInventory().getItem(payload.minSlot()).getHoverName().getString()).withStyle(ChatFormatting.RED));
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("deposited_item",
 						Component.literal(inserted.values().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
@@ -115,7 +115,7 @@ public record DepositItemsPayload(int minSlot, int maxSlot,
 		} else {
 			if (inserted.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_deposit_items");
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("deposited_items", Component.literal(String.valueOf(depositedFromSlots.size())).withStyle(ChatFormatting.DARK_GREEN));
 			}

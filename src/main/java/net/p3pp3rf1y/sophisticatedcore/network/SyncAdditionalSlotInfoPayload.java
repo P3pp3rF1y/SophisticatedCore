@@ -20,7 +20,7 @@ import java.util.Set;
 
 public record SyncAdditionalSlotInfoPayload(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides,
 											Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) implements CustomPacketPayload {
-	public static final Type<SyncAdditionalSlotInfoPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_additional_slot_info"));
+	public static final Type<SyncAdditionalSlotInfoPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_additional_slot_info"));
 	private static final StreamCodec<RegistryFriendlyByteBuf, Holder<Item>> ITEM_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.ITEM);
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncAdditionalSlotInfoPayload> STREAM_CODEC = StreamCodec.composite(
 			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new),

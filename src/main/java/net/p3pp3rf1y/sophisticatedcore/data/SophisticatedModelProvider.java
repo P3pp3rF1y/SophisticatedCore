@@ -31,7 +31,7 @@ public abstract class SophisticatedModelProvider extends ModelProvider {
 
 	protected void addItemClasses(List<Item> itemList, List<Class<? extends Item>> itemClasses) {
 		BuiltInRegistries.ITEM.entrySet().stream()
-				.filter(entry -> entry.getKey().location().getNamespace().equals(modId)
+				.filter(entry -> entry.getKey().identifier().getNamespace().equals(modId)
 						&& itemClasses.stream().anyMatch(itemClass -> itemClass.isAssignableFrom(entry.getValue().getClass())))
 				.forEach(entry -> itemList.add(entry.getValue()));
 	}

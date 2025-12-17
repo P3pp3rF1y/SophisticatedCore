@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public record MountedStorageSettingsPayload(UUID storageUuid,
 											ContainerContents.SettingsData settings) implements CustomPacketPayload {
-	public static final Type<MountedStorageSettingsPayload> TYPE = new Type<>(SophisticatedCore.getRL("mounted_storage_settings"));
+	public static final Type<MountedStorageSettingsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("mounted_storage_settings"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, MountedStorageSettingsPayload> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC,
 			MountedStorageSettingsPayload::storageUuid,

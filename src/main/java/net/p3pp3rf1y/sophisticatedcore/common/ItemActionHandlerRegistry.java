@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.common;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -10,14 +10,14 @@ import java.util.Map;
 import java.util.Optional;
 
 public class ItemActionHandlerRegistry {
-	public static final StreamCodec<ByteBuf, Map<ResourceLocation, Object>> EXTRAS_STREAM_CODEC = new StreamCodec<>() {
+	public static final StreamCodec<ByteBuf, Map<Identifier, Object>> EXTRAS_STREAM_CODEC = new StreamCodec<>() {
 		@Override
-		public void encode(ByteBuf buf, Map<ResourceLocation, Object> extras) {
+		public void encode(ByteBuf buf, Map<Identifier, Object> extras) {
 			buf.writeInt(extras.size());
 			for (var e : extras.entrySet()) {
-				ResourceLocation id = e.getKey();
+				Identifier id = e.getKey();
 				get(id).ifPresent(h -> {
-					ResourceLocation.STREAM_CODEC.encode(buf, id);
+					Identifier.STREAM_CODEC.encode(buf, id);
 					encodeWith(h.codec(), e.getValue(), buf);
 				});
 			}
@@ -29,11 +29,11 @@ public class ItemActionHandlerRegistry {
 		}
 
 		@Override
-		public Map<ResourceLocation, Object> decode(ByteBuf buf) {
+		public Map<Identifier, Object> decode(ByteBuf buf) {
 			int size = buf.readInt();
-			Map<ResourceLocation, Object> extras = new LinkedHashMap<>(size);
+			Map<Identifier, Object> extras = new LinkedHashMap<>(size);
 			for (int i = 0; i < size; i++) {
-				ResourceLocation id = ResourceLocation.STREAM_CODEC.decode(buf);
+				Identifier id = Identifier.STREAM_CODEC.decode(buf);
 				get(id).ifPresent(h -> extras.put(id, h.codec().decode(buf)));
 			}
 			return extras;
@@ -42,13 +42,13 @@ public class ItemActionHandlerRegistry {
 
 	private ItemActionHandlerRegistry() {}
 
-	private static final Map<ResourceLocation, IItemActionPayloadHandler<?>> registry = new HashMap<>();
+	private static final Map<Identifier, IItemActionPayloadHandler<?>> registry = new HashMap<>();
 
 	public static void register(IItemActionPayloadHandler<?> handler) {
 		registry.put(handler.id(), handler);
 	}
 
-	public static Optional<IItemActionPayloadHandler<?>> get(ResourceLocation id) {
+	public static Optional<IItemActionPayloadHandler<?>> get(Identifier id) {
 		return Optional.ofNullable(registry.get(id));
 	}
 }

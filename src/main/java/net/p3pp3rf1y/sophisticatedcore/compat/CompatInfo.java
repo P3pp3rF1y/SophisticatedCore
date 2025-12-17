@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat;
 import net.neoforged.fml.ModList;
 import org.apache.maven.artifact.versioning.VersionRange;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record CompatInfo(String modId, @Nullable VersionRange supportedVersionRange) {
 	public CompatInfo(String modId) {

@@ -10,9 +10,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class TextBox extends WidgetBase {

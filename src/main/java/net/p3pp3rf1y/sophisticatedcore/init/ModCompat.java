@@ -12,9 +12,6 @@ import net.p3pp3rf1y.sophisticatedcore.compat.inventorysorter.InventorySorterCom
 import net.p3pp3rf1y.sophisticatedcore.compat.itemborders.ItemBordersCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.mousetweaks.MouseTweaksCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.openpartiesandclaims.OpenPACCompat;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi.EmiCompat;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei.JeiCompat;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei.ReiCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.reliquary.ReliquaryCompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.trashslot.TrashSlotCompat;
 
@@ -23,9 +20,12 @@ public class ModCompat {
 	}
 
 	public static void register() {
-		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.JEI), () -> modBus -> new JeiCompat());
-		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.EMI), () -> modBus -> new EmiCompat());
-		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.REI), () -> modBus -> new ReiCompat());
+		//TODO reenable when jei updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
+		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.JEI), () -> modBus -> new JeiCompat());
+		//TODO reenable when emi updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
+		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.EMI), () -> modBus -> new EmiCompat());
+		//TODO reenable when rei updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
+		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.REI), () -> modBus -> new ReiCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.CRAFTING_TWEAKS), () -> modBus -> new CraftingTweaksCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.INVENTORY_SORTER), () -> modBus -> new InventorySorterCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.ITEM_BORDERS), () -> mobBus -> new ItemBordersCompat());

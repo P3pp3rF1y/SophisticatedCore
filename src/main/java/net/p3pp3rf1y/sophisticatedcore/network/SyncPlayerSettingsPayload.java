@@ -11,7 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.main.PlayerMainSettingsSavedData
 
 public record SyncPlayerSettingsPayload(String name,
 										MainSettingsCategoryData data) implements CustomPacketPayload {
-	public static final Type<SyncPlayerSettingsPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_player_settings"));
+	public static final Type<SyncPlayerSettingsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_player_settings"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncPlayerSettingsPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.STRING_UTF8,
 			SyncPlayerSettingsPayload::name,

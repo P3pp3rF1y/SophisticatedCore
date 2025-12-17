@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.tank;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -17,8 +17,8 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import java.util.function.Supplier;
 
 public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrapper, TankUpgradeContainer> {
-	public static final ResourceLocation EMPTY_TANK_INPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/tank_input");
-	public static final ResourceLocation EMPTY_TANK_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/tank_output");
+	public static final Identifier EMPTY_TANK_INPUT_SLOT_BACKGROUND = SophisticatedCore.getIdentifier("container/slot/tank_input");
+	public static final Identifier EMPTY_TANK_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getIdentifier("container/slot/tank_output");
 
 	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper, UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);

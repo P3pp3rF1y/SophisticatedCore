@@ -13,7 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 public record SyncSlotStackPayload(int windowId, int stateId, int slotNumber,
 								   ItemStack stack) implements CustomPacketPayload {
-	public static final Type<SyncSlotStackPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_slot_stack"));
+	public static final Type<SyncSlotStackPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_slot_stack"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncSlotStackPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			SyncSlotStackPayload::windowId,

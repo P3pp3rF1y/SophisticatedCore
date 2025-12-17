@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,8 +23,8 @@ import net.p3pp3rf1y.sophisticatedcore.controller.IControllableStorage;
 import net.p3pp3rf1y.sophisticatedcore.controller.IControllerBoundable;
 import net.p3pp3rf1y.sophisticatedcore.network.RequestItemHighlightsPayload;
 import net.p3pp3rf1y.sophisticatedcore.util.*;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class ItemInStorageHighlightRenderer {
@@ -52,7 +52,7 @@ public class ItemInStorageHighlightRenderer {
 
 	public static void highlightItem(LocalPlayer player, ItemStack stack) {
 		List<BlockPos> positions = WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), HIGHLIGHT_RANGE, IControllableStorage.class).stream().map(IControllerBoundable::getStorageBlockPos).toList();
-		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
+		Map<Identifier, Object> extras = new LinkedHashMap<>();
 		highlightHandlers.forEach(h -> {
 			h.buildClientRequestData(player).ifPresent(data -> extras.put(h.getPayloadHandlerId(), data));
 		});

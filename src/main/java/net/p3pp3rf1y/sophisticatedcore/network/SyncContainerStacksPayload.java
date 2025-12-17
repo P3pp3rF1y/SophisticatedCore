@@ -14,7 +14,7 @@ import java.util.List;
 
 public record SyncContainerStacksPayload(int windowId, int stateId, List<ItemStack> itemStacks,
 										 ItemStack carriedStack) implements CustomPacketPayload {
-	public static final Type<SyncContainerStacksPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_container_stacks"));
+	public static final Type<SyncContainerStacksPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_container_stacks"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncContainerStacksPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			SyncContainerStacksPayload::windowId,

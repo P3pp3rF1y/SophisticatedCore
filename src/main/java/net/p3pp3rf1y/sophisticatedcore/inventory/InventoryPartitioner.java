@@ -1,11 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -49,7 +49,7 @@ public class InventoryPartitioner {
 	}
 
 	@Nullable
-	public ResourceLocation getNoItemIcon(int slot) {
+	public Identifier getNoItemIcon(int slot) {
 		return getPartBySlot(slot).getNoItemIcon(slot);
 	}
 

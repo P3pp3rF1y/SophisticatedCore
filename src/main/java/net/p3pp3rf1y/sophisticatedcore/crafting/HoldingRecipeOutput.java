@@ -6,8 +6,7 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.neoforge.common.conditions.ICondition;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class HoldingRecipeOutput implements RecipeOutput {
 	private final Advancement.Builder advancement;

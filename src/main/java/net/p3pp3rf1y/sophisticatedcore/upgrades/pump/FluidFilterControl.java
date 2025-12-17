@@ -6,7 +6,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.textures.FluidSpriteCache;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -42,7 +42,7 @@ public class FluidFilterControl extends WidgetBase {
 			FluidStack fluid = container.getFluid(i);
 			if (!fluid.isEmpty()) {
 				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
-				ResourceLocation texture = renderProperties.getStillTexture(fluid);
+				Identifier texture = renderProperties.getStillTexture(fluid);
 				TextureAtlasSprite still = FluidSpriteCache.getSprite(texture);
 				GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
 			}

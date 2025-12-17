@@ -21,7 +21,7 @@ public class CoreRecipeProvider extends RecipeProvider {
 	@Override
 	protected void buildRecipes() {
 		HolderLookup.RegistryLookup<Item> items = registries.lookupOrThrow(Registries.ITEM);
-		SpecialRecipeBuilder.special(UpgradeClearRecipe::new).save(output, ResourceKey.create(Registries.RECIPE, SophisticatedCore.getRL("upgrade_clear")));
+		SpecialRecipeBuilder.special(UpgradeClearRecipe::new).save(output, ResourceKey.create(Registries.RECIPE, SophisticatedCore.getIdentifier("upgrade_clear")));
 	}
 
 	public static class Runner extends RecipeProvider.Runner {

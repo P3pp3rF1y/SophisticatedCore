@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 public record EmitConsumableClientParticlesAndSoundsPayload(ItemStack stack) implements CustomPacketPayload {
-	public static final Type<EmitConsumableClientParticlesAndSoundsPayload> TYPE = new Type<>(SophisticatedCore.getRL("emit_consumable_client_particles_and_sounds"));
+	public static final Type<EmitConsumableClientParticlesAndSoundsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("emit_consumable_client_particles_and_sounds"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, EmitConsumableClientParticlesAndSoundsPayload> STREAM_CODEC = StreamCodec.composite(
 			ItemStack.OPTIONAL_STREAM_CODEC,
 			EmitConsumableClientParticlesAndSoundsPayload::stack,

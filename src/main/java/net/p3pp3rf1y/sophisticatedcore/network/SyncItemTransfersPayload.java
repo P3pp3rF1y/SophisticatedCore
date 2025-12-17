@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public record SyncItemTransfersPayload(Map<Vec3, ItemStack> itemsTransferred, Vec3 playerPos, boolean fromPlayer) implements CustomPacketPayload {
-	public static final Type<SyncItemTransfersPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_item_transfers"));
+	public static final Type<SyncItemTransfersPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_item_transfers"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncItemTransfersPayload> STREAM_CODEC = StreamCodec.composite(
 			StreamCodecHelper.ofMap(StreamCodecHelper.VEC3, ItemStack.STREAM_CODEC, HashMap::new),
 			SyncItemTransfersPayload::itemsTransferred,

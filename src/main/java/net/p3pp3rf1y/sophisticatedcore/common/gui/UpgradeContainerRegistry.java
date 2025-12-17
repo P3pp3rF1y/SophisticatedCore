@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
@@ -13,14 +13,14 @@ import java.util.Optional;
 public class UpgradeContainerRegistry {
 	private UpgradeContainerRegistry() {}
 
-	private static final Map<ResourceLocation, UpgradeContainerType<? extends IUpgradeWrapper, ? extends UpgradeContainerBase<?, ?>>> UPGRADE_CONTAINERS = new HashMap<>();
+	private static final Map<Identifier, UpgradeContainerType<? extends IUpgradeWrapper, ? extends UpgradeContainerBase<?, ?>>> UPGRADE_CONTAINERS = new HashMap<>();
 
-	public static void register(ResourceLocation upgradeName, UpgradeContainerType<? extends IUpgradeWrapper, ? extends UpgradeContainerBase<?, ?>> containerFactory) {
+	public static void register(Identifier upgradeName, UpgradeContainerType<? extends IUpgradeWrapper, ? extends UpgradeContainerBase<?, ?>> containerFactory) {
 		UPGRADE_CONTAINERS.put(upgradeName, containerFactory);
 	}
 
 	public static <W extends IUpgradeWrapper, C extends UpgradeContainerBase<W, C>> Optional<UpgradeContainerBase<W, C>> instantiateContainer(Player player, int containerId, W wrapper) {
-		ResourceLocation upgradeName = BuiltInRegistries.ITEM.getKey(wrapper.getUpgradeStack().getItem());
+		Identifier upgradeName = BuiltInRegistries.ITEM.getKey(wrapper.getUpgradeStack().getItem());
 		if (!(wrapper.getUpgradeStack().getItem() instanceof IUpgradeItem<?>) || wrapper.hideSettingsTab() || !UPGRADE_CONTAINERS.containsKey(upgradeName)) {
 			return Optional.empty();
 		}
@@ -28,7 +28,7 @@ public class UpgradeContainerRegistry {
 		return Optional.of((UpgradeContainerBase<W, C>) getContainerType(upgradeName).create(player, containerId, wrapper));
 	}
 
-	private static <W extends IUpgradeWrapper, C extends UpgradeContainerBase<W, C>> UpgradeContainerType<W, C> getContainerType(ResourceLocation upgradeName) {
+	private static <W extends IUpgradeWrapper, C extends UpgradeContainerBase<W, C>> UpgradeContainerType<W, C> getContainerType(Identifier upgradeName) {
 		//noinspection unchecked
 		return (UpgradeContainerType<W, C>) UPGRADE_CONTAINERS.get(upgradeName);
 	}

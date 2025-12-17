@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
@@ -86,8 +86,8 @@ public class SophisticatedCore {
 		event.addListener(DatapackSettingsTemplateManager.Loader.KEY, DatapackSettingsTemplateManager.Loader.INSTANCE);
 	}
 
-	public static ResourceLocation getRL(String regName) {
-		return ResourceLocation.parse(getRegistryName(regName));
+	public static Identifier getIdentifier(String regName) {
+		return Identifier.parse(getRegistryName(regName));
 	}
 
 	public static String getRegistryName(String regName) {

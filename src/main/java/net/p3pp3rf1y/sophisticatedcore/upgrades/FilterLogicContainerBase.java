@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
@@ -164,7 +164,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 		serverUpdater.sendDataToServer(() -> {
 			CompoundTag tag = new CompoundTag();
 			tag.putBoolean(dataId, value);
-			tag.putString(DATA_COMPONENT_KEY, filterLogic.get().getAttributesComponent().getKey().location().toString());
+			tag.putString(DATA_COMPONENT_KEY, filterLogic.get().getAttributesComponent().getKey().identifier().toString());
 			return tag;
 		});
 	}
@@ -172,7 +172,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	protected void sendDataToServer(Supplier<CompoundTag> dataSupplier) {
 		serverUpdater.sendDataToServer(() -> {
 			CompoundTag tag = dataSupplier.get();
-			tag.putString(DATA_COMPONENT_KEY, filterLogic.get().getAttributesComponent().getKey().location().toString());
+			tag.putString(DATA_COMPONENT_KEY, filterLogic.get().getAttributesComponent().getKey().identifier().toString());
 			return tag;
 		});
 	}
@@ -221,11 +221,11 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 					return true;
 				}
 				case DATA_ADD_TAG_NAME -> {
-					data.getString(DATA_ADD_TAG_NAME).ifPresent(tagName -> addTagName(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagName))));
+					data.getString(DATA_ADD_TAG_NAME).ifPresent(tagName -> addTagName(TagKey.create(Registries.ITEM, Identifier.parse(tagName))));
 					return true;
 				}
 				case DATA_REMOVE_TAG_NAME -> {
-					data.getString(DATA_REMOVE_TAG_NAME).ifPresent(tagName -> removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagName))));
+					data.getString(DATA_REMOVE_TAG_NAME).ifPresent(tagName -> removeSelectedTag(TagKey.create(Registries.ITEM, Identifier.parse(tagName))));
 					return true;
 				}
 				case DATA_MATCH_ANY_TAG -> {
@@ -241,7 +241,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	}
 
 	protected boolean isDifferentFilterLogicsData(CompoundTag data) {
-		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getStringOr(DATA_COMPONENT_KEY, ""));
+		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().identifier().toString().equals(data.getStringOr(DATA_COMPONENT_KEY, ""));
 	}
 
 	public class TagSelectionSlot extends Slot implements IFilterSlot {

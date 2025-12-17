@@ -7,7 +7,7 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -105,7 +105,7 @@ public class ClientRecipeHelper {
 																	String modId, String idPrefix) {
 		runOnAllRecipesOfType(RecipeType.CRAFTING, originalRecipeClass, recipe -> getVariantItems.apply(recipe.value()).forEach(variantItem -> {
 					ItemStack result = getVariantResult(recipe.value(), variantItem.copy());
-					ResourceLocation id = ResourceLocation.fromNamespaceAndPath(modId,
+					Identifier id = Identifier.fromNamespaceAndPath(modId,
 							idPrefix
 									+ getItemString(getSubtypeInterpreter, variantItem)
 									+ "_to_"
@@ -141,7 +141,7 @@ public class ClientRecipeHelper {
 		}
 	}
 
-	private static void addVariantIngredientRecipe(IRecipeDisplayGenerator<?> generator, Recipe<?> recipe, ItemStack variantItem, ItemStack result, ResourceLocation id) {
+	private static void addVariantIngredientRecipe(IRecipeDisplayGenerator<?> generator, Recipe<?> recipe, ItemStack variantItem, ItemStack result, Identifier id) {
 		if (recipe instanceof ShapedRecipe shapedRecipe) {
 			ShapedRecipeDisplayBuilder<?> shaped = generator.shaped(result)
 					.setDimensions(shapedRecipe.pattern.width(), shapedRecipe.pattern.height());
@@ -166,7 +166,7 @@ public class ClientRecipeHelper {
 		}
 	}
 
-	private static void addShapelessRecipe(IRecipeDisplayGenerator<?> generator, ItemStack variantItem, ItemStack result, ResourceLocation id, List<Ingredient> ingredients) {
+	private static void addShapelessRecipe(IRecipeDisplayGenerator<?> generator, ItemStack variantItem, ItemStack result, Identifier id, List<Ingredient> ingredients) {
 		ShapelessRecipeDisplayBuilder<?> shapeless = generator.shapeless(result);
 
 		for (Ingredient ingredient : ingredients) {

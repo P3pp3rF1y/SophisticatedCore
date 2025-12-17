@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.infinity;
 
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -47,15 +48,15 @@ public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wra
 
 	@Override
 	public UpgradeSlotChangeResult canRemoveUpgradeFrom(IStorageWrapper storageWrapper, boolean isClientSide, Player player) {
-		if (player.hasPermissions(getPermissionLevel())) {
+		if (checkPermission(player)) {
 			return super.canRemoveUpgradeFrom(storageWrapper, isClientSide, player);
 		}
 
 		return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.infinity_upgrade_only_admin"), Set.of(), Set.of(), Set.of());
 	}
 
-	public int getPermissionLevel() {
-		return admin ? 2 : 0;
+	public boolean checkPermission(Player player) {
+		return !admin || player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 
 	public IInventoryPartHandler createInventoryPartHandler(InventoryHandler parent, SlotRange slotRange) {
@@ -89,8 +90,8 @@ public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wra
 			save();
 		}
 
-		public int getPermissionLevel() {
-			return upgradeItem.getPermissionLevel();
+		public boolean checkPermission(Player player) {
+			return upgradeItem.checkPermission(player);
 		}
 	}
 }

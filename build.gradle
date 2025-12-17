@@ -49,6 +49,12 @@ repositories {
         content {
             includeGroup "net.blay09.mods"
         }
+        metadataSources {
+            mavenPom()
+            artifact()
+            ignoreGradleMetadataRedirection()
+            // IMPORTANT: do NOT use gradleMetadata()
+        }
     }
     maven {
         name = "TerraformersMC"
@@ -162,7 +168,6 @@ dependencies {
     compileOnly "net.blay09.mods:balm-neoforge:${balm_version}"
     localRuntime "net.blay09.mods:balm-neoforge:${balm_version}"
     compileOnly "net.blay09.mods:craftingtweaks-neoforge:${craftingtweaks_version}"
-    localRuntime "net.blay09.mods:craftingtweaks-neoforge:${craftingtweaks_version}"
     compileOnly "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
     localRuntime "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
     compileOnly "curse.maven:iceberg-520110:${iceberg_cf_file_id}"

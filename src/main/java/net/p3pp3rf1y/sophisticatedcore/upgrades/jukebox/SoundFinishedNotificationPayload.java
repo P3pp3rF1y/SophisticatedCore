@@ -10,7 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import java.util.UUID;
 
 public record SoundFinishedNotificationPayload(UUID storageUuid) implements CustomPacketPayload {
-	public static final Type<SoundFinishedNotificationPayload> TYPE = new Type<>(SophisticatedCore.getRL("sound_finished_notification"));
+	public static final Type<SoundFinishedNotificationPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sound_finished_notification"));
 	public static final StreamCodec<ByteBuf, SoundFinishedNotificationPayload> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC,
 			SoundFinishedNotificationPayload::storageUuid,

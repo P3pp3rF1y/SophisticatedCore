@@ -1,5 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.infinity;
 
+import net.minecraft.server.permissions.PermissionCheck;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.IndexModifier;
@@ -10,8 +12,8 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.IResourceExtractor;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IResourceInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -21,14 +23,14 @@ import java.util.function.IntFunction;
 public abstract class InfinityInventoryPart implements IInventoryPartHandler {
 	private final InventoryHandler parent;
 	private final SlotRange slotRange;
-	private final int permissionLevel;
+	private final PermissionCheck permissionCheck;
 	private final Map<Integer, ItemResource> cachedResources = new HashMap<>();
 	private final Map<Integer, ItemStack> cachedStacks = new HashMap<>();
 
-	protected InfinityInventoryPart(InventoryHandler parent, SlotRange slotRange, int permissionLevel) {
+	protected InfinityInventoryPart(InventoryHandler parent, SlotRange slotRange, PermissionCheck permissionCheck) {
 		this.parent = parent;
 		this.slotRange = slotRange;
-		this.permissionLevel = permissionLevel;
+		this.permissionCheck = permissionCheck;
 		parent.addListener(this::onParentSlotChanged);
 	}
 
@@ -51,7 +53,7 @@ public abstract class InfinityInventoryPart implements IInventoryPartHandler {
 
 	@Override
 	public boolean isValid(int slot, ItemResource resource, @Nullable Player player, BiPredicate<Integer, ItemResource> isValidSuper) {
-		return player != null && player.hasPermissions(permissionLevel) && parent.getInternalStack(slot).isEmpty() && isValidSuper.test(slot, resource);
+		return player != null && permissionCheck.check(player.permissions()) && parent.getInternalStack(slot).isEmpty() && isValidSuper.test(slot, resource);
 	}
 
 	@Override
@@ -128,7 +130,7 @@ public abstract class InfinityInventoryPart implements IInventoryPartHandler {
 		public static final String NAME = "infinity";
 
 		protected Admin(InventoryHandler parent, SlotRange slotRange) {
-			super(parent, slotRange, 2);
+			super(parent, slotRange, new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER));
 		}
 
 		@Override
@@ -141,7 +143,7 @@ public abstract class InfinityInventoryPart implements IInventoryPartHandler {
 		public static final String NAME = "survival_infinity";
 
 		protected Survival(InventoryHandler parent, SlotRange slotRange) {
-			super(parent, slotRange, 0);
+			super(parent, slotRange, PermissionCheck.AlwaysPass.INSTANCE);
 		}
 
 		@Override

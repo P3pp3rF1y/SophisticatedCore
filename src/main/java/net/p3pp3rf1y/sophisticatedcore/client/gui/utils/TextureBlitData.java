@@ -1,9 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.utils;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class TextureBlitData {
-	private final ResourceLocation textureName;
+	private final Identifier textureName;
 	private final int xOffset;
 	private final int yOffset;
 	private final int textureWidth;
@@ -13,15 +13,15 @@ public class TextureBlitData {
 	private final int width;
 	private final int height;
 
-	public TextureBlitData(ResourceLocation textureName, Dimension textureDimension, UV uv, Dimension dimension) {
+	public TextureBlitData(Identifier textureName, Dimension textureDimension, UV uv, Dimension dimension) {
 		this(textureName, new Position(0, 0), textureDimension, uv, dimension);
 	}
 
-	public TextureBlitData(ResourceLocation textureName, UV uv, Dimension dimension) {
+	public TextureBlitData(Identifier textureName, UV uv, Dimension dimension) {
 		this(textureName, new Dimension(256, 256), uv, dimension);
 	}
 
-	public TextureBlitData(ResourceLocation textureName, Position offset, Dimension textureDimension, UV uv, Dimension dimension) {
+	public TextureBlitData(Identifier textureName, Position offset, Dimension textureDimension, UV uv, Dimension dimension) {
 		this.textureName = textureName;
 		xOffset = offset.x();
 		yOffset = offset.y();
@@ -33,7 +33,7 @@ public class TextureBlitData {
 		height = dimension.height();
 	}
 
-	public ResourceLocation getTextureName() {
+	public Identifier getTextureName() {
 		return textureName;
 	}
 

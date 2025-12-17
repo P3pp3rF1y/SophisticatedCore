@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.client;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -50,7 +50,7 @@ public class ItemInteractionHandler {
 		});
 		WorldHelper.getBlockEntitiesInRange(player.level(), player.blockPosition(), INTERACTION_RANGE, ControllerBlockEntityBase.class).forEach(c -> controllers.add(c.getBlockPos()));
 
-		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
+		Map<Identifier, Object> extras = new LinkedHashMap<>();
 		payloadBuilders.forEach(h -> {
 			h.buildClientRequestData(player).ifPresent(data -> extras.put(h.getPayloadHandlerId(), data));
 		});
@@ -101,7 +101,7 @@ public class ItemInteractionHandler {
 			}, () -> storages.add(s.getStorageBlockPos()));
 		});
 
-		Map<ResourceLocation, Object> extras = new LinkedHashMap<>();
+		Map<Identifier, Object> extras = new LinkedHashMap<>();
 		payloadBuilders.forEach(h -> {
 			h.buildClientRequestData(player).ifPresent(data -> extras.put(h.getPayloadHandlerId(), data));
 		});

@@ -15,7 +15,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import java.util.UUID;
 
 public record PlayDiscPayload(boolean blockStorage, UUID storageUuid, Holder<JukeboxSong> song, int entityId, BlockPos pos) implements CustomPacketPayload {
-	public static final Type<PlayDiscPayload> TYPE = new Type<>(SophisticatedCore.getRL("play_disc"));
+	public static final Type<PlayDiscPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("play_disc"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, PlayDiscPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.BOOL,
 			PlayDiscPayload::blockStorage,

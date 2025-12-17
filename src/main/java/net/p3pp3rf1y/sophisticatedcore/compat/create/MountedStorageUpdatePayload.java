@@ -11,11 +11,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public record MountedStorageUpdatePayload(int contraptionEntityId, BlockPos localPos, ItemStack storageStack, boolean refreshBlockRender) implements CustomPacketPayload {
-	public static final Type<MountedStorageUpdatePayload> TYPE = new Type<>(SophisticatedCore.getRL("mounted_storage_update"));
+	public static final Type<MountedStorageUpdatePayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("mounted_storage_update"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, MountedStorageUpdatePayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			MountedStorageUpdatePayload::contraptionEntityId,

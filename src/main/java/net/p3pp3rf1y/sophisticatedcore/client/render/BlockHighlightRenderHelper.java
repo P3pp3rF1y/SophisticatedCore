@@ -7,8 +7,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
+import net.minecraft.client.renderer.rendertype.OutputTarget;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -25,18 +28,17 @@ public class BlockHighlightRenderHelper {
 			.withCull(false)
 			.withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
 			.withDepthWrite(true)
-			.withLocation(SophisticatedCore.getRL("pipeline/outline_quads"))
+			.withLocation(SophisticatedCore.getIdentifier("pipeline/outline_quads"))
 			.build();
 
-	public static final RenderType THICK_HIGHLIGHT_QUADS = RenderType.create(
-			"storage_outline_quads",
-			1536,
-			THICK_HIGHLIGHT_PIPELINE,
-			RenderType.CompositeState.builder()
-					.setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
-					.setOutputState(RenderType.ITEM_ENTITY_TARGET)
-					.createCompositeState(false)
-	);
+	public static final RenderType THICK_HIGHLIGHT_QUADS = RenderType
+			.create("storage_outline_quads",
+					RenderSetup.builder(THICK_HIGHLIGHT_PIPELINE)
+							.bufferSize(1536)
+							.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+							.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+							.createRenderSetup()
+			);
 
 	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges, BlockPos originPos) {
 		submitThickEdges(submitNodeCollector, poseStack, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());

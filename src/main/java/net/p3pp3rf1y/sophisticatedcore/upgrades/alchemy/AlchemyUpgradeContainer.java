@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -15,7 +15,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> {
-	public static final ResourceLocation EMPTY_POTION_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/potion");
+	public static final Identifier EMPTY_POTION_SLOT_BACKGROUND = SophisticatedCore.getIdentifier("container/slot/potion");
 	public static final String DATA_CONDITION = "condition";
 	public static final String DATA_MATCH_ALL = "matchAll";
 	private static final String DATA_MATCH_DURATION = "matchDuration";

@@ -6,8 +6,8 @@ import com.mojang.datafixers.util.Pair;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -62,8 +62,8 @@ public class DatapackSettingsTemplateManager {
 	}
 
 	@SuppressWarnings("java:S6548")
-	public static class Loader extends SimplePreparableReloadListener<Map<ResourceLocation, ContainerContents.SettingsData>> {
-		public static final ResourceLocation KEY = SophisticatedCore.getRL("settings_templates");
+	public static class Loader extends SimplePreparableReloadListener<Map<Identifier, ContainerContents.SettingsData>> {
+		public static final Identifier KEY = SophisticatedCore.getIdentifier("settings_templates");
 		public static final Loader INSTANCE = new Loader();
 		private static final String DIRECTORY = "sophisticated_settingstemplates";
 		private static final String SUFFIX = ".snbt";
@@ -73,13 +73,13 @@ public class DatapackSettingsTemplateManager {
 		}
 
 		@Override
-		protected Map<ResourceLocation, ContainerContents.SettingsData> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-			Map<ResourceLocation, ContainerContents.SettingsData> map = Maps.newHashMap();
+		protected Map<Identifier, ContainerContents.SettingsData> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+			Map<Identifier, ContainerContents.SettingsData> map = Maps.newHashMap();
 			int i = DIRECTORY.length() + 1;
 
-			resourceManager.listResources(DIRECTORY, fileName -> fileName.getPath().endsWith(SUFFIX)).forEach((resourcelocation, resource) -> {
-				String s = resourcelocation.getPath();
-				ResourceLocation resourceLocationWithoutSuffix = ResourceLocation.fromNamespaceAndPath(resourcelocation.getNamespace(), s.substring(i, s.length() - PATH_SUFFIX_LENGTH));
+			resourceManager.listResources(DIRECTORY, fileName -> fileName.getPath().endsWith(SUFFIX)).forEach((identifier, resource) -> {
+				String s = identifier.getPath();
+				Identifier identifierWithoutSuffix = Identifier.fromNamespaceAndPath(identifier.getNamespace(), s.substring(i, s.length() - PATH_SUFFIX_LENGTH));
 
 				try (
 						InputStream inputstream = resource.open();
@@ -89,11 +89,11 @@ public class DatapackSettingsTemplateManager {
 
 					RegistryOps<Tag> ops = getRegistryLookup().createSerializationContext(NbtOps.INSTANCE);
 					Pair<ContainerContents.SettingsData, Tag> decodeResult = ContainerContents.SettingsData.CODEC.decode(ops, TagParser.parseCompoundFully(fileContents)).getOrThrow();
-					if (map.put(resourceLocationWithoutSuffix, decodeResult.getFirst()) != null) {
-						throw new IllegalStateException("Duplicate data file ignored with ID " + resourceLocationWithoutSuffix);
+					if (map.put(identifierWithoutSuffix, decodeResult.getFirst()) != null) {
+						throw new IllegalStateException("Duplicate data file ignored with ID " + identifierWithoutSuffix);
 					}
 				} catch (IllegalArgumentException | IllegalStateException | IOException | CommandSyntaxException ex) {
-					SophisticatedCore.LOGGER.error("Couldn't parse data file {} from {}", resourceLocationWithoutSuffix, resourcelocation, ex);
+					SophisticatedCore.LOGGER.error("Couldn't parse data file {} from {}", identifierWithoutSuffix, identifier, ex);
 				}
 			});
 
@@ -101,10 +101,10 @@ public class DatapackSettingsTemplateManager {
 		}
 
 		@Override
-		protected void apply(Map<ResourceLocation, ContainerContents.SettingsData> templates, ResourceManager resourceManager, ProfilerFiller profiler) {
-			templates.forEach((resourceLocation, data) -> {
-				String datapackName = resourceLocation.getNamespace();
-				String templateName = resourceLocation.getPath().substring(resourceLocation.getPath().lastIndexOf('/') + 1);
+		protected void apply(Map<Identifier, ContainerContents.SettingsData> templates, ResourceManager resourceManager, ProfilerFiller profiler) {
+			templates.forEach((identifier, data) -> {
+				String datapackName = identifier.getNamespace();
+				String templateName = identifier.getPath().substring(identifier.getPath().lastIndexOf('/') + 1);
 				putTemplate(datapackName, templateName, data);
 			});
 		}

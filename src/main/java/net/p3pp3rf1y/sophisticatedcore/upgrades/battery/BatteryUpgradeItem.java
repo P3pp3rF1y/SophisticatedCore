@@ -9,8 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeItem;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;

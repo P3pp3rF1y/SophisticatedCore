@@ -12,7 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 public record TransferFullSlotPayload(int slotId) implements CustomPacketPayload {
-	public static final Type<TransferFullSlotPayload> TYPE = new Type<>(SophisticatedCore.getRL("transfer_full_slot"));
+	public static final Type<TransferFullSlotPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("transfer_full_slot"));
 	public static final StreamCodec<ByteBuf, TransferFullSlotPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.INT,
 			TransferFullSlotPayload::slotId,

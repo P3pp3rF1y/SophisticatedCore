@@ -7,7 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -33,8 +33,8 @@ import java.util.*;
 
 public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, boolean fillEmpty,
 								  List<BlockPos> storagePositions,
-								  Map<ResourceLocation, Object> extras) implements CustomPacketPayload {
-	public static final Type<RestockItemsPayload> TYPE = new Type<>(SophisticatedCore.getRL("restock_items"));
+								  Map<Identifier, Object> extras) implements CustomPacketPayload {
+	public static final Type<RestockItemsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("restock_items"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RestockItemsPayload> STREAM_CODEC = StreamCodec.composite(
 			ItemStack.OPTIONAL_STREAM_CODEC,
 			RestockItemsPayload::filter,
@@ -106,7 +106,7 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 				}
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_item",
 						Component.literal(item.getHoverName().getString()).withStyle(ChatFormatting.RED));
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("restocked_item",
 						Component.literal(transferredItems.values().iterator().next().getHoverName().getString()).withStyle(ChatFormatting.DARK_GREEN));
@@ -114,7 +114,7 @@ public record RestockItemsPayload(ItemStack filter, int minSlot, int maxSlot, bo
 		} else {
 			if (transferredItems.isEmpty()) {
 				message = TranslationHelper.INSTANCE.translStatusMessage("cannot_restock_items");
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				message = TranslationHelper.INSTANCE.translStatusMessage("restocked_items", Component.literal(String.valueOf(restockedPlayerSlots.size())).withStyle(ChatFormatting.DARK_GREEN));
 			}

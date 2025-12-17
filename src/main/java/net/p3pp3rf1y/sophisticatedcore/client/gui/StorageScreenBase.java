@@ -23,7 +23,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.HashedStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
@@ -48,8 +48,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import org.joml.Matrix3x2fStack;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -119,9 +119,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public void resize(Minecraft minecraft, int width, int height) {
+	public void resize(int width, int height) {
 		updateDimensionsAndSlotPositions(height);
-		super.resize(minecraft, width, height);
+		super.resize(width, height);
 	}
 
 	private void updateDimensionsAndSlotPositions(int height) {
@@ -648,7 +648,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			if (canShowHover && slot == hoveredSlot) {
 				renderSlotHighlightBack(guiGraphics);
 			}
-			renderSlot(guiGraphics, slot);
+			renderSlot(guiGraphics, slot, mouseX, mouseY);
 			if (canShowHover && slot == hoveredSlot) {
 				renderSlotHighlightFront(guiGraphics);
 			}
@@ -664,7 +664,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
+	protected void renderSlot(GuiGraphics guiGraphics, Slot slot, int mouseX, int mouseY) {
 		int i = slot.x;
 		int j = slot.y;
 		ItemStack stackToRender = slot.getItem();
@@ -736,7 +736,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				return;
 			}
 		}
-		ResourceLocation icon = slot.getNoItemIcon();
+		Identifier icon = slot.getNoItemIcon();
 		if (icon != null) {
 			guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, icon, i, j, 16, 16);
 		}
@@ -843,7 +843,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return ret;
 	}
 
-	public void drawInventoryBg(GuiGraphics guiGraphics, int x, int y, ResourceLocation textureName) {
+	public void drawInventoryBg(GuiGraphics guiGraphics, int x, int y, Identifier textureName) {
 		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, textureName, imageWidth, imageHeight - HEIGHT_WITHOUT_STORAGE_SLOTS);
 	}
 
@@ -1237,7 +1237,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		int leftX = -tooltipWidth / 2;
 
-		TooltipRenderUtil.renderTooltipBackground(guiGraphics, leftX, 0, tooltipWidth, tooltipHeight, SophisticatedCore.getRL("error"));
+		TooltipRenderUtil.renderTooltipBackground(guiGraphics, leftX, 0, tooltipWidth, tooltipHeight, SophisticatedCore.getIdentifier("error"));
 		MultiBufferSource.BufferSource renderTypeBuffer = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
 		GuiHelper.writeTooltipLines(guiGraphics, wrappedTextLines, fontrenderer, leftX, 0, ERROR_TEXT_COLOR);
 		renderTypeBuffer.endBatch();

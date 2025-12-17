@@ -13,8 +13,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -54,12 +54,12 @@ public class StreamCodecHelper {
 		return new StreamCodec<>() {
 			@Override
 			public void encode(B buffer, TagKey<T> value) {
-				buffer.writeResourceLocation(value.location());
+				buffer.writeIdentifier(value.location());
 			}
 
 			@Override
 			public TagKey<T> decode(B buffer) {
-				return TagKey.create(registry, buffer.readResourceLocation());
+				return TagKey.create(registry, buffer.readIdentifier());
 			}
 		};
 	}

@@ -7,7 +7,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public record RequestItemHighlightsPayload(ItemStack stack,
 										   List<BlockPos> storagePositions,
-										   Map<ResourceLocation, Object> extras) implements CustomPacketPayload {
-	public static final Type<RequestItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getRL("request_item_highlights"));
+										   Map<Identifier, Object> extras) implements CustomPacketPayload {
+	public static final Type<RequestItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("request_item_highlights"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RequestItemHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			ItemStack.STREAM_CODEC,
 			RequestItemHighlightsPayload::stack,
@@ -80,7 +80,7 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 			Component message = null;
 			if (stackMatchNumber.get() == 0 && itemMatchNumber.get() == 0) {
 				message = Component.translatable("gui.sophisticatedcore.status.no_matching_items_found");
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			} else {
 				if (stackMatchNumber.get() > 0) {
 					message = Component.translatable("gui.sophisticatedcore.status.matching_stacks_found", Component.literal(String.valueOf(stackMatchNumber.get())).withColor(0x4CAF50));
@@ -93,7 +93,7 @@ public record RequestItemHighlightsPayload(ItemStack stack,
 						message = itemMessage;
 					}
 				}
-				player.playNotifySound(SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1, 0.95f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
+				level.playSound(null, player, SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 1, 0.95f + RandHelper.getRandomMinusOneToOne(level.random) * 0.1F);
 			}
 
 			player.displayClientMessage(message, true);

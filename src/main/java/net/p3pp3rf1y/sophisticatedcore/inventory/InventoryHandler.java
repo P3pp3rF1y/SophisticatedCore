@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -19,8 +19,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotValueMap;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -521,7 +521,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	@Nullable
-	public ResourceLocation getNoItemIcon(int slotIndex) {
+	public Identifier getNoItemIcon(int slotIndex) {
 		return inventoryPartitioner.getNoItemIcon(slotIndex);
 	}
 

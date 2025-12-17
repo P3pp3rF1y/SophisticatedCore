@@ -12,7 +12,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -436,7 +436,7 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		private static MemorySettingsCategoryData deserializeMemory(CompoundTag categoryNbt) {
 			Map<Integer, Item> slotFilterItems = NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG,
 					Integer::valueOf,
-					(k, v) -> BuiltInRegistries.ITEM.getOptional(v.asString().map(ResourceLocation::parse).orElse(null))).orElseGet(HashMap::new);
+					(k, v) -> BuiltInRegistries.ITEM.getOptional(v.asString().map(Identifier::parse).orElse(null))).orElseGet(HashMap::new);
 
 			Map<Integer, ItemStackKey> slotFilterStacks = NBTHelper.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG,
 					Integer::valueOf,

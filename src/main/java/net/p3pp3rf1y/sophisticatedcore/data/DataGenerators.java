@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.data;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -32,9 +32,9 @@ public class DataGenerators {
 					ModFluids.XP_BUCKET.get(),
 					new DynamicFluidContainerModel.Unbaked(
 							new DynamicFluidContainerModel.Textures(
-									Optional.of(ResourceLocation.withDefaultNamespace("item/bucket")),
-									Optional.of(ResourceLocation.withDefaultNamespace("item/bucket")),
-									Optional.of(ResourceLocation.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid")),
+									Optional.of(Identifier.withDefaultNamespace("item/bucket")),
+									Optional.of(Identifier.withDefaultNamespace("item/bucket")),
+									Optional.of(Identifier.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid")),
 									Optional.empty()
 							),
 							ModFluids.XP_STILL.get(),

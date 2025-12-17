@@ -18,8 +18,8 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.SophisticatedMenuProvider;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,8 +28,7 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 	protected final WeakReference<AbstractContraptionEntity> contraptionEntity;
 	protected final BlockPos localPos;
 
-	@Nullable
-	private ContainerContents.SettingsData lastSettingsData = null;
+	private ContainerContents.@Nullable SettingsData lastSettingsData = null;
 	protected final MountedStorageBase mountedStorage;
 
 	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {

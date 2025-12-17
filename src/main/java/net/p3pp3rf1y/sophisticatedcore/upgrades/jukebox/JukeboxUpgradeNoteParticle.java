@@ -8,8 +8,7 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class JukeboxUpgradeNoteParticle extends SingleQuadParticle {
 	protected JukeboxUpgradeNoteParticle(ClientLevel level, double x, double y, double z, TextureAtlasSprite sprite) {

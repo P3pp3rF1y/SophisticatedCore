@@ -201,7 +201,7 @@ public class ModCoreDataComponents {
 			() -> new DataComponentType.Builder<Float>().persistent(Codec.FLOAT).networkSynchronized(ByteBufCodecs.FLOAT).build());
 
 	public static void register(IEventBus modBus) {
-		DATA_COMPONENT_TYPES.addAlias(SophisticatedCore.getRL("render_info_tag"), SophisticatedCore.getRL("render_data"));
+		DATA_COMPONENT_TYPES.addAlias(SophisticatedCore.getIdentifier("render_info_tag"), SophisticatedCore.getIdentifier("render_data"));
 		DATA_COMPONENT_TYPES.register(modBus);
 	}
 }

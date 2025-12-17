@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -40,7 +40,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.lwjgl.glfw.GLFW;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +55,7 @@ public class ClientEventHandler {
 	}
 
 	private static final int MIDDLE_BUTTON = 2;
-	private static final KeyMapping.Category SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedCore.getRL("main"));
+	private static final KeyMapping.Category SOPHISTICATEDCORE_CATEGORY = new KeyMapping.Category(SophisticatedCore.getIdentifier("main"));
 	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_highlight"),
 			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("deposit_item"),
@@ -372,16 +372,16 @@ public class ClientEventHandler {
 
 	private static void registerFluidClientExtension(RegisterClientExtensionsEvent event) {
 		event.registerFluidType(new IClientFluidTypeExtensions() {
-			private static final ResourceLocation XP_STILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still");
-			private static final ResourceLocation XP_FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing");
+			private static final Identifier XP_STILL_TEXTURE = Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still");
+			private static final Identifier XP_FLOWING_TEXTURE = Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
 			@Override
-			public ResourceLocation getStillTexture() {
+			public Identifier getStillTexture() {
 				return XP_STILL_TEXTURE;
 			}
 
 			@Override
-			public ResourceLocation getFlowingTexture() {
+			public Identifier getFlowingTexture() {
 				return XP_FLOWING_TEXTURE;
 			}
 		}, ModFluids.XP_FLUID_TYPE.get());

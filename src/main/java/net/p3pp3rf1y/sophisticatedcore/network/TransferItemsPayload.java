@@ -24,7 +24,7 @@ import java.util.Set;
 
 public record TransferItemsPayload(boolean transferToInventory,
 								   boolean filterByContents) implements CustomPacketPayload {
-	public static final CustomPacketPayload.Type<TransferItemsPayload> TYPE = new CustomPacketPayload.Type<>(SophisticatedCore.getRL("transfer_items"));
+	public static final CustomPacketPayload.Type<TransferItemsPayload> TYPE = new CustomPacketPayload.Type<>(SophisticatedCore.getIdentifier("transfer_items"));
 	public static final StreamCodec<ByteBuf, TransferItemsPayload> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.BOOL,
 			TransferItemsPayload::transferToInventory,

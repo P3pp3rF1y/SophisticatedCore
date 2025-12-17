@@ -13,7 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.render.ItemInStorageHighlightRende
 import java.util.List;
 
 public record SyncItemHighlightsPayload(List<BlockPos> stackPositions, List<BlockPos> itemPositions, List<BlockPos> emptyTargetPositions) implements CustomPacketPayload {
-	public static final Type<SyncItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_item_highlights"));
+	public static final Type<SyncItemHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_item_highlights"));
 	public static final StreamCodec<ByteBuf, SyncItemHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()),
 			SyncItemHighlightsPayload::stackPositions,
