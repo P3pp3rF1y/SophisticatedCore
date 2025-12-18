@@ -1,5 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -7,33 +9,21 @@ import net.neoforged.neoforge.transfer.IndexModifier;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
-import net.neoforged.neoforge.world.inventory.StackCopySlot;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotStackAccessor;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public class SlotSuppliedHandler extends StackCopySlot {
+public class SlotSuppliedHandler extends Slot {
+	private static final Container emptyInventory = new SimpleContainer(0);
+	private @Nullable ItemStack cachedReturnedStack = null;
+	private @Nullable ItemStack lastHandlerStack = null;
 	private final Supplier<ResourceHandler<ItemResource>> itemHandlerSupplier;
 	public final int slot;
-	private final IndexModifier<ItemResource> slotModifier;
 
 	public SlotSuppliedHandler(Supplier<ResourceHandler<ItemResource>> itemHandlerSupplier, int slot, int xPosition, int yPosition) {
-		this(itemHandlerSupplier, (i, resource, amount) -> {
-			if (itemHandlerSupplier.get() instanceof IndexModifier<?> indexModifier) {
-				//noinspection unchecked
-				((IndexModifier<ItemResource>) indexModifier).set(i, resource, amount);
-			} else if (itemHandlerSupplier.get() instanceof ISlotStackAccessor slotStackAccessor) {
-				slotStackAccessor.setStackInSlot(i, resource.toStack(amount));
-			} else {
-				InventoryHelper.set(itemHandlerSupplier.get(), i, resource, amount);
-			}
-		}, slot, xPosition, yPosition);
-	}
-
-	public SlotSuppliedHandler(Supplier<ResourceHandler<ItemResource>> itemHandlerSupplier, IndexModifier<ItemResource> slotModifier, int slot, int xPosition, int yPosition) {
-		super(xPosition, yPosition);
-		this.slotModifier = slotModifier;
+		super(emptyInventory, 0, xPosition, yPosition);
 		this.itemHandlerSupplier = itemHandlerSupplier;
 		this.slot = slot;
 	}
@@ -50,14 +40,48 @@ public class SlotSuppliedHandler extends StackCopySlot {
 	public boolean mayPlace(ItemStack stack) {
 		return itemHandlerSupplier.get().isValid(slot, ItemResource.of(stack));
 	}
+
 	@Override
-	protected ItemStack getStackCopy() {
+	public ItemStack getItem() {
+		ItemStack handlerStack = getHandlerStack();
+		if (cachedReturnedStack == null || lastHandlerStack == null || !ItemStack.matches(lastHandlerStack, handlerStack)) {
+			cachedReturnedStack = handlerStack.copy();
+			lastHandlerStack = handlerStack;
+		}
+
+		return cachedReturnedStack;
+	}
+
+	private ItemStack getHandlerStack() {
 		return itemHandlerSupplier.get().getResource(slot).toStack(itemHandlerSupplier.get().getAmountAsInt(slot));
 	}
 
+	public void set(ItemStack stack) {
+		if (itemHandlerSupplier.get() instanceof ISlotStackAccessor slotStackAccessor) {
+			slotStackAccessor.setStackInSlot(slot, stack);
+		} else if (itemHandlerSupplier.get() instanceof IndexModifier<?> indexModifier) {
+			//noinspection unchecked
+			((IndexModifier<ItemResource>) indexModifier).set(slot, ItemResource.of(stack), stack.getCount());
+		} else {
+			InventoryHelper.set(itemHandlerSupplier.get(), slot, ItemResource.of(stack), stack.getCount());
+		}
+		this.cachedReturnedStack = stack;
+	}
+
 	@Override
-	protected void setStackCopy(ItemStack stack) {
-		slotModifier.set(slot, ItemResource.of(stack), stack.getCount());
+	public void setChanged() {
+		if (cachedReturnedStack != null && !ItemStack.matches(cachedReturnedStack, getHandlerStack())) {
+			set(cachedReturnedStack);
+		}
+	}
+
+	@Override
+	public ItemStack remove(int amount) {
+		ItemStack stack = getHandlerStack().copy();
+		ItemStack ret = stack.split(amount);
+		this.set(stack);
+		this.cachedReturnedStack = null;
+		return ret;
 	}
 
 	@Override

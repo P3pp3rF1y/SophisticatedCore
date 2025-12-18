@@ -50,9 +50,9 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 		this.level = level;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
-			protected void setStackCopy(ItemStack stack) {
-				boolean countIncreased = getStackCopy().getCount() < stack.getCount();
-				super.setStackCopy(stack);
+			public void set(ItemStack stack) {
+				boolean countIncreased = getItem().getCount() < stack.getCount();
+				super.set(stack);
 				onCraftMatrixChanged(inputInventory, countIncreased);
 			}
 		};

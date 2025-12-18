@@ -12,18 +12,19 @@ public class StorageInventorySlot extends SlotSuppliedHandler {
 	private final int slotIndex;
 	private final Player player;
 
-	public StorageInventorySlot(boolean isClientSide, IStorageWrapper storageWrapper, int slotIndex, Player player) {
-		super(storageWrapper::getInventoryHandler,
-				(i, resource, amount) -> {
-					storageWrapper.getInventoryHandler().setStackInSlot(i, resource.toStack(amount));
-					if (!isClientSide) {
-						processSlotChangeResponse(slotIndex, storageWrapper.getInventoryHandler(), storageWrapper);
-					}
-				},
-				slotIndex, 0, 0);
+	public StorageInventorySlot(IStorageWrapper storageWrapper, int slotIndex, Player player) {
+		super(storageWrapper::getInventoryHandler, slotIndex, 0, 0);
 		this.storageWrapper = storageWrapper;
 		this.slotIndex = slotIndex;
 		this.player = player;
+	}
+
+	@Override
+	public void set(ItemStack stack) {
+		super.set(stack);
+		if (!player.level().isClientSide()) {
+			processSlotChangeResponse(slotIndex, storageWrapper.getInventoryHandler(), storageWrapper);
+		}
 	}
 
 	@Override

@@ -53,8 +53,8 @@ public class BlockTransformationRecipeContainer {
 	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
-			protected void setStackCopy(ItemStack stack) {
-				super.setStackCopy(stack);
+			public void set(ItemStack stack) {
+				super.set(stack);
 				onCraftMatrixChanged(inputInventory);
 			}
 		};
