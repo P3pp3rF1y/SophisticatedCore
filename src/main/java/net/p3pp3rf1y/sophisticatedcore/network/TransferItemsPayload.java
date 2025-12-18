@@ -152,7 +152,7 @@ public record TransferItemsPayload(boolean transferToInventory,
 
 		@Override
 		public long getCapacityAsLong(int i, ItemResource resource) {
-			return storageWrapper.getInventoryHandler().getOverflowAwareCapacity(i, resource);
+			return storageWrapper.getInventoryHandler().getCapacityAsLong(i, resource);
 		}
 
 		@Override
