@@ -254,7 +254,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> noSortSlotIndexes = getNoSortSlotIndexes();
 		while (slotIndex < inventoryHandler.size()) {
 			int finalSlotIndex = slotIndex;
-			StorageInventorySlot slot = new StorageInventorySlot(player.level().isClientSide(), storageWrapper, finalSlotIndex, player) {
+			StorageInventorySlot slot = new StorageInventorySlot(storageWrapper, finalSlotIndex, player) {
 				@Nullable
 				@Override
 				public ResourceLocation getNoItemIcon() {
@@ -282,8 +282,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 
 				@Override
-				protected void setStackCopy(ItemStack stack) {
-					super.setStackCopy(stack);
+				public void set(ItemStack stack) {
+					super.set(stack);
 					onStorageInventorySlotSet(finalSlotIndex);
 				}
 			};
@@ -1169,7 +1169,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				Slot slot7 = getSlot(slotId);
 				ItemStack slotStack = slot7.getItem();
 				ItemStack carriedStack = getCarried();
-				player.updateTutorialInventoryAction(carriedStack, slot7.getItem(), clickaction);
+				player.updateTutorialInventoryAction(carriedStack, slotStack, clickaction);
 				if (!carriedStack.overrideStackedOnOther(slot7, clickaction, player) && !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, createCarriedSlotAccess())) {
 					if (slotStack.isEmpty()) {
 						if (!carriedStack.isEmpty()) {

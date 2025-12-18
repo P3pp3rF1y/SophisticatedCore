@@ -46,8 +46,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		for (slot = 0; slot < upgradeWrapper.getInventory().size(); slot++) {
 			slots.add(new SlotSuppliedHandler(upgradeWrapper::getInventory, slot, -100, -100) {
 				@Override
-				protected void setStackCopy(ItemStack stack) {
-					super.setStackCopy(stack);
+				public void set(ItemStack stack) {
+					super.set(stack);
 					craftMatrix.setChanged();
 					updateCraftingResult(player.level(), player, craftMatrix, craftResult, craftingResultSlot);
 				}
