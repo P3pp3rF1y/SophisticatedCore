@@ -12,10 +12,10 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.voiding.VoidUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotValueMap;
@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 public abstract class InventoryHandler extends ItemStacksResourceHandler implements ITrackedContentsItemResourceHandler, IndexModifier<ItemResource> {
-	public static final String INVENTORY_TAG = "inventory";
 	protected final IStorageWrapper storageWrapper;
 	private final ContainerContents.InventoryData inventoryData;
 	private final Runnable saveHandler;
@@ -45,8 +44,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	};
 	private final SlotValueMap<Item> filterItemSlots = new SlotValueMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
-	private boolean slotLimitInitialized = false;
-	private final List<FilterLogic> overflowFilters = new ArrayList<>();
+	private boolean voidUpgradeInfoInitialized = false;
+	private boolean hasVoidUpgrade = false;
 	private final SlotTrackerJournal slotTrackerJournal = new SlotTrackerJournal();
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
@@ -144,22 +143,6 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		return inventoryPartitioner.getPartBySlot(index).getCapacity(index, resource);
 	}
 
-	public int getOverflowAwareCapacity(int index, ItemResource resource) {
-		if (!slotLimitInitialized) {
-			slotLimitInitialized = true;
-			updateOverflowFilters();
-			inventoryPartitioner.onSlotLimitChange();
-		}
-
-		for (FilterLogic filter : overflowFilters) {
-			if (filter.matchesFilter(resource)) {
-				return Integer.MAX_VALUE;
-			}
-		}
-
-		return inventoryPartitioner.getPartBySlot(index).getCapacity(index, resource);
-	}
-
 	@Override
 	protected int getCapacity(int index, ItemResource resource) {
 		return inventoryPartitioner.getPartBySlot(index).getCapacity(index, resource);
@@ -198,7 +181,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	public void setBaseSlotLimit(int baseSlotLimit) {
-		slotLimitInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
+		voidUpgradeInfoInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
 		this.baseSlotLimit = baseSlotLimit;
 		maxStackSizeMultiplier = baseSlotLimit / 64f;
 
@@ -209,15 +192,6 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		if (!isInitializing) {
 			slotTracker.refreshSlotIndexesFrom(this);
 		}
-	}
-
-	private void updateOverflowFilters() {
-		overflowFilters.clear();
-		storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class).forEach(overflowUpgrade -> {
-			if (overflowUpgrade.voidsOverflow()) {
-				overflowFilters.add(overflowUpgrade.getFilterLogic());
-			}
-		});
 	}
 
 	@Override
@@ -293,9 +267,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		ItemStackKey key = ItemStackKey.of(resource);
 		int moved = 0;
 
-		if (!overflowFilters.isEmpty()) {
-			moved += handleOverflow(resource, amount);
-		}
+		moved += handleOverflow(resource, amount);
 
 		if (moved >= amount) {
 			return moved;
@@ -444,9 +416,10 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	private int handleOverflow(ItemResource resource, int amount) {
-		if (overflowFilters.isEmpty()) {
+		if (!hasVoidUpgrade()) {
 			return 0;
 		}
+
 		ItemStackKey stackKey = ItemStackKey.of(resource);
 
 		if (hasOneFullStackOfItem(stackKey)) {
@@ -628,6 +601,29 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	public ItemStack getStackInSlot(int index) {
 		Objects.checkIndex(index, this.size());
 		return inventoryPartitioner.getPartBySlot(index).getStackInSlot(index, slot -> stacks.get(slot));
+	}
+
+	private boolean hasVoidUpgrade() {
+		if (!voidUpgradeInfoInitialized) {
+			hasVoidUpgrade = !storageWrapper.getUpgradeHandler().getTypeWrappers(VoidUpgradeItem.TYPE).isEmpty();
+			voidUpgradeInfoInitialized = true;
+		}
+		return hasVoidUpgrade;
+	}
+
+	public boolean isInsertBlocked() {
+		if (hasVoidUpgrade()) {
+			return false;
+		}
+
+		for(int i = 0; i < stacks.size(); ++i) {
+			ItemStack stack = stacks.get(i);
+			ItemResource resource = ItemResource.of(stack);
+			if (stack.getCount() < getCapacity(i, resource)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private class SlotTrackerJournal extends SnapshotJournal<Void> {
