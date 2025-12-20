@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 
 public class SimpleItemContent implements DataComponentHolder {
 	public static final SimpleItemContent EMPTY = new SimpleItemContent(ItemStack.EMPTY);
-	public static final Codec<SimpleItemContent> CODEC = ItemStack.OPTIONAL_CODEC
+	public static final Codec<SimpleItemContent> CODEC = ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY)
 			.xmap(SimpleItemContent::new, content -> content.itemStack);
 	public static final StreamCodec<RegistryFriendlyByteBuf, SimpleItemContent> STREAM_CODEC = ItemStack.OPTIONAL_STREAM_CODEC
 			.map(SimpleItemContent::new, content -> content.itemStack);

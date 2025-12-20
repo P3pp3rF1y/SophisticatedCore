@@ -22,6 +22,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.feeding.HungerLevel;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.filter.Direction;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.RepeatMode;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.xppump.AutomationDirection;
+import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import java.util.List;
@@ -75,7 +76,7 @@ public class ModCoreDataComponents {
             () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
     public static final Supplier<DataComponentType<ItemContainerContents>> COOKING_INVENTORY = DATA_COMPONENT_TYPES.register("cooking_inventory",
-             () -> new DataComponentType.Builder<ItemContainerContents>().persistent(ItemContainerContents.CODEC).networkSynchronized(ItemContainerContents.STREAM_CODEC).cacheEncoding().build()
+             () -> new DataComponentType.Builder<ItemContainerContents>().persistent(CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC).networkSynchronized(ItemContainerContents.STREAM_CODEC).cacheEncoding().build()
     );
 
     public static final Supplier<DataComponentType<Long>> BURN_TIME_FINISH = DATA_COMPONENT_TYPES.register("burn_time_finish",
@@ -198,7 +199,11 @@ public class ModCoreDataComponents {
 	public static final Supplier<DataComponentType<Float>> STORED_XP = DATA_COMPONENT_TYPES.register("stored_xp",
 			() -> new DataComponentType.Builder<Float>().persistent(Codec.FLOAT).networkSynchronized(ByteBufCodecs.FLOAT).build());
 
-    public static void register(IEventBus modBus) {
-        DATA_COMPONENT_TYPES.register(modBus);
-    }
+	public static final Supplier<DataComponentType<ItemContainerContents>> LENIENT_CONTAINER = DATA_COMPONENT_TYPES.register("lenient_container",
+			() -> new DataComponentType.Builder<ItemContainerContents>().persistent(CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC).networkSynchronized(ItemContainerContents.STREAM_CODEC).cacheEncoding().build()
+	);
+
+	public static void register(IEventBus modBus) {
+		DATA_COMPONENT_TYPES.register(modBus);
+	}
 }
