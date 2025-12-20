@@ -74,6 +74,10 @@ public class FilterLogic {
 	}
 
 	protected boolean matchesFilter(Stream<TagKey<Item>> tags, Item item, int damageValue, boolean empty, DataComponentMap components) {
+		if (empty) {
+			return false; // Filters should not match empty stacks as empty stacks are not supposed to be manipulated
+		}
+
 		if (isAllowList()) {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
 				return isTagMatch(tags);
