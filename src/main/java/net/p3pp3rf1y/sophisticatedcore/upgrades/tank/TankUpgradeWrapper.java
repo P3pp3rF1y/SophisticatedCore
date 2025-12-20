@@ -67,6 +67,9 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	protected TankUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		contents = getContents(upgrade).copy();
+		if (upgrade.has(DataComponents.CONTAINER)) {
+			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
+		}
 		inventory = new TankComponentItemHandler(upgrade);
 	}
 
@@ -353,7 +356,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 	public class TankComponentItemHandler extends ItemAccessItemHandler {
 		public TankComponentItemHandler(ItemStack upgrade) {
-			super(ItemAccess.forStack(upgrade), DataComponents.CONTAINER, 4);
+			super(ItemAccess.forStack(upgrade), ModCoreDataComponents.LENIENT_CONTAINER.get(), 4);
 		}
 
 		@Override

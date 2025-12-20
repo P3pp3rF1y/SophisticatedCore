@@ -317,7 +317,7 @@ public final class RenderData {
 	public record DisplayItemData(ItemStack item, int rotation, int slotIndex, DisplaySide displaySide) {
 		public static final Codec<DisplayItemData> CODEC = RecordCodecBuilder.create(instance ->
 				instance.group(
-						ItemStack.OPTIONAL_CODEC.fieldOf("item").forGetter(DisplayItemData::item),
+						ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY).fieldOf("item").forGetter(DisplayItemData::item),
 						Codec.INT.fieldOf("rotation").forGetter(DisplayItemData::rotation),
 						Codec.INT.fieldOf("slotIndex").forGetter(DisplayItemData::slotIndex),
 						DisplaySide.CODEC.fieldOf("displaySide").forGetter(DisplayItemData::displaySide)

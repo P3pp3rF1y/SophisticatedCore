@@ -40,6 +40,9 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	protected BatteryUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		energyJournal = new EnergyJournal();
+		if (upgrade.has(DataComponents.CONTAINER)) {
+			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
+		}
 		inventory = new BatteryComponentItemHandler(upgrade);
 		energyStored = getEnergyStored(upgrade);
 	}
@@ -172,7 +175,7 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 		private final ItemStack upgrade;
 
 		public BatteryComponentItemHandler(ItemStack upgrade) {
-			super(ItemAccess.forStack(upgrade), DataComponents.CONTAINER, 2);
+			super(ItemAccess.forStack(upgrade), ModCoreDataComponents.LENIENT_CONTAINER.get(), 2);
 			this.upgrade = upgrade;
 		}
 

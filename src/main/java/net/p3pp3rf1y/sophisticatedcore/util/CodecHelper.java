@@ -10,6 +10,7 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 import java.util.*;
 
@@ -29,7 +30,16 @@ public class CodecHelper {
 					.xmap(
 							optional -> optional.orElse(ItemStack.EMPTY),
 							stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack)
-					);
+					).orElse(ItemStack.EMPTY);
+
+	public static final Codec<ItemContainerContents.Slot> LENIENT_CONTENTS_SLOT_CODEC = RecordCodecBuilder.create(
+			instance -> instance.group(
+					Codec.intRange(0, 255).fieldOf("slot").forGetter(ItemContainerContents.Slot::index),
+					ItemStack.CODEC.lenientOptionalFieldOf("item", ItemStack.EMPTY).forGetter(ItemContainerContents.Slot::item)
+			).apply(instance, ItemContainerContents.Slot::new));
+
+	public static Codec<ItemContainerContents> LENIENT_ITEM_CONTAINER_CONTENTS_CODEC = LENIENT_CONTENTS_SLOT_CODEC
+			.sizeLimitedListOf(256).xmap(ItemContainerContents::fromSlots, ItemContainerContents::asSlots);
 
 	// String encoded UUID necessary when used as unbounded map key as serialization expects keys to be encoded as strings
 	public static final Codec<UUID> STRING_ENCODED_UUID = Codec.STRING.xmap(UUID::fromString, UUID::toString);

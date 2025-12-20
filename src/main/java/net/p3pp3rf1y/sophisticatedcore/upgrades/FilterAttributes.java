@@ -32,7 +32,7 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 							Codec.BOOL.optionalFieldOf("match_components", false).forGetter(FilterAttributes::matchComponents),
 							PrimaryMatch.CODEC.optionalFieldOf("primary_match", PrimaryMatch.ITEM).forGetter(FilterAttributes::primaryMatch),
 							Codec.BOOL.optionalFieldOf("match_any_tag", false).forGetter(FilterAttributes::matchAnyTag),
-							ItemContainerContents.CODEC.optionalFieldOf("filter_items", ItemContainerContents.EMPTY).forGetter(FilterAttributes::filterItems),
+							CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC.optionalFieldOf("filter_items", ItemContainerContents.EMPTY).forGetter(FilterAttributes::filterItems),
 							Codec.BOOL.optionalFieldOf("filter_by_storage", false).forGetter(FilterAttributes::filterByStorage),
 							Codec.BOOL.optionalFieldOf("filter_by_inventory", false).forGetter(FilterAttributes::filterByInventory)
 					)

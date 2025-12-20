@@ -8,6 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
@@ -20,8 +21,8 @@ import java.util.Objects;
 public class MemorySettingsCategoryData implements ContainerContents.ISettingsCategoryData<MemorySettingsCategoryData> {
 	public static final Codec<MemorySettingsCategoryData> CODEC = RecordCodecBuilder.create(
 			instance -> instance.group(
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Item.CODEC.xmap(Holder::value, Item::builtInRegistryHolder)).fieldOf("slotFilterItems").forGetter(MemorySettingsCategoryData::slotFilterItems),
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ItemStack.CODEC.xmap(ItemStackKey::of, ItemStackKey::stack)).fieldOf("slotFilterStacks").forGetter(MemorySettingsCategoryData::slotFilterStacks),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Item.CODEC.orElse(Items.AIR.builtInRegistryHolder()).xmap(Holder::value, Item::builtInRegistryHolder)).fieldOf("slotFilterItems").forGetter(MemorySettingsCategoryData::slotFilterItems),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ItemStack.CODEC.orElse(ItemStack.EMPTY).xmap(ItemStackKey::of, ItemStackKey::stack)).fieldOf("slotFilterStacks").forGetter(MemorySettingsCategoryData::slotFilterStacks),
 					Codec.BOOL.fieldOf("ignoreNbt").forGetter(MemorySettingsCategoryData::ignoreNbt)
 			).apply(instance, MemorySettingsCategoryData::new)
 	);
