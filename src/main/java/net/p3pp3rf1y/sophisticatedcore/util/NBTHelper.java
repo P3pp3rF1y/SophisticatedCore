@@ -127,7 +127,7 @@ public class NBTHelper {
 	public static Optional<ItemStack> deserializeStackFromTag(Tag tag) {
 		return RegistryHelper.getRegistryAccess().map(registries -> {
 			RegistryOps<Tag> registryops = registries.createSerializationContext(NbtOps.INSTANCE);
-			return ItemStack.OPTIONAL_CODEC.parse(registryops, tag).getOrThrow();
+			return ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY).parse(registryops, tag).getOrThrow();
 		});
 	}
 

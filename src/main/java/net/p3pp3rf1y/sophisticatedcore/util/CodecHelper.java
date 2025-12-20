@@ -6,9 +6,12 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class CodecHelper {
@@ -22,6 +25,21 @@ public class CodecHelper {
 											.forGetter(p_330103_ -> p_330103_.components.asPatch())
 							)
 							.apply(instance, ItemStack::new)));
+	public static final Codec<ItemStack> OPTIONAL_OVERSIZED_ITEM_STACK_CODEC =
+			ExtraCodecs.optionalEmptyMap(CodecHelper.OVERSIZED_ITEM_STACK_CODEC)
+					.xmap(
+							optional -> optional.orElse(ItemStack.EMPTY),
+							stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack)
+					).orElse(ItemStack.EMPTY);
+
+	public static final Codec<ItemContainerContents.Slot> LENIENT_CONTENTS_SLOT_CODEC = RecordCodecBuilder.create(
+			instance -> instance.group(
+					Codec.intRange(0, 255).fieldOf("slot").forGetter(ItemContainerContents.Slot::index),
+					ItemStack.CODEC.lenientOptionalFieldOf("item", ItemStack.EMPTY).forGetter(ItemContainerContents.Slot::item)
+			).apply(instance, ItemContainerContents.Slot::new));
+
+	public static Codec<ItemContainerContents> LENIENT_ITEM_CONTAINER_CONTENTS_CODEC = LENIENT_CONTENTS_SLOT_CODEC
+			.sizeLimitedListOf(256).xmap(ItemContainerContents::fromSlots, ItemContainerContents::asSlots);
 
 	public static final PrimitiveCodec<Integer> STRING_ENCODED_INT = new PrimitiveCodec<Integer>() {
 		@Override
