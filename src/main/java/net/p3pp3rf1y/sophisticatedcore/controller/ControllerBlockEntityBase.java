@@ -20,10 +20,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.CachedFailedInsertInventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.inventory.*;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
@@ -34,7 +31,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Function;
 
-public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerSimpleInserter {
+public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerSimpleInserter, IInsertBlockOverride {
 	private List<BlockPos> storagePositions = new ArrayList<>();
 	private final Map<BlockPos, Integer> storagePositionIndexes = new HashMap<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
@@ -931,5 +928,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	public boolean hasMatchingStackOrItem(ItemStackKey stackKey) {
 		Item item = stackKey.getStack().getItem();
 		return stackStorages.containsKey(stackKey) || itemStackKeys.containsKey(item) || memorizedStackStorages.containsKey(stackKey.hashCode()) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	}
+
+	@Override
+	public boolean isInsertBlocked() {
+		return storagePositions.stream().allMatch(pos -> getWrapperValueFromHolder(pos, storageWrapper -> storageWrapper.getInventoryHandler().isInsertBlocked()).orElse(true));
 	}
 }

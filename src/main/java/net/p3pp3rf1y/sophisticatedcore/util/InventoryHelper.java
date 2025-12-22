@@ -484,7 +484,7 @@ public class InventoryHelper {
 		AtomicBoolean isEmpty = new AtomicBoolean(true);
 		iterate(handler, (slot, stack) -> {
 			if (!stack.isEmpty()) {
-				int slotLimit = handler.getInternalSlotLimit(slot);
+				int slotLimit = handler.getSlotLimit(slot);
 				totalFilled.addAndGet(stack.getCount() / (slotLimit / ((float) 64 / stack.getMaxStackSize())));
 				isEmpty.set(false);
 			}
