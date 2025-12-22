@@ -164,8 +164,8 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		}
 
 		@Override
-		public int getInternalSlotLimit(int slot) {
-			return inventoryHandler.getInternalSlotLimit(slot);
+		public boolean isInsertBlocked() {
+			return inventoryHandler.isInsertBlocked();
 		}
 	}
 }
