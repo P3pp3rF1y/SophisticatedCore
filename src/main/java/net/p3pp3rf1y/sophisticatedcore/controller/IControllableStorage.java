@@ -77,7 +77,7 @@ public interface IControllableStorage extends IControllerBoundable {
 	}
 
 	default void registerWithControllerOnLoad() {
-		getControllerPos().ifPresent(controllerPos -> {
+		getControllerPos().ifPresentOrElse(controllerPos -> {
 			Level level = getStorageBlockLevel();
 			if (!level.isClientSide()) {
 				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class)
@@ -91,7 +91,7 @@ public interface IControllableStorage extends IControllerBoundable {
 								}
 						);
 			}
-		});
+		}, this::tryToAddToController);
 	}
 
 	default void changeSlots(int newSlots) {
