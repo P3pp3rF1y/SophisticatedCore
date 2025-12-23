@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade, ISlotLimitUpgrade {
+		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
 	private boolean shouldVoidOverflow;
@@ -144,10 +144,5 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 
 	public boolean isVoidAnythingEnabled() {
 		return upgradeItem.isVoidAnythingEnabled();
-	}
-
-	@Override
-	public int getSlotLimit() {
-		return 64;
 	}
 }
