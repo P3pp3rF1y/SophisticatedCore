@@ -199,5 +199,10 @@ public class FilteredItemHandler<T extends ResourceHandler<ItemResource>> implem
 		public int getInternalSlotLimit(int slot) {
 			return inventoryHandler.getInternalSlotLimit(slot);
 		}
+
+		@Override
+		public boolean isInsertBlocked() {
+			return inventoryHandler.isInsertBlocked();
+		}
 	}
 }

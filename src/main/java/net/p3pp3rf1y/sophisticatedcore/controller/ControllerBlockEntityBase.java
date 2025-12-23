@@ -19,6 +19,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.inventory.IInsertBlockOverride;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
@@ -31,7 +32,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class ControllerBlockEntityBase extends BlockEntity implements ResourceHandler<ItemResource> {
+public abstract class ControllerBlockEntityBase extends BlockEntity implements ResourceHandler<ItemResource>, IInsertBlockOverride {
 	private List<BlockPos> storagePositions = new ArrayList<>();
 	private final Map<BlockPos, Integer> storagePositionIndexes = new HashMap<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
@@ -701,7 +702,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	private int insertIntoStoragesThatMatchStack(ItemResource resource, int amount, ItemStackKey stackKey, TransactionContext tx) {
 		if (stackStorages.containsKey(stackKey)) {
 			Set<BlockPos> positions = stackStorages.get(stackKey);
-			return insertIntoStorages(positions, resource, amount, tx, true);
+			return insertIntoStorages(positions, resource, amount, tx, false);
 		}
 		return 0;
 	}
@@ -928,5 +929,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	public boolean hasMatchingStackOrItem(ItemStackKey stackKey) {
 		Item item = stackKey.stack().getItem();
 		return stackStorages.containsKey(stackKey) || itemStackKeys.containsKey(item) || memorizedStackStorages.containsKey(stackKey.hashCode()) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	}
+
+	@Override
+	public boolean isInsertBlocked() {
+		return storagePositions.stream().allMatch(pos -> getWrapperValueFromHolder(pos, storageWrapper -> storageWrapper.getInventoryHandler().isInsertBlocked()).orElse(true));
 	}
 }

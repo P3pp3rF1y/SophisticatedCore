@@ -26,7 +26,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
-public abstract class InventoryHandler extends ItemStacksResourceHandler implements ITrackedContentsItemResourceHandler, IndexModifier<ItemResource> {
+public abstract class InventoryHandler extends ItemStacksResourceHandler implements ITrackedContentsItemResourceHandler, IndexModifier<ItemResource>, IInsertBlockOverride {
 	protected final IStorageWrapper storageWrapper;
 	private final ContainerContents.InventoryData inventoryData;
 	private final Runnable saveHandler;
@@ -611,6 +611,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		return hasVoidUpgrade;
 	}
 
+	@Override
 	public boolean isInsertBlocked() {
 		if (hasVoidUpgrade()) {
 			return false;

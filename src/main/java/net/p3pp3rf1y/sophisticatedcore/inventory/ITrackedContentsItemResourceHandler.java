@@ -6,7 +6,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public interface ITrackedContentsItemResourceHandler extends ResourceHandler<ItemResource>, ISlotStackAccessor {
+public interface ITrackedContentsItemResourceHandler extends ResourceHandler<ItemResource>, ISlotStackAccessor, IInsertBlockOverride {
 
 	Set<ItemStackKey> getTrackedStacks();
 
