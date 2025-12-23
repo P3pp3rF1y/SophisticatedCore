@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.JukeboxSong;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
@@ -147,6 +148,13 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 		private float getPlaybackRemainingProgress() {
 			long finishTime = getContainer().getDiscFinishTime();
 			int remaining = (int) (finishTime - minecraft.level.getGameTime());
+
+			ItemStack disc = getContainer().getUpgradeWrapper().getDisc();
+			if (!CustomDiscHandlers.isVanillaDisc(disc)) {
+				return CustomDiscHandlers.getMusicLengthInTicks(disc)
+						.map(lengthInTicks -> remaining / (float) lengthInTicks)
+						.orElse(0f);
+			}
 
 			Optional<Holder<JukeboxSong>> song = getContainer().getJukeboxSong(minecraft.level);
 
