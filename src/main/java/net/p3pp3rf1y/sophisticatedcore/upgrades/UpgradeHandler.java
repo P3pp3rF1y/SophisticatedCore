@@ -36,6 +36,7 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 	private IUpgradeWrapperAccessor wrapperAccessor = null;
 	private boolean persistent = true;
 	private final Map<Class<? extends IUpgradeWrapper>, Consumer<? extends IUpgradeWrapper>> upgradeDefaultsHandlers = new HashMap<>();
+	private final Set<Integer> runningOnBeforeRemovedOnSlots = new HashSet<>();
 
 	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
 		super(numberOfUpgradeSlots);
@@ -183,10 +184,12 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 		ItemStack originalStack = getStackInSlot(slot);
 		Objects.checkIndex(slot, size());
 
-		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && !originalStack.isEmpty()) {
+		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && !originalStack.isEmpty() && !runningOnBeforeRemovedOnSlots.contains(slot)) {
+			runningOnBeforeRemovedOnSlots.add(slot);
 			if (!ItemStack.isSameItemSameComponents(originalStack, stack)) {
 				getSlotWrappers().get(slot).onBeforeRemoved();
 			}
+			runningOnBeforeRemovedOnSlots.remove(slot);
 		}
 
 		stacks.set(slot, stack);
