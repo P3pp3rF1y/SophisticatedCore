@@ -21,6 +21,7 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 		if (upgrade.has(DataComponents.CONTAINER)) {
 			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
 		}
+		upgrade.remove(DataComponents.CONTAINER);
 		inventory = new ComponentItemStacksHandler(upgrade, ModCoreDataComponents.LENIENT_CONTAINER.get(), 9) {
 			@Override
 			protected void onContentsChanged(int index, ItemStack previousContents) {

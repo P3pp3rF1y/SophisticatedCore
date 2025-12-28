@@ -70,6 +70,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		if (upgrade.has(DataComponents.CONTAINER)) {
 			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
 		}
+		upgrade.remove(DataComponents.CONTAINER);
 		inventory = new TankComponentItemHandler(upgrade);
 	}
 
