@@ -47,6 +47,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (upgrade.has(DataComponents.CONTAINER)) {
 			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
 		}
+		upgrade.remove(DataComponents.CONTAINER);
 		discInventory = new ComponentItemStacksHandler(upgrade, ModCoreDataComponents.LENIENT_CONTAINER.get(), upgradeItem.getNumberOfSlots()) {
 			@Override
 			protected void onContentsChanged(int index, ItemStack previousContents) {

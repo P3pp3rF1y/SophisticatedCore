@@ -43,6 +43,7 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 		if (upgrade.has(DataComponents.CONTAINER)) {
 			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
 		}
+		upgrade.remove(DataComponents.CONTAINER);
 		inventory = new BatteryComponentItemHandler(upgrade);
 		energyStored = getEnergyStored(upgrade);
 	}
