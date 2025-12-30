@@ -11,7 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class SyncContainerStacksMessage {
+public class SyncContainerStacksMessage implements ISplittableMessage {
 	private final int windowId;
 	private final int stateId;
 	private final List<ItemStack> itemStacks;
