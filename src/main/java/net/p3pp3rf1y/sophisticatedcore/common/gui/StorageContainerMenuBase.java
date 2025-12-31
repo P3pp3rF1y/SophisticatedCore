@@ -1650,14 +1650,30 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return slot.mayPickup(player) && !(slot instanceof ResultSlot);
 	}
 
-	private void reloadUpgradeControl() {
-		if (!isUpdatingFromPacket) {
+	private void reloadUpgradeControl(boolean removeOpenTabId) {
+		if (!isUpdatingFromPacket && removeOpenTabId) {
 			storageWrapper.removeOpenTabId();
 		}
+		NonNullList<ItemStack> previousLastUpgradeSlots = NonNullList.create();
+		previousLastUpgradeSlots.addAll(lastUpgradeSlots);
+		NonNullList<RemoteSlot> previousRemoteUpgradeSlots = NonNullList.create();
+		previousRemoteUpgradeSlots.addAll(remoteUpgradeSlots);
 		removeUpgradeSettingsSlots();
 		upgradeContainers.clear();
 		addUpgradeSettingsContainers(player);
+		setPreviousLastAndRemoteSlots(previousLastUpgradeSlots, previousRemoteUpgradeSlots);
 		onUpgradesChanged();
+		sendEmptySlotIcons();
+		sendAdditionalSlotInfo();
+	}
+
+	private void setPreviousLastAndRemoteSlots(NonNullList<ItemStack> previousLastUpgradeSlots, NonNullList<RemoteSlot> previousRemoteUpgradeSlots) {
+		for (int i = 0; i < lastUpgradeSlots.size() && i < previousLastUpgradeSlots.size(); i++) {
+			lastUpgradeSlots.set(i, previousLastUpgradeSlots.get(i));
+		}
+		for (int i = 0; i < remoteUpgradeSlots.size() && i < previousRemoteUpgradeSlots.size(); i++) {
+			remoteUpgradeSlots.set(i, previousRemoteUpgradeSlots.get(i));
+		}
 	}
 
 	private void removeUpgradeSettingsSlots() {
@@ -1680,9 +1696,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		if (upgradeChangeListener != null) {
 			upgradeChangeListener.accept(StorageContainerMenuBase.this);
 		}
-
-		sendEmptySlotIcons();
-		sendAdditionalSlotInfo();
 	}
 
 	@Override
@@ -1760,28 +1773,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		ClientPacketDistributor.sendToServer(new TransferItemsPayload(false, filterByContents));
 	}
 
-	private boolean updateWrappersAndCheckForReloadNeeded() {
-		int checkedContainersCount = 0;
-		for (Map.Entry<Integer, IUpgradeWrapper> slotWrapper : storageWrapper.getUpgradeHandler().getSlotWrappers().entrySet()) {
-			UpgradeContainerBase<?, ?> container = upgradeContainers.get(slotWrapper.getKey());
-			if (slotWrapper.getValue().hideSettingsTab()) {
-				if (container != null) {
-					return true;
-				}
-			} else if (container == null || container.getUpgradeWrapper().isEnabled() != slotWrapper.getValue().isEnabled()) {
-				return true;
-			} else if (container.getUpgradeWrapper() != slotWrapper.getValue()) {
-				if (container.getUpgradeWrapper().getUpgradeStack().getItem() != slotWrapper.getValue().getUpgradeStack().getItem()) {
-					return true;
-				} else {
-					container.setUpgradeWrapper(slotWrapper.getValue());
-					checkedContainersCount++;
-				}
-			} else {
-				checkedContainersCount++;
-			}
-		}
-		return checkedContainersCount != upgradeContainers.size();
+	private record ReloadCheckResult(boolean reloadNeeded, boolean removeOpenTabId) {
+		public static final ReloadCheckResult NO_RELOAD_NEEDED = new ReloadCheckResult(false, false);
+		public static final ReloadCheckResult RELOAD_NEEDED = new ReloadCheckResult(true, true);
+		public static final ReloadCheckResult RELOAD_NEEDED_KEEP_TAB = new ReloadCheckResult(true, false);
 	}
 
 	protected void onUpgradeChanged() {
@@ -1858,13 +1853,47 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 			upgradeHandler.setStackInSlot(slotIndex, stack);
 
-			if ((!isUpdatingFromPacket && wasEmpty != stack.isEmpty()) || updateWrappersAndCheckForReloadNeeded()) {
-				reloadUpgradeControl();
+			ReloadCheckResult reloadCheckResult = updateWrappersAndCheckForReloadNeeded(wasEmpty, stack);
+			if (reloadCheckResult.reloadNeeded()) {
+				reloadUpgradeControl(reloadCheckResult.removeOpenTabId());
 				if (!isFirstLevelStorage()) {
 					parentStorageWrapper.getUpgradeHandler().refreshUpgradeWrappers();
 				}
 				onUpgradeChanged();
 			}
+		}
+
+		private ReloadCheckResult updateWrappersAndCheckForReloadNeeded(boolean wasEmpty, ItemStack stack) {
+			if ((!isUpdatingFromPacket && wasEmpty != stack.isEmpty())) {
+				return ReloadCheckResult.RELOAD_NEEDED;
+			}
+
+			int checkedContainersCount = 0;
+			for (Map.Entry<Integer, IUpgradeWrapper> slotWrapper : storageWrapper.getUpgradeHandler().getSlotWrappers().entrySet()) {
+				UpgradeContainerBase<?, ?> container = upgradeContainers.get(slotWrapper.getKey());
+				if (slotWrapper.getValue().hideSettingsTab()) {
+					if (container != null) {
+						return ReloadCheckResult.RELOAD_NEEDED;
+					}
+				} else if (container == null || container.getUpgradeWrapper().isEnabled() != slotWrapper.getValue().isEnabled()) {
+					return ReloadCheckResult.RELOAD_NEEDED;
+				} else if (container.getUpgradeWrapper() != slotWrapper.getValue()) {
+					if (!player.level().isClientSide() || container.getUpgradeWrapper().getUpgradeStack().getItem() != slotWrapper.getValue().getUpgradeStack().getItem()) {
+						if (container.getUpgradeWrapper().getUpgradeStack().getItem() == slotWrapper.getValue().getUpgradeStack().getItem()) {
+							return ReloadCheckResult.RELOAD_NEEDED_KEEP_TAB;
+						} else {
+							return ReloadCheckResult.RELOAD_NEEDED;
+						}
+					} else {
+						container.setUpgradeWrapper(slotWrapper.getValue());
+						checkedContainersCount++;
+					}
+				} else {
+					checkedContainersCount++;
+				}
+			}
+
+			return checkedContainersCount != upgradeContainers.size() ? ReloadCheckResult.RELOAD_NEEDED : ReloadCheckResult.NO_RELOAD_NEEDED;
 		}
 
 		@Override
