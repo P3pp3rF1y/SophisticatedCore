@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter, IInsertBlockOverride {
+public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter, IItemHandlerSimpleExtractor, IInsertBlockOverride {
 
 	Set<ItemStackKey> getTrackedStacks();
 
