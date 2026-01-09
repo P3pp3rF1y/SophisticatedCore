@@ -5,7 +5,6 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -28,10 +27,5 @@ public class CoreJeiPlugin implements IModPlugin {
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
 		registration.addRecipes(RecipeTypes.CRAFTING, ClientRecipeHelper.transformAllRecipesOfType(RecipeType.CRAFTING, UpgradeNextTierRecipe.class, JeiClientRecipeHelper::copyShapedRecipe));
-	}
-
-	@Override
-	public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
-		JeiClientCompat.setRuntime(jeiRuntime);
 	}
 }

@@ -63,6 +63,10 @@ public class WorldHelper {
 		world.sendBlockUpdated(tile.getBlockPos(), tile.getBlockState(), tile.getBlockState(), 3);
 	}
 
+	public static List<BlockEntity> getBlockEntitiesInRange(Level level, BlockPos origin, int range) {
+		return getBlockEntitiesInRange(level, origin, range, BlockEntity.class);
+	}
+
 	public static <T> List<T> getBlockEntitiesInRange(Level level, BlockPos origin, int range, Class<T> beClass) {
 		List<T> out = new ArrayList<>();
 

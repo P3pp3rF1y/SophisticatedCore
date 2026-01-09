@@ -69,11 +69,7 @@ public class PacketHandler {
 		registerMessage(SyncSlotChangeErrorMessage.class, SyncSlotChangeErrorMessage::encode, SyncSlotChangeErrorMessage::decode, SyncSlotChangeErrorMessage::onMessage);
 		registerMessage(SyncDatapackSettingsTemplateMessage.class, SyncDatapackSettingsTemplateMessage::encode, SyncDatapackSettingsTemplateMessage::decode, SyncDatapackSettingsTemplateMessage::onMessage);
 		registerMessage(TransferItemsMessage.class, TransferItemsMessage::encode, TransferItemsMessage::decode, TransferItemsMessage::onMessage);
-		registerMessage(RequestItemHighlightsMessage.class, RequestItemHighlightsMessage::encode, RequestItemHighlightsMessage::decode, RequestItemHighlightsMessage::onMessage);
-		registerMessage(SyncItemHighlightsMessage.class, SyncItemHighlightsMessage::encode, SyncItemHighlightsMessage::decode, SyncItemHighlightsMessage::onMessage);
-		registerMessage(DepositItemsMessage.class, DepositItemsMessage::encode, DepositItemsMessage::decode, DepositItemsMessage::onMessage);
-		registerMessage(SyncItemTransfersMessage.class, SyncItemTransfersMessage::encode, SyncItemTransfersMessage::decode, SyncItemTransfersMessage::onMessage);
-		registerMessage(RestockItemsMessage.class, RestockItemsMessage::encode, RestockItemsMessage::decode, RestockItemsMessage::onMessage);
+		registerMessage(SyncBlockHighlightsMessage.class, SyncBlockHighlightsMessage::encode, SyncBlockHighlightsMessage::decode, SyncBlockHighlightsMessage::onMessage);
 	}
 
 	public <M> void registerMessage(Class<M> messageType,

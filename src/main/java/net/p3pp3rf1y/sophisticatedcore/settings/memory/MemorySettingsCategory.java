@@ -12,13 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -314,6 +308,14 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	public boolean matchesFilter(ItemStack stack) {
 		return filterItemSlots.containsKey(stack.getItem()) || (!filterStackSlots.isEmpty() && filterStackSlots.containsKey(ItemStackKey.getHashCode(stack)));
+	}
+
+	public boolean matchesStackKey(ItemStackKey stackKey) {
+		return filterStackSlots.containsKey(stackKey.hashCode());
+	}
+
+	public boolean matchesItem(Item item) {
+		return filterItemSlots.containsKey(item);
 	}
 
 	public void registerListeners(Consumer<Item> onItemAdded, Consumer<Item> onItemRemoved, Consumer<Integer> onStackAdded, Consumer<Integer> onStackRemoved) {

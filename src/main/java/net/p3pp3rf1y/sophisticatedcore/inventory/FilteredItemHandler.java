@@ -4,7 +4,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 
-import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,7 +12,7 @@ import java.util.function.Consumer;
 public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
 	protected final T inventoryHandler;
 	protected final List<FilterLogic> inputFilters;
-	private final List<FilterLogic> outputFilters;
+	protected final List<FilterLogic> outputFilters;
 
 	public FilteredItemHandler(T inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 		this.inventoryHandler = inventoryHandler;
@@ -26,13 +25,11 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return inventoryHandler.getSlots();
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		return inventoryHandler.getStackInSlot(slot);
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		if (inputFilters.isEmpty()) {
@@ -46,7 +43,6 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return stack;
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		if (outputFilters.isEmpty()) {
@@ -166,6 +162,19 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		@Override
 		public boolean isInsertBlocked() {
 			return inventoryHandler.isInsertBlocked();
+		}
+
+		@Override
+		public ItemStack extractItem(ItemStack stack, boolean simulate) {
+			if (outputFilters.isEmpty()) {
+				return inventoryHandler.extractItem(stack, simulate);
+			}
+
+			if (matchesFilters(stack, outputFilters)) {
+				return inventoryHandler.extractItem(stack, simulate);
+			}
+
+			return ItemStack.EMPTY;
 		}
 	}
 }
