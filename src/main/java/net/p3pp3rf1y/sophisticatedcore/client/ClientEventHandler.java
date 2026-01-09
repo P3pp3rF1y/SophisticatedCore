@@ -10,17 +10,16 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
@@ -30,22 +29,16 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
-import net.p3pp3rf1y.sophisticatedcore.client.render.ItemFlightAnimator;
-import net.p3pp3rf1y.sophisticatedcore.client.render.ItemInStorageHighlightRenderer;
+import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
-import org.lwjgl.glfw.GLFW;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
-import static net.neoforged.neoforge.client.settings.KeyConflictContext.IN_GAME;
 
 public class ClientEventHandler {
 	private ClientEventHandler() {
@@ -53,19 +46,8 @@ public class ClientEventHandler {
 
 	private static final int MIDDLE_BUTTON = 2;
 	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "keybind.sophisticatedcore.category";
-	public static final KeyMapping ITEM_HIGHLIGHT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("item_highlight"),
-			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_SEMICOLON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
-	public static final KeyMapping ITEM_DEPOSIT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("deposit_item"),
-			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_APOSTROPHE), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
-	public static final KeyMapping ITEM_RESTOCK_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("restock_item"),
-			ItemHighlightKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(InputConstants.KEY_BACKSLASH), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping SORT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("sort"),
 			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
-
-	private static final List<Supplier<ItemStack>> HOVERED_STACK_SUPPLIERS = new ArrayList<>();
-	public static void registerHoveredStackSupplier(Supplier<ItemStack> stackSupplier) {
-		HOVERED_STACK_SUPPLIERS.add(stackSupplier);
-	}
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
@@ -77,8 +59,6 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
-		eventBus.addListener(ClientEventHandler::handleKeyInput);
-		eventBus.addListener(ClientEventHandler::onPostClientTick);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 	}
 
@@ -87,152 +67,23 @@ public class ClientEventHandler {
 			return;
 		}
 		float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
-		ItemInStorageHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
-		ItemFlightAnimator.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
+		BlockHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
-		event.register(ITEM_HIGHLIGHT_KEYBIND);
 		event.register(SORT_KEYBIND);
-		event.register(ITEM_DEPOSIT_KEYBIND);
-		event.register(ITEM_RESTOCK_KEYBIND);
-	}
-
-	public static void onPostClientTick(ClientTickEvent.Post event) {
-		if (ITEM_HIGHLIGHT_KEYBIND.consumeClick()) {
-			tryHighlightItem();
-		}
-	}
-
-	public static void handleKeyInput(InputEvent.Key event) {
-		Screen screen = Minecraft.getInstance().screen;
-		if (screen != null && screen.isFocused()) {
-			return;
-		}
-
-		if (!ITEM_DEPOSIT_KEYBIND.isUnbound() && ITEM_DEPOSIT_KEYBIND.getKey().getValue() == event.getKey() && event.getAction() == GLFW.GLFW_PRESS) {
-			tryDepositItem(event);
-		} else if (!ITEM_RESTOCK_KEYBIND.isUnbound() && ITEM_RESTOCK_KEYBIND.getKey().getValue() == event.getKey() && event.getAction() == GLFW.GLFW_PRESS) {
-			tryRestockItem(event);
-		}
-	}
-
-	private static ItemStack getHoveredStack() {
-		for (Supplier<ItemStack> supplier : HOVERED_STACK_SUPPLIERS) {
-			ItemStack stack = supplier.get();
-			if (!stack.isEmpty()) {
-				return stack;
-			}
-		}
-		return ItemStack.EMPTY;
-	}
-
-	private static void tryRestockItem(InputEvent.Key event) {
-		LocalPlayer player = Minecraft.getInstance().player;
-		if (player == null) {
-			return;
-		}
-
-		int mods = event.getModifiers();
-		boolean mainInventory = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
-		boolean hotbar = (mods & GLFW.GLFW_MOD_ALT) != 0;
-		boolean fillEmpty = (mods & GLFW.GLFW_MOD_CONTROL) != 0;
-
-		Screen screen = Minecraft.getInstance().screen;
-		ItemStack filter = getHoveredStack();
-		int slot;
-		if (filter.isEmpty()) {
-			if (screen != null) {
-				if (screen instanceof AbstractContainerScreen<?> containerScreen) {
-					Slot slotUnderMouse = containerScreen.getSlotUnderMouse();
-					if (slotUnderMouse != null && !slotUnderMouse.getItem().isEmpty()) {
-						filter = slotUnderMouse.getItem();
-						slot = slotUnderMouse.getSlotIndex();
-					} else {
-						return; // exit if not hovering over a slot
-					}
-				} else {
-					return; // exit if not in a container screen
-				}
-			} else {
-				filter = player.getMainHandItem();
-				slot = player.getInventory().selected;
-			}
-		} else {
-			slot = player.getInventory().getFreeSlot();
-			fillEmpty = true;
-			if (slot == -1) {
-				return;
-			}
-		}
-		if (mainInventory || hotbar) {
-			ItemInteractionHandler.restockMultipleItems(player, filter, mainInventory, hotbar, fillEmpty);
-		} else {
-			ItemInteractionHandler.restockItem(player, filter, slot, fillEmpty);
-		}
-	}
-
-	private static void tryDepositItem(InputEvent.Key event) {
-		LocalPlayer player = Minecraft.getInstance().player;
-		if (player == null) {
-			return;
-		}
-
-		int mods = event.getModifiers();
-		boolean mainInventory = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
-		boolean onlyMatching = (mods & GLFW.GLFW_MOD_CONTROL) == 0;
-		boolean hotbar = (mods & GLFW.GLFW_MOD_ALT) != 0;
-
-		if (mainInventory || hotbar) {
-			tryDepositMultipleItems(player, mainInventory, hotbar, onlyMatching);
-			return;
-		}
-
-		Screen screen = Minecraft.getInstance().screen;
-		if (screen != null) {
-			if (screen instanceof AbstractContainerScreen<?> containerScreen) {
-				tryDepositItem(player, containerScreen.getSlotUnderMouse(), onlyMatching);
-			}
-		} else {
-			tryDepositItem(player, onlyMatching);
-		}
-	}
-
-	private static void tryDepositMultipleItems(Player player, boolean mainInventory, boolean hotbar, boolean onlyMatching) {
-		ItemInteractionHandler.depositMultipleItems(player, mainInventory, hotbar, onlyMatching);
-	}
-
-	private static void tryDepositItem(Player player, boolean onlyMatching) {
-		ItemStack item = player.getMainHandItem();
-		if (!item.isEmpty()) {
-			ItemInteractionHandler.depositItem(player, player.getInventory().selected, onlyMatching);
-		}
-	}
-
-	private static boolean tryDepositItem(Player player, @Nullable Slot slot, boolean onlyMatching) {
-		if (slot == null || slot.getItem().isEmpty() || !(slot.container instanceof Inventory)) {
-			return false;
-		}
-		ItemInteractionHandler.depositItem(player, slot.getSlotIndex(), onlyMatching);
-		return true;
 	}
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
 		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
-		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(key) && event.getScreen() instanceof AbstractContainerScreen screen && tryHighlightItem(screen.getSlotUnderMouse())) {
-			screen.onClose();
-			event.setCanceled(true);
-		} else if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
+		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
 			event.setCanceled(true);
 		}
 	}
 
 	public static void handleGuiMouseKeyPress(ScreenEvent.MouseButtonPressed.Pre event) {
 		InputConstants.Key input = InputConstants.Type.MOUSE.getOrCreate(event.getButton());
-		if (ITEM_HIGHLIGHT_KEYBIND.isActiveAndMatches(input) && event.getScreen() instanceof AbstractContainerScreen screen && tryHighlightItem(screen.getSlotUnderMouse())) {
-			screen.onClose();
-			event.setCanceled(true);
-		} else if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
+		if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
 			event.setCanceled(true);
 		}
 	}
@@ -250,28 +101,6 @@ public class ClientEventHandler {
 			}
 		}
 		return false;
-	}
-
-	private static boolean tryHighlightItem(@Nullable Slot slot) {
-		Minecraft mc = Minecraft.getInstance();
-		LocalPlayer player = mc.player;
-		if (slot == null || player == null || slot.getItem().isEmpty()) {
-			return false;
-		}
-
-		ItemInStorageHighlightRenderer.highlightItem(player, slot.getItem());
-
-		return true;
-	}
-
-	private static void tryHighlightItem() {
-		Minecraft mc = Minecraft.getInstance();
-		LocalPlayer player = mc.player;
-		if (player == null || player.getMainHandItem().isEmpty()) {
-			return;
-		}
-
-		ItemInStorageHighlightRenderer.highlightItem(player, player.getMainHandItem());
 	}
 
 	private static void onDrawScreen(ScreenEvent.Render.Post event) {
@@ -371,20 +200,6 @@ public class ClientEventHandler {
 				return XP_FLOWING_TEXTURE;
 			}
 		}, ModFluids.XP_FLUID_TYPE.get());
-	}
-
-	private static class ItemHighlightKeyConflictContext implements IKeyConflictContext {
-		public static final ItemHighlightKeyConflictContext INSTANCE = new ItemHighlightKeyConflictContext();
-
-		@Override
-		public boolean isActive() {
-			return (IN_GAME.isActive() && !Minecraft.getInstance().player.getMainHandItem().isEmpty()) || GUI.isActive();
-		}
-
-		@Override
-		public boolean conflicts(IKeyConflictContext other) {
-			return this == other;
-		}
 	}
 
 	private static class SophisticatedScreenKeyConflictContext implements IKeyConflictContext {

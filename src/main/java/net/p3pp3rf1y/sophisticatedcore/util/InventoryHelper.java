@@ -138,6 +138,24 @@ public class InventoryHelper {
 		return remainingStack;
 	}
 
+	public static ItemStack insertIntoInventoryMatchingFirst(ItemStack stack, IItemHandler inventory, boolean simulate) {
+		ItemStack remainingStack = stack.copy();
+		int slots = inventory.getSlots();
+		for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
+			ItemStack slotStack = inventory.getStackInSlot(slot);
+			if (!slotStack.isEmpty() && ItemStack.isSameItemSameComponents(slotStack, remainingStack)) {
+				remainingStack = inventory.insertItem(slot, remainingStack, simulate);
+			}
+		}
+		for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
+			ItemStack slotStack = inventory.getStackInSlot(slot);
+			if (slotStack.isEmpty()) {
+				remainingStack = inventory.insertItem(slot, remainingStack, simulate);
+			}
+		}
+		return remainingStack;
+	}
+
 	public static ItemStack extractFromInventory(Item item, int count, IItemHandler inventory, boolean simulate) {
 		return extractFromInventory(stack -> stack.getItem() == item, count, inventory, simulate);
 	}

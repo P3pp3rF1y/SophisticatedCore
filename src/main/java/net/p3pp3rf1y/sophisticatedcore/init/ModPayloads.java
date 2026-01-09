@@ -29,10 +29,6 @@ public class ModPayloads {
 		registrar.playToClient(SyncEmptySlotIconsPayload.TYPE, SyncEmptySlotIconsPayload.STREAM_CODEC, SyncEmptySlotIconsPayload::handlePayload);
 		registrar.playToClient(SyncSlotChangeErrorPayload.TYPE, SyncSlotChangeErrorPayload.STREAM_CODEC, SyncSlotChangeErrorPayload::handlePayload);
 		registrar.playToClient(SyncDatapackSettingsTemplatePayload.TYPE, SyncDatapackSettingsTemplatePayload.STREAM_CODEC, SyncDatapackSettingsTemplatePayload::handlePayload);
-		registrar.playToServer(RequestItemHighlightsPayload.TYPE, RequestItemHighlightsPayload.STREAM_CODEC, RequestItemHighlightsPayload::handlePayload);
-		registrar.playToClient(SyncItemHighlightsPayload.TYPE, SyncItemHighlightsPayload.STREAM_CODEC, SyncItemHighlightsPayload::handlePayload);
-		registrar.playToServer(DepositItemsPayload.TYPE, DepositItemsPayload.STREAM_CODEC, DepositItemsPayload::handlePayload);
-		registrar.playToClient(SyncItemTransfersPayload.TYPE, SyncItemTransfersPayload.STREAM_CODEC, SyncItemTransfersPayload::handlePayload);
-		registrar.playToServer(RestockItemsPayload.TYPE, RestockItemsPayload.STREAM_CODEC, RestockItemsPayload::handlePayload);
+		registrar.playToClient(SyncBlockHighlightsPayload.TYPE, SyncBlockHighlightsPayload.STREAM_CODEC, SyncBlockHighlightsPayload::handlePayload);
 	}
 }
