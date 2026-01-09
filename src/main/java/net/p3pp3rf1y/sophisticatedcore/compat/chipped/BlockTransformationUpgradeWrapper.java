@@ -9,14 +9,13 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
-import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
 public class BlockTransformationUpgradeWrapper extends UpgradeWrapperBase<BlockTransformationUpgradeWrapper, BlockTransformationUpgradeItem> {
-	private final ResourceHandler<ItemResource> inputInventory;
+	private final ItemStacksResourceHandler inputInventory;
 	private final RecipeType<ChippedRecipe> recipeType;
 
 	protected BlockTransformationUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
@@ -33,7 +32,7 @@ public class BlockTransformationUpgradeWrapper extends UpgradeWrapperBase<BlockT
 			}
 		};
 		ItemStack inputItem = upgrade.getOrDefault(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.EMPTY).copy();
-		InventoryHelper.set(inputInventory, 0, ItemResource.of(inputItem), inputItem.getCount());
+		inputInventory.set(0, ItemResource.of(inputItem), inputItem.getCount());
 		recipeType = upgradeItem.getRecipeType();
 	}
 

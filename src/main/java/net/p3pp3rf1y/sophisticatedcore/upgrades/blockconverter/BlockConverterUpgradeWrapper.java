@@ -9,7 +9,6 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
-import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import javax.annotation.Nullable;
@@ -17,7 +16,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgradeItem<U, W>, W extends BlockConverterUpgradeWrapper<U, W>> extends UpgradeWrapperBase<W, U> {
-	private final ResourceHandler<ItemResource> inputInventory;
+	private final ItemStacksResourceHandler inputInventory;
 
 	public BlockConverterUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
@@ -33,7 +32,7 @@ public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgra
 			}
 		};
 		ItemStack inputItem = upgrade.getOrDefault(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.EMPTY).copy();
-		InventoryHelper.set(inputInventory, 0, ItemResource.of(inputItem), inputItem.getCount());
+		inputInventory.set(0, ItemResource.of(inputItem), inputItem.getCount());
 	}
 
 	public ResourceHandler<ItemResource> getInputInventory() {
