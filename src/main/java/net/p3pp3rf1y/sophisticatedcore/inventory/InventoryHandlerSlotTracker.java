@@ -71,8 +71,13 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
-		return memorySettings.matchesFilter(stack) || filterItemSlots.containsValue(stack.getItem());
+	public boolean hasExactStackMemorized(ItemStackKey stackKey) {
+		return memorySettings.matchesStackKey(stackKey);
+	}
+
+	@Override
+	public boolean hasItemMemorizedOrFiltered(Item item) {
+		return memorySettings.matchesItem(item) || filterItemSlots.containsValue(item);
 	}
 
 	@Override

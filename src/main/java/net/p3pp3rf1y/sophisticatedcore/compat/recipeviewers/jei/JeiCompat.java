@@ -1,8 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -13,9 +11,6 @@ public class JeiCompat implements ICompat {
 	@Override
 	public void init(IEventBus modBus) {
 		modBus.addListener(this::registerPackets);
-		if (FMLEnvironment.getDist() == Dist.CLIENT) {
-			JeiClientCompat.init();
-		}
 	}
 
 	@Override

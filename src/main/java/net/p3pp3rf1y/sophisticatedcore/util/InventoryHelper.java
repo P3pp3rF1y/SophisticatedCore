@@ -468,6 +468,42 @@ public class InventoryHelper {
 		return stacks;
 	}
 
+	public static int insertMatchingFirst(ResourceHandler<ItemResource> inventory, ItemStack stack) {
+		ItemResource resource = ItemResource.of(stack);
+		int amount = stack.getCount();
+
+		int inserted = 0;
+		try (var tx = Transaction.openRoot()) {
+			for (int index = 0; index < inventory.size(); index++) {
+				ItemResource slotResource = inventory.getResource(index);
+				if (!slotResource.isEmpty() && slotResource.equals(resource)) {
+					inserted += inventory.insert(index, resource, amount - inserted, tx);
+				}
+				if (inserted == amount) {
+					break;
+				}
+			}
+			for (int index = 0; index < inventory.size(); index++) {
+				ItemResource slotResource = inventory.getResource(index);
+				if (slotResource.isEmpty()) {
+					inserted += inventory.insert(index, resource, amount - inserted, tx);
+				}
+				if (inserted == amount) {
+					break;
+				}
+			}
+
+			if (inserted > 0) {
+				tx.commit();
+			}
+		}
+		return inserted;
+	}
+
+	public static int insert(ResourceHandler<ItemResource> inv, ItemStack stack) {
+		return insert(inv, ItemResource.of(stack), stack.getCount());
+	}
+
 	public static int insert(ResourceHandler<ItemResource> inv, ItemResource res, int amount) {
 		try (var tx = Transaction.openRoot()) {
 			int moved = inv.insert(res, amount, tx);

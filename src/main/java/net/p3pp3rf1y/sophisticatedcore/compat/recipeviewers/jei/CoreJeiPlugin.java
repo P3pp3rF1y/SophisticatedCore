@@ -5,7 +5,6 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -30,10 +29,5 @@ public class CoreJeiPlugin implements IModPlugin {
 		JeiRecipeDisplayGenerator generator = new JeiRecipeDisplayGenerator();
 		ClientRecipeHelper.addAllRecipesOfType(generator, RecipeType.CRAFTING, UpgradeNextTierRecipe.class);
 		registration.addRecipes(RecipeTypes.CRAFTING, generator.getCraftingRecipes());
-	}
-
-	@Override
-	public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
-		JeiClientCompat.setRuntime(jeiRuntime);
 	}
 }

@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 public class FilteredItemHandler<T extends ResourceHandler<ItemResource>> implements ResourceHandler<ItemResource> {
 	protected final T inventoryHandler;
 	protected final List<FilterLogic> inputFilters;
-	private final List<FilterLogic> outputFilters;
+	protected final List<FilterLogic> outputFilters;
 
 	public FilteredItemHandler(T inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 		this.inventoryHandler = inventoryHandler;

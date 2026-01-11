@@ -32,7 +32,9 @@ public interface ISlotTracker {
 
 	boolean hasEmptySlots();
 
-	boolean hasStackMemorizedOrFiltered(ItemStack stack);
+	boolean hasExactStackMemorized(ItemStackKey stackKey);
+
+	boolean hasItemMemorizedOrFiltered(Item item);
 
 	int getFirstMatchingSlot(ItemStackKey stackKey);
 
@@ -96,13 +98,18 @@ public interface ISlotTracker {
 		}
 
 		@Override
-		public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
+		public int getFirstMatchingSlot(ItemStackKey stackKey) {
+			return -1;
+		}
+
+		@Override
+		public boolean hasExactStackMemorized(ItemStackKey stackKey) {
 			return false;
 		}
 
 		@Override
-		public int getFirstMatchingSlot(ItemStackKey stackKey) {
-			return -1;
+		public boolean hasItemMemorizedOrFiltered(Item item) {
+			return false;
 		}
 
 		@Override
