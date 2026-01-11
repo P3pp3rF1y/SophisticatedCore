@@ -66,8 +66,13 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
-		return memorySettings.matchesFilter(stack) || filterItemSlots.containsValue(stack.getItem());
+	public boolean hasExactStackMemorized(ItemStackKey stackKey) {
+		return memorySettings.matchesStackKey(stackKey);
+	}
+
+	@Override
+	public boolean hasItemMemorizedOrFiltered(Item item) {
+		return memorySettings.matchesItem(item) || filterItemSlots.containsValue(item);
 	}
 
 	@Override
@@ -295,6 +300,44 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		}
 
 		return insertItemIntoHandler(itemHandler, inserter, overflowHandler, stack, simulate);
+	}
+
+	@Override
+	public ItemStack extractItemFromHandler(InventoryHandler inventoryHandler, IItemHandlerExtractor extractItemInternal, ItemStack stack, boolean simulate) {
+		if (partiallyFilledSlotStacks.isEmpty() && fullSlotStacks.isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+
+		ItemStackKey stackKey = ItemStackKey.of(stack);
+		int extracted = 0;
+
+		Set<Integer> slots = partiallyFilledStackSlots.get(stackKey);
+		if (slots != null && !slots.isEmpty()) {
+			int originalSize = slots.size();
+			int i = 0;
+			while (partiallyFilledStackSlots.get(stackKey) != null && !partiallyFilledStackSlots.get(stackKey).isEmpty() && i++ < originalSize) {
+				int matchingSlot = partiallyFilledStackSlots.get(stackKey).iterator().next();
+				extracted += extractItemInternal.extractItem(matchingSlot, stack.getCount() - extracted, simulate).getCount();
+				if (extracted >= stack.getCount()) {
+					break;
+				}
+			}
+		}
+
+		slots = fullStackSlots.get(stackKey);
+		if (slots != null && !slots.isEmpty() && stack.getCount() > extracted) {
+			int originalSize = slots.size();
+			int i = 0;
+			while (fullStackSlots.get(stackKey) != null && !fullStackSlots.get(stackKey).isEmpty() && i++ < originalSize) {
+				int matchingSlot = fullStackSlots.get(stackKey).iterator().next();
+				extracted += extractItemInternal.extractItem(matchingSlot, stack.getCount() - extracted, simulate).getCount();
+				if (extracted >= stack.getCount()) {
+					break;
+				}
+			}
+		}
+
+		return extracted > 0 ? stack.copyWithCount(extracted) : ItemStack.EMPTY;
 	}
 
 	@Override

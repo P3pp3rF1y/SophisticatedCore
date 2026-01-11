@@ -18,15 +18,11 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IInsertBlockOverride;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.inventory.*;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -589,7 +585,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return slot - baseIndexes.get(index - 1);
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		if (isSlotIndexInvalid(slot)) {
@@ -621,7 +616,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return false;
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		if (isSlotIndexInvalid(slot)) {
@@ -742,7 +736,6 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return remaining;
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		if (isSlotIndexInvalid(slot)) {
@@ -757,6 +750,37 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 
 		return ItemStack.EMPTY;
+	}
+
+	public ItemStack extractItem(ItemStack stack, boolean simulate) {
+		ItemStackKey stackKey = ItemStackKey.of(stack);
+		if (!stackStorages.containsKey(stackKey)) {
+			return ItemStack.EMPTY;
+		}
+
+		Set<BlockPos> positionsCopy = new LinkedHashSet<>(stackStorages.get(stackKey));
+
+		ItemStack remaining = stack;
+
+		for (BlockPos storagePos : positionsCopy) {
+			Integer idx = storagePositionIndexes.get(storagePos);
+			if (idx == null) {
+				continue;
+			}
+
+			IItemHandlerModifiable handler = getHandlerFromIndex(idx);
+			if (handler instanceof IItemHandlerSimpleExtractor simpleExtractor) {
+				ItemStack extracted = simpleExtractor.extractItem(stack, simulate);
+				if (extracted.getCount() > 0) {
+					remaining = stack.copyWithCount(remaining.getCount() - extracted.getCount());
+				}
+				if (remaining.isEmpty()) {
+					break;
+				}
+			}
+		}
+
+		return stack.getCount() == remaining.getCount() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - remaining.getCount());
 	}
 
 	@Override
@@ -894,9 +918,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		detachFromStoragesAndUnlinkBlocks();
 	}
 
-	public boolean hasMatchingStackOrItem(ItemStackKey stackKey) {
-		Item item = stackKey.getStack().getItem();
-		return stackStorages.containsKey(stackKey) || itemStackKeys.containsKey(item) || memorizedStackStorages.containsKey(stackKey.hashCode()) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	public boolean hasMatchingStack(ItemStackKey stackKey) {
+		return stackStorages.containsKey(stackKey) || memorizedStackStorages.containsKey(stackKey.hashCode());
+	}
+
+	public boolean hasMatchingItem(Item item) {
+		return itemStackKeys.containsKey(item) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
 	}
 
 	@Override
