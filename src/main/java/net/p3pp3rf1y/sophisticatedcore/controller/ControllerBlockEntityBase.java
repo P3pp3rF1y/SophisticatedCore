@@ -926,9 +926,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		detachFromStoragesAndUnlinkBlocks();
 	}
 
-	public boolean hasMatchingStackOrItem(ItemStackKey stackKey) {
-		Item item = stackKey.stack().getItem();
-		return stackStorages.containsKey(stackKey) || itemStackKeys.containsKey(item) || memorizedStackStorages.containsKey(stackKey.hashCode()) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	public boolean hasMatchingStack(ItemStackKey stackKey) {
+		return stackStorages.containsKey(stackKey) || memorizedStackStorages.containsKey(stackKey.hashCode());
+	}
+
+	public boolean hasMatchingItem(Item item) {
+		return itemStackKeys.containsKey(item) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
 	}
 
 	@Override

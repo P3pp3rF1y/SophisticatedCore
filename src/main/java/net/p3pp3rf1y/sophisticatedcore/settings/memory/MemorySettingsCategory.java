@@ -322,6 +322,14 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 		return filterStackSlots.containsKey(hash);
 	}
 
+	public boolean matchesStackKey(ItemStackKey stackKey) {
+		return filterStackSlots.containsKey(stackKey.hashCode());
+	}
+
+	public boolean matchesItem(Item item) {
+		return filterItemSlots.containsKey(item);
+	}
+
 	public void registerListeners(Consumer<Item> onItemAdded, Consumer<Item> onItemRemoved, Consumer<Integer> onStackAdded, Consumer<Integer> onStackRemoved) {
 		this.onItemAdded = onItemAdded;
 		this.onItemRemoved = onItemRemoved;

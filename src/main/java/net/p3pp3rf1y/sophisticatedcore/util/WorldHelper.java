@@ -73,6 +73,10 @@ public class WorldHelper {
 		return currentServer.fuelValues();
 	}
 
+	public static List<BlockEntity> getBlockEntitiesInRange(Level level, BlockPos origin, int range) {
+		return getBlockEntitiesInRange(level, origin, range, BlockEntity.class);
+	}
+
 	public static <T> List<T> getBlockEntitiesInRange(Level level, BlockPos origin, int range, Class<T> beClass) {
 		List<T> out = new ArrayList<>();
 
