@@ -272,11 +272,11 @@
   "gui.sophisticatedcore.error.add.no_upgrade_can_be_added": "No upgrade can be added",
   "gui.sophisticatedcore.error.remove.infinity_upgrade_only_admin": "Only admins can remove Infinity Upgrade",
   "gui.sophisticatedcore.error.remove.banned_item": "This item must be removed before the upgrade can be",
-    "gui.sophisticatedcore.narrate.tab_button": "Upgrade tab open/close button",
-    "gui.sophisticatedcore.narrate.context_button": "Context toggle set to: %s",
-    "gui.sophisticatedcore.narrate.context_button.usage": "Click to toggle context",
-    "fluid_type.sophisticatedcore.experience": "Experience",
-    "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
-  "keybind.sophisticatedcore.category": "Sophisticated Mods",
-  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack"
+  "gui.sophisticatedcore.narrate.tab_button": "Upgrade tab open/close button",
+  "gui.sophisticatedcore.narrate.context_button": "Context toggle set to: %s",
+  "gui.sophisticatedcore.narrate.context_button.usage": "Click to toggle context",
+  "fluid_type.sophisticatedcore.experience": "Experience",
+  "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
+  "key.category.sophisticatedcore.main": "Sophisticated Mods",
+  "key.sophisticatedcore.sort": "Sort Storage/Backpack"
 }
