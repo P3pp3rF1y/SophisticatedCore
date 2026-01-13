@@ -281,6 +281,6 @@
   "gui.sophisticatedcore.narrate.context_button.usage": "Click to toggle context",
   "fluid_type.sophisticatedcore.experience": "Experience",
   "gui.sophisticatedcore.tooltip.stack_count": "Count: %s",
-  "keybind.sophisticatedcore.category": "Sophisticated Mods",
-  "keybind.sophisticatedcore.sort": "Sort Storage/Backpack"
+  "key.category.sophisticatedcore.main": "Sophisticated Mods",
+  "key.sophisticatedcore.sort": "Sort Storage/Backpack"
 }
