@@ -461,8 +461,13 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 
 		private static PartitionerData deserializePartitionerData(CompoundTag partitionerNbt) {
 			int[] baseIndexes = partitionerNbt.getIntArray(BASE_INDEXES_TAG).orElse(new int[]{0});
-			List<String> partNames = partitionerNbt.getListOrEmpty("inventoryPartNames")
-					.stream().map(Tag::asString).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toCollection(ArrayList::new));
+			List<String> partNames = partitionerNbt.getList("inventoryPartNames")
+					.map(names -> names.stream().map(Tag::asString).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toCollection(ArrayList::new)))
+							.orElseGet(() -> {
+								ArrayList<String> list = new ArrayList<>();
+								list.add(IInventoryPartHandler.Default.NAME);
+								return list;
+							});
 			return new PartitionerData(baseIndexes, partNames);
 		}
 
