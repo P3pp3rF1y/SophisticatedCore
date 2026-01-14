@@ -73,11 +73,11 @@ repositories {
         name = "GHPReliquary"
         url = uri("https://maven.pkg.github.com/p3pp3rf1y/reliquary")
         credentials {
-            username = System.getenv("USERNAME")
+            username = System.getenv("GITHUB_ACTOR")
             password = System.getenv("GITHUB_TOKEN")
         }
         content {
-            includeGroupByRegex "reliquary.*"
+            includeModule("net.p3pp3rf1y", "reliquary")
         }
     }
 }
@@ -144,10 +144,10 @@ dependencies {
     if (findProject(':Reliquary') != null) {
         dependencies.implementation project(':Reliquary')
     } else {
-        dependencies.implementation("reliquary:reliquary:${reliquary_version}") {
+        dependencies.implementation("net.p3pp3rf1y:reliquary:${reliquary_version}") {
             transitive = false
         }
-        dependencies.testImplementation("reliquary:reliquary:${reliquary_version}") {
+        dependencies.testImplementation("net.p3pp3rf1y:reliquary:${reliquary_version}") {
             transitive = false
         }
     }
@@ -279,10 +279,10 @@ publishing {
     }
 }
 
-sonarqube {
+sonar {
     properties {
-        property "sonar.projectName", "${mod_id}"
         property "sonar.projectKey", "${sonar_project_key}"
+        property "sonar.organization", "p3pp3rf1y-github"
     }
 }
 
