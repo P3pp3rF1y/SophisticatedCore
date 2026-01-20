@@ -12,6 +12,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IExtractResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
@@ -229,6 +230,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		if (result > 0) {
 			slotTrackerJournal.updateSnapshots(transaction);
 			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
+
+			runOnAfterExtract(index, resource);
 		}
 		return result;
 	}
@@ -462,6 +465,13 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 			}
 		}
 		return moved;
+	}
+
+	private void runOnAfterExtract(int slot, ItemResource originalResource) {
+		List<IExtractResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IExtractResponseUpgrade.class);
+		for (IExtractResponseUpgrade upgrade : wrappers) {
+			upgrade.onAfterExtract(this, slot, originalResource);
+		}
 	}
 
 	public void setPersistent(boolean persistent) {
