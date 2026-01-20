@@ -7,6 +7,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.*;
@@ -84,7 +86,15 @@ public final class VoxelOutliner {
 		positions.forEach(pos -> {
 			BlockState state = level.getBlockState(pos);
 			VoxelShape shape = state.getShape(level, pos);
-
+			if (state.getBlock() instanceof IDoubleBlock doubleBlock) {
+				VoxelShape finalShape = shape;
+				shape = doubleBlock.getOtherPosition(state, pos).map(otherPos -> {
+					BlockState otherState = level.getBlockState(otherPos);
+					VoxelShape otherShape = otherState.getShape(level, otherPos);
+					otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
+					return Shapes.join(finalShape, otherShape, BooleanOp.OR);
+				}).orElse(shape);
+			}
 			edges.addAll(linesFromVoxelShapeSimplified(shape, pos));
 		});
 
