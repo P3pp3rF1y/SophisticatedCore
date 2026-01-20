@@ -14,6 +14,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IExtractResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IOverflowResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
@@ -224,6 +225,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		if (existing.getCount() <= toExtract) {
 			if (!simulate) {
 				setSlotStack(slot, ItemStack.EMPTY);
+				runOnAfterExtract(slot, this, existing);
 				return existing;
 			} else {
 				return existing.copy();
@@ -231,6 +233,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		} else {
 			if (!simulate) {
 				setSlotStack(slot, existing.copyWithCount(existing.getCount() - toExtract));
+				runOnAfterExtract(slot, this, existing);
 			}
 
 			return existing.copyWithCount(toExtract);
@@ -329,6 +332,13 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			}
 		}
 		return remaining;
+	}
+
+	private void runOnAfterExtract(int slot, IItemHandlerSimpleInserter handler, ItemStack originalContents) {
+		List<IExtractResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IExtractResponseUpgrade.class);
+		for (IExtractResponseUpgrade upgrade : wrappers) {
+			upgrade.onAfterExtract(handler, slot, originalContents);
+		}
 	}
 
 	@Override
