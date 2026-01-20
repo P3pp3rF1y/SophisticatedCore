@@ -37,8 +37,8 @@ public class CompactingUpgradeContainer extends UpgradeContainerBase<CompactingU
 			setCompactNonUncraftable(data.getBoolean(DATA_SHOULD_COMPACT_NON_UNCRAFTABLE));
 		} else if (data.contains(DATA_SHOULD_WORKD_IN_GUI)) {
 			setShouldWorkdInGUI(data.getBoolean(DATA_SHOULD_WORKD_IN_GUI));
-		} else {
-			filterLogicContainer.handlePacket(data);
+		} else if (filterLogicContainer.handlePacket(data)) {
+			upgradeWrapper.resetFullSlotInfo();
 		}
 	}
 
