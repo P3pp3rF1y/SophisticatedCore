@@ -35,7 +35,9 @@ public class CompactingUpgradeContainer extends UpgradeContainerBase<CompactingU
 	public void handlePacket(CompoundTag data) {
 		data.getBoolean(DATA_SHOULD_COMPACT_NON_UNCRAFTABLE).ifPresent(this::setCompactNonUncraftable);
 		data.getBoolean(DATA_SHOULD_WORKD_IN_GUI).ifPresent(this::setShouldWorkdInGUI);
-		filterLogicContainer.handlePacket(data);
+		if (filterLogicContainer.handlePacket(data)) {
+			upgradeWrapper.resetFullSlotInfo();
+		}
 	}
 
 	public void setShouldWorkdInGUI(boolean shouldWorkdInGUI) {

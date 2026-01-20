@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.compacting;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -9,22 +10,22 @@ import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper.CompactingShape;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgradeWrapper, CompactingUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade {
+		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IExtractResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToCompact = new HashSet<>();
+	private boolean fullSlotsCalculated = false;
+	private final Map<Item, Integer> fullSlotsToCompactLater = new HashMap<>();
 
 	public CompactingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
@@ -32,6 +33,9 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(),
 				stack -> RecipeHelper.getItemCompactingShapes(stack).stream().anyMatch(shape -> shape != CompactingShape.NONE),
 				ModCoreDataComponents.FILTER_ATTRIBUTES);
+
+		FilterLogic.ObservableFilterItemStackHandler filterHandler = filterLogic.getFilterHandler();
+		filterHandler.setOnSlotChange(s -> resetFullSlotInfo());
 	}
 
 	@Override
@@ -44,8 +48,16 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		compactSlot(inventoryHandler, slot);
 	}
 
-	private void compactSlot(IItemHandlerSimpleInserter inventoryHandler, int slot) {
-		ItemStack slotStack = inventoryHandler.getStackInSlot(slot);
+	@Override
+	public void onAfterExtract(IItemHandlerSimpleInserter inventoryHandler, int slot, ItemStack originalContents) {
+		if (fullSlotsToCompactLater.containsKey(originalContents.getItem())) {
+			int fullSlot = fullSlotsToCompactLater.get(originalContents.getItem());
+			slotsToCompact.add(fullSlot);
+		}
+	}
+
+	private void compactSlot(IItemHandlerSimpleInserter handler, int slot) {
+		ItemStack slotStack = handler.getStackInSlot(slot);
 
 		if (slotStack.isEmpty() || !filterLogic.matchesFilter(slotStack)) {
 			return;
@@ -54,17 +66,17 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(slotStack);
 
 		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
-			tryCompacting(inventoryHandler, slotStack, 3, 3);
+			tryCompacting(handler, slot, slotStack, 3, 3);
 		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
-			tryCompacting(inventoryHandler, slotStack, 2, 2);
+			tryCompacting(handler, slot, slotStack, 2, 2);
 		}
 	}
 
-	private void tryCompacting(IItemHandlerSimpleInserter inventoryHandler, ItemStack stack, int width, int height) {
+	private void tryCompacting(IItemHandlerSimpleInserter handler, int slot, ItemStack stack, int width, int height) {
 		int totalCount = width * height;
 		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(stack, width, height);
 		if (!compactingResult.getResult().isEmpty()) {
-			ItemStack extractedStack = InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), inventoryHandler, true);
+			ItemStack extractedStack = InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), handler, true);
 			if (extractedStack.getCount() != totalCount) {
 				return;
 			}
@@ -73,13 +85,17 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 				ItemStack resultCopy = compactingResult.getResult().copy();
 				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
 
-				if (!fitsResultAndRemainingItems(inventoryHandler, remainingItemsCopy, resultCopy)) {
-					break;
+				if (!fitsResultAndRemainingItems(handler, remainingItemsCopy, resultCopy)) {
+					if (handler instanceof InventoryHandler inventoryHandler && inventoryHandler.getStackInSlot(slot).getCount() >= inventoryHandler.getStackLimit(slot, stack)) {
+						fullSlotsToCompactLater.put(resultCopy.getItem(), slot);
+					}
+					return;
 				}
-				InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), inventoryHandler, false);
-				inventoryHandler.insertItem(resultCopy, false);
-				InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, false);
-				extractedStack = InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), inventoryHandler, true);
+				fullSlotsToCompactLater.remove(resultCopy.getItem());
+				InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), handler, false);
+				handler.insertItem(resultCopy, false);
+				InventoryHelper.insertIntoInventory(remainingItemsCopy, handler, false);
+				extractedStack = InventoryHelper.extractFromInventory(stack.copyWithCount(totalCount), handler, true);
 			}
 		}
 	}
@@ -108,9 +124,11 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	}
 
 	@Override
-	public void onSlotChange(IItemHandler inventoryHandler, int slot) {
+	public void onSlotChange(IItemHandler handler, int slot) {
 		if (shouldWorkInGUI()) {
 			slotsToCompact.add(slot);
+		} else if (handler instanceof InventoryHandler inventoryHandler) {
+			calculateFullSlot(inventoryHandler, slot);
 		}
 	}
 
@@ -125,6 +143,10 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 	@Override
 	public void tick(@Nullable Entity entity, Level level, BlockPos pos) {
+		if (!fullSlotsCalculated) {
+			calculateFullSlots();
+			fullSlotsCalculated = true;
+		}
 		if (slotsToCompact.isEmpty()) {
 			return;
 		}
@@ -134,5 +156,51 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		}
 
 		slotsToCompact.clear();
+	}
+
+	private void calculateFullSlots() {
+		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
+		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
+			calculateFullSlot(inventoryHandler, slot);
+		}
+	}
+
+	private void calculateFullSlot(InventoryHandler inventoryHandler, int slot) {
+		ItemStack slotStack = inventoryHandler.getStackInSlot(slot);
+
+		if (slotStack.isEmpty() || !filterLogic.matchesFilter(slotStack) || slotStack.getCount() < inventoryHandler.getStackLimit(slot, slotStack)) {
+			return;
+		}
+
+		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(slotStack);
+
+		boolean canCompact = false;
+		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
+			canCompact = true;
+		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
+			canCompact = true;
+		}
+
+		if (canCompact && slotStack.getCount() >= slotStack.getMaxStackSize()) {
+			//try compacting with simulation to see if it would work
+			CompactingShape shape = shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)) ? CompactingShape.THREE_BY_THREE : CompactingShape.TWO_BY_TWO;
+			int width = shape == CompactingShape.THREE_BY_THREE ? 3 : 2;
+			int height = shape == CompactingShape.THREE_BY_THREE ? 3 : 2;
+
+			RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(slotStack, width, height);
+			if (!compactingResult.getResult().isEmpty()) {
+				ItemStack resultCopy = compactingResult.getResult().copy();
+				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
+
+				if (!fitsResultAndRemainingItems(inventoryHandler, remainingItemsCopy, resultCopy)) {
+					fullSlotsToCompactLater.put(resultCopy.getItem(), slot);
+				}
+			}
+		}
+	}
+
+	public void resetFullSlotInfo() {
+		fullSlotsCalculated = false;
+		fullSlotsToCompactLater.clear();
 	}
 }
