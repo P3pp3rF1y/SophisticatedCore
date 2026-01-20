@@ -3,13 +3,14 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
+public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler, IItemHandlerSimpleInserter {
 	protected final T inventoryHandler;
 	protected final List<FilterLogic> inputFilters;
 	protected final List<FilterLogic> outputFilters;
@@ -93,6 +94,28 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 			return inventoryHandler.isItemValid(slot, stack);
 		}
 		return false;
+	}
+
+	@Override
+	public ItemStack insertItem(ItemStack stack, boolean simulate) {
+		if (inputFilters.isEmpty() || matchesFilters(stack, inputFilters)) {
+			if (inventoryHandler instanceof IItemHandlerSimpleInserter simpleInserter) {
+				return simpleInserter.insertItem(stack, simulate);
+			} else {
+				return InventoryHelper.insertIntoInventory(stack, inventoryHandler, simulate);
+			}
+		}
+
+		return stack;
+	}
+
+	@Override
+	public void setStackInSlot(int i, ItemStack itemStack) {
+		if (inventoryHandler instanceof IItemHandlerSimpleInserter simpleInserter) {
+			simpleInserter.setStackInSlot(i, itemStack);
+		} else {
+			throw new UnsupportedOperationException("setStackInSlot is not supported by the underlying inventory handler");
+		}
 	}
 
 	public static class Modifiable extends FilteredItemHandler<ITrackedContentsItemHandler> implements ITrackedContentsItemHandler {
