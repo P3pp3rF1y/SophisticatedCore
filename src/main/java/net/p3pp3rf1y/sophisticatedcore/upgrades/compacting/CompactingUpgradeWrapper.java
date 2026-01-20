@@ -2,9 +2,9 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.compacting;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
@@ -17,18 +17,17 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper.CompactingShape;
-
 import org.jspecify.annotations.Nullable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.function.Consumer;
 
 public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgradeWrapper, CompactingUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade {
+		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IExtractResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToCompact = new HashSet<>();
+	private boolean fullSlotsCalculated = false;
+	private final Map<Item, Integer> fullSlotsToCompactLater = new HashMap<>();
 
 	public CompactingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
@@ -36,6 +35,9 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(),
 				stack -> RecipeHelper.getItemCompactingShapes(stack).stream().anyMatch(shape -> shape != CompactingShape.NONE),
 				ModCoreDataComponents.FILTER_ATTRIBUTES);
+
+		FilterLogic.ObservableFilterItemStackHandler filterHandler = filterLogic.getFilterHandler();
+		filterHandler.setOnSlotChange(s -> resetFullSlotInfo());
 	}
 
 	@Override
@@ -48,6 +50,14 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		compactSlot(inventoryHandler, slot, tx);
 	}
 
+	@Override
+	public void onAfterExtract(InventoryHandler inventoryHandler, int slot, ItemResource originalResource) {
+		if (fullSlotsToCompactLater.containsKey(originalResource.getItem())) {
+			int fullSlot = fullSlotsToCompactLater.get(originalResource.getItem());
+			slotsToCompact.add(fullSlot);
+		}
+	}
+
 	private void compactSlot(ITrackedContentsItemResourceHandler inventoryHandler, int slot, TransactionContext tx) {
 		ItemStack stack = inventoryHandler.getStackInSlot(slot);
 
@@ -58,13 +68,13 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(stack);
 
 		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
-			tryCompacting(inventoryHandler, stack, 3, 3, tx);
+			tryCompacting(inventoryHandler, slot, stack, 3, 3, tx);
 		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
-			tryCompacting(inventoryHandler, stack, 2, 2, tx);
+			tryCompacting(inventoryHandler, slot, stack, 2, 2, tx);
 		}
 	}
 
-	private void tryCompacting(ResourceHandler<ItemResource> inventoryHandler, ItemStack stack, int width, int height, TransactionContext tx) {
+	private void tryCompacting(ITrackedContentsItemResourceHandler inventoryHandler, int slotBeingCompacted, ItemStack stack, int width, int height, TransactionContext tx) {
 		int totalCount = width * height;
 		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(stack, width, height);
 		if (!compactingResult.getResult().isEmpty()) {
@@ -78,8 +88,12 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 					List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
 
 					if (inventoryHandler.insert(ItemResource.of(resultCopy), resultCopy.getCount(), childTx) != resultCopy.getCount() || !InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, childTx).isEmpty()) {
-						return;
+						if (inventoryHandler.getAmountAsLong(slotBeingCompacted) + extracted >= inventoryHandler.getCapacityAsLong(slotBeingCompacted, resource)) {
+							fullSlotsToCompactLater.put(resultCopy.getItem(), slotBeingCompacted);
+						}
+						break;
 					}
+					fullSlotsToCompactLater.remove(resultCopy.getItem());
 					hasCompacted = true;
 
 					extracted = 0;
@@ -123,6 +137,8 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	public void onSlotChange(InventoryHandler inventoryHandler, int slot) {
 		if (shouldWorkInGUI()) {
 			slotsToCompact.add(slot);
+		} else {
+			calculateFullSlot(inventoryHandler, slot);
 		}
 	}
 
@@ -137,6 +153,10 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 	@Override
 	public void tick(@Nullable Entity entity, Level level, BlockPos pos) {
+		if (!fullSlotsCalculated) {
+			calculateFullSlots();
+			fullSlotsCalculated = true;
+		}
 		if (slotsToCompact.isEmpty()) {
 			return;
 		}
@@ -149,5 +169,53 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		}
 
 		slotsToCompact.clear();
+	}
+
+	private void calculateFullSlots() {
+		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
+		for (int slot = 0; slot < inventoryHandler.size(); slot++) {
+			calculateFullSlot(inventoryHandler, slot);
+		}
+	}
+
+	private void calculateFullSlot(InventoryHandler inventoryHandler, int slot) {
+		ItemStack slotStack = inventoryHandler.getStackInSlot(slot);
+
+		if (slotStack.isEmpty() || !filterLogic.matchesFilter(slotStack) || slotStack.getCount() < inventoryHandler.getCapacityAsLong(slot, ItemResource.of(slotStack))) {
+			return;
+		}
+
+		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(slotStack);
+
+		boolean canCompact = false;
+		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
+			canCompact = true;
+		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
+			canCompact = true;
+		}
+
+		if (canCompact && slotStack.getCount() >= slotStack.getMaxStackSize()) {
+			//try compacting with simulation to see if it would work
+			CompactingShape shape = shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)) ? CompactingShape.THREE_BY_THREE : CompactingShape.TWO_BY_TWO;
+			int width = shape == CompactingShape.THREE_BY_THREE ? 3 : 2;
+			int height = shape == CompactingShape.THREE_BY_THREE ? 3 : 2;
+
+			RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(slotStack, width, height);
+			if (!compactingResult.getResult().isEmpty()) {
+				ItemStack resultCopy = compactingResult.getResult().copy();
+				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
+
+				try (Transaction tx = Transaction.openRoot()) {
+					if (inventoryHandler.insert(ItemResource.of(resultCopy), resultCopy.getCount(), tx) != resultCopy.getCount() || !InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, tx).isEmpty()) {
+						fullSlotsToCompactLater.put(resultCopy.getItem(), slot);
+					}
+				}
+			}
+		}
+	}
+
+	public void resetFullSlotInfo() {
+		fullSlotsCalculated = false;
+		fullSlotsToCompactLater.clear();
 	}
 }
