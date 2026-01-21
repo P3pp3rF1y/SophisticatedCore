@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
+import com.mojang.datafixers.util.Function7;
 import com.mojang.datafixers.util.Function8;
 import com.mojang.datafixers.util.Function9;
 import io.netty.buffer.ByteBuf;
@@ -159,6 +160,49 @@ public class StreamCodecHelper {
 					keyStreamCodec.encode(buf, k);
 					valueStreamCodec.apply(k).encode(buf, v);
 				});
+			}
+		};
+	}
+
+	public static <B, C, T1, T2, T3, T4, T5, T6, T7> StreamCodec<B, C> composite(
+			final StreamCodec<? super B, T1> pCodec1,
+			final Function<C, T1> pGetter1,
+			final StreamCodec<? super B, T2> pCodec2,
+			final Function<C, T2> pGetter2,
+			final StreamCodec<? super B, T3> pCodec3,
+			final Function<C, T3> pGetter3,
+			final StreamCodec<? super B, T4> pCodec4,
+			final Function<C, T4> pGetter4,
+			final StreamCodec<? super B, T5> pCodec5,
+			final Function<C, T5> pGetter5,
+			final StreamCodec<? super B, T6> pCodec6,
+			final Function<C, T6> pGetter6,
+			final StreamCodec<? super B, T7> pCodec7,
+			final Function<C, T7> pGetter7,
+			final Function7<T1, T2, T3, T4, T5, T6, T7, C> pFactory
+	) {
+		return new StreamCodec<B, C>() {
+			@Override
+			public C decode(B buffer) {
+				T1 t1 = pCodec1.decode(buffer);
+				T2 t2 = pCodec2.decode(buffer);
+				T3 t3 = pCodec3.decode(buffer);
+				T4 t4 = pCodec4.decode(buffer);
+				T5 t5 = pCodec5.decode(buffer);
+				T6 t6 = pCodec6.decode(buffer);
+				T7 t7 = pCodec7.decode(buffer);
+				return pFactory.apply(t1, t2, t3, t4, t5, t6, t7);
+			}
+
+			@Override
+			public void encode(B buffer, C value) {
+				pCodec1.encode(buffer, pGetter1.apply(value));
+				pCodec2.encode(buffer, pGetter2.apply(value));
+				pCodec3.encode(buffer, pGetter3.apply(value));
+				pCodec4.encode(buffer, pGetter4.apply(value));
+				pCodec5.encode(buffer, pGetter5.apply(value));
+				pCodec6.encode(buffer, pGetter6.apply(value));
+				pCodec7.encode(buffer, pGetter7.apply(value));
 			}
 		};
 	}
