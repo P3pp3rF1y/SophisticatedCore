@@ -5,7 +5,6 @@ import me.shedaniel.rei.api.common.entry.comparison.EntryComparator;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes.PropertyBasedSubtypeInterpreter;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes.PropertyBasedSubtypeInterpreterWrapper;
-
 import org.jspecify.annotations.Nullable;
 
 public class ReiSubtypeInterpreter extends PropertyBasedSubtypeInterpreterWrapper implements EntryComparator<ItemStack> {
