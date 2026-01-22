@@ -18,8 +18,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.p3pp3rf1y.sophisticatedcore.util.Easing;
 import net.p3pp3rf1y.sophisticatedcore.util.IDoubleBlock;
 import net.p3pp3rf1y.sophisticatedcore.util.VoxelOutliner;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
