@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
@@ -129,7 +130,8 @@ public class InventoryHelper {
 	}
 
 	public static void iteratePlayerInventory(Player player, BiConsumer<Integer, ItemStack> actOn) {
-		for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+		NonNullList<ItemStack> items = player.getInventory().getNonEquipmentItems();
+		for (int slot = 0; slot < items.size(); slot++) {
 			actOn.accept(slot, player.getInventory().getItem(slot));
 		}
 	}
