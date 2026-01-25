@@ -16,7 +16,6 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.PlayDiscMessage;
-import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.SoundFinishedNotificationMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StopDiscPlaybackMessage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.tank.TankClickMessage;
 
@@ -61,7 +60,6 @@ public class PacketHandler {
 		registerMessage(SyncPlayerSettingsMessage.class, SyncPlayerSettingsMessage::encode, SyncPlayerSettingsMessage::decode, SyncPlayerSettingsMessage::onMessage);
 		registerMessage(PlayDiscMessage.class, PlayDiscMessage::encode, PlayDiscMessage::decode, PlayDiscMessage::onMessage);
 		registerMessage(StopDiscPlaybackMessage.class, StopDiscPlaybackMessage::encode, StopDiscPlaybackMessage::decode, StopDiscPlaybackMessage::onMessage);
-		registerMessage(SoundFinishedNotificationMessage.class, SoundFinishedNotificationMessage::encode, SoundFinishedNotificationMessage::decode, SoundFinishedNotificationMessage::onMessage);
 		registerMessage(TankClickMessage.class, TankClickMessage::encode, TankClickMessage::decode, TankClickMessage::onMessage);
 		registerMessage(SyncTemplateSettingsMessage.class, SyncTemplateSettingsMessage::encode, SyncTemplateSettingsMessage::decode, SyncTemplateSettingsMessage::onMessage);
 		registerMessage(SyncAdditionalSlotInfoMessage.class, SyncAdditionalSlotInfoMessage::encode, SyncAdditionalSlotInfoMessage::decode, SyncAdditionalSlotInfoMessage::onMessage);
