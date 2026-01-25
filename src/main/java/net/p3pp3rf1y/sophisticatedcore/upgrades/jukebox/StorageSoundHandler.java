@@ -11,7 +11,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
@@ -42,13 +41,9 @@ public class StorageSoundHandler {
 	public static void tick(LevelTickEvent.Post event) {
 		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.getLevel().getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
 			lastPlaybackChecked = event.getLevel().getGameTime();
-			storageSounds.entrySet().removeIf(entry -> {
-				if (!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())) {
-					ClientPacketDistributor.sendToServer(new SoundFinishedNotificationPayload(entry.getKey()));
-					return true;
-				}
-				return false;
-			});
+			storageSounds.entrySet().removeIf(entry ->
+					!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())
+			);
 		}
 	}
 
