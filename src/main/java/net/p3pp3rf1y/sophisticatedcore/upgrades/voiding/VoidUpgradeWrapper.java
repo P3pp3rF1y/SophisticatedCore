@@ -7,8 +7,8 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
-import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
@@ -21,35 +21,41 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
-	private boolean shouldVoidOverflow;
+	private VoidType voidType;
 
 	public VoidUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount());
 		filterLogic.setAllowByDefault(true);
-		setShouldVoidOverflowDefaultOrLoadFromNbt(false);
+
+		setFromLegacyComponent();
+
+		setVoidOverflowDefaultOrLoadFromNbt(VoidType.ALWAYS);
 	}
 
+	//TODO remove in or after 26.1
+	private void setFromLegacyComponent() {
+		if (NBTHelper.hasTag(upgrade, "shouldVoidOverflow")) {
+			VoidType migratedVoidType = NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false) ? VoidType.ALWAYS : VoidType.SLOT_OVERFLOW;
+			NBTHelper.removeTag(upgrade, "shouldVoidOverflow");
+			setVoidType(migratedVoidType);
+		}
+	}
 	@Override
-	public ItemStack onBeforeInsert(IItemHandlerSimpleInserter inventoryHandler, int slot, ItemStack stack, boolean simulate) {
-		if (shouldVoidOverflow && inventoryHandler.getStackInSlot(slot).isEmpty() && (!filterLogic.shouldMatchNbt() || !filterLogic.shouldMatchDurability() || filterLogic.getPrimaryMatch() != PrimaryMatch.ITEM) && filterLogic.matchesFilter(stack)) {
-			for (int s = 0; s < inventoryHandler.getSlots(); s++) {
-				if (s == slot) {
-					continue;
-				}
-				if (stackMatchesFilterStack(inventoryHandler.getStackInSlot(s), stack)) {
-					return ItemStack.EMPTY;
-				}
+	public ItemStack onBeforeInsert(InventoryHandler inventoryHandler, int slot, ItemStack stack, boolean simulate) {
+		if (voidType == VoidType.SLOT_OVERFLOW && inventoryHandler.getStackInSlot(slot).isEmpty() && filterLogic.matchesFilter(stack)) {
+			if (inventoryHandler.getSlotTracker().getFullStacks().contains(ItemStackKey.of(stack))) {
+				return ItemStack.EMPTY;
 			}
 			return stack;
 		}
 
-		return !shouldVoidOverflow && filterLogic.matchesFilter(stack) ? ItemStack.EMPTY : stack;
+		return voidType == VoidType.ALWAYS && filterLogic.matchesFilter(stack) ? ItemStack.EMPTY : stack;
 	}
 
 	@Override
-	public void onAfterInsert(IItemHandlerSimpleInserter inventoryHandler, int slot) {
-		//noop
+	public ItemStack onBeforeInsert(InventoryHandler inventoryHandler, ItemStack stack, boolean simulate) {
+		return voidType == VoidType.ALWAYS && filterLogic.matchesFilter(stack) ? ItemStack.EMPTY : stack;
 	}
 
 	@Override
@@ -66,22 +72,33 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		return NBTHelper.getBoolean(upgrade, "shouldWorkInGUI").orElse(false);
 	}
 
-	public void setShouldVoidOverflow(boolean shouldVoidOverflow) {
-		if (!shouldVoidOverflow && !upgradeItem.isVoidAnythingEnabled()) {
+	public void setVoidType(VoidType voidType) {
+		if (voidType == VoidType.ALWAYS && !upgradeItem.isVoidAlwaysEnabled()) {
 			return;
 		}
 
-		this.shouldVoidOverflow = shouldVoidOverflow;
-		NBTHelper.setBoolean(upgrade, "shouldVoidOverflow", shouldVoidOverflow);
+		this.voidType = voidType;
+		NBTHelper.setEnumConstant(upgrade, "voidType", voidType);
 		save();
 	}
 
-	public void setShouldVoidOverflowDefaultOrLoadFromNbt(boolean shouldVoidOverflowDefault) {
-		shouldVoidOverflow = !upgradeItem.isVoidAnythingEnabled() || NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(shouldVoidOverflowDefault);
+	public void setVoidOverflowDefaultOrLoadFromNbt(VoidType voidOverflowDefault) {
+		VoidType vt = NBTHelper.getEnumConstant(upgrade, "voidType", VoidType::fromName).orElse(voidOverflowDefault);
+		if (!upgradeItem.isVoidAlwaysEnabled() && vt == VoidType.ALWAYS) {
+			vt = VoidType.SLOT_OVERFLOW;
+		}
+		this.voidType = vt;
 	}
 
 	public boolean shouldVoidOverflow() {
-		return !upgradeItem.isVoidAnythingEnabled() || shouldVoidOverflow;
+		return !upgradeItem.isVoidAlwaysEnabled() || voidType != VoidType.ALWAYS;
+	}
+
+	public VoidType getVoidType() {
+		if (voidType == VoidType.ALWAYS && !upgradeItem.isVoidAlwaysEnabled()) {
+			return VoidType.SLOT_OVERFLOW;
+		}
+		return voidType;
 	}
 
 	@Override
@@ -116,8 +133,13 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	}
 
 	@Override
-	public ItemStack onOverflow(ItemStack stack) {
-		return filterLogic.matchesFilter(stack) ? ItemStack.EMPTY : stack;
+	public ItemStack onSlotOverflow(ItemStack stack) {
+		return voidType == VoidType.SLOT_OVERFLOW && filterLogic.matchesFilter(stack) ? ItemStack.EMPTY : stack;
+	}
+
+	@Override
+	public ItemStack onStorageOverflow(ItemStack stack) {
+		return voidType == VoidType.STORAGE_OVERFLOW && filterLogic.matchesFilter(stack) ? ItemStack.EMPTY : stack;
 	}
 
 	@Override
@@ -125,7 +147,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		return filterLogic.matchesFilter(stack);
 	}
 
-	public boolean isVoidAnythingEnabled() {
-		return upgradeItem.isVoidAnythingEnabled();
+	public boolean isVoidAlwaysEnabled() {
+		return upgradeItem.isVoidAlwaysEnabled();
 	}
 }

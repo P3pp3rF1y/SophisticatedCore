@@ -29,7 +29,7 @@ public class VoidUpgradeItem extends UpgradeItemBase<VoidUpgradeWrapper> {
 		return voidUpgradeConfig.filterSlots.get();
 	}
 
-	public boolean isVoidAnythingEnabled() {
-		return voidUpgradeConfig.voidAnythingEnabled.get();
+	public boolean isVoidAlwaysEnabled() {
+		return voidUpgradeConfig.voidAlwaysEnabled.get();
 	}
 }
