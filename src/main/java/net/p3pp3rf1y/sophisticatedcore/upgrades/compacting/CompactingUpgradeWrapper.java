@@ -39,11 +39,6 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	}
 
 	@Override
-	public ItemStack onBeforeInsert(IItemHandlerSimpleInserter inventoryHandler, int slot, ItemStack stack, boolean simulate) {
-		return stack;
-	}
-
-	@Override
 	public void onAfterInsert(IItemHandlerSimpleInserter inventoryHandler, int slot) {
 		compactSlot(inventoryHandler, slot);
 	}
