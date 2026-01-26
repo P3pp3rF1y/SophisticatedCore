@@ -41,11 +41,6 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	}
 
 	@Override
-	public int onBeforeInsert(InventoryHandler inventoryHandler, int slot, ItemResource resource, int amount) {
-		return 0;
-	}
-
-	@Override
 	public void onAfterInsert(InventoryHandler inventoryHandler, int slot, TransactionContext tx) {
 		compactSlot(inventoryHandler, slot, tx);
 	}

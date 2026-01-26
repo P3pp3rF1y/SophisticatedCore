@@ -108,7 +108,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	@SuppressWarnings("java:S3824")
-	//compute use here would be difficult as then there's no way of telling that value was newly created vs different than the one that needs to be set
+	//compute use here would be difficult as then there's no way of telling that value was newly created vs different from the one that needs to be set
 	private boolean updateSlotStack(int slot) {
 		ItemStack slotStack = getInternalStack(slot);
 		if (inventoryData.stacks().size() > slot && (!ItemStack.isSameItemSameComponents(inventoryData.stacks().get(slot), slotStack) || inventoryData.stacks().get(slot).getCount() != slotStack.getCount())) {
@@ -270,7 +270,13 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		ItemStackKey key = ItemStackKey.of(resource);
 		int moved = 0;
 
-		moved += handleOverflow(resource, amount);
+		moved += runOnBeforeInsert(resource, amount, storageWrapper);
+
+		if (moved >= amount) {
+			return moved;
+		}
+
+		moved += handleOverflow(resource, amount - moved);
 
 		if (moved >= amount) {
 			return moved;
@@ -342,6 +348,9 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 				moved += insert(slot, resource, amount - moved, tx);
 			}
 		}
+
+		moved += handleOverflow(resource, amount - moved);
+
 		return moved;
 	}
 
@@ -358,12 +367,13 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 
 	@Override
 	public int insert(int index, ItemResource resource, int amount, TransactionContext tx) {
-		int inserted = runOnBeforeInsert(index, resource, amount, storageWrapper);
+		int inserted = runOnBeforeInsert(resource, amount, storageWrapper);
+		inserted = runOnBeforeInsert(index, resource, amount - inserted, storageWrapper);
 		if (inserted >= amount) {
 			return amount;
 		}
 
-		inserted += handleOverflow(resource, amount);
+		inserted += handleOverflow(resource, amount - inserted);
 
 		int result = inventoryPartitioner.getPartBySlot(index).insert(index, resource, amount - inserted, tx, super::insert);
 		if (result > 0) {
@@ -373,7 +383,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 
 		inserted += result;
 
-		inserted += handleOverflow(resource, amount);
+		inserted += handleOverflow(resource, amount - inserted);
 
 		runOnAfterInsert(index, tx);
 
@@ -384,7 +394,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		initSlotTracker();
 		ItemResource resource = getResource(slot);
 		if (resource.matches(stack)) {
-			return triggerOverflowUpgrades(insertItem(slot, stack));
+			return triggerSlotOverflowUpgrades(insertItem(slot, stack));
 		}
 
 		return insertItem(slot, stack);
@@ -424,9 +434,15 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		}
 
 		ItemStackKey stackKey = ItemStackKey.of(resource);
-
 		if (hasOneFullStackOfItem(stackKey)) {
-			 return triggerOverflowUpgrades(resource, amount);
+			int inserted = 0;
+			if (getSlotTracker().getEmptySlots().isEmpty() && !getSlotTracker().getPartialStacks().contains(stackKey)) {
+				inserted = triggerStorageOverflowUpgrades(resource, amount);
+				if (inserted >= amount) {
+					return amount;
+				}
+			}
+			return triggerSlotOverflowUpgrades(resource, amount - inserted);
 		}
 		return 0;
 	}
@@ -435,24 +451,48 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		return getSlotTracker().getFullStacks().contains(stackKey) && !getSlotTracker().getFullSlots(stackKey).isEmpty();
 	}
 
-	private ItemStack triggerOverflowUpgrades(ItemStack ret) {
+	private int triggerStorageOverflowUpgrades(ItemResource resource, int amount) {
+		int ret = 0;
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
+			ret = overflowUpgrade.onStorageOverflow(resource, amount);
+			if (ret >= amount) {
+				break;
+			}
+		}
+		return ret;
+	}
+
+	private ItemStack triggerSlotOverflowUpgrades(ItemStack ret) {
 		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
-			ret = overflowUpgrade.onOverflow(ret);
+			ret = overflowUpgrade.onSlotOverflow(ret);
 			if (ret.isEmpty()) {
 				break;
 			}
 		}
 		return ret;
 	}
-	private int triggerOverflowUpgrades(ItemResource resource, int amount) {
+
+	private int triggerSlotOverflowUpgrades(ItemResource resource, int amount) {
 		int ret = 0;
 		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
-			ret = overflowUpgrade.onOverflow(resource, amount);
+			ret = overflowUpgrade.onSlotOverflow(resource, amount);
 			if (ret >= amount) {
 				break;
 			}
 		}
 		return ret;
+	}
+
+	private int runOnBeforeInsert(ItemResource resource, int amount, IStorageWrapper storageWrapper) {
+		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplement(IInsertResponseUpgrade.class);
+		int moved = 0;
+		for (IInsertResponseUpgrade upgrade : wrappers) {
+			moved += upgrade.onBeforeInsert(this, resource, amount - moved);
+			if (moved == amount) {
+				return amount;
+			}
+		}
+		return moved;
 	}
 
 	private int runOnBeforeInsert(int slot, ItemResource resource, int amount, IStorageWrapper storageWrapper) {
