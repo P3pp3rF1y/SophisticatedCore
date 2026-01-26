@@ -21,6 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.feeding.HungerLevel;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.filter.Direction;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.RepeatMode;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.voiding.VoidType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.xppump.AutomationDirection;
 import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
@@ -134,8 +135,12 @@ public class ModCoreDataComponents {
     public static final Supplier<DataComponentType<SimpleFluidContent>> FLUID_CONTENTS = DATA_COMPONENT_TYPES.register("fluid_contents",
             () -> new DataComponentType.Builder<SimpleFluidContent>().persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC).build());
 
-    public static final Supplier<DataComponentType<Boolean>> SHOULD_VOID_OVERFLOW = DATA_COMPONENT_TYPES.register("should_void_overflow",
+    @Deprecated
+	public static final Supplier<DataComponentType<Boolean>> LEGACY_SHOULD_VOID_OVERFLOW = DATA_COMPONENT_TYPES.register("should_void_overflow",
             () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+	public static final Supplier<DataComponentType<VoidType>> VOID_TYPE = DATA_COMPONENT_TYPES.register("void_type",
+			() -> new DataComponentType.Builder<VoidType>().persistent(VoidType.CODEC).networkSynchronized(VoidType.STREAM_CODEC).build());
 
     public static final Supplier<DataComponentType<AutomationDirection>> AUTOMATION_DIRECTION = DATA_COMPONENT_TYPES.register("automation_direction",
             () -> new DataComponentType.Builder<AutomationDirection>().persistent(AutomationDirection.CODEC).networkSynchronized(AutomationDirection.STREAM_CODEC).build());

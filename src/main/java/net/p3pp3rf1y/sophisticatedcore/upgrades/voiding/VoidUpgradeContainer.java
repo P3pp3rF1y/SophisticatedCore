@@ -10,7 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrapper, VoidUpgradeContainer> {
 	private static final String DATA_SHOULD_WORKD_IN_GUI = "shouldWorkdInGUI";
-	private static final String DATA_SHOULD_VOID_OVERFLOW = "shouldVoidOverflow";
+	private static final String DATA_VOID_TYPE = "voidType";
 	private final FilterLogicContainer<FilterLogic> filterLogicContainer;
 
 	public VoidUpgradeContainer(Player player, int containerId, VoidUpgradeWrapper wrapper, UpgradeContainerType<VoidUpgradeWrapper, VoidUpgradeContainer> type) {
@@ -22,8 +22,8 @@ public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrappe
 	public void handlePacket(CompoundTag data) {
 		if (data.contains(DATA_SHOULD_WORKD_IN_GUI)) {
 			setShouldWorkdInGUI(data.getBoolean(DATA_SHOULD_WORKD_IN_GUI));
-		} else if (data.contains(DATA_SHOULD_VOID_OVERFLOW)) {
-			setShouldVoidOverflow(data.getBoolean(DATA_SHOULD_VOID_OVERFLOW));
+		} else if (data.contains(DATA_VOID_TYPE)) {
+			setVoidType(VoidType.fromName(data.getString(DATA_VOID_TYPE)));
 		}
 		filterLogicContainer.handlePacket(data);
 	}
@@ -37,16 +37,16 @@ public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrappe
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHOULD_WORKD_IN_GUI, shouldWorkdInGUI));
 	}
 
-	public void setShouldVoidOverflow(boolean shouldVoidOverflow) {
-		upgradeWrapper.setShouldVoidOverflow(shouldVoidOverflow);
-		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHOULD_VOID_OVERFLOW, shouldVoidOverflow));
+	public void setVoidType(VoidType voidType) {
+		upgradeWrapper.setVoidType(voidType);
+		sendDataToServer(() -> NBTHelper.putEnumConstant(new CompoundTag(), DATA_VOID_TYPE, voidType));
 	}
 
 	public boolean shouldWorkInGUI() {
 		return upgradeWrapper.shouldWorkInGUI();
 	}
 
-	public boolean shouldVoidOverflow() {
-		return upgradeWrapper.shouldVoidOverflow();
+	public VoidType getVoidType() {
+		return upgradeWrapper.getVoidType();
 	}
 }

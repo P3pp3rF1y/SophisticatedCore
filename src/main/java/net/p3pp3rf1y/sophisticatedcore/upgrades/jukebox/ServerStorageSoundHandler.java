@@ -69,15 +69,11 @@ public class ServerStorageSoundHandler {
 		}
 	}
 
-	public static void onSoundFinished(Level level, UUID storageUuid) {
-		removeSoundInfo(level, storageUuid, true);
-	}
-
 	private static class SoundInfo {
 		private final WeakReference<Runnable> onFinishedHandler;
 		private long lastKeepAliveTime;
 		private Vec3 lastPosition;
-		private long finishTime;
+		private final long finishTime;
 
 		private SoundInfo(Runnable onFinishedHandler, long lastKeepAliveTime, Vec3 lastPosition, long finishTime) {
 			this.onFinishedHandler = new WeakReference<>(onFinishedHandler);
