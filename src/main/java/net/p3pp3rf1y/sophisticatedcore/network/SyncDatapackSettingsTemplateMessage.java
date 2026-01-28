@@ -13,7 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
-public class SyncDatapackSettingsTemplateMessage {
+public class SyncDatapackSettingsTemplateMessage implements ISplittableMessage {
 	private final String datapack;
 	private final String templateName;
 	private final CompoundTag settingsNbt;
@@ -31,7 +31,7 @@ public class SyncDatapackSettingsTemplateMessage {
 	}
 
 	public static SyncDatapackSettingsTemplateMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SyncDatapackSettingsTemplateMessage(packetBuffer.readUtf(), packetBuffer.readUtf(), packetBuffer.readNbt());
+		return new SyncDatapackSettingsTemplateMessage(packetBuffer.readUtf(), packetBuffer.readUtf(), packetBuffer.readAnySizeNbt());
 	}
 
 	public static void onMessage(SyncDatapackSettingsTemplateMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {

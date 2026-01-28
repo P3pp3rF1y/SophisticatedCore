@@ -33,7 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 
 public class InventoryHelper {
-	private InventoryHelper() {}
+	private InventoryHelper() {
+	}
 
 	private static final List<Function<Player, IItemHandler>> PLAYER_INVENTORY_PROVIDERS = new ArrayList<>();
 	private static final List<Function<Player, IItemHandler>> PLAYER_EQUIPMENT_INVENTORY_PROVIDERS = new ArrayList<>();
@@ -135,6 +136,24 @@ public class InventoryHelper {
 		int slots = inventory.getSlots();
 		for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
 			remainingStack = inventory.insertItem(slot, remainingStack, simulate);
+		}
+		return remainingStack;
+	}
+
+	public static ItemStack insertIntoInventoryMatchingFirst(ItemStack stack, IItemHandler inventory, boolean simulate) {
+		ItemStack remainingStack = stack.copy();
+		int slots = inventory.getSlots();
+		for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
+			ItemStack slotStack = inventory.getStackInSlot(slot);
+			if (!slotStack.isEmpty() && ItemStack.isSameItemSameTags(slotStack, remainingStack)) {
+				remainingStack = inventory.insertItem(slot, remainingStack, simulate);
+			}
+		}
+		for (int slot = 0; slot < slots && !remainingStack.isEmpty(); slot++) {
+			ItemStack slotStack = inventory.getStackInSlot(slot);
+			if (slotStack.isEmpty()) {
+				remainingStack = inventory.insertItem(slot, remainingStack, simulate);
+			}
 		}
 		return remainingStack;
 	}
@@ -484,7 +503,7 @@ public class InventoryHelper {
 		AtomicBoolean isEmpty = new AtomicBoolean(true);
 		iterate(handler, (slot, stack) -> {
 			if (!stack.isEmpty()) {
-				int slotLimit = handler.getInternalSlotLimit(slot);
+				int slotLimit = handler.getSlotLimit(slot);
 				totalFilled.addAndGet(stack.getCount() / (slotLimit / ((float) 64 / stack.getMaxStackSize())));
 				isEmpty.set(false);
 			}

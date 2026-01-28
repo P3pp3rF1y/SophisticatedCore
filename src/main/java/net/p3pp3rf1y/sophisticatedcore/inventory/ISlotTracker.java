@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -25,9 +26,9 @@ public interface ISlotTracker {
 
 	void refreshSlotIndexesFrom(InventoryHandler itemHandler);
 
-	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate);
+	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate);
 
-	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate);
+	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate);
 
 	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
 
@@ -35,12 +36,20 @@ public interface ISlotTracker {
 
 	boolean hasEmptySlots();
 
-	boolean hasStackMemorizedOrFiltered(ItemStack stack);
+	boolean hasExactStackMemorized(ItemStackKey stackKey);
+
+	boolean hasItemMemorizedOrFiltered(Item item);
 
 	int getFirstMatchingSlot(ItemStackKey stackKey);
 
+	ItemStack extractItemFromHandler(InventoryHandler inventoryHandler, IItemHandlerExtractor extractItemInternal, ItemStack stack, boolean simulate);
+
 	interface IItemHandlerInserter {
 		ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
+	}
+
+	interface IItemHandlerExtractor {
+		ItemStack extractItem(int slot, int amount, boolean simulate);
 	}
 
 	class Noop implements ISlotTracker {
@@ -80,12 +89,17 @@ public interface ISlotTracker {
 		}
 
 		@Override
-		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate) {
+		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate) {
 			return stack;
 		}
 
 		@Override
-		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate) {
+		public ItemStack extractItemFromHandler(InventoryHandler inventoryHandler, IItemHandlerExtractor extractItemInternal, ItemStack stack, boolean simulate) {
+			return ItemStack.EMPTY;
+		}
+
+		@Override
+		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate) {
 			return inserter.insertItem(slot, stack, simulate);
 		}
 
@@ -105,13 +119,18 @@ public interface ISlotTracker {
 		}
 
 		@Override
-		public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
+		public int getFirstMatchingSlot(ItemStackKey stackKey) {
+			return -1;
+		}
+
+		@Override
+		public boolean hasExactStackMemorized(ItemStackKey stackKey) {
 			return false;
 		}
 
 		@Override
-		public int getFirstMatchingSlot(ItemStackKey stackKey) {
-			return -1;
+		public boolean hasItemMemorizedOrFiltered(Item item) {
+			return false;
 		}
 	}
 }

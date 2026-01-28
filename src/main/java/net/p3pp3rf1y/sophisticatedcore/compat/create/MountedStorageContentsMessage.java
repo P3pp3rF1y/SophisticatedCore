@@ -5,18 +5,20 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
+import net.p3pp3rf1y.sophisticatedcore.network.ISplittableMessage;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public record MountedStorageContentsMessage(UUID storageUuid, CompoundTag contents) {
+public record MountedStorageContentsMessage(UUID storageUuid, @Nullable CompoundTag contents) implements ISplittableMessage {
 	public static void encode(MountedStorageContentsMessage msg, FriendlyByteBuf buffer) {
 		buffer.writeUUID(msg.storageUuid);
 		buffer.writeNbt(msg.contents);
 	}
 
 	public static MountedStorageContentsMessage decode(FriendlyByteBuf buffer) {
-		return new MountedStorageContentsMessage(buffer.readUUID(), buffer.readNbt());
+		return new MountedStorageContentsMessage(buffer.readUUID(), buffer.readAnySizeNbt());
 	}
 
 	static void onMessage(MountedStorageContentsMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {

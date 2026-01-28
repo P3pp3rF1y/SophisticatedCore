@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter {
+public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter, IItemHandlerSimpleExtractor, IInsertBlockOverride {
 
 	Set<ItemStackKey> getTrackedStacks();
 
@@ -12,6 +12,4 @@ public interface ITrackedContentsItemHandler extends IItemHandlerSimpleInserter 
 	void unregisterStackKeyListeners();
 
 	boolean hasEmptySlots();
-
-	int getInternalSlotLimit(int slot);
 }

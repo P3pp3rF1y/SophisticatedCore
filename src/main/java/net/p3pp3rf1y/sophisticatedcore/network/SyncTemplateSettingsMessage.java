@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class SyncTemplateSettingsMessage {
+public class SyncTemplateSettingsMessage implements ISplittableMessage {
 	private final Map<Integer, CompoundTag> playerTemplates;
 	private final Map<String, CompoundTag> playerNamedTemplates;
 
@@ -40,12 +40,12 @@ public class SyncTemplateSettingsMessage {
 		int numberOfRecords = packetBuffer.readInt();
 		Map<Integer, CompoundTag> playerTemplates = new HashMap<>();
 		for (int i = 0; i < numberOfRecords; i++) {
-			playerTemplates.put(packetBuffer.readInt(), packetBuffer.readNbt());
+			playerTemplates.put(packetBuffer.readInt(), packetBuffer.readAnySizeNbt());
 		}
 		numberOfRecords = packetBuffer.readInt();
 		Map<String, CompoundTag> playerNamedTemplates = new HashMap<>();
 		for (int i = 0; i < numberOfRecords; i++) {
-			playerNamedTemplates.put(packetBuffer.readUtf(), packetBuffer.readNbt());
+			playerNamedTemplates.put(packetBuffer.readUtf(), packetBuffer.readAnySizeNbt());
 		}
 
 		return new SyncTemplateSettingsMessage(playerTemplates, playerNamedTemplates);

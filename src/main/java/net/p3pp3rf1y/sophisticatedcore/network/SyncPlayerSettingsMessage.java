@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class SyncPlayerSettingsMessage {
+public class SyncPlayerSettingsMessage implements ISplittableMessage {
 	private final String playerTagName;
 	@Nullable
 	private final CompoundTag settingsNbt;
@@ -28,7 +28,7 @@ public class SyncPlayerSettingsMessage {
 	}
 
 	public static SyncPlayerSettingsMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SyncPlayerSettingsMessage(packetBuffer.readUtf(), packetBuffer.readNbt());
+		return new SyncPlayerSettingsMessage(packetBuffer.readUtf(), packetBuffer.readAnySizeNbt());
 	}
 
 	public static void onMessage(SyncPlayerSettingsMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {

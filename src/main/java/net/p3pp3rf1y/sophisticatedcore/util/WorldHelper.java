@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -11,9 +12,16 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiPredicate;
 
 public class WorldHelper {
 	private WorldHelper() {}
+
+	private static final List<BiPredicate<Player, BlockPos>> ADDITIONAL_INTERACTION_CHECKS = new ArrayList<>();
+
+	public static void addAdditionalInteractionCheck(BiPredicate<Player, BlockPos> check) {
+		ADDITIONAL_INTERACTION_CHECKS.add(check);
+	}
 
 	public static Optional<BlockEntity> getBlockEntity(@Nullable BlockGetter level, BlockPos pos) {
 		return getBlockEntity(level, pos, BlockEntity.class);
@@ -53,6 +61,10 @@ public class WorldHelper {
 			return;
 		}
 		world.sendBlockUpdated(tile.getBlockPos(), tile.getBlockState(), tile.getBlockState(), 3);
+	}
+
+	public static List<BlockEntity> getBlockEntitiesInRange(Level level, BlockPos origin, int range) {
+		return getBlockEntitiesInRange(level, origin, range, BlockEntity.class);
 	}
 
 	public static <T> List<T> getBlockEntitiesInRange(Level level, BlockPos origin, int range, Class<T> beClass) {
@@ -99,5 +111,9 @@ public class WorldHelper {
 			}
 		}
 		return out;
+	}
+
+	public static boolean playerMayInteract(Player player, BlockPos pos) {
+		return player.mayInteract(player.level(), pos) && ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos));
 	}
 }

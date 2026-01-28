@@ -101,7 +101,7 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, inserter, stack -> stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> stack, stack -> stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
@@ -160,7 +160,7 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
@@ -218,7 +218,7 @@ public class InventoryHandlerSlotTrackerTest {
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
 		ItemStack result = insertItemStackedEquivalent(inventoryHandler, params.stackBeingInserted(), true,
-				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, inserter, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate)
+				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, (s, sim) -> s, inserter, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate)
 		);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
@@ -286,7 +286,7 @@ public class InventoryHandlerSlotTrackerTest {
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
 		List<ItemStack> result = insertItemsBulk(inventoryHandler, List.of(params.stacks().toArray(new ItemStack[0])), true,
-				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, inserter, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate),
+				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, (s, sim) -> s, inserter, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate),
 				params.stackVoided()
 		);
 
@@ -358,7 +358,7 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler, params.memorizedItems(), params.memoryIgnoresNbt(), params.filterItems(), params.shouldInsertIntoEmpty());
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
@@ -495,7 +495,7 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
