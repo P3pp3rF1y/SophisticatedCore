@@ -3,17 +3,17 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
-import javax.annotation.Nonnull;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler {
+public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler, IItemHandlerSimpleInserter {
 	protected final T inventoryHandler;
 	protected final List<FilterLogic> inputFilters;
-	private final List<FilterLogic> outputFilters;
+	protected final List<FilterLogic> outputFilters;
 
 	public FilteredItemHandler(T inventoryHandler, List<FilterLogic> inputFilters, List<FilterLogic> outputFilters) {
 		this.inventoryHandler = inventoryHandler;
@@ -26,13 +26,11 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return inventoryHandler.getSlots();
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		return inventoryHandler.getStackInSlot(slot);
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		if (inputFilters.isEmpty()) {
@@ -46,7 +44,6 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		return stack;
 	}
 
-	@Nonnull
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		if (outputFilters.isEmpty()) {
@@ -97,6 +94,28 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 			return inventoryHandler.isItemValid(slot, stack);
 		}
 		return false;
+	}
+
+	@Override
+	public ItemStack insertItem(ItemStack stack, boolean simulate) {
+		if (inputFilters.isEmpty() || matchesFilters(stack, inputFilters)) {
+			if (inventoryHandler instanceof IItemHandlerSimpleInserter simpleInserter) {
+				return simpleInserter.insertItem(stack, simulate);
+			} else {
+				return InventoryHelper.insertIntoInventory(stack, inventoryHandler, simulate);
+			}
+		}
+
+		return stack;
+	}
+
+	@Override
+	public void setStackInSlot(int i, ItemStack itemStack) {
+		if (inventoryHandler instanceof IItemHandlerSimpleInserter simpleInserter) {
+			simpleInserter.setStackInSlot(i, itemStack);
+		} else {
+			throw new UnsupportedOperationException("setStackInSlot is not supported by the underlying inventory handler");
+		}
 	}
 
 	public static class Modifiable extends FilteredItemHandler<ITrackedContentsItemHandler> implements ITrackedContentsItemHandler {
@@ -164,8 +183,21 @@ public class FilteredItemHandler<T extends IItemHandler> implements IItemHandler
 		}
 
 		@Override
-		public int getInternalSlotLimit(int slot) {
-			return inventoryHandler.getInternalSlotLimit(slot);
+		public boolean isInsertBlocked() {
+			return inventoryHandler.isInsertBlocked();
+		}
+
+		@Override
+		public ItemStack extractItem(ItemStack stack, boolean simulate) {
+			if (outputFilters.isEmpty()) {
+				return inventoryHandler.extractItem(stack, simulate);
+			}
+
+			if (matchesFilters(stack, outputFilters)) {
+				return inventoryHandler.extractItem(stack, simulate);
+			}
+
+			return ItemStack.EMPTY;
 		}
 	}
 }

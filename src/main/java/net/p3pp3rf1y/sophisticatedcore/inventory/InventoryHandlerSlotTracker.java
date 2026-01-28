@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.SlotValueMap;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -66,8 +67,13 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public boolean hasStackMemorizedOrFiltered(ItemStack stack) {
-		return memorySettings.matchesFilter(stack) || filterItemSlots.containsValue(stack.getItem());
+	public boolean hasExactStackMemorized(ItemStackKey stackKey) {
+		return memorySettings.matchesStackKey(stackKey);
+	}
+
+	@Override
+	public boolean hasItemMemorizedOrFiltered(Item item) {
+		return memorySettings.matchesItem(item) || filterItemSlots.containsValue(item);
 	}
 
 	@Override
@@ -243,13 +249,14 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, ItemStack stack, boolean simulate) {
+	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate) {
 		if (emptySlots.isEmpty() && !itemStackKeys.containsKey(stack.getItem())) {
 			return stack;
 		}
 
 		ItemStackKey stackKey = ItemStackKey.of(stack);
-		ItemStack remainingStack = handleOverflow(overflowHandler, stackKey, stack);
+		ItemStack remainingStack = beforeInsertHandler.apply(stack, simulate);
+		remainingStack = handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack);
 		if (remainingStack.isEmpty()) {
 			return remainingStack;
 		}
@@ -258,43 +265,87 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			remainingStack = insertIntoEmptySlots(inserter, remainingStack, simulate);
 		}
 		if (!remainingStack.isEmpty()) {
-			remainingStack = handleOverflow(overflowHandler, stackKey, remainingStack);
+			remainingStack = handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack);
 		}
 		return remainingStack;
 	}
 
 	@Override
-	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> overflowHandler, int slot, ItemStack stack, boolean simulate) {
+	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate) {
 		if (simulate) {
+			ItemStack remainingStack = beforeInsertHandler.apply(stack, simulate);
+			if (remainingStack.isEmpty()) {
+				return remainingStack;
+			}
+
 			if (fullSlotStacks.containsKey(slot)) {
-				return handleOverflow(overflowHandler, ItemStackKey.of(stack), stack);
+				return handleOverflow(slotOverflowHandler, storageOverflowHandler, ItemStackKey.of(stack), remainingStack);
 			} else if (emptySlots.contains(slot)) {
 				if (memorySettings.isSlotSelected(slot) && memorySettings.matchesFilter(slot, stack)) {
-					return inserter.insertItem(slot, stack, true);
+					return inserter.insertItem(slot, remainingStack, true);
 				} else if (filterItemSlots.getSlots(stack.getItem()).contains(slot)) {
-					return inserter.insertItem(slot, stack, true);
+					return inserter.insertItem(slot, remainingStack, true);
 				} else if (shouldInsertIntoEmpty.getAsBoolean()) {
 					if ((memorySettings.isSlotSelected(slot) && !memorySettings.matchesFilter(slot, stack))
 							|| filterItemSlots.containsSlotAndDoesNotMatch(slot, stack.getItem())) {
-						return handleOverflow(overflowHandler, stack, hasOneFullStackOfItem(ItemStackKey.of(stack)));
+						ItemStackKey stackKey = ItemStackKey.of(stack);
+						return handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack, hasOneFullStackOfItem(stackKey));
 					}
-					return inserter.insertItem(slot, stack, true);
+					return inserter.insertItem(slot, remainingStack, true);
 				}
 			} else if (partiallyFilledSlotStacks.containsKey(slot)) {
-				ItemStack remainingStack = stack;
 				if (partiallyFilledSlotStacks.get(slot).hashCode() == ItemStackKey.of(stack).hashCode()) {
-					remainingStack = inserter.insertItem(slot, stack, true);
+					remainingStack = inserter.insertItem(slot, remainingStack, true);
 				}
 				if (remainingStack.isEmpty()) {
 					return remainingStack;
 				}
 				boolean insertedSomething = remainingStack.getCount() != stack.getCount();
-				return handleOverflow(overflowHandler, remainingStack, insertedSomething || hasOneFullStackOfItem(ItemStackKey.of(remainingStack)));
+				ItemStackKey stackKey = ItemStackKey.of(remainingStack);
+				return handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack, insertedSomething || hasOneFullStackOfItem(stackKey));
 			}
-			return stack;
+			return remainingStack;
 		}
 
-		return insertItemIntoHandler(itemHandler, inserter, overflowHandler, stack, simulate);
+		return insertItemIntoHandler(itemHandler, beforeInsertHandler, inserter, slotOverflowHandler, storageOverflowHandler, stack, simulate);
+	}
+
+	@Override
+	public ItemStack extractItemFromHandler(InventoryHandler inventoryHandler, IItemHandlerExtractor extractItemInternal, ItemStack stack, boolean simulate) {
+		if (partiallyFilledSlotStacks.isEmpty() && fullSlotStacks.isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+
+		ItemStackKey stackKey = ItemStackKey.of(stack);
+		int extracted = 0;
+
+		Set<Integer> slots = partiallyFilledStackSlots.get(stackKey);
+		if (slots != null && !slots.isEmpty()) {
+			int originalSize = slots.size();
+			int i = 0;
+			while (partiallyFilledStackSlots.get(stackKey) != null && !partiallyFilledStackSlots.get(stackKey).isEmpty() && i++ < originalSize) {
+				int matchingSlot = partiallyFilledStackSlots.get(stackKey).iterator().next();
+				extracted += extractItemInternal.extractItem(matchingSlot, stack.getCount() - extracted, simulate).getCount();
+				if (extracted >= stack.getCount()) {
+					break;
+				}
+			}
+		}
+
+		slots = fullStackSlots.get(stackKey);
+		if (slots != null && !slots.isEmpty() && stack.getCount() > extracted) {
+			int originalSize = slots.size();
+			int i = 0;
+			while (fullStackSlots.get(stackKey) != null && !fullStackSlots.get(stackKey).isEmpty() && i++ < originalSize) {
+				int matchingSlot = fullStackSlots.get(stackKey).iterator().next();
+				extracted += extractItemInternal.extractItem(matchingSlot, stack.getCount() - extracted, simulate).getCount();
+				if (extracted >= stack.getCount()) {
+					break;
+				}
+			}
+		}
+
+		return extracted > 0 ? stack.copyWithCount(extracted) : ItemStack.EMPTY;
 	}
 
 	@Override
@@ -318,18 +369,24 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		return shouldInsertIntoEmpty.getAsBoolean() && !emptySlots.isEmpty();
 	}
 
-	private ItemStack handleOverflow(UnaryOperator<ItemStack> overflowHandler, ItemStackKey stackKey, ItemStack remainingStack) {
+	private ItemStack handleOverflow(UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStackKey stackKey, ItemStack remainingStack) {
 		boolean hasOneFullStackOfItem = hasOneFullStackOfItem(stackKey);
-		return handleOverflow(overflowHandler, remainingStack, hasOneFullStackOfItem);
+		return handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack, hasOneFullStackOfItem);
 	}
 
 	private boolean hasOneFullStackOfItem(ItemStackKey stackKey) {
 		return fullStackSlots.containsKey(stackKey) && !fullStackSlots.get(stackKey).isEmpty();
 	}
 
-	private ItemStack handleOverflow(UnaryOperator<ItemStack> overflowHandler, ItemStack remainingStack, boolean hasOneFullSlotOfItem) {
+	private ItemStack handleOverflow(UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStackKey stackKey, ItemStack remainingStack, boolean hasOneFullSlotOfItem) {
 		if (hasOneFullSlotOfItem) {
-			remainingStack = overflowHandler.apply(remainingStack);
+			if (emptySlots.isEmpty() && !partiallyFilledStackSlots.containsKey(stackKey)) {
+				remainingStack = storageOverflowHandler.apply(remainingStack);
+				if (remainingStack.isEmpty()) {
+					return remainingStack;
+				}
+			}
+			remainingStack = slotOverflowHandler.apply(remainingStack);
 		}
 		return remainingStack;
 	}
@@ -407,6 +464,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		}
 		return remainingStack;
 	}
+
 
 	private ItemStack insertIntoEmptyMemorySlots(IItemHandlerInserter inserter, boolean simulate, ItemStack stack) {
 		ItemStack remainingStack = stack;

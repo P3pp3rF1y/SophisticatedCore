@@ -21,7 +21,9 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.feeding.HungerLevel;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.filter.Direction;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.RepeatMode;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.voiding.VoidType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.xppump.AutomationDirection;
+import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import java.util.List;
@@ -75,7 +77,7 @@ public class ModCoreDataComponents {
             () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
     public static final Supplier<DataComponentType<ItemContainerContents>> COOKING_INVENTORY = DATA_COMPONENT_TYPES.register("cooking_inventory",
-             () -> new DataComponentType.Builder<ItemContainerContents>().persistent(ItemContainerContents.CODEC).networkSynchronized(ItemContainerContents.STREAM_CODEC).cacheEncoding().build()
+             () -> new DataComponentType.Builder<ItemContainerContents>().persistent(CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC).networkSynchronized(ItemContainerContents.STREAM_CODEC).cacheEncoding().build()
     );
 
     public static final Supplier<DataComponentType<Long>> BURN_TIME_FINISH = DATA_COMPONENT_TYPES.register("burn_time_finish",
@@ -133,8 +135,12 @@ public class ModCoreDataComponents {
     public static final Supplier<DataComponentType<SimpleFluidContent>> FLUID_CONTENTS = DATA_COMPONENT_TYPES.register("fluid_contents",
             () -> new DataComponentType.Builder<SimpleFluidContent>().persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC).build());
 
-    public static final Supplier<DataComponentType<Boolean>> SHOULD_VOID_OVERFLOW = DATA_COMPONENT_TYPES.register("should_void_overflow",
+    @Deprecated
+	public static final Supplier<DataComponentType<Boolean>> LEGACY_SHOULD_VOID_OVERFLOW = DATA_COMPONENT_TYPES.register("should_void_overflow",
             () -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
+	public static final Supplier<DataComponentType<VoidType>> VOID_TYPE = DATA_COMPONENT_TYPES.register("void_type",
+			() -> new DataComponentType.Builder<VoidType>().persistent(VoidType.CODEC).networkSynchronized(VoidType.STREAM_CODEC).build());
 
     public static final Supplier<DataComponentType<AutomationDirection>> AUTOMATION_DIRECTION = DATA_COMPONENT_TYPES.register("automation_direction",
             () -> new DataComponentType.Builder<AutomationDirection>().persistent(AutomationDirection.CODEC).networkSynchronized(AutomationDirection.STREAM_CODEC).build());
@@ -198,7 +204,11 @@ public class ModCoreDataComponents {
 	public static final Supplier<DataComponentType<Float>> STORED_XP = DATA_COMPONENT_TYPES.register("stored_xp",
 			() -> new DataComponentType.Builder<Float>().persistent(Codec.FLOAT).networkSynchronized(ByteBufCodecs.FLOAT).build());
 
-    public static void register(IEventBus modBus) {
-        DATA_COMPONENT_TYPES.register(modBus);
-    }
+	public static final Supplier<DataComponentType<ItemContainerContents>> LENIENT_CONTAINER = DATA_COMPONENT_TYPES.register("lenient_container",
+			() -> new DataComponentType.Builder<ItemContainerContents>().persistent(CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC).networkSynchronized(ItemContainerContents.STREAM_CODEC).cacheEncoding().build()
+	);
+
+	public static void register(IEventBus modBus) {
+		DATA_COMPONENT_TYPES.register(modBus);
+	}
 }

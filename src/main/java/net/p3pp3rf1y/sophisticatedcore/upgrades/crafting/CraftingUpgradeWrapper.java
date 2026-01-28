@@ -17,7 +17,11 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 	public CraftingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
-		inventory = new StatefulComponentItemHandler(upgrade, DataComponents.CONTAINER, 9) {
+		if (upgrade.has(DataComponents.CONTAINER)) {
+			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, upgrade.get(DataComponents.CONTAINER));
+		}
+		upgrade.remove(DataComponents.CONTAINER);
+		inventory = new StatefulComponentItemHandler(upgrade, ModCoreDataComponents.LENIENT_CONTAINER.get(), 9) {
 			@Override
 			protected void onContentsChanged(int slot, ItemStack oldStack, ItemStack newStack) {
 				super.onContentsChanged(slot, oldStack, newStack);

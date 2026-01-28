@@ -14,7 +14,7 @@ public record AlchemyFilterAttribute(ItemStack filter, AlchemyCondition conditio
 	public static final Codec<AlchemyFilterAttribute> CODEC = RecordCodecBuilder.create(
 			builder -> builder
 					.group(
-							ItemStack.OPTIONAL_CODEC.fieldOf("filter").forGetter(AlchemyFilterAttribute::filter),
+							ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY).fieldOf("filter").forGetter(AlchemyFilterAttribute::filter),
 							AlchemyCondition.CODEC.fieldOf("condition").forGetter(AlchemyFilterAttribute::condition),
 							Codec.FLOAT.fieldOf("value").forGetter(AlchemyFilterAttribute::value)
 					).apply(builder, AlchemyFilterAttribute::new)

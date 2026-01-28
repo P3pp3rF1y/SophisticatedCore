@@ -19,7 +19,12 @@ version = "${project.minecraft_version}-${project.mod_version}.${getBuildNumber(
 group = mod_group_id
 
 repositories {
-    mavenCentral()
+    maven {
+        url "https://maven.ftb.dev/releases"
+        content {
+            includeGroup "dev.ftb.mods"
+        }
+    }
     maven {
         url "https://www.cursemaven.com"
         content {
@@ -68,11 +73,17 @@ repositories {
         name = "GHPReliquary"
         url = uri("https://maven.pkg.github.com/p3pp3rf1y/reliquary")
         credentials {
-            username = System.getenv("USERNAME")
+            username = System.getenv("GITHUB_ACTOR")
             password = System.getenv("GITHUB_TOKEN")
         }
         content {
-            includeGroupByRegex "reliquary.*"
+            includeModule("net.p3pp3rf1y", "reliquary")
+        }
+    }
+    maven {
+        url = 'https://maven.wispforest.io/releases'
+        content {
+            includeGroup "io.wispforest"
         }
     }
 }
@@ -139,10 +150,10 @@ dependencies {
     if (findProject(':Reliquary') != null) {
         dependencies.implementation project(':Reliquary')
     } else {
-        dependencies.implementation("reliquary:reliquary:${reliquary_version}") {
+        dependencies.implementation("net.p3pp3rf1y:reliquary:${reliquary_version}") {
             transitive = false
         }
-        dependencies.testImplementation("reliquary:reliquary:${reliquary_version}") {
+        dependencies.testImplementation("net.p3pp3rf1y:reliquary:${reliquary_version}") {
             transitive = false
         }
     }
@@ -178,11 +189,17 @@ dependencies {
     compileOnly("com.simibubi.create:create-${create_mc_version}:${create_version}") {
         transitive = false
     }
+    compileOnly "dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}"
+    compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
 
+    compileOnly "curse.maven:openpartiesandclaims-636608:${openpartiesandclaims_cf_file_id}"
 /*
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly "curse.maven:quark-243121:${quark_cf_file_id}")
 */
+    dependencies.compileOnly("io.wispforest:accessories-neoforge:${accessories_version}") {
+        transitive = false
+    }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.+'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.11.+'
@@ -271,10 +288,10 @@ publishing {
     }
 }
 
-sonarqube {
+sonar {
     properties {
-        property "sonar.projectName", "${mod_id}"
         property "sonar.projectKey", "${sonar_project_key}"
+        property "sonar.organization", "p3pp3rf1y-github"
     }
 }
 
