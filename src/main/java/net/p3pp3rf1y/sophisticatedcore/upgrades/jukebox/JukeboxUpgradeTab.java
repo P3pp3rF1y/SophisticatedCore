@@ -150,15 +150,9 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 			int remaining = (int) (finishTime - minecraft.level.getGameTime());
 
 			ItemStack disc = getContainer().getUpgradeWrapper().getDisc();
-			if (!CustomDiscHandlers.isVanillaDisc(disc)) {
-				return CustomDiscHandlers.getMusicLengthInTicks(disc)
-						.map(lengthInTicks -> remaining / (float) lengthInTicks)
-						.orElse(0f);
-			}
-
-			Optional<Holder<JukeboxSong>> song = getContainer().getJukeboxSong(minecraft.level);
-
-			return song.map(jukeboxSongHolder -> (remaining / (float) jukeboxSongHolder.value().lengthInTicks())).orElse(0f);
+			return CustomDiscHandlers.getMusicLengthInTicks(disc, minecraft.level)
+					.map(lengthInTicks -> remaining / (float) lengthInTicks)
+					.orElse(0f);
 		}
 
 		private void renderPlaytimeOverLay(GuiGraphics guiGraphics,  int slotColor, int xPos, int yPos, int width, int height) {

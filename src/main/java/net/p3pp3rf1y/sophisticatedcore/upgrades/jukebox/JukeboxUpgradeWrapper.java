@@ -1,19 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
-import net.p3pp3rf1y.sophisticatedcore.init.ModTags;
 import net.p3pp3rf1y.sophisticatedcore.inventory.StatefulComponentItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
@@ -65,7 +62,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
-				return stack.isEmpty() || stack.has(DataComponents.JUKEBOX_PLAYABLE) || stack.is(ModTags.CAN_PLAY);
+				return stack.isEmpty() || CustomDiscHandlers.isSupport(stack);
 			}
 		};
 		isPlaying = upgrade.getOrDefault(ModCoreDataComponents.IS_PLAYING, false);
@@ -132,33 +129,17 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 			return;
 		}
 
-		storageWrapper.getContentsUuid().ifPresent(storageUuid -> {
-			if (CustomDiscHandlers.isVanillaDisc(disc)) {
-				getJukeboxSongHolder(level).ifPresent(song -> {
-					if (entityPlaying != null) {
-						ServerStorageSoundHandler.startPlayingDisc(serverLevel, entityPlaying.position(), storageUuid, entityPlaying.getId(), song, onFinishedCallback);
-					} else {
-						ServerStorageSoundHandler.startPlayingDisc(serverLevel, posPlaying, storageUuid, song, onFinishedCallback);
-					}
-					upgrade.set(ModCoreDataComponents.DISC_FINISH_TIME, level.getGameTime() + song.value().lengthInTicks());
-				});
-			} else {
-				// play custom disc
+		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
 				CustomDiscHandlers.findHandler(disc).ifPresent(handler -> {
 					if (entityPlaying != null) {
 						handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
 					} else {
 						handler.playDisc(serverLevel, posPlaying, storageUuid, disc, onFinishedCallback);
 					}
-					handler.getMusicLengthInTicks(disc).ifPresent(lengthInTicks -> upgrade.set(ModCoreDataComponents.DISC_FINISH_TIME, level.getGameTime() + lengthInTicks));
-				});
-			}
-		});
+            		handler.getMusicLengthInTicks(disc, level).ifPresent(lengthInTicks -> upgrade.set(ModCoreDataComponents.DISC_FINISH_TIME, level.getGameTime() + lengthInTicks));
+				})
+		);
 		setIsPlaying(true);
-	}
-
-	public Optional<Holder<JukeboxSong>> getJukeboxSongHolder(Level level) {
-		return JukeboxSong.fromStack(level.registryAccess(), getDisc());
 	}
 
 	private void onDiscFinished() {
