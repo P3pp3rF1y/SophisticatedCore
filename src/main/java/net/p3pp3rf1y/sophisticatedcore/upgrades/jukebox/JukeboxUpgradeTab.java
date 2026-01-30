@@ -3,11 +3,9 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.JukeboxSong;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
@@ -16,7 +14,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.*;
 
@@ -150,7 +147,7 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 			int remaining = (int) (finishTime - minecraft.level.getGameTime());
 
 			ItemStack disc = getContainer().getUpgradeWrapper().getDisc();
-			return CustomDiscHandlers.getMusicLengthInTicks(disc, minecraft.level)
+			return DiscHandlerRegistry.getMusicLengthInTicks(disc, minecraft.level)
 					.map(lengthInTicks -> remaining / (float) lengthInTicks)
 					.orElse(0f);
 		}

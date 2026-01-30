@@ -8,12 +8,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.p3pp3rf1y.sophisticatedcore.api.ICustomDiscHandler;
+import net.p3pp3rf1y.sophisticatedcore.api.IDiscHandler;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public class VanillaDiscHandler implements ICustomDiscHandler<Holder<JukeboxSong>> {
+public class VanillaDiscHandler implements IDiscHandler<Holder<JukeboxSong>> {
 
     @Override
     public Optional<Holder<JukeboxSong>> getSongInfo(ItemStack itemStack, Level level) {
@@ -40,7 +40,7 @@ public class VanillaDiscHandler implements ICustomDiscHandler<Holder<JukeboxSong
     }
 
     @Override
-    public boolean isSupport(ItemStack itemStack) {
+    public boolean supports(ItemStack itemStack) {
         return itemStack.has(DataComponents.JUKEBOX_PLAYABLE);
     }
 }

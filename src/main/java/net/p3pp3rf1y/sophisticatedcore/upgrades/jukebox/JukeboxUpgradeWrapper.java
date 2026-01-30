@@ -62,7 +62,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
-				return stack.isEmpty() || CustomDiscHandlers.isSupport(stack);
+				return stack.isEmpty() || DiscHandlerRegistry.isSupported(stack);
 			}
 		};
 		isPlaying = upgrade.getOrDefault(ModCoreDataComponents.IS_PLAYING, false);
@@ -130,7 +130,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		}
 
 		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-				CustomDiscHandlers.findHandler(disc).ifPresent(handler -> {
+				DiscHandlerRegistry.findHandler(disc).ifPresent(handler -> {
 					if (entityPlaying != null) {
 						handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
 					} else {

@@ -2,27 +2,27 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedcore.api.ICustomDiscHandler;
+import net.p3pp3rf1y.sophisticatedcore.api.IDiscHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CustomDiscHandlers {
+public class DiscHandlerRegistry {
 
-    private static final List<ICustomDiscHandler<?>> HANDLERS = new ArrayList<>();
+    private static final List<IDiscHandler<?>> HANDLERS = new ArrayList<>();
 
     static {
         registerHandler(new VanillaDiscHandler());
     }
 
-    public static void registerHandler(ICustomDiscHandler<?> handler) {
+    public static void registerHandler(IDiscHandler<?> handler) {
         HANDLERS.add(handler);
     }
 
-    public static Optional<ICustomDiscHandler<?>> findHandler(ItemStack itemStack) {
-        for (ICustomDiscHandler<?> handler : HANDLERS) {
-            if (handler.isSupport(itemStack)) {
+    public static Optional<IDiscHandler<?>> findHandler(ItemStack itemStack) {
+        for (IDiscHandler<?> handler : HANDLERS) {
+            if (handler.supports(itemStack)) {
                 return Optional.of(handler);
             }
         }
@@ -33,7 +33,7 @@ public class CustomDiscHandlers {
         return findHandler(itemStack).flatMap(handler -> handler.getMusicLengthInTicks(itemStack, level));
     }
 
-    public static boolean isSupport(ItemStack itemStack) {
+    public static boolean isSupported(ItemStack itemStack) {
         return findHandler(itemStack).isPresent();
     }
 }

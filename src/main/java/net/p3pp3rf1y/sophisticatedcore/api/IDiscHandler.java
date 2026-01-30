@@ -9,7 +9,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ICustomDiscHandler<I> {
+public interface IDiscHandler<I> {
 
     Optional<I> getSongInfo(ItemStack itemStack, Level level);
 
@@ -19,6 +19,6 @@ public interface ICustomDiscHandler<I> {
 
     Optional<Long> getMusicLengthInTicks(ItemStack itemStack, Level level);
 
-    boolean isSupport(ItemStack itemStack);
+    boolean supports(ItemStack itemStack);
 
 }
