@@ -1,11 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
-import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.JukeboxSong;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -95,9 +92,5 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 
 	public long getDiscFinishTime() {
 		return upgradeWrapper.getDiscFinishTime();
-	}
-
-	public Optional<Holder<JukeboxSong>> getJukeboxSong(Level level) {
-		return upgradeWrapper.getJukeboxSongHolder(level);
 	}
 }
