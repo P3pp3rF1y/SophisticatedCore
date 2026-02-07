@@ -2,10 +2,9 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.JukeboxSong;
+import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
@@ -14,7 +13,6 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.*;
 
@@ -147,9 +145,10 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 			long finishTime = getContainer().getDiscFinishTime();
 			int remaining = (int) (finishTime - minecraft.level.getGameTime());
 
-			Optional<Holder<JukeboxSong>> song = getContainer().getJukeboxSong(minecraft.level);
-
-			return song.map(jukeboxSongHolder -> (remaining / (float) jukeboxSongHolder.value().lengthInTicks())).orElse(0f);
+			ItemStack disc = getContainer().getUpgradeWrapper().getDisc();
+			return DiscHandlerRegistry.getMusicLengthInTicks(disc, minecraft.level)
+					.map(lengthInTicks -> remaining / (float) lengthInTicks)
+					.orElse(0f);
 		}
 
 		private void renderPlaytimeOverLay(GuiGraphics guiGraphics, int slotColor, int xPos, int yPos, int width, int height) {
