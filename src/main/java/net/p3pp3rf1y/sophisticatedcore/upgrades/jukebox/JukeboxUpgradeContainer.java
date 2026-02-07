@@ -101,8 +101,4 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 	public long getDiscFinishTime() {
 		return upgradeWrapper.getDiscFinishTime();
 	}
-
-	public Optional<Holder<JukeboxSong>> getJukeboxSong(Level level) {
-		return upgradeWrapper.getJukeboxSongHolder(level);
-	}
 }
