@@ -5,7 +5,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.items.IItemHandler;
@@ -64,7 +63,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 			@Override
 			public boolean isItemValid(int slot, ItemStack stack) {
-				return stack.getItem() instanceof RecordItem;
+				return stack.isEmpty() || DiscHandlerRegistry.isSupported(stack);
 			}
 
 			@Override
@@ -135,22 +134,24 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (!(level instanceof ServerLevel serverLevel) || (posPlaying == null && entityPlaying == null)) {
 			return;
 		}
-		if (getDisc().isEmpty()) {
+		ItemStack disc = getDisc();
+		if (disc.isEmpty()) {
 			return;
 		}
 
-		storageWrapper.getContentsUuid().ifPresent(storageUuid -> {
-			if (entityPlaying != null) {
-				ServerStorageSoundHandler.startPlayingDisc(serverLevel, entityPlaying.position(), storageUuid, entityPlaying.getId(), getDisc().getItem(), onFinishedCallback);
-			} else {
-				ServerStorageSoundHandler.startPlayingDisc(serverLevel, posPlaying, storageUuid, getDisc().getItem(), onFinishedCallback);
-			}
-			if (getDisc().getItem() instanceof RecordItem recordItem) {
-				int lengthInTicks = recordItem.getLengthInTicks();
-				NBTHelper.setLong(upgrade, "discFinishTime", level.getGameTime() + lengthInTicks);
-				NBTHelper.setLong(upgrade, "discLength", lengthInTicks);
-			}
-		});
+		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
+				DiscHandlerRegistry.findHandler(disc).ifPresent(handler -> {
+					if (entityPlaying != null) {
+						handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
+					} else {
+						handler.playDisc(serverLevel, posPlaying, storageUuid, disc, onFinishedCallback);
+					}
+            		handler.getMusicLengthInTicks(disc, level).ifPresent(lengthInTicks -> {
+						NBTHelper.setLong(upgrade, "discFinishTime", level.getGameTime() + lengthInTicks);
+						NBTHelper.setLong(upgrade, "discLength", lengthInTicks);
+					});
+				})
+		);
 		setIsPlaying(true);
 	}
 

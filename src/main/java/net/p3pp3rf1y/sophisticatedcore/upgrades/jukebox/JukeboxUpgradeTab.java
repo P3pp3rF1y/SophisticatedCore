@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
@@ -145,7 +146,10 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 			long finishTime = getContainer().getDiscFinishTime();
 			int remaining = (int) (finishTime - minecraft.level.getGameTime());
 
-			return getContainer().getDiscLength() > 0 ? (float) remaining / getContainer().getDiscLength() : 0;
+			ItemStack disc = getContainer().getUpgradeWrapper().getDisc();
+			return DiscHandlerRegistry.getMusicLengthInTicks(disc, minecraft.level)
+					.map(lengthInTicks -> remaining / (float) lengthInTicks)
+					.orElse(0f);
 		}
 
 		private void renderPlaytimeOverLay(GuiGraphics guiGraphics,  int slotColor, int xPos, int yPos, int width, int height) {

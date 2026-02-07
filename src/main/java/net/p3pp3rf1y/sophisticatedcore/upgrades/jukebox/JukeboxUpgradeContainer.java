@@ -98,8 +98,4 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 	public long getDiscFinishTime() {
 		return upgradeWrapper.getDiscFinishTime();
 	}
-
-	public int getDiscLength() {
-		return upgradeWrapper.getDiscLength();
-	}
 }

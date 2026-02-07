@@ -122,8 +122,8 @@ public class ServerStorageSoundHandler {
 		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, position, serverLevel.getGameTime() + (item instanceof RecordItem recordItem ? recordItem.getLengthInTicks() : 0));
 	}
 
-	private static void putSoundInfo(ServerLevel serverWorld, UUID storageUuid, Runnable onFinishedHandler, Vec3 pos, long finishTime) {
-		worldStorageSoundInfos.computeIfAbsent(serverWorld.dimension(), dim -> new HashMap<>()).put(storageUuid, new SoundInfo(onFinishedHandler, serverWorld.getGameTime(), pos, finishTime));
+	public static void putSoundInfo(ServerLevel serverLevel, UUID storageUuid, Runnable onFinishedHandler, Vec3 pos, long finishTime) {
+		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid, new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
 	}
 
 	public static void stopPlayingDisc(ServerLevel serverWorld, Vec3 position, UUID storageUuid) {
