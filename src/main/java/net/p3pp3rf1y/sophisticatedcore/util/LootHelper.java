@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,9 +26,15 @@ import java.util.Optional;
 public class LootHelper {
 	private LootHelper() {}
 
-	public static List<ItemStack> getLoot(Identifier lootTableName, MinecraftServer server, ServerLevel level, BlockPos pos) {
+	public static List<ItemStack> getLoot(Identifier lootTableName, MinecraftServer server, ServerLevel level, BlockPos pos, @Nullable Player player) {
 		LootTable lootTable = server.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, lootTableName));
-		LootContext.Builder lootBuilder = new LootContext.Builder((new LootParams.Builder(level)).withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos)).create(LootContextParamSets.CHEST)).withOptionalRandomSeed(level.random.nextLong());
+		LootParams.Builder lootParamsBuilder = new LootParams.Builder(level);
+		lootParamsBuilder.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(pos));
+		if (player != null) {
+			lootParamsBuilder.withLuck(player.getLuck()).withParameter(LootContextParams.THIS_ENTITY, player);
+		}
+		LootContext.Builder lootBuilder = new LootContext.Builder(lootParamsBuilder.create(LootContextParamSets.CHEST))
+				.withOptionalRandomSeed(level.random.nextLong());
 		List<ItemStack> lootStacks = new ArrayList<>();
 		lootTable.getRandomItems(lootBuilder.create(Optional.empty()), lootStacks::add);
 		return lootStacks;
