@@ -243,6 +243,11 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	@Override
 	public void reloadFrom(MemorySettingsCategoryData data) {
 		this.data = data;
+
+		filterStackSlots.clear();
+		filterItemSlots.clear();
+
+		initItemAndStackSlots();
 	}
 
 	@Override
