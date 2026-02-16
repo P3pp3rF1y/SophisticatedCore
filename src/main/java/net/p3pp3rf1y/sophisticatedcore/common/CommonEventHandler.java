@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.common;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.init.ModPayloads;
@@ -20,7 +21,7 @@ public class CommonEventHandler {
 		modBus.addListener(ModPayloads::registerPayloads);
 		IEventBus eventBus = NeoForge.EVENT_BUS;
 
-		eventBus.addListener(ItemStackKey::clearCacheOnTickEnd);
+		eventBus.addListener(CommonEventHandler::onTickEnd);
 		eventBus.addListener(RecipeHelper::onDataPackSync);
 		eventBus.addListener(RecipeHelper::onRecipesUpdated);
 		eventBus.addListener(ServerStorageSoundHandler::onWorldUnload);
@@ -28,5 +29,9 @@ public class CommonEventHandler {
 		eventBus.addListener(MagnetUpgradeWrapper::globalPostTick);
 		eventBus.addListener(MagnetUpgradeWrapper::onWorldUnload);
 		eventBus.addListener(CoreFakePlayer::onDimensionUnload);
+	}
+
+	public static void onTickEnd(ServerTickEvent.Post event) {
+		ItemStackKey.clearCache();
 	}
 }

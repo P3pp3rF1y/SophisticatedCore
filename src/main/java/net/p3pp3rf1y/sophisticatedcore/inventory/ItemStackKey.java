@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import java.util.Map;
@@ -29,7 +28,7 @@ public final class ItemStackKey {
 		this.stack.setCount(1);
 	}
 
-	public static void clearCacheOnTickEnd(ServerTickEvent.Post event) {
+	public static void clearCache() {
 		CACHE.clear();
 	}
 
