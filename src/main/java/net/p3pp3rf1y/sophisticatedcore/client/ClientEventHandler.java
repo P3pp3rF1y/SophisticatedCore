@@ -32,6 +32,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
@@ -63,6 +64,11 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
+		eventBus.addListener(ClientEventHandler::onTickEnd);
+	}
+
+	private static void onTickEnd(ClientTickEvent.Post event) {
+		ItemStackKey.clearCache();
 	}
 
 	private static void renderLevelStage(RenderLevelStageEvent.AfterBlockEntities event) {
