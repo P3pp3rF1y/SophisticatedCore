@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.common;
 
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
@@ -18,11 +19,20 @@ public class CommonEventHandler {
 		ModParticles.registerParticles(modBus);
 		ModRecipes.registerHandlers(modBus);
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
-		eventBus.addListener(ItemStackKey::clearCacheOnTickEnd);
+
+		eventBus.addListener(CommonEventHandler::onTickEnd);
 		eventBus.addListener(RecipeHelper::onDataPackSync);
 		eventBus.addListener(RecipeHelper::onRecipesUpdated);
 		eventBus.addListener(MagnetUpgradeWrapper::globalPostTick);
 		eventBus.addListener(MagnetUpgradeWrapper::onWorldUnload);
 		eventBus.addListener(CoreFakePlayer::onDimensionUnload);
+	}
+
+	public static void onTickEnd(TickEvent.ServerTickEvent event) {
+		if (event.phase != TickEvent.Phase.END) {
+			return;
+		}
+
+		ItemStackKey.clearCache();
 	}
 }

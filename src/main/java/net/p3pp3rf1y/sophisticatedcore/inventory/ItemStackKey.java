@@ -2,7 +2,6 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
@@ -40,11 +39,7 @@ public final class ItemStackKey {
 		this.stack.setCount(1);
 	}
 
-	public static void clearCacheOnTickEnd(TickEvent.ServerTickEvent event) {
-		if (event.phase != TickEvent.Phase.END) {
-			return;
-		}
-
+	public static void clearCache() {
 		CACHE.clear();
 	}
 
