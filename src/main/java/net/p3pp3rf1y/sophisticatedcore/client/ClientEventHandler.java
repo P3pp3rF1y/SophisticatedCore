@@ -17,6 +17,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -32,6 +33,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 
 import java.util.Collections;
@@ -60,6 +62,11 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
+		eventBus.addListener(ClientEventHandler::onTickEnd);
+	}
+
+	private static void onTickEnd(ClientTickEvent.Post event) {
+		ItemStackKey.clearCache();
 	}
 
 	private static void renderLevelStage(RenderLevelStageEvent event) {
