@@ -22,7 +22,7 @@ public class RenderDataHandler {
 	private final Consumer<RenderData> saveHandler;
 	private final boolean showsCountsAndFillRatios;
 
-	private Consumer<RenderDataHandler> displayItemsChangeListener = ri -> {
+	private Consumer<RenderDataHandler> renderUpdateChangeListener = ri -> {
 	};
 
 	private RenderData renderData;
@@ -61,13 +61,13 @@ public class RenderDataHandler {
 	public void refreshDisplayData(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots, List<Integer> slotCounts, List<Float> slotFillRatios) {
 		renderData.display().refreshData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
 		save();
-		displayItemsChangeListener.accept(this);
+		renderUpdateChangeListener.accept(this);
 	}
 
 	public void refreshDisplayItemsAndInaccessibleSlots(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots) {
 		renderData.display().refreshDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots);
 		save();
-		displayItemsChangeListener.accept(this);
+		renderUpdateChangeListener.accept(this);
 	}
 
 	public void refreshSlotCountsFillRatiosAndInfiniteSlots(List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
@@ -75,15 +75,20 @@ public class RenderDataHandler {
 		save();
 	}
 
-	public void setDisplayItemsChangeListener(Consumer<RenderDataHandler> displayItemsChangeListener) {
-		this.displayItemsChangeListener = displayItemsChangeListener;
+	public void setRenderUpdateChangeListener(Consumer<RenderDataHandler> renderUpdateChangeListener) {
+		this.renderUpdateChangeListener = renderUpdateChangeListener;
+	}
+
+	@Deprecated
+	public void setDisplayItemsChangeListener(Consumer<RenderDataHandler> renderUpdateChangeListener) {
+		setRenderUpdateChangeListener(renderUpdateChangeListener);
 	}
 
 	protected void save(boolean triggerChangeListener) {
 		saveHandler.accept(renderData);
 
 		if (triggerChangeListener) {
-			displayItemsChangeListener.accept(this);
+			renderUpdateChangeListener.accept(this);
 		}
 	}
 
