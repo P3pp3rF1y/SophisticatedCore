@@ -42,7 +42,8 @@ public abstract class RenderInfo {
 	@Nullable
 	private IRenderedBatteryUpgrade.BatteryRenderInfo batteryRenderInfo = null;
 
-	private Consumer<RenderInfo> displayItemsChangeListener = ri -> {};
+	private Consumer<RenderInfo> renderUpdateChangeListener = ri -> {
+	};
 
 	protected RenderInfo(Supplier<Runnable> getSaveHandler) {
 		this(getSaveHandler, false);
@@ -102,7 +103,7 @@ public abstract class RenderInfo {
 		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
 		serializeRenderInfo(renderInfo);
 		save();
-		displayItemsChangeListener.accept(this);
+		renderUpdateChangeListener.accept(this);
 	}
 
 	public void refreshDisplayItemsAndInaccessibleSlots(List<DisplayItem> displayItems, List<Integer> inaccessibleSlots) {
@@ -111,7 +112,7 @@ public abstract class RenderInfo {
 		renderInfo.put(ITEM_DISPLAY_TAG, itemDisplayRenderInfo.serialize());
 		serializeRenderInfo(renderInfo);
 		save();
-		displayItemsChangeListener.accept(this);
+		renderUpdateChangeListener.accept(this);
 	}
 
 	public void refreshSlotCountsFillRatiosAndInfiniteSlots(List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
@@ -122,15 +123,20 @@ public abstract class RenderInfo {
 		save();
 	}
 
-	public void setDisplayItemsChangeListener(Consumer<RenderInfo> displayItemsChangeListener) {
-		this.displayItemsChangeListener = displayItemsChangeListener;
+	@Deprecated //TODO use the other setter in one of the near future releases
+	public void setDisplayItemsChangeListener(Consumer<RenderInfo> renderUpdateChangeListener) {
+		this.renderUpdateChangeListener = renderUpdateChangeListener;
 	}
 
-	protected void save(boolean triggerChangeListener) {
+	public void setRenderUpdateChangeListener(Consumer<RenderInfo> renderUpdateChangeListener) {
+		this.renderUpdateChangeListener = renderUpdateChangeListener;
+	}
+
+	protected void save(boolean triggerRenderUpdateListener) {
 		getSaveHandler.get().run();
 
-		if (triggerChangeListener) {
-			displayItemsChangeListener.accept(this);
+		if (triggerRenderUpdateListener) {
+			renderUpdateChangeListener.accept(this);
 		}
 	}
 
@@ -214,9 +220,31 @@ public abstract class RenderInfo {
 	}
 
 	public void setTankRenderInfo(TankPosition tankPosition, IRenderedTankUpgrade.TankRenderInfo tankRenderInfo) {
+		boolean updateRender = isDifferentFluidOrFillStep(tankRenderInfos.get(tankPosition), tankRenderInfo);
 		tankRenderInfos.put(tankPosition, tankRenderInfo);
 		serializeTank(tankPosition, tankRenderInfo);
-		save();
+		save(updateRender);
+	}
+
+	private boolean isDifferentFluidOrFillStep(@Nullable IRenderedTankUpgrade.TankRenderInfo existingInfo, @Nullable IRenderedTankUpgrade.TankRenderInfo newInfo) {
+		if (existingInfo == null && newInfo != null || existingInfo != null && newInfo == null) {
+			return true;
+		}
+		if (existingInfo == null) {
+			return false;
+		}
+		if (existingInfo.getFluid().isPresent() != newInfo.getFluid().isPresent()) {
+			return true;
+		}
+		if (existingInfo.getFluid().isEmpty()) {
+			return false;
+		}
+
+		if (!existingInfo.getFluid().get().isFluidEqual(newInfo.getFluid().get())) {
+			return true;
+		}
+		int fillSteps = 20;
+		return (int) (existingInfo.getFillRatio() * fillSteps) != (int) (newInfo.getFillRatio() * fillSteps);
 	}
 
 	private void deserializeTanks(CompoundTag renderInfoTag) {
@@ -265,12 +293,24 @@ public abstract class RenderInfo {
 	}
 
 	public void setBatteryRenderInfo(IRenderedBatteryUpgrade.BatteryRenderInfo batteryRenderInfo) {
+		boolean updateRender = isDifferentChargeStep(this.batteryRenderInfo, batteryRenderInfo);
 		this.batteryRenderInfo = batteryRenderInfo;
 		CompoundTag batteryInfo = batteryRenderInfo.serialize();
 		CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
 		renderInfo.put(BATTERY_TAG, batteryInfo);
 		serializeRenderInfo(renderInfo);
-		save();
+		save(updateRender);
+	}
+
+	private boolean isDifferentChargeStep(@Nullable IRenderedBatteryUpgrade.BatteryRenderInfo existingInfo, @Nullable IRenderedBatteryUpgrade.BatteryRenderInfo newInfo) {
+		if (existingInfo == null && newInfo != null || existingInfo != null && newInfo == null) {
+			return true;
+		}
+		if (existingInfo == null) {
+			return false;
+		}
+		int chargeSteps = 8;
+		return (int) (existingInfo.getChargeRatio() * chargeSteps) != (int) (newInfo.getChargeRatio() * chargeSteps);
 	}
 
 	public List<ItemStack> getUpgradeItems() {
