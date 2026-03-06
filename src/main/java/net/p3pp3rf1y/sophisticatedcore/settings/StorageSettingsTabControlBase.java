@@ -86,9 +86,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 				Matrix3x2fStack pose = guiGraphics.pose();
 
 				pose.pushMatrix();
-				pose.translate(16, 26);
+				pose.translate(slot.x + 8,  slot.y + 8);
 				pose.rotate((float) Math.toRadians(rotation));
-				pose.translate(-16, -26);
+				pose.translate(-slot.x - 8,  -slot.y - 8);
 				guiGraphics.renderItem(itemstack, slot.x, slot.y);
 
 				pose.popMatrix();
