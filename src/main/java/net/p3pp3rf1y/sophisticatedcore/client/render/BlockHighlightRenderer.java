@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class BlockHighlightRenderer {
 	public static final int HIGHLIGHT_DURATION = 40;
@@ -58,7 +59,7 @@ public class BlockHighlightRenderer {
 		if (cachedHighlightedBlocks == null) {
 			cachedHighlightedBlocks = new HashMap<>();
 			highlightedPositions.forEach((color, positions) -> {
-				cachedHighlightedBlocks.put(color, positions.stream().map(pos -> getHighlightedBlock(mc, pos)).toList());
+				cachedHighlightedBlocks.put(color, positions.stream().map(pos -> getHighlightedBlock(mc, pos)).filter(Objects::nonNull).toList());
 			});
 		}
 
@@ -81,11 +82,18 @@ public class BlockHighlightRenderer {
 
 	private static HighlightedBlock getHighlightedBlock(Minecraft mc, BlockPos pos) {
 		ClientLevel level = mc.level;
+		if (!level.isLoaded(pos) || level.isEmptyBlock(pos)) {
+			return null;
+		}
 		BlockState state = level.getBlockState(pos);
+
 		VoxelShape shape = state.getShape(level, pos);
 		if (state.getBlock() instanceof IDoubleBlock doubleBlock) {
 			VoxelShape finalShape = shape;
 			shape = doubleBlock.getOtherPosition(state, pos).map(otherPos -> {
+				if (!level.isLoaded(otherPos) || level.isEmptyBlock(otherPos)) {
+					return finalShape;
+				}
 				BlockState otherState = level.getBlockState(otherPos);
 				VoxelShape otherShape = otherState.getShape(level, otherPos);
 				otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
@@ -94,10 +102,12 @@ public class BlockHighlightRenderer {
 		} else if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
 			Direction connectedDir = ChestBlock.getConnectedDirection(state);
 			BlockPos otherPos = pos.relative(connectedDir);
-			BlockState otherState = level.getBlockState(otherPos);
-			VoxelShape otherShape = otherState.getShape(level, otherPos);
-			otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
-			shape = Shapes.join(shape, otherShape, BooleanOp.OR);
+			if (level.isLoaded(otherPos) && !level.isEmptyBlock(otherPos)) {
+				BlockState otherState = level.getBlockState(otherPos);
+				VoxelShape otherShape = otherState.getShape(level, otherPos);
+				otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
+				shape = Shapes.join(shape, otherShape, BooleanOp.OR);
+			}
 		}
 		return new HighlightedBlock(pos, VoxelOutliner.linesFromVoxelShapeSimplified(shape, pos), shape.bounds().getCenter());
 	}
