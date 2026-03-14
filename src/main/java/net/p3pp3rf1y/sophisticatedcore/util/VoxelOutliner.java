@@ -84,11 +84,17 @@ public final class VoxelOutliner {
 		List<Edge> edges = new ArrayList<>();
 
 		positions.forEach(pos -> {
+			if (!level.isLoaded(pos) || level.isEmptyBlock(pos)) {
+				return;
+			}
 			BlockState state = level.getBlockState(pos);
 			VoxelShape shape = state.getShape(level, pos);
 			if (state.getBlock() instanceof IDoubleBlock doubleBlock) {
 				VoxelShape finalShape = shape;
 				shape = doubleBlock.getOtherPosition(state, pos).map(otherPos -> {
+					if (!level.isLoaded(otherPos) || level.isEmptyBlock(otherPos)) {
+						return finalShape;
+					}
 					BlockState otherState = level.getBlockState(otherPos);
 					VoxelShape otherShape = otherState.getShape(level, otherPos);
 					otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
