@@ -215,6 +215,13 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 
 	public void addStorage(BlockPos storagePos) {
 		if (storagePositions.contains(storagePos)) {
+			if (level != null) {
+				WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(storage ->
+						storage.getControllerPos()
+								.filter(getBlockPos()::equals)
+								.ifPresent(pos -> storage.unregisterController())
+				);
+			}
 			removeStorageInventoryData(storagePos);
 			clearCachedHandlers();
 		}
