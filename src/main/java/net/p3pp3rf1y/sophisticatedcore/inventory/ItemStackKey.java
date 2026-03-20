@@ -24,8 +24,7 @@ public final class ItemStackKey {
 	private int hash;
 
 	private ItemStackKey(ItemStack stack) {
-		this.stack = stack.copy();
-		this.stack.setCount(1);
+		this.stack = stack.copyWithCount(1);
 	}
 
 	public static void clearCache() {
