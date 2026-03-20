@@ -375,6 +375,31 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		transferToInventoryButton.setPosition(new Position(leftPos + inventoryLabelX + 149, topPos + inventoryLabelY - 2));
 	}
 
+	public Optional<Position> getTransferToInventoryButtonPosition() {
+		if (transferToInventoryButton == null) {
+			return Optional.empty();
+		}
+		return Optional.of(new Position(transferToInventoryButton.getX(), transferToInventoryButton.getY()));
+	}
+
+	public void shiftTransferButtons(int shiftX) {
+		if (transferToStorageButton == null || transferToInventoryButton == null || shiftX == 0) {
+			return;
+		}
+		transferToStorageButton.setPosition(new Position(transferToStorageButton.getX() + shiftX, transferToStorageButton.getY()));
+		transferToInventoryButton.setPosition(new Position(transferToInventoryButton.getX() + shiftX, transferToInventoryButton.getY()));
+	}
+
+	public void setExternalSearchPhrase(String searchPhrase) {
+		String phrase = searchPhrase == null ? "" : searchPhrase;
+		if (searchBox != null) {
+			searchBox.setValue(phrase);
+		} else {
+			getMenu().setSearchPhrase(phrase);
+			updateSearchFilter(phrase);
+		}
+	}
+
 	private int getNumberOfVisibleRows() {
 		return Math.min((imageHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
 	}
