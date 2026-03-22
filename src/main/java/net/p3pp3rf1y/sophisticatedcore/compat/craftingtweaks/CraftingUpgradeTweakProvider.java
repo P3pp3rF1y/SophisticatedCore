@@ -55,11 +55,8 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 		}
 
 		getCraftMatrix(storageContainer).ifPresent(craftMatrix -> {
-			int start = getCraftingGridStart(storageContainer);
-			int size = getCraftingGridSize(storageContainer);
-
-			for (int i = start; i < start + size; ++i) {
-				int slotIndex = (storageContainer.getSlot(i)).getContainerSlot();
+			for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
+				int slotIndex = recipeSlot.getContainerSlot();
 				ItemStack itemStack = craftMatrix.getItem(slotIndex);
 				if (!itemStack.isEmpty()) {
 					ItemStack returnStack = itemStack.copy();
@@ -133,20 +130,21 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			return;
 		}
 		getCraftMatrix(storageContainer).ifPresent(craftMatrix -> {
-			int start = getCraftingGridStart(storageContainer);
-			int size = getCraftingGridSize(storageContainer);
+			List<Slot> recipeSlots = getRecipeSlots(storageContainer);
+			int size = recipeSlots.size();
+			if (size != 9) {
+				return;
+			}
 			Container matrixClone = new SimpleContainer(size);
 
-			int i;
-			int slotIndex;
-			for (i = 0; i < size; ++i) {
-				slotIndex = storageContainer.getSlot(start + i).getContainerSlot();
+			for (int i = 0; i < size; ++i) {
+				int slotIndex = recipeSlots.get(i).getContainerSlot();
 				matrixClone.setItem(i, craftMatrix.getItem(slotIndex));
 			}
 
-			for (i = 0; i < size; ++i) {
+			for (int i = 0; i < size; ++i) {
 				if (!ignoresSlotId(i)) {
-					slotIndex = containerMenu.getSlot(start + rotateSlotId(i, counterClockwise)).getContainerSlot();
+					int slotIndex = recipeSlots.get(rotateSlotId(i, counterClockwise)).getContainerSlot();
 					craftMatrix.setItem(slotIndex, matrixClone.getItem(i));
 				}
 			}
@@ -172,14 +170,18 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 		return getOpenCraftingContainer(container).map(cc -> {
 			List<Slot> recipeSlots = cc.getRecipeSlots();
 			if (!recipeSlots.isEmpty()) {
-				return recipeSlots.get(0).index;
+				return container.slots.indexOf(recipeSlots.get(0));
 			}
 			return 0;
 		}).orElse(0);
 	}
 
 	private static int getCraftingGridSize(StorageContainerMenuBase<?> container) {
-		return getOpenCraftingContainer(container).isPresent() ? 9 : 0;
+		return getOpenCraftingContainer(container).map(cc -> cc.getRecipeSlots().size()).orElse(0);
+	}
+
+	private static List<Slot> getRecipeSlots(StorageContainerMenuBase<?> container) {
+		return getOpenCraftingContainer(container).map(ICraftingContainer::getRecipeSlots).orElse(List.of());
 	}
 
 	private static class StorageCraftingGridBalanceHandler implements net.blay09.mods.craftingtweaks.api.GridBalanceHandler<AbstractContainerMenu> {
@@ -191,16 +193,16 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			getCraftMatrix(storageContainer).ifPresent(craftMatrix -> {
 				ArrayListMultimap<String, Integer> itemMap = ArrayListMultimap.create();
 				Multiset<String> itemCount = HashMultiset.create();
-				int start = getCraftingGridStart(storageContainer);
-				int size = getCraftingGridSize(storageContainer);
-				for (int i = start; i < start + size; i++) {
-					int slotIndex = menu.getSlot(i).getContainerSlot();
+				for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
+					int slotIndex = recipeSlot.getContainerSlot();
 					ItemStack itemStack = craftMatrix.getItem(slotIndex);
 					if (!itemStack.isEmpty() && itemStack.getMaxStackSize() > 1) {
 						Identifier registryName = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
 
 						String key = Objects.toString(registryName);
-						key = key + "@" + itemStack.getComponentsPatch();
+						if (!itemStack.getComponentsPatch().isEmpty()) {
+							key = key + "@" + itemStack.getComponentsPatch();
+						}
 						itemMap.put(key, slotIndex);
 						itemCount.add(key, itemStack.getCount());
 					}
@@ -247,10 +249,8 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 					ItemStack biggestSlotStack = null;
 					int biggestSlotSize = 1;
 					int biggestSlotIndex = -1;
-					int start = getCraftingGridStart(storageContainer);
-					int size = getCraftingGridSize(storageContainer);
-					for (int i = start; i < start + size; i++) {
-						int slotIndex = menu.getSlot(i).getContainerSlot();
+					for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
+						int slotIndex = recipeSlot.getContainerSlot();
 						ItemStack itemStack = craftMatrix.getItem(slotIndex);
 						if (!itemStack.isEmpty() && itemStack.getCount() > biggestSlotSize) {
 							biggestSlotStack = itemStack;
@@ -264,8 +264,8 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 					}
 
 					boolean emptyBiggestSlot = false;
-					for (int i = start; i < start + size; i++) {
-						int slotIndex = menu.getSlot(i).getContainerSlot();
+					for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
+						int slotIndex = recipeSlot.getContainerSlot();
 						ItemStack itemStack = craftMatrix.getItem(slotIndex);
 						if (itemStack.isEmpty()) {
 							if (biggestSlotStack.getCount() > 1) {
