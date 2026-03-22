@@ -25,6 +25,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiSoundHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
@@ -33,6 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +50,10 @@ public class ClientEventHandler {
 	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "key.category.sophisticatedcore.main";
 	public static final KeyMapping SORT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("sort"),
 			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+	public static final KeyMapping TRANSFER_TO_STORAGE_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_storage"),
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_LEFT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+	public static final KeyMapping TRANSFER_TO_INVENTORY_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_inventory"),
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
@@ -78,11 +84,20 @@ public class ClientEventHandler {
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		event.register(SORT_KEYBIND);
+		event.register(TRANSFER_TO_STORAGE_KEYBIND);
+		event.register(TRANSFER_TO_INVENTORY_KEYBIND);
 	}
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
 		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
 		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
+			GuiSoundHelper.playButtonClickSound();
+			event.setCanceled(true);
+		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(key) && tryCallTransferToStorage(event.getScreen())) {
+			GuiSoundHelper.playButtonClickSound();
+			event.setCanceled(true);
+		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(key) && tryCallTransferToInventory(event.getScreen())) {
+			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
 	}
@@ -90,8 +105,31 @@ public class ClientEventHandler {
 	public static void handleGuiMouseKeyPress(ScreenEvent.MouseButtonPressed.Pre event) {
 		InputConstants.Key input = InputConstants.Type.MOUSE.getOrCreate(event.getButton());
 		if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
+			GuiSoundHelper.playButtonClickSound();
+			event.setCanceled(true);
+		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(input) && tryCallTransferToStorage(event.getScreen())) {
+			GuiSoundHelper.playButtonClickSound();
+			event.setCanceled(true);
+		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(input) && tryCallTransferToInventory(event.getScreen())) {
+			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
+	}
+
+	private static boolean tryCallTransferToStorage(Screen gui) {
+		if (gui instanceof StorageScreenBase<?> screen) {
+			screen.getMenu().transferItemsToStorage(!Screen.hasShiftDown());
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean tryCallTransferToInventory(Screen gui) {
+		if (gui instanceof StorageScreenBase<?> screen) {
+			screen.getMenu().transferItemsToPlayerInventory(!Screen.hasShiftDown());
+			return true;
+		}
+		return false;
 	}
 
 	private static boolean tryCallSort(Screen gui) {
@@ -218,6 +256,20 @@ public class ClientEventHandler {
 		@Override
 		public boolean isActive() {
 			return GUI.isActive() && Minecraft.getInstance().screen instanceof StorageScreenBase<?>;
+		}
+
+		@Override
+		public boolean conflicts(IKeyConflictContext other) {
+			return this == other;
+		}
+	}
+
+	private static class ContainerScreenKeyConflictContext implements IKeyConflictContext {
+		public static final ContainerScreenKeyConflictContext INSTANCE = new ContainerScreenKeyConflictContext();
+
+		@Override
+		public boolean isActive() {
+			return GUI.isActive() && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>;
 		}
 
 		@Override
