@@ -284,5 +284,7 @@
     "fluid_type.sophisticatedcore.experience": "Опыт",
     "gui.sophisticatedcore.tooltip.stack_count": "Количество предметов: %s",
     "key.category.sophisticatedcore.main": "Моды «Sophisticated»",
-    "key.sophisticatedcore.sort": "Сортировать хранилище или рюкзак"
+    "key.sophisticatedcore.sort": "Сортировать хранилище или рюкзак",
+    "key.sophisticatedcore.transfer_to_storage": "Перенести в инвентарь хранилища",
+    "key.sophisticatedcore.transfer_to_inventory": "Перенести в инвентарь игрока"
 }
