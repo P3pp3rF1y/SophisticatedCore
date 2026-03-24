@@ -284,5 +284,7 @@
   "fluid_type.sophisticatedcore.experience": "Experiencia",
   "gui.sophisticatedcore.tooltip.stack_count": "Cantidad: %s",
   "key.category.sophisticatedcore.main": "Sophisticated Mods",
-  "key.sophisticatedcore.sort": "Ordenar almacenamiento/mochila"
+  "key.sophisticatedcore.sort": "Ordenar almacenamiento/mochila",
+  "key.sophisticatedcore.transfer_to_storage": "Transferir al almacenamiento",
+  "key.sophisticatedcore.transfer_to_inventory": "Transferir al inventario"
 }
