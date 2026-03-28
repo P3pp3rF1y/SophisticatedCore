@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.tank;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeSettingsTab;
@@ -20,8 +20,8 @@ public class TankUpgradeTab extends UpgradeSettingsTab<TankUpgradeContainer> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		super.extractBg(guiGraphics, minecraft, mouseX, mouseY);
 		if (getContainer().isOpen()) {
 			GuiHelper.renderSlotsBackground(guiGraphics, x + 3, y + 24, 1, 1);
 			GuiHelper.renderSlotsBackground(guiGraphics, x + 24, y + 24, 1, 1);

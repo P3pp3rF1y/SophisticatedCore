@@ -263,7 +263,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				ItemStack::getUseDuration,
 				(stack, livingEntity) -> {
 					if (livingEntity instanceof ZombieVillager zombieVillager && zombieVillager.hasEffect(MobEffects.WEAKNESS)) {
-						zombieVillager.startConverting(null, livingEntity.level().random.nextInt(2401) + 3600);
+					zombieVillager.startConverting(null, livingEntity.level().getRandom().nextInt(2401) + 3600);
 						return ItemStack.EMPTY;
 					}
 

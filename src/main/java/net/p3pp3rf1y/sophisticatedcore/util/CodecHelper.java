@@ -10,7 +10,10 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.component.ItemContainerContents;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 import java.util.*;
 
@@ -18,7 +21,7 @@ public class CodecHelper {
 	public static final Codec<ItemStack> OVERSIZED_ITEM_STACK_CODEC = Codec.lazyInitialized(
 			() -> RecordCodecBuilder.create(
 					instance -> instance.group(
-									Item.CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
+									Item.CODEC.fieldOf("id").forGetter(ItemStack::typeHolder),
 									Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
 									DataComponentPatch.CODEC
 											.optionalFieldOf("components", DataComponentPatch.EMPTY)
@@ -35,8 +38,8 @@ public class CodecHelper {
 	public static final Codec<ItemContainerContents.Slot> LENIENT_CONTENTS_SLOT_CODEC = RecordCodecBuilder.create(
 			instance -> instance.group(
 					Codec.intRange(0, 255).fieldOf("slot").forGetter(ItemContainerContents.Slot::index),
-					ItemStack.CODEC.lenientOptionalFieldOf("item", ItemStack.EMPTY).forGetter(ItemContainerContents.Slot::item)
-			).apply(instance, ItemContainerContents.Slot::new));
+					ItemStackTemplate.CODEC.fieldOf("item").forGetter(ItemContainerContents.Slot::item)
+			).apply(instance, CodecHelper::createContentsSlot));
 
 	public static Codec<ItemContainerContents> LENIENT_ITEM_CONTAINER_CONTENTS_CODEC = LENIENT_CONTENTS_SLOT_CODEC
 			.sizeLimitedListOf(256).xmap(ItemContainerContents::fromSlots, ItemContainerContents::asSlots);
@@ -68,6 +71,16 @@ public class CodecHelper {
 	};
 
 	private CodecHelper() {
+	}
+
+	private static ItemContainerContents.Slot createContentsSlot(int index, ItemStackTemplate item) {
+		try {
+			Constructor<ItemContainerContents.Slot> constructor = ItemContainerContents.Slot.class.getDeclaredConstructor(int.class, ItemStackTemplate.class);
+			constructor.setAccessible(true);
+			return constructor.newInstance(index, item);
+		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+			throw new IllegalStateException("Unable to create ItemContainerContents.Slot", e);
+		}
 	}
 
 	public static <T> Codec<Set<T>> setOf(Codec<T> elementCodec) {

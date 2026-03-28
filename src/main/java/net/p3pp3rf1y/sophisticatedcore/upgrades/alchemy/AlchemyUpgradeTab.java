@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.inventory.Slot;
@@ -109,11 +109,11 @@ public class AlchemyUpgradeTab extends UpgradeSettingsTab<AlchemyUpgradeContaine
 				}
 
 				@Override
-				protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+				protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 					if (getContainer().hasNoFilter(slot)) {
 						GuiHelper.blit(guiGraphics, x, y, DISABLED_CONDITION);
 					} else {
-						super.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+						super.extractWidget(guiGraphics, mouseX, mouseY, partialTicks);
 					}
 				}
 			});
@@ -131,8 +131,8 @@ public class AlchemyUpgradeTab extends UpgradeSettingsTab<AlchemyUpgradeContaine
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		super.extractBg(guiGraphics, minecraft, mouseX, mouseY);
 		if (getContainer().isOpen()) {
 			for (Slot slot : getContainer().getSlots()) {
 				GuiHelper.renderSlotsBackground(guiGraphics, screen.getGuiLeft() + slot.x - 1, screen.getGuiTop() + slot.y - 1, 1, 1);

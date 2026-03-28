@@ -2,12 +2,13 @@ package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 
 public final class PlayerMainSettingsSavedData extends SavedData {
 	public static final String FILE_ID = SophisticatedCore.MOD_ID + "-player-main-settings";
-	private static final SavedDataType<PlayerMainSettingsSavedData> TYPE = new SavedDataType<>(FILE_ID, PlayerMainSettingsSavedData::new,
+	private static final SavedDataType<PlayerMainSettingsSavedData> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "player_main_settings"), PlayerMainSettingsSavedData::new,
 			RecordCodecBuilder.create(instance ->
 					instance.group(
 							Codec.unboundedMap(
@@ -48,7 +49,7 @@ public final class PlayerMainSettingsSavedData extends SavedData {
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
 				//noinspection ConstantConditions - by this time overworld is loaded
-				DimensionDataStorage storage = overworld.getDataStorage();
+				SavedDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}
 		}

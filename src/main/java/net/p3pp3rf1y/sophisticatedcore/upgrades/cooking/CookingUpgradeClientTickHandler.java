@@ -17,13 +17,13 @@ public class CookingUpgradeClientTickHandler implements IUpgradeClientTickHandle
 			return;
 		}
 
-		if (level.random.nextDouble() < 0.1D) {
+		if (level.getRandom().nextDouble() < 0.1D) {
 			Vector3f renderCenter = getPositionFromOffset.apply(new Vector3f());
 			level.playLocalSound(renderCenter.x(), renderCenter.y(), renderCenter.z(), SoundEvents.FURNACE_FIRE_CRACKLE, SoundSource.BLOCKS, 1.0F, 1.0F, false);
 		}
 
-		float xOffset = level.random.nextFloat() * 0.6f - 0.3f;
-		float yOffset = level.random.nextFloat() * 6.0f / 16.0f;
+		float xOffset = level.getRandom().nextFloat() * 0.6f - 0.3f;
+		float yOffset = level.getRandom().nextFloat() * 6.0f / 16.0f;
 		float zOffset = 0.02f;
 		Vector3f randomAtTheBack = getPositionFromOffset.apply(new Vector3f(xOffset, yOffset, zOffset));
 

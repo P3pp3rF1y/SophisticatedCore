@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings.memory;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
@@ -71,7 +71,7 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 	}
 
 	@Override
-	public void drawSlotStackOverlay(GuiGraphics guiGraphics, Slot slot, boolean templateLoadHovered) {
+	public void extractSlotStackOverlay(GuiGraphicsExtractor guiGraphics, Slot slot, boolean templateLoadHovered) {
 		if (templateLoadHovered) {
 			if (!getSettingsContainer().getSelectedTemplatesMemorizedStack(slot.getSlotIndex()).isEmpty()) {
 				drawMemorizedStackOverlay(guiGraphics, slot);
@@ -81,7 +81,7 @@ public class MemorySettingsTab extends SettingsTab<MemorySettingsContainer> {
 		}
 	}
 
-	private void drawMemorizedStackOverlay(GuiGraphics guiGraphics, Slot slot) {
+	private void drawMemorizedStackOverlay(GuiGraphicsExtractor guiGraphics, Slot slot) {
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, slot.x, slot.y, 77, 0, 16, 16, 256, 256);
 	}
 }

@@ -2,12 +2,13 @@ package net.p3pp3rf1y.sophisticatedcore.compat.create;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -18,7 +19,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import java.util.*;
 //TODO after 1.22 remove support for legacy UUID deserialization via strings
 public class MountedStorageData extends SavedData implements IStorageSavedData {
-	private static final SavedDataType<MountedStorageData> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_mounted_storage", MountedStorageData::new,
+	private static final SavedDataType<MountedStorageData> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "mounted_storage"), MountedStorageData::new,
 			RecordCodecBuilder.create(
 					builder -> builder.group(
 							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, ContainerContents.CODEC)
@@ -44,7 +45,7 @@ public class MountedStorageData extends SavedData implements IStorageSavedData {
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
 				//noinspection ConstantConditions - by this time overworld is loaded
-				DimensionDataStorage storage = overworld.getDataStorage();
+				SavedDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}
 		}

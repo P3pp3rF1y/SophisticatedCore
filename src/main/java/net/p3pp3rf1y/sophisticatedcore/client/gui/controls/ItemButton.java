@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
@@ -22,13 +22,13 @@ public class ItemButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		guiGraphics.renderItem(stack, x, y);
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		guiGraphics.item(stack, x, y);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
@@ -25,8 +25,8 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		children.forEach(child -> child.render(guiGraphics, mouseX, mouseY, partialTicks));
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		children.forEach(child -> child.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks));
 	}
 
 	protected <U extends T> U addChild(U child) {
@@ -85,8 +85,8 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
-		children.forEach(c -> c.renderTooltip(screen, guiGraphics, mouseX, mouseY));
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
+		children.forEach(c -> c.extractTooltip(screen, guiGraphics, mouseX, mouseY));
 	}
 }

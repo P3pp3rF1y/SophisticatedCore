@@ -1,6 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.HolderLookup;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -11,8 +13,13 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 
 public class UpgradeClearRecipe extends CustomRecipe {
+	public static final UpgradeClearRecipe INSTANCE = new UpgradeClearRecipe(CraftingBookCategory.MISC);
+	public static final MapCodec<UpgradeClearRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
+	public static final StreamCodec<RegistryFriendlyByteBuf, UpgradeClearRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+	public static final RecipeSerializer<UpgradeClearRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+
 	public UpgradeClearRecipe(CraftingBookCategory category) {
-		super(category);
+		super();
 	}
 
 	@Override
@@ -33,7 +40,7 @@ public class UpgradeClearRecipe extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput inventory, HolderLookup.Provider registries) {
+	public ItemStack assemble(CraftingInput inventory) {
 		ItemStack upgrade = ItemStack.EMPTY;
 		for (int i = 0; i < inventory.size(); i++) {
 			ItemStack stack = inventory.getItem(i);
@@ -46,6 +53,6 @@ public class UpgradeClearRecipe extends CustomRecipe {
 
 	@Override
 	public RecipeSerializer<UpgradeClearRecipe> getSerializer() {
-		return ModRecipes.UPGRADE_CLEAR_SERIALIZER.get();
+		return SERIALIZER;
 	}
 }

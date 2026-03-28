@@ -23,10 +23,10 @@ public class VanillaDiscHandler implements IDiscHandler<Holder<JukeboxSong>> {
 
     private static Supplier<List<? extends String>> discBlockListGetter = Collections::emptyList;
 
-    @Override
-    public Optional<Holder<JukeboxSong>> getSongInfo(ItemStack itemStack, Level level) {
-        return JukeboxSong.fromStack(level.registryAccess(), itemStack);
-    }
+	@Override
+	public Optional<Holder<JukeboxSong>> getSongInfo(ItemStack itemStack, Level level) {
+		return JukeboxSong.fromStack(itemStack);
+	}
 
     @Override
     public void playDisc(ServerLevel serverLevel, BlockPos position, UUID storageUuid, ItemStack discItemStack, Runnable onFinished) {

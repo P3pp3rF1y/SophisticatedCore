@@ -34,7 +34,7 @@ public class LootHelper {
 			lootParamsBuilder.withLuck(player.getLuck()).withParameter(LootContextParams.THIS_ENTITY, player);
 		}
 		LootContext.Builder lootBuilder = new LootContext.Builder(lootParamsBuilder.create(LootContextParamSets.CHEST))
-				.withOptionalRandomSeed(level.random.nextLong());
+				.withOptionalRandomSeed(level.getRandom().nextLong());
 		List<ItemStack> lootStacks = new ArrayList<>();
 		lootTable.getRandomItems(lootBuilder.create(Optional.empty()), lootStacks::add);
 		return lootStacks;

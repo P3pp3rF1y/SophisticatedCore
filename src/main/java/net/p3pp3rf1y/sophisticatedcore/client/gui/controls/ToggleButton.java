@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -27,16 +27,16 @@ public class ToggleButton<T extends Comparable<T>> extends Button {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		StateData data = stateData.get(getState.get());
 		GuiHelper.blit(guiGraphics, x, y, data.getTexture());
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			StateData data = stateData.get(getState.get());
-			GuiHelper.renderTooltip(screen, guiGraphics, getTooltip(data), mouseX, mouseY);
+			GuiHelper.extractTooltip(screen, guiGraphics, getTooltip(data), mouseX, mouseY);
 		}
 	}
 

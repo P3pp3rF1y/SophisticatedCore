@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -34,10 +34,10 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 
 
 	@Override
-	public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	public void extractForeground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		for (Tab child : children) {
 			if (child instanceof IForegroundRenderable renderable) {
-				renderable.renderForeground(guiGraphics, mouseX, mouseY, partialTicks);
+				renderable.extractForeground(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 		}
 	}

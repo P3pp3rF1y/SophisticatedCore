@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -17,7 +16,7 @@ import java.util.Map;
 
 public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	protected StorageDyeRecipeBase(CraftingBookCategory category) {
-		super(category);
+		super();
 	}
 
 	@Override
@@ -44,7 +43,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
+	public ItemStack assemble(CraftingInput inv) {
 		Map<Integer, List<DyeColor>> columnDyes = new HashMap<>();
 		Tuple<Integer, ItemStack> columnStorage = null;
 

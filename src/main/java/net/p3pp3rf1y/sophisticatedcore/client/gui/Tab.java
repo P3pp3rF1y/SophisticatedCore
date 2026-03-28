@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
@@ -49,16 +49,16 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (!shouldRender.getAsBoolean()) {
 			return;
 		}
-		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		super.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (shouldRender.getAsBoolean() && isClosedTooltipVisible(mouseX, mouseY)) {
 			guiGraphics.setTooltipForNextFrame(screen.getFont(), tooltip, Optional.empty(), mouseX, mouseY);
 		}
@@ -87,7 +87,7 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		int halfHeight = height / 2;
 		int oddHeightAddition = height % 2;
 		int secondHalfHeight = halfHeight + oddHeightAddition;

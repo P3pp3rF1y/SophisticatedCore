@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import it.unimi.dsi.fastutil.floats.FloatConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.util.ARGB;
@@ -114,7 +114,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 	}
 
 	@Override
-	public void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	public void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		GuiHelper.renderControlBackground(guiGraphics, x - 5, y - 5, getWidth() + 5 + 5, getHeight() + 5 + 5, 128, 0, 128, 256);
 	}
 
@@ -166,7 +166,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 			int topRightCornerColor = Mth.hsvToRgb(hue, 1, 1);
 			int red = ARGB.red(topRightCornerColor);
 			int green = ARGB.green(topRightCornerColor);
@@ -188,7 +188,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 			float[] hsv = Color.RGBtoHSB(ARGB.red(color), ARGB.green(color), ARGB.blue(color), null);
 			int x = Math.min((int) (hsv[1] * getWidth()), getWidth() - 1);
 			int y = Math.min((int) ((1 - hsv[2]) * getHeight()), getHeight() - 1);
@@ -251,7 +251,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 			for (int i = 0; i < getHeight(); i++) {
 				float renderedHue = (float) i / getHeight();
 				int color = ARGB.opaque(Mth.hsvToRgb(renderedHue, 1, 1));
@@ -260,7 +260,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 			int hueMarker = (int) (hue * getHeight());
 			Matrix3x2fStack pose = guiGraphics.pose();
 			pose.pushMatrix();
@@ -306,12 +306,12 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		@Override
-		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 			//noop
 		}
 
 		@Override
-		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 			guiGraphics.fill(x, y, x + getWidth(), y + getHeight(), color);
 		}
 

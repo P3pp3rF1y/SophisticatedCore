@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -47,15 +47,15 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		children.forEach(child -> {
 			if (child != openTab) {
-				child.render(guiGraphics, mouseX, mouseY, partialTicks);
+				child.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 		});
 
 		if (openTab != null) {
-			openTab.render(guiGraphics, mouseX, mouseY, partialTicks);
+			openTab.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		}
 	}
 
@@ -76,13 +76,13 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		children.forEach(tab -> tab.renderTooltip(screen, guiGraphics, mouseX, mouseY));
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		children.forEach(tab -> tab.extractTooltip(screen, guiGraphics, mouseX, mouseY));
 	}
 
 	protected int getTopY() {

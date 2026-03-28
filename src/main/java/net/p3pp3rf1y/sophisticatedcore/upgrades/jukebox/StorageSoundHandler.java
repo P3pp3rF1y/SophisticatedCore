@@ -62,7 +62,7 @@ public class StorageSoundHandler {
 			stopStorageSound(storageUuid);
 			return;
 		}
-		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, 2, 1, entity, level.random.nextLong()){
+		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, 2, 1, entity, level.getRandom().nextLong()){
 			@Override
 			public void tick() {
 				super.tick();

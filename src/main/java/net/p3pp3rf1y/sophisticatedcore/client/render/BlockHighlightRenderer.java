@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.ChestBlock;
@@ -45,7 +44,7 @@ public class BlockHighlightRenderer {
 		cachedHighlightedBlocks = null;
 	}
 
-	public static void render(PoseStack poseStack, float partialTick, Vec3 cameraPos) {
+	public static void submit(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos) {
 		Minecraft mc = Minecraft.getInstance();
 		if (highlightExpireTime < mc.level.getGameTime()) {
 			if (!highlightedPositions.isEmpty()) {
@@ -63,9 +62,8 @@ public class BlockHighlightRenderer {
 			});
 		}
 
-		SubmitNodeStorage submitNodeStorage = mc.gameRenderer.getSubmitNodeStorage();
 		cachedHighlightedBlocks.forEach((color, highlightedBlocks) -> {
-			highlightedBlocks.forEach(bh -> submitHighlightedBlock(submitNodeStorage, poseStack, partialTick, cameraPos, bh, mc, buffer, color));
+			highlightedBlocks.forEach(bh -> submitHighlightedBlock(submitNodeCollector, poseStack, partialTick, cameraPos, bh, mc, buffer, color));
 		});
 	}
 

@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
@@ -9,7 +9,7 @@ public class StorageGuiHelper {
 
 	private StorageGuiHelper() {}
 
-	public static void renderStorageBackground(Position position, GuiGraphics guiGraphics, Identifier textureName, int xSize, int slotsHeight) {
+	public static void renderStorageBackground(Position position, GuiGraphicsExtractor guiGraphics, Identifier textureName, int xSize, int slotsHeight) {
 		int x = position.x();
 		int y = position.y();
 		int slotsTopBottomHeight = Math.min(slotsHeight / 2, 150);

@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -60,7 +60,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		GuiHelper.renderSlotsBackground(guiGraphics, x + getCenteredX(18), y, 1, 1);
 		GuiHelper.blit(guiGraphics, x, y + LIST_Y_OFFSET, LIST_BACKGROUND);
 		GuiHelper.blit(guiGraphics, x + getCenteredX(26), y + INPUT_SLOT_HEIGHT + SPACING + LIST_BACKGROUND.getHeight() + SPACING, GuiHelper.CRAFTING_RESULT_SLOT);
@@ -74,7 +74,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 		drawRecipesItems(guiGraphics, listInnerLeftX, listTopY, recipeIndexOffsetMax);
 	}
 
-	private void drawRecipesItems(GuiGraphics guiGraphics, int listInnerLeftX, int top, int recipeIndexOffsetMax) {
+	private void drawRecipesItems(GuiGraphicsExtractor guiGraphics, int listInnerLeftX, int top, int recipeIndexOffsetMax) {
 		List<RecipeHolder<R>> list = container.getRecipeList();
 
 		for (int i = recipeIndexOffset; i < recipeIndexOffsetMax && i < container.getRecipeList().size(); ++i) {
@@ -82,7 +82,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 			int k = listInnerLeftX + j % 4 * 16;
 			int l = j / 4;
 			int i1 = top + l * 18 + 2;
-			ItemStack resultItem = list.get(i).value().result;
+			ItemStack resultItem = list.get(i).value().assemble(new net.minecraft.world.item.crafting.SingleRecipeInput(container.getInputSlot().getItem()));
 			GuiHelper.renderItemInGUI(guiGraphics, minecraft, resultItem, k, i1, renderResultCount && resultItem.getCount() > 1, String.valueOf(resultItem.getCount()));
 		}
 
@@ -92,7 +92,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 		return y + LIST_Y_OFFSET;
 	}
 
-	private void renderRecipeBackgrounds(GuiGraphics guiGraphics, int mouseX, int mouseY, int listInnerLeftX, int listTopY, int recipeIndexOffsetMax) {
+	private void renderRecipeBackgrounds(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, int listInnerLeftX, int listTopY, int recipeIndexOffsetMax) {
 		for (int recipeIndex = recipeIndexOffset; recipeIndex < recipeIndexOffsetMax && recipeIndex < container.getRecipeList().size(); ++recipeIndex) {
 			int j = recipeIndex - recipeIndexOffset;
 			int recipeX = listInnerLeftX + j % 4 * 16;
@@ -115,17 +115,17 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		//noop - everything is rendered in background or after screen render is done
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 		renderHoveredTooltip(guiGraphics, mouseX, mouseY);
 	}
 
-	private void renderHoveredTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	private void renderHoveredTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		if (hasItemsInInputSlot) {
 			int listTopY = getListTopY();
 			int k = recipeIndexOffset + 12;
@@ -136,13 +136,13 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 				int recipeLeftX = x + inviewRecipeIndex % 4 * 16;
 				int k1 = listTopY + inviewRecipeIndex / 4 * 18 + 2;
 				if (mouseX >= recipeLeftX && mouseX < recipeLeftX + 16 && mouseY >= k1 && mouseY < k1 + 18) {
-					renderTooltip(guiGraphics, list.get(recipeIndex).value().result, mouseX, mouseY);
+					extractTooltip(guiGraphics, list.get(recipeIndex).value().assemble(new net.minecraft.world.item.crafting.SingleRecipeInput(container.getInputSlot().getItem())), mouseX, mouseY);
 				}
 			}
 		}
 	}
 
-	private void renderTooltip(GuiGraphics guiGraphics, ItemStack itemStack, int mouseX, int mouseY) {
+	private void extractTooltip(GuiGraphicsExtractor guiGraphics, ItemStack itemStack, int mouseX, int mouseY) {
 		Font font = IClientItemExtensions.of(itemStack).getFont(itemStack, IClientItemExtensions.FontContext.TOOLTIP);
 		guiGraphics.setComponentTooltipForNextFrame((font == null ? this.font : font), Screen.getTooltipFromItem(minecraft, itemStack), mouseX, mouseY);
 	}

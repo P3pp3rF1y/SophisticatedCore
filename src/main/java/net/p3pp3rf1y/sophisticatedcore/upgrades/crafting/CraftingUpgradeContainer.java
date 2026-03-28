@@ -140,7 +140,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						matchedCraftingRecipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, craftMatrix.asCraftInput(), player.level());
 						int resultIndex = 0;
 						for (RecipeHolder<CraftingRecipe> craftingRecipe : matchedCraftingRecipes) {
-							ItemStack result = craftingRecipe.value().assemble(craftMatrix.asCraftInput(), player.level().registryAccess());
+							ItemStack result = craftingRecipe.value().assemble(craftMatrix.asCraftInput());
 							matchedCraftingResults.add(result);
 							if (ItemStack.isSameItemSameComponents(getItem(), result)) {
 								selectedCraftingResultIndex = resultIndex;
@@ -175,7 +175,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 
 			if (!craftInput.isEmpty()) {
 				if (lastRecipe != null && lastRecipe.value().matches(craftInput, level)) {
-					itemstack = lastRecipe.value().assemble(craftInput, level.registryAccess());
+					itemstack = lastRecipe.value().assemble(craftInput);
 				} else {
 					List<RecipeHolder<CraftingRecipe>> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, craftInput, level);
 					if (!recipes.isEmpty()) {
@@ -185,13 +185,13 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						RecipeHolder<CraftingRecipe> craftingRecipe = matchedCraftingRecipes.getFirst();
 						if (inventoryResult.setRecipeUsed(serverplayerentity, craftingRecipe)) {
 							lastRecipe = craftingRecipe;
-							itemstack = lastRecipe.value().assemble(craftInput, level.registryAccess());
+							itemstack = lastRecipe.value().assemble(craftInput);
 							matchedCraftingResults.add(itemstack.copy());
 						} else {
 							lastRecipe = null;
 						}
 						for (int i = 1; i < matchedCraftingRecipes.size(); i++) {
-							matchedCraftingResults.add(matchedCraftingRecipes.get(i).value().assemble(craftInput, level.registryAccess()));
+						matchedCraftingResults.add(matchedCraftingRecipes.get(i).value().assemble(craftInput));
 						}
 					}
 				}

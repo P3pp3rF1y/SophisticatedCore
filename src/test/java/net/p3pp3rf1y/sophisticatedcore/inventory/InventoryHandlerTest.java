@@ -1,6 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import net.minecraft.SharedConstants;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -23,6 +28,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class InventoryHandlerTest {
+	static {
+		SharedConstants.tryDetectVersion();
+		Bootstrap.bootStrap();
+		Bootstrap.validate();
+		bindTestComponents(Items.GOLD_INGOT, Items.DIAMOND);
+	}
+
 	@BeforeEach
 	public void testSetup() throws Exception {
 		MockitoAnnotations.openMocks(this).close();
@@ -50,6 +62,17 @@ public class InventoryHandlerTest {
 				return true;
 			}
 		};
+	}
+
+	private static ItemStack stack(Item item, int count) {
+		return new ItemStack(item, count);
+	}
+
+	private static void bindTestComponents(Item... items) {
+		DataComponentMap components = DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build();
+		for (Item item : items) {
+			item.builtInRegistryHolder().bindComponents(components);
+		}
 	}
 
 
@@ -82,14 +105,14 @@ public class InventoryHandlerTest {
 		return List.of(
 				new RealInsertAffectsTrackedStacksParams(
 						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 5),
+						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 5),
 						5
 				),
 				new RealInsertAffectsTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 60), 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 4),
+						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 4),
 						4
 				)
 		);
@@ -124,16 +147,16 @@ public class InventoryHandlerTest {
 		return List.of(
 				new RealSpecificSlotInsertAffectsTrackedStacksParams(
 						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 10),
+						stack(Items.DIAMOND, 10),
 						10
 				),
 				new RealSpecificSlotInsertAffectsTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 60), 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 4),
+						stack(Items.DIAMOND, 4),
 						4
 				)
 		);
@@ -167,14 +190,14 @@ public class InventoryHandlerTest {
 		return List.of(
 				new RealExtractAffectsTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 10),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 10),
 						10
 				),
 				new RealExtractAffectsTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 64)),
-						new ItemStack(Items.GOLD_INGOT, 64),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
+						stack(Items.GOLD_INGOT, 64),
 						64
 				)
 		);
@@ -209,16 +232,16 @@ public class InventoryHandlerTest {
 		return List.of(
 				new RealSpecificSlotExtractAffectsTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 10),
+						stack(Items.DIAMOND, 10),
 						10
 				),
 				new RealSpecificSlotExtractAffectsTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 64)),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
 						1,
-						new ItemStack(Items.GOLD_INGOT, 64),
+						stack(Items.GOLD_INGOT, 64),
 						64
 				)
 		);
@@ -252,20 +275,20 @@ public class InventoryHandlerTest {
 		return List.of(
 				new SimulatedInsertDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 5),
+						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 5),
 						5
 				),
 				new SimulatedInsertDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 60), 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 10),
+						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 10),
 						4
 				),
 				new SimulatedInsertDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 64), 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 1),
+						Map.of(0, stack(Items.DIAMOND, 64), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 1),
 						0
 				)
 		);
@@ -299,23 +322,23 @@ public class InventoryHandlerTest {
 		return List.of(
 				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 10),
+						stack(Items.DIAMOND, 10),
 						10
 				),
 				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 60), 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 10),
+						stack(Items.DIAMOND, 10),
 						4
 				),
 				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 32), 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, stack(Items.DIAMOND, 32), 1, stack(Items.GOLD_INGOT, 5)),
 						1,
-						new ItemStack(Items.DIAMOND, 1),
+						stack(Items.DIAMOND, 1),
 						0
 				)
 		);
@@ -348,20 +371,20 @@ public class InventoryHandlerTest {
 		return List.of(
 				new SimulatedExtractDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 10),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 10),
 						10
 				),
 				new SimulatedExtractDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 64)),
-						new ItemStack(Items.GOLD_INGOT, 64),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
+						stack(Items.GOLD_INGOT, 64),
 						64
 				),
 				new SimulatedExtractDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.GOLD_INGOT, 5)),
-						new ItemStack(Items.DIAMOND, 1),
+						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 1),
 						0
 				)
 		);
@@ -428,23 +451,23 @@ public class InventoryHandlerTest {
 		return List.of(
 				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 10),
+						stack(Items.DIAMOND, 10),
 						10
 				),
 				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 10), 1, new ItemStack(Items.GOLD_INGOT, 64)),
+						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
 						1,
-						new ItemStack(Items.GOLD_INGOT, 64),
+						stack(Items.GOLD_INGOT, 64),
 						64
 				),
 				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(
 						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.GOLD_INGOT, 5)),
+						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
 						0,
-						new ItemStack(Items.DIAMOND, 1),
+						stack(Items.DIAMOND, 1),
 						0
 				)
 		);

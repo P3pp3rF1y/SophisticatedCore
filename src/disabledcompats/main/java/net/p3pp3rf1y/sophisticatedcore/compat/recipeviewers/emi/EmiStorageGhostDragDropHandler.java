@@ -5,7 +5,7 @@ import dev.emi.emi.api.EmiDragDropHandler;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.Bounds;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -79,7 +79,7 @@ public class EmiStorageGhostDragDropHandler<T extends StorageScreenBase<?>> impl
 	}
 
 	@Override
-	public void render(T screen, EmiIngredient dragged, GuiGraphics draw, int mouseX, int mouseY, float delta) {
+	public void render(T screen, EmiIngredient dragged, GuiGraphicsExtractor draw, int mouseX, int mouseY, float delta) {
 		for (Bounds b : this.bounds.apply(screen, dragged).keySet()) {
 			draw.fill(b.x(), b.y(), b.x() + b.width(), b.y() + b.height(), 0x8822BB33);
 		}

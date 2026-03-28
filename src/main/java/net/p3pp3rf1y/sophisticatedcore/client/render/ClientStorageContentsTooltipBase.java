@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.render;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -211,7 +211,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 		return height;
 	}
 
-	protected void renderTooltip(IStorageWrapper wrapper, Font font, int leftX, int topY, GuiGraphics guiGraphics) {
+	protected void extractTooltip(IStorageWrapper wrapper, Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics) {
 		Minecraft minecraft = Minecraft.getInstance();
 		LocalPlayer player = minecraft.player;
 		if (player == null) {
@@ -222,14 +222,14 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 		renderComponent(font, leftX, topY, guiGraphics, minecraft);
 	}
 
-	private void renderComponent(Font font, int leftX, int topY, GuiGraphics guiGraphics, Minecraft minecraft) {
+	private void renderComponent(Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics, Minecraft minecraft) {
 		for (Component tooltipLine : tooltipLines) {
 			topY = renderTooltipLine(guiGraphics, leftX, topY, font, tooltipLine);
 		}
 		renderContentsTooltip(minecraft, font, leftX, topY, guiGraphics);
 	}
 
-	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, GuiGraphics guiGraphics) {
+	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics) {
 		if (!upgrades.isEmpty()) {
 			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
 			topY = renderUpgrades(guiGraphics, leftX, topY);
@@ -240,26 +240,26 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 		}
 	}
 
-	private int renderTooltipLine(GuiGraphics guiGraphics, int leftX, int topY, Font font, Component tooltip) {
-		guiGraphics.drawString(font, tooltip, leftX, topY, ARGB.opaque(0xFFFFFF));
+	private int renderTooltipLine(GuiGraphicsExtractor guiGraphics, int leftX, int topY, Font font, Component tooltip) {
+		guiGraphics.text(font, tooltip, leftX, topY, ARGB.opaque(0xFFFFFF));
 		return topY + 10;
 	}
 
-	private int renderUpgrades(GuiGraphics guiGraphics, int leftX, int topY) {
+	private int renderUpgrades(GuiGraphicsExtractor guiGraphics, int leftX, int topY) {
 		int x = leftX;
 		for (IUpgradeWrapper upgradeWrapper : upgrades) {
 			if (upgradeWrapper.canBeDisabled()) {
 				GuiHelper.blit(guiGraphics, x, topY + 3, upgradeWrapper.isEnabled() ? UPGRADE_ON : UPGRADE_OFF);
 				x += 4;
 			}
-			guiGraphics.renderItem(upgradeWrapper.getUpgradeStack(), x, topY);
+			guiGraphics.item(upgradeWrapper.getUpgradeStack(), x, topY);
 			x += DEFAULT_STACK_WIDTH;
 		}
 		topY += 20;
 		return topY;
 	}
 
-	private void renderContents(Minecraft minecraft, int leftX, int topY, GuiGraphics guiGraphics, Font font) {
+	private void renderContents(Minecraft minecraft, int leftX, int topY, GuiGraphicsExtractor guiGraphics, Font font) {
 		int x = leftX;
 		for (int i = 0; i < sortedContents.size(); i++) {
 			int y = topY + i / MAX_STACKS_ON_LINE * 20;
@@ -269,8 +269,8 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 			ItemStack stack = sortedContents.get(i);
 			int stackWidth = Math.max(getStackCountWidth(minecraft.font, stack), DEFAULT_STACK_WIDTH);
 			int xOffset = stackWidth - DEFAULT_STACK_WIDTH;
-			guiGraphics.renderItem(stack, x + xOffset, y);
-			guiGraphics.renderItemDecorations(font, stack, x + xOffset, y, CountAbbreviator.abbreviate(stack.getCount()));
+			guiGraphics.item(stack, x + xOffset, y);
+			guiGraphics.itemDecorations(font, stack, x + xOffset, y, CountAbbreviator.abbreviate(stack.getCount()));
 			x += stackWidth;
 		}
 	}

@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
@@ -33,7 +33,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extract(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y(), TANK_BACKGROUND_TOP, 18, height < 36 ? height / 2 : 18);
 		int yOffset = 18;
 		for (int i = 0; i < (height - 36) / 18; i++) {
@@ -48,7 +48,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 			yOffset += 18;
 		}
 
-		renderCharge(guiGraphics);
+		extractCharge(guiGraphics);
 
 		GuiHelper.blit(guiGraphics, getTankLeft() + 1, pos.y(), CONNECTION_TOP);
 		GuiHelper.blit(guiGraphics, getTankLeft() + 1, pos.y() + height - 4, CONNECTION_BOTTOM);
@@ -64,12 +64,12 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 	}
 
 	@Override
-	public void renderErrorOverlay(GuiGraphics guiGraphics) {
-		screen.renderOverlay(guiGraphics, StorageScreenBase.ERROR_SLOT_COLOR, getTankLeft() + 1, pos.y() + 1, 16, height - 2);
+	public void extractErrorOverlay(GuiGraphicsExtractor guiGraphics) {
+		screen.extractOverlay(guiGraphics, StorageScreenBase.ERROR_SLOT_COLOR, getTankLeft() + 1, pos.y() + 1, 16, height - 2);
 	}
 
 	@Override
-	public void renderTooltip(StorageScreenBase<?> screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extractTooltip(StorageScreenBase<?> screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		int screenX = screen.getGuiLeft() + pos.x() + 10;
 		int screenY = screen.getGuiTop() + pos.y() + 1;
 		if (mouseX >= screenX && mouseX < screenX + 16 && mouseY >= screenY && mouseY < screenY + height - 2) {
@@ -81,7 +81,7 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 		}
 	}
 
-	private void renderCharge(GuiGraphics guiGraphics) {
+	private void extractCharge(GuiGraphicsExtractor guiGraphics) {
 		int energyStored = container.getEnergyStored();
 
 		int maxEnergyStored = container.getMaxEnergyStored();

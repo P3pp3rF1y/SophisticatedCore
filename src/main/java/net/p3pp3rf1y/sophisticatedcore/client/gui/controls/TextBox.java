@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.CharacterEvent;
@@ -26,17 +26,17 @@ public class TextBox extends WidgetBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		editBox.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		editBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		if (editBox.getValue().isEmpty() && unfocusedEmptyHint != null && !editBox.isFocused()) {
 			int x = editBox.getX() + editBox.getWidth() / 2 + 2/* editBox.isBordered() ? editBox.getX() + 4 : editBox.getX()*/;
 			int y = editBox.isBordered() ? editBox.getY() + (editBox.getHeight() - 8) / 2 : editBox.getY();
-			guiGraphics.drawCenteredString(font, unfocusedEmptyHint, x, y, ARGB.opaque(editBox.textColor));
+			guiGraphics.centeredText(font, unfocusedEmptyHint, x, y, ARGB.opaque(editBox.textColor));
 		}
 	}
 

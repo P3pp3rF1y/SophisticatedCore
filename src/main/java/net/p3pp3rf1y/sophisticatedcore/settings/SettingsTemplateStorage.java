@@ -4,12 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.storage.SavedDataStorage;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -22,7 +23,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 //TODO after 1.22 remove support for legacy UUID deserialization via strings
 public class SettingsTemplateStorage extends SavedData {
-	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_settings_templates", SettingsTemplateStorage::new,
+	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "settings_templates"), SettingsTemplateStorage::new,
 			RecordCodecBuilder.create(
 					builder -> builder.group(
 							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, ContainerContents.SettingsData.CODEC))
@@ -68,7 +69,7 @@ public class SettingsTemplateStorage extends SavedData {
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
 				//noinspection ConstantConditions - by this time overworld is loaded
-				DimensionDataStorage storage = overworld.getDataStorage();
+				SavedDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}
 		}

@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeDisplayBuilder;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeDisplayGenerator;
@@ -31,7 +32,7 @@ public class JeiRecipeDisplayGenerator implements IRecipeDisplayGenerator<Crafti
 
 	@Override
 	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Ingredient base, Optional<Ingredient> addition, ItemStack result) {
-		return id -> acceptSmithing(new RecipeHolder<>(id, new SmithingTransformRecipe(template, base, addition, new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch()))));
+		return id -> acceptSmithing(new RecipeHolder<>(id, new SmithingTransformRecipe(new Recipe.CommonInfo(true), template, base, addition, ItemStackTemplate.fromNonEmptyStack(result))));
 	}
 
 	private void acceptSmithing(RecipeHolder<SmithingRecipe> recipe) {

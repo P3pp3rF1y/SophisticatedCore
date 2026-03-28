@@ -42,4 +42,9 @@ public abstract class UpgradeItemBase<T extends IUpgradeWrapper> extends ItemBas
 	public Component getName(ItemStack stack) {
 		return Component.translatable(getDescriptionId());
 	}
+
+	@Override
+	public Component getName() {
+		return Component.translatable(getDescriptionId());
+	}
 }

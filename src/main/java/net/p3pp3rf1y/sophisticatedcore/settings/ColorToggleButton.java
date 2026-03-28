@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.settings;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -60,7 +60,7 @@ public class ColorToggleButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			GuiHelper.blit(guiGraphics, x, y, DEFAULT_BUTTON_HOVERED_BACKGROUND);
 		} else {
@@ -69,14 +69,14 @@ public class ColorToggleButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		int color = getColor.get().getTextureDiffuseColor() | (200 << 24);
 		guiGraphics.fillGradient(x + 3, y + 3, x + 15, y + 15, color, color);
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (isMouseOver(mouseX, mouseY)) {
 			guiGraphics.setTooltipForNextFrame(screen.getFont(), TOOLTIP, Optional.empty(), mouseX, mouseY);
 		}

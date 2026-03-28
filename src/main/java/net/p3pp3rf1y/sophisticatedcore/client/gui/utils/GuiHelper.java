@@ -3,7 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui.utils;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
@@ -49,11 +49,11 @@ public class GuiHelper {
 	private GuiHelper() {
 	}
 
-	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition) {
+	public static void renderItemInGUI(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition) {
 		renderItemInGUI(guiGraphics, minecraft, stack, xPosition, yPosition, false);
 	}
 
-	public static void renderSlotsBackground(GuiGraphics guiGraphics, int x, int y, int slotWidth, int slotHeight) {
+	public static void renderSlotsBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int slotWidth, int slotHeight) {
 		for (int currentY = y, remainingSlotHeight = slotHeight; remainingSlotHeight > 0; currentY += 12 * 18, remainingSlotHeight -= Math.min(slotHeight, 12)) {
 			int finalRemainingSlotHeight = remainingSlotHeight;
 			int key = getSlotsBackgroundKey(slotWidth, remainingSlotHeight);
@@ -67,23 +67,23 @@ public class GuiHelper {
 		return slotWidth * 31 + slotHeight;
 	}
 
-	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition, boolean renderOverlay) {
+	public static void renderItemInGUI(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition, boolean renderOverlay) {
 		renderItemInGUI(guiGraphics, minecraft, stack, xPosition, yPosition, renderOverlay, null);
 	}
 
-	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition, boolean renderOverlay,
+	public static void renderItemInGUI(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition, boolean renderOverlay,
 									   @Nullable String countText) {
-		guiGraphics.renderItem(stack, xPosition, yPosition);
+		guiGraphics.item(stack, xPosition, yPosition);
 		if (renderOverlay) {
-			guiGraphics.renderItemDecorations(minecraft.font, stack, xPosition, yPosition, countText);
+			guiGraphics.itemDecorations(minecraft.font, stack, xPosition, yPosition, countText);
 		}
 	}
 
-	public static void blit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData) {
+	public static void blit(GuiGraphicsExtractor guiGraphics, int x, int y, TextureBlitData texData) {
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
-	public static void blit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData, int width, int height) {
+	public static void blit(GuiGraphicsExtractor guiGraphics, int x, int y, TextureBlitData texData, int width, int height) {
 		int halfWidth = width / 2;
 		int secondHalfWidth = width - halfWidth;
 		int halfHeight = height / 2;
@@ -95,18 +95,18 @@ public class GuiHelper {
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset() + halfHeight, (float) texData.getU() + texData.getWidth() - secondHalfWidth, (float) texData.getV() + texData.getHeight() - secondHalfHeight, secondHalfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
-	public static void coloredBlit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData, int color) {
+	public static void coloredBlit(GuiGraphicsExtractor guiGraphics, int x, int y, TextureBlitData texData, int color) {
 		int xMin = x + texData.getXOffset();
 		int yMin = y + texData.getYOffset();
 
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texData.getTextureName(), xMin, yMin, texData.getU(), texData.getV(), texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight(), color);
 	}
 
-	public static void writeTooltipLines(GuiGraphics guiGraphics, List<FormattedCharSequence> textLines, Font font, int leftX, int topY, int color) {
+	public static void writeTooltipLines(GuiGraphicsExtractor guiGraphics, List<FormattedCharSequence> textLines, Font font, int leftX, int topY, int color) {
 		for (int i = 0; i < textLines.size(); ++i) {
 			FormattedCharSequence line = textLines.get(i);
 			if (line != null) {
-				guiGraphics.drawString(font, line, leftX, topY, color, true);
+				guiGraphics.text(font, line, leftX, topY, color, true);
 			}
 
 			if (i == 0) {
@@ -117,7 +117,7 @@ public class GuiHelper {
 		}
 	}
 
-	public static void fill(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, int color) {
+	public static void fill(GuiGraphicsExtractor guiGraphics, int minX, int minY, int maxX, int maxY, int color) {
 		guiGraphics.fill(minX, minY, maxX, maxY, color);
 	}
 
@@ -139,14 +139,14 @@ public class GuiHelper {
 		return new ToggleButton.StateData(new TextureBlitData(ICONS, offset, Dimension.SQUARE_256, uv, dimension), tooltip);
 	}
 
-	public static void renderSlotsBackground(GuiGraphics guiGraphics, int x, int y, int slotsInRow, int fullSlotRows, int extraRowSlots) {
+	public static void renderSlotsBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int slotsInRow, int fullSlotRows, int extraRowSlots) {
 		renderSlotsBackground(guiGraphics, x, y, slotsInRow, fullSlotRows);
 		if (extraRowSlots > 0) {
 			renderSlotsBackground(guiGraphics, x, y + fullSlotRows * 18, extraRowSlots, 1);
 		}
 	}
 
-	public static void renderTiledSprite(GuiGraphics guiGraphics, TextureAtlasSprite sprite, int color, int x, int y, int height) {
+	public static void renderTiledSprite(GuiGraphicsExtractor guiGraphics, TextureAtlasSprite sprite, int color, int x, int y, int height) {
 		int spriteHeight = sprite.contents().height();
 		int startY = y;
 		int textureWidth = (int) (sprite.contents().width() / (sprite.getU1() - sprite.getU0()));
@@ -161,7 +161,7 @@ public class GuiHelper {
 		} while (height > 0);
 	}
 
-	public static void renderControlBackground(GuiGraphics guiGraphics, int x, int y, int renderWidth, int renderHeight) {
+	public static void renderControlBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int renderWidth, int renderHeight) {
 		int u = 29;
 		int v = 146;
 		int textureBgWidth = 66;
@@ -169,7 +169,7 @@ public class GuiHelper {
 		renderControlBackground(guiGraphics, x, y, renderWidth, renderHeight, u, v, textureBgWidth, textureBgHeight);
 	}
 
-	public static void renderControlBackground(GuiGraphics guiGraphics, int x, int y, int renderWidth, int renderHeight, int u, int v, int textureBgWidth, int textureBgHeight) {
+	public static void renderControlBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int renderWidth, int renderHeight, int u, int v, int textureBgWidth, int textureBgHeight) {
 		int halfWidth = renderWidth / 2;
 		int halfHeight = renderHeight / 2;
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y, u, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
@@ -182,18 +182,18 @@ public class GuiHelper {
 		return Minecraft.getInstance().renderBuffers().bufferSource();
 	}
 
-	public static void renderTooltip(Screen screen, GuiGraphics guiGraphics, List<Component> components, int x, int y) {
+	public static void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, List<Component> components, int x, int y) {
 		if (components.isEmpty()) {
 			return;
 		}
 
 		List<ClientTooltipComponent> list = gatherTooltipComponents(components, x, screen.width, screen.height, screen.getFont());
-		guiGraphics.renderTooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
+		guiGraphics.tooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
 	}
 
-	public static void renderTooltip(Screen screen, GuiGraphics guiGraphics, ItemStack tooltipStack, List<Component> components, Optional<TooltipComponent> tooltipComponent, int x, int y) {
+	public static void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, ItemStack tooltipStack, List<Component> components, Optional<TooltipComponent> tooltipComponent, int x, int y) {
 		List<ClientTooltipComponent> list = ClientHooks.gatherTooltipComponents(tooltipStack, components, tooltipComponent, x, screen.width, screen.height, screen.getFont());
-		guiGraphics.renderTooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
+		guiGraphics.tooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
 	}
 
 	//copy of ForgeHooksClient.gatherTooltipComponents with splitting always called so that new lines in translation are properly wrapped

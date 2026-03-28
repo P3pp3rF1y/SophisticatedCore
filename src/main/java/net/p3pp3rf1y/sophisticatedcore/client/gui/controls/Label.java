@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
@@ -24,13 +24,13 @@ public class Label extends WidgetBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		//noop
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		guiGraphics.drawString(minecraft.font, labelText, x, y, ARGB.opaque(color), false);
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		guiGraphics.text(minecraft.font, labelText, x, y, ARGB.opaque(color), false);
 	}
 
 	@Override

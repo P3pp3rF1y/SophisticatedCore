@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.inventory.Slot;
@@ -45,17 +45,17 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	@Override
-	protected void drawBackground(GuiGraphics guiGraphics, float partialTick) {
+	protected void drawBackground(GuiGraphicsExtractor guiGraphics, float partialTick) {
 		screen.drawSlotBg(guiGraphics, screen.getVisibleSlotsCount());
 	}
 
 	@Override
-	protected void drawPanel(GuiGraphics guiGraphics, int entryRight, int relativeY, int mouseX, int mouseY) {
+	protected void drawPanel(GuiGraphicsExtractor guiGraphics, int entryRight, int relativeY, int mouseX, int mouseY) {
 		Matrix3x2fStack pose = guiGraphics.pose();
 		pose.pushMatrix();
 		pose.translate(screen.getLeftX(), screen.getTopY());
 
-		screen.renderStorageInventorySlots(guiGraphics, mouseX, mouseY, isMouseOver(mouseX, mouseY));
+		screen.extractStorageInventorySlots(guiGraphics, mouseX, mouseY, isMouseOver(mouseX, mouseY));
 
 		pose.popMatrix();
 	}
@@ -74,11 +74,11 @@ public class InventoryScrollPanel extends ScrollPanel {
 	}
 
 	public interface IInventoryScreen {
-		void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover);
+		void extractStorageInventorySlots(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, boolean canShowHover);
 
 		boolean isMouseOverSlot(Slot slot, double mouseX, double mouseY);
 
-		void drawSlotBg(GuiGraphics guiGraphics, int visibleSlotsCount);
+		void drawSlotBg(GuiGraphicsExtractor guiGraphics, int visibleSlotsCount);
 
 		int getTopY();
 

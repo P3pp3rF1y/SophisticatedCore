@@ -259,7 +259,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 
 		@Override
 		public boolean mayPlace(ItemStack stack) {
-			return stack.isEmpty() || stack.getTags().findAny().isPresent();
+			return stack.isEmpty() || stack.typeHolder().tags().findAny().isPresent();
 		}
 
 		@Override
@@ -292,7 +292,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 		public void set(ItemStack stack) {
 			this.stack = stack;
 			tagsToAdd.clear();
-			tagsToAdd.addAll(stack.getTags().toList());
+			tagsToAdd.addAll(stack.typeHolder().tags().toList());
 			getTagNames().forEach(tagsToAdd::remove);
 			selectedTagToAdd = 0;
 			onUpdate.run();

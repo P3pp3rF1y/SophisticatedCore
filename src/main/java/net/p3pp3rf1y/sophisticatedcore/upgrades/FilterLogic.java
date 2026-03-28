@@ -70,7 +70,7 @@ public class FilterLogic {
 	}
 
 	public boolean matchesFilter(ItemStack stack) {
-		return matchesFilter(stack.getTags(), stack.getItem(), stack.getDamageValue(), stack.isEmpty(), stack.getComponents());
+		return matchesFilter(stack.typeHolder().tags(), stack.getItem(), stack.getDamageValue(), stack.isEmpty(), stack.getComponents());
 	}
 
 	protected boolean matchesFilter(Stream<TagKey<Item>> tags, Item item, int damageValue, boolean empty, DataComponentMap components) {

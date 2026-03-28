@@ -15,9 +15,9 @@ public class JukeboxUpgradeClientTickHandler implements IUpgradeClientTickHandle
 			return;
 		}
 
-		float xOffset = level.random.nextFloat() * 0.6f - 0.3f;
-		float yOffset = 0.5f + level.random.nextFloat() * 6.0f / 16.0f;
-		float zOffset = level.random.nextFloat() * 0.6f - 0.1f;
+		float xOffset = level.getRandom().nextFloat() * 0.6f - 0.3f;
+		float yOffset = 0.5f + level.getRandom().nextFloat() * 6.0f / 16.0f;
+		float zOffset = level.getRandom().nextFloat() * 0.6f - 0.1f;
 		Vector3f randomAtTheBack = getPositionFromOffset.apply(new Vector3f(xOffset, yOffset, zOffset));
 
 		level.addParticle(ModParticles.JUKEBOX_NOTE.get(), randomAtTheBack.x(), randomAtTheBack.y(), randomAtTheBack.z(), rand.nextFloat(), 0.0D, 0.0D);

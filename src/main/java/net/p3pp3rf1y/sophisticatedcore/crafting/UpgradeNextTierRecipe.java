@@ -1,20 +1,22 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
-import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
+import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 
+import java.util.List;
 import java.util.Optional;
 
-public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecipe<ShapedRecipe> {
+public class UpgradeNextTierRecipe implements CraftingRecipe, IWrapperRecipe<ShapedRecipe> {
+	public static final RecipeSerializer<UpgradeNextTierRecipe> SERIALIZER = RecipeWrapperSerializer.create(UpgradeNextTierRecipe::new, ShapedRecipe.SERIALIZER);
 	private final ShapedRecipe compose;
 
 	public UpgradeNextTierRecipe(ShapedRecipe compose) {
-		super(compose.group(), compose.category(), compose.pattern, compose.result);
 		this.compose = compose;
 	}
 
@@ -24,8 +26,13 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	}
 
 	@Override
-	public ItemStack assemble(CraftingInput inv, HolderLookup.Provider registries) {
-		ItemStack nextTier = super.assemble(inv, registries);
+	public boolean matches(CraftingInput input, Level level) {
+		return compose.matches(input, level);
+	}
+
+	@Override
+	public ItemStack assemble(CraftingInput inv) {
+		ItemStack nextTier = compose.assemble(inv);
 		getUpgrade(inv).map(ItemStack::getComponentsPatch).ifPresent(nextTier::applyComponents);
 		return nextTier;
 	}
@@ -46,13 +53,37 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	}
 
 	@Override
-	public RecipeSerializer<UpgradeNextTierRecipe> getSerializer() {
-		return ModRecipes.UPGRADE_NEXT_TIER_SERIALIZER.get();
+	public boolean showNotification() {
+		return compose.showNotification();
 	}
 
-	public static class Serializer extends RecipeWrapperSerializer<ShapedRecipe, UpgradeNextTierRecipe> {
-		public Serializer() {
-			super(UpgradeNextTierRecipe::new, RecipeSerializer.SHAPED_RECIPE);
-		}
+	@Override
+	public String group() {
+		return compose.group();
+	}
+
+	@Override
+	public net.minecraft.world.item.crafting.CraftingBookCategory category() {
+		return compose.category();
+	}
+
+	@Override
+	public RecipeSerializer<UpgradeNextTierRecipe> getSerializer() {
+		return SERIALIZER;
+	}
+
+	@Override
+	public PlacementInfo placementInfo() {
+		return compose.placementInfo();
+	}
+
+	@Override
+	public List<net.minecraft.world.item.crafting.display.RecipeDisplay> display() {
+		return compose.display();
+	}
+
+	@Override
+	public net.minecraft.world.item.crafting.RecipeBookCategory recipeBookCategory() {
+		return compose.recipeBookCategory();
 	}
 }

@@ -196,7 +196,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		}
 
 		ItemStack input = getCookInput();
-		ItemStack recipeOutput = recipe.result;
+		ItemStack recipeOutput = recipe.result.create();
 		ItemStack output = getCookOutput();
 		if (output.isEmpty()) {
 			setCookOutput(recipeOutput.copy());
@@ -281,13 +281,14 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 			}
 			setBurnTime(level, (int) (getBurnTime(fuel, recipeType, burnTimeModifier) * fuelEfficiencyMultiplier / cookingSpeedMultiplier));
 			if (isBurning(level)) {
-				if (!fuel.getCraftingRemainder().isEmpty()) {
-					setFuelWithoutValidation(fuel.getCraftingRemainder());
+				ItemStack craftingRemainder = fuel.getItem().getCraftingRemainder() == null ? ItemStack.EMPTY : fuel.getItem().getCraftingRemainder().create();
+				if (!craftingRemainder.isEmpty()) {
+					setFuelWithoutValidation(craftingRemainder);
 				} else if (!fuel.isEmpty()) {
 					fuel.shrink(1);
 					setFuel(fuel);
 					if (fuel.isEmpty()) {
-						setFuel(fuel.getCraftingRemainder());
+						setFuel(craftingRemainder);
 					}
 				}
 			}
@@ -303,7 +304,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		if (getCookInput().isEmpty()) {
 			return false;
 		}
-		ItemStack recipeOutput = cookingRecipe.result;
+		ItemStack recipeOutput = cookingRecipe.result.create();
 		if (recipeOutput.isEmpty()) {
 			return false;
 		} else {

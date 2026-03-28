@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.xppump;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -125,22 +125,22 @@ public class XpPumpUpgradeTab extends UpgradeSettingsTab<XpPumpUpgradeContainer>
 		}
 
 		@Override
-		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 			GuiHelper.renderControlBackground(guiGraphics, x, y, 54, 18);
 		}
 
 		@Override
-		protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 			String text = getText.get();
 			Component fullText = Component.translatable(TranslationHelper.INSTANCE.translUpgradeControl("xp_level_select"), Component.literal(text).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GRAY);
 			int xOffset = (getWidth() - minecraft.font.width(fullText)) / 2;
 			int yOffset = (int) Math.ceil((getHeight() - minecraft.font.lineHeight) / 2d);
-			guiGraphics.drawString(minecraft.font, fullText, x + xOffset, y + yOffset, DyeColor.BLACK.getTextColor(), false);
+			guiGraphics.text(minecraft.font, fullText, x + xOffset, y + yOffset, DyeColor.BLACK.getTextColor(), false);
 		}
 
 		@Override
-		public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-			super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+		public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+			super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 			if (isMouseOver(mouseX, mouseY)) {
 				guiGraphics.setTooltipForNextFrame(screen.getFont(), TOOLTIP, Optional.empty(), mouseX, mouseY);
 			}

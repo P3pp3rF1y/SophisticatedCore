@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
@@ -387,8 +388,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	@Override
-	public void clicked(int slotId, int dragType, ClickType clickType, Player player) {
+	public void clicked(int slotId, int dragType, ContainerInput clickType, Player player) {
 		inventorySlotsBeforeClickHandled = getInventorySlotsSize();
+		boolean handled = false;
 		if (isUpgradeSettingsSlot(slotId) && getSlot(slotId) instanceof IFilterSlot && getSlot(slotId).mayPlace(getCarried())) {
 			if (!player.level().isClientSide()) { // don't do slot updates on client to not prevent upgrade stacks from being synced from server when they are updated with these
 				Slot slot = getSlot(slotId);
@@ -399,7 +401,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 				slot.set(cursorStack);
 			}
-			return;
+			handled = true;
 		} else if (isUpgradeSlot(slotId) && getSlot(slotId) instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot slot) {
 			ItemStack slotStack = slot.getItem();
 			if (slot.mayPlace(getCarried())) {
@@ -410,31 +412,29 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				if (!slotStack.isEmpty()) {
 					currentColumnsTaken = ((IUpgradeItem<?>) slotStack.getItem()).getInventoryColumnsTaken();
 				}
-				if (needsSlotsThatAreOccupied(carriedStack, currentColumnsTaken, newColumnsTaken)) {
-					return;
-				}
-
-				int columnsToRemove = newColumnsTaken - currentColumnsTaken;
-				if (slotStack.isEmpty()) {
-					slot.set(carriedStack.split(1));
-					if (carriedStack.isEmpty()) {
-						setCarried(ItemStack.EMPTY);
+				if (!needsSlotsThatAreOccupied(carriedStack, currentColumnsTaken, newColumnsTaken)) {
+					int columnsToRemove = newColumnsTaken - currentColumnsTaken;
+					if (slotStack.isEmpty()) {
+						slot.set(carriedStack.split(1));
+						if (carriedStack.isEmpty()) {
+							setCarried(ItemStack.EMPTY);
+						}
+					} else if (carriedStack.getCount() == 1) {
+						slot.set(carriedStack);
+						setCarried(upgradeItem.getCleanedUpgradeStack(slotStack.copy()));
 					}
-				} else if (carriedStack.getCount() == 1) {
-					slot.set(carriedStack);
-					setCarried(upgradeItem.getCleanedUpgradeStack(slotStack.copy()));
-				}
 
-				updateColumnsTaken(columnsToRemove);
-				slot.setChanged();
-				if (columnsToRemove != 0 && player.level().isClientSide()) {
-					onUpgradesChanged(); // need to trigger onUpgradesChanged again so that screen can react to this with updating slot positions after slots were refreshed as part of columns update
+					updateColumnsTaken(columnsToRemove);
+					slot.setChanged();
+					if (columnsToRemove != 0 && player.level().isClientSide()) {
+						onUpgradesChanged(); // need to trigger onUpgradesChanged again so that screen can react to this with updating slot positions after slots were refreshed as part of columns update
+					}
 				}
 			} else if (getCarried().isEmpty() && !slotStack.isEmpty() && slot.mayPickup(player)) {
 				int k2 = dragType == 0 ? Math.min(slotStack.getCount(), slotStack.getMaxStackSize()) : Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
 				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) slotStack.getItem();
 				int columnsTaken = upgradeItem.getInventoryColumnsTaken();
-				if (clickType == ClickType.QUICK_MOVE) {
+				if (clickType == ContainerInput.QUICK_MOVE) {
 					quickMoveStack(player, slotId);
 				} else {
 					setCarried(upgradeItem.getCleanedUpgradeStack(slot.remove(k2)));
@@ -442,12 +442,27 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				updateColumnsTaken(-columnsTaken);
 				slot.onTake(player, getCarried());
 			}
-			return;
+			handled = true;
 		} else if (isOverflowLogicSlotAndAction(slotId, clickType) && handleOverflow(slotId, clickType, dragType, player)) {
+			handled = true;
+		}
+
+		if (!handled) {
+			super.clicked(slotId, dragType, clickType, player);
+		}
+
+		flushPendingColumnsChange();
+	}
+
+	private void flushPendingColumnsChange() {
+		if (columnsChange == 0) {
 			return;
 		}
 
-		super.clicked(slotId, dragType, clickType, player);
+		if (!player.level().isClientSide()) {
+			actuallyUpdateColumnsTaken(columnsChange);
+			columnsChange = 0;
+		}
 	}
 
 	@Override
@@ -455,11 +470,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return slotIndex == -1 || slotIndex == -999 || slotIndex < getTotalSlotsNumber();
 	}
 
-	private boolean handleOverflow(int slotId, ClickType clickType, int dragType, Player player) {
-		ItemStack cursorStack = clickType == ClickType.SWAP ? player.getInventory().getItem(dragType) : getCarried();
-		Consumer<ItemStack> updateCursorStack = clickType == ClickType.SWAP ? s -> player.getInventory().setItem(dragType, s) : this::setCarried;
+	private boolean handleOverflow(int slotId, ContainerInput clickType, int dragType, Player player) {
+		ItemStack cursorStack = clickType == ContainerInput.SWAP ? player.getInventory().getItem(dragType) : getCarried();
+		Consumer<ItemStack> updateCursorStack = clickType == ContainerInput.SWAP ? s -> player.getInventory().setItem(dragType, s) : this::setCarried;
 		Slot slot = getSlot(slotId);
-		if ((clickType != ClickType.SWAP && cursorStack.isEmpty()) || !slot.mayPlace(cursorStack)) {
+		if ((clickType != ContainerInput.SWAP && cursorStack.isEmpty()) || !slot.mayPlace(cursorStack)) {
 			return false;
 		}
 		ItemStack slotStack = slot.getItem();
@@ -513,16 +528,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return false;
 	}
 
-	private boolean isOverflowLogicSlotAndAction(int slotId, ClickType clickType) {
-		return isStorageInventorySlot(slotId) && (clickType == ClickType.SWAP || clickType == ClickType.PICKUP);
+	private boolean isOverflowLogicSlotAndAction(int slotId, ContainerInput clickType) {
+		return isStorageInventorySlot(slotId) && (clickType == ContainerInput.SWAP || clickType == ContainerInput.PICKUP);
 	}
 
 	protected void updateColumnsTaken(int columnsChange) {
-		if (player.level().isClientSide()) {
-			this.columnsChange = columnsChange;
-		} else {
-			actuallyUpdateColumnsTaken(columnsChange);
-		}
+		this.columnsChange += columnsChange;
 	}
 
 	private void actuallyUpdateColumnsTaken(int columnsChange) {
@@ -784,6 +795,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		tryingToMergeUpgrade = true;
 		boolean result = !upgradeSlots.isEmpty() && moveItemStackTo(sourceSlot, slotStack, getInventorySlotsSize(), getInventorySlotsSize() + getNumberOfUpgradeSlots(), false);
 		tryingToMergeUpgrade = false;
+		if (columnsChange != 0) {
+			actuallyUpdateColumnsTaken(columnsChange);
+			if (player.level().isClientSide()) {
+				onUpgradesChanged();
+			}
+			columnsChange = 0;
+		}
 		showUpgradeSlotChangeError();
 		return result;
 	}
@@ -1054,13 +1072,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@SuppressWarnings("java:S3776")
 	//complexity here is brutal, but it's something that's in vanilla and need to keep this as close to it as possible for easier ports
 	@Override
-	protected void doClick(int slotId, int dragType, ClickType clickType, Player player) {
+	protected void doClick(int slotId, int dragType, ContainerInput clickType, Player player) {
 		if (slotId >= getTotalSlotsNumber()) {
 			return;
 		}
 		slotsChangedSinceStartOfClick = false;
 		Inventory inventory = player.getInventory();
-		if (clickType == ClickType.QUICK_CRAFT) {
+		if (clickType == ContainerInput.QUICK_CRAFT) {
 			int i = quickcraftStatus;
 			quickcraftStatus = getQuickcraftHeader(dragType);
 			if ((i != 1 || quickcraftStatus != 2) && i != quickcraftStatus) {
@@ -1086,7 +1104,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					if (quickcraftSlots.size() == 1) {
 						int l = (quickcraftSlots.iterator().next()).index;
 						resetQuickCraft();
-						clicked(l, quickcraftType, ClickType.PICKUP, player);
+						clicked(l, quickcraftType, ContainerInput.PICKUP, player);
 						return;
 					}
 
@@ -1120,7 +1138,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 		} else if (quickcraftStatus != 0) {
 			resetQuickCraft();
-		} else if ((clickType == ClickType.PICKUP || clickType == ClickType.QUICK_MOVE) && (dragType == 0 || dragType == 1)) {
+		} else if ((clickType == ContainerInput.PICKUP || clickType == ContainerInput.QUICK_MOVE) && (dragType == 0 || dragType == 1)) {
 			ClickAction clickaction = dragType == 0 ? ClickAction.PRIMARY : ClickAction.SECONDARY;
 			if (slotId == -999) {
 				if (!getCarried().isEmpty()) {
@@ -1131,7 +1149,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						player.drop(getCarried().split(1), true);
 					}
 				}
-			} else if (clickType == ClickType.QUICK_MOVE) {
+			} else if (clickType == ContainerInput.QUICK_MOVE) {
 				if (slotId < 0) {
 					return;
 				}
@@ -1167,7 +1185,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				ItemStack slotStack = slot7.getItem();
 				ItemStack carriedStack = getCarried();
 				player.updateTutorialInventoryAction(carriedStack, slotStack, clickaction);
-				if (!carriedStack.overrideStackedOnOther(slot7, clickaction, player) && !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, createCarriedSlotAccess())) {
+				if (!carriedStack.overrideStackedOnOther(slot7, clickaction, player) && !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, SlotAccess.of(this::getCarried, this::setCarried))) {
 					if (slotStack.isEmpty()) {
 						if (!carriedStack.isEmpty()) {
 							int l2 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
@@ -1175,8 +1193,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						}
 					} else if (slot7.mayPickup(player)) {
 						if (carriedStack.isEmpty()) {
-							int countToRemove;
-							countToRemove = Math.min(slotStack.getCount(), slotStack.getMaxStackSize());
+							int countToRemove = Math.min(slotStack.getCount(), slotStack.getMaxStackSize());
 							if (clickaction == ClickAction.SECONDARY) {
 								countToRemove = countToRemove / 2 + countToRemove % 2;
 							}
@@ -1205,7 +1222,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 				slot7.setChanged();
 			}
-		} else if (clickType == ClickType.SWAP) {
+		} else if (clickType == ContainerInput.SWAP) {
 			Slot slot2 = getSlot(slotId);
 			ItemStack itemstack4 = inventory.getItem(dragType);
 			ItemStack slotStack = slot2.getItem();
@@ -1248,19 +1265,19 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					}
 				}
 			}
-		} else if (clickType == ClickType.CLONE && player.getAbilities().instabuild && getCarried().isEmpty() && slotId >= 0) {
+		} else if (clickType == ContainerInput.CLONE && player.getAbilities().instabuild && getCarried().isEmpty() && slotId >= 0) {
 			Slot slot5 = getSlot(slotId);
 			if (slot5.hasItem()) {
 				ItemStack itemstack6 = slot5.getItem().copy();
 				itemstack6.setCount(itemstack6.getMaxStackSize());
 				setCarried(itemstack6);
 			}
-		} else if (clickType == ClickType.THROW && getCarried().isEmpty() && slotId >= 0) {
+		} else if (clickType == ContainerInput.THROW && getCarried().isEmpty() && slotId >= 0) {
 			Slot slot4 = getSlot(slotId);
 			int i1 = dragType == 0 ? 1 : slot4.getItem().getCount();
 			ItemStack itemstack8 = slot4.safeTake(i1, slot4.getItem().getMaxStackSize(), player);
 			player.drop(itemstack8, true);
-		} else if (clickType == ClickType.PICKUP_ALL && slotId >= 0) {
+		} else if (clickType == ContainerInput.PICKUP_ALL && slotId >= 0) {
 			Slot slot3 = getSlot(slotId);
 			ItemStack carriedStack = getCarried();
 			if (!carriedStack.isEmpty() && (!slot3.hasItem() || !slot3.mayPickup(player))) {
@@ -1739,9 +1756,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public void updateSlotChangeError(UpgradeSlotChangeResult result) {
 		errorUpgradeSlotChangeResult = result;
-		if (player.level().isClientSide() && errorUpgradeSlotChangeResult.successful() && columnsChange != 0) {
+		if (!tryingToMergeUpgrade && columnsChange != 0) {
 			actuallyUpdateColumnsTaken(columnsChange);
-			onUpgradesChanged();
+			if (player.level().isClientSide()) {
+				onUpgradesChanged();
+			}
 		}
 		columnsChange = 0;
 		showUpgradeSlotChangeError();

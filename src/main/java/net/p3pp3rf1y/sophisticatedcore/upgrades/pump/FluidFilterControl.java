@@ -1,14 +1,14 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.Identifier;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.client.textures.FluidSpriteCache;
+import net.minecraft.world.level.material.FluidState;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -32,19 +32,20 @@ public class FluidFilterControl extends WidgetBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		GuiHelper.renderSlotsBackground(guiGraphics, x, y, container.getNumberOfFluidFilters(), 1);
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		for (int i = 0; i < container.getNumberOfFluidFilters(); i++) {
 			FluidStack fluid = container.getFluid(i);
 			if (!fluid.isEmpty()) {
-				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
-				Identifier texture = renderProperties.getStillTexture(fluid);
-				TextureAtlasSprite still = FluidSpriteCache.getSprite(texture);
-				GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
+				FluidState fluidState = fluid.getFluid().defaultFluidState();
+				FluidModel fluidModel = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(fluidState);
+				TextureAtlasSprite still = fluidModel.stillMaterial().sprite();
+				int color = fluidModel.tintSource() instanceof FluidTintSource fluidTintSource ? fluidTintSource.colorAsStack(fluid) : fluidModel.tintSource() != null ? fluidModel.tintSource().color(fluidState.createLegacyBlock()) : -1;
+				GuiHelper.renderTiledSprite(guiGraphics, still, color, x + i * 18 + 1, y + 1, 16);
 			}
 		}
 	}
@@ -63,11 +64,11 @@ public class FluidFilterControl extends WidgetBase {
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		getSlotClicked(mouseX, mouseY).ifPresent(slot -> {
 			FluidStack fluid = container.getFluid(slot);
 			if (!fluid.isEmpty()) {
-				GuiHelper.renderTooltip(screen, guiGraphics, List.of(fluid.getHoverName()), mouseX, mouseY);
+				GuiHelper.extractTooltip(screen, guiGraphics, List.of(fluid.getHoverName()), mouseX, mouseY);
 			}
 		});
 	}

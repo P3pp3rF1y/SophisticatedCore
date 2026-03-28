@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -60,8 +60,8 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+		super.extractBg(guiGraphics, minecraft, mouseX, mouseY);
 		if (getContainer().isOpen()) {
 			GuiHelper.renderSlotsBackground(guiGraphics, x + 3, y + 24, slotsInRow, getContainer().getSlots().size() / slotsInRow, getContainer().getSlots().size() % slotsInRow);
 		}
@@ -136,8 +136,8 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 		}
 
 		@Override
-		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-			super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
+		protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+			super.extractBg(guiGraphics, minecraft, mouseX, mouseY);
 			getContainer().getDiscSlotActive().ifPresent(slot -> renderPlaytimeOverLay(guiGraphics, 0x55_00CC00, screen.getLeftX() + slot.x, screen.getTopY() + slot.y, 16, 16));
 		}
 
@@ -151,7 +151,7 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 					.orElse(0f);
 		}
 
-		private void renderPlaytimeOverLay(GuiGraphics guiGraphics, int slotColor, int xPos, int yPos, int width, int height) {
+		private void renderPlaytimeOverLay(GuiGraphicsExtractor guiGraphics, int slotColor, int xPos, int yPos, int width, int height) {
 			float remainingProgress = getPlaybackRemainingProgress();
 			if (remainingProgress <= 0) {
 				return;

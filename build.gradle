@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.134'
+    id 'net.neoforged.moddev' version '2.0.141'
     id "org.sonarqube" version "5.0.0.4638"
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
@@ -99,7 +99,7 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     version = project.neo_version
@@ -147,6 +147,14 @@ neoForge {
 }
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
+}
+
+sourceSets.main.java {
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/accessories/**'
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/chipped/**'
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/craftingtweaks/**'
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/recipeviewers/rei/**'
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/trashslot/**'
 }
 
 configurations {
@@ -395,7 +403,7 @@ task curseforge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
     dependsOn 'generateChangelog'
 
     apiToken = System.getenv("CURSEFORGE_TOKEN")
-    def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar"))
+    def mainFile = upload(project.curseforge_id, file("${project.buildDir}/libs/${base.archivesName.get()}-${version}.jar"))
     mainFile.changelogType = 'markdown'
     mainFile.changelog = { project.ext.changelog }
     mainFile.addModLoader('NeoForge')

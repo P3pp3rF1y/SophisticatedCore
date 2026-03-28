@@ -202,7 +202,7 @@ public class RecipeHelper {
 
 	private static List<ItemStack> getUncompactResultItems(Level w, ItemStack itemToUncompact) {
 		CraftingContainer craftingInventory = getFilledCraftingInventory(itemToUncompact, 1, 1);
-		return safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory.asCraftInput(), w).stream().map(r -> r.value().assemble(craftingInventory.asCraftInput(), w.registryAccess())).toList();
+		return safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory.asCraftInput(), w).stream().map(r -> r.value().assemble(craftingInventory.asCraftInput())).toList();
 	}
 
 	public static CompactingResult getCompactingResult(ItemStack stack, CompactingShape shape) {
@@ -242,7 +242,7 @@ public class RecipeHelper {
 
 		for (RecipeHolder<CraftingRecipe> recipeHolder : compactingRecipes) {
 			CraftingRecipe recipe = recipeHolder.value();
-			ItemStack result = recipe.assemble(craftingInventory.asCraftInput(), level.registryAccess());
+			ItemStack result = recipe.assemble(craftingInventory.asCraftInput());
 			if (uncompactMatchesItem(result, level, stack, width * height)) {
 				return cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, result);
 			}
@@ -253,7 +253,7 @@ public class RecipeHelper {
 
 	private static CompactingResult cacheAndGetCompactingResult(CompactedItem compactedItem, CraftingRecipe recipe, CraftingContainer craftingInventory) {
 		return getLevel().map(level ->
-				cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, recipe.assemble(craftingInventory.asCraftInput(), level.registryAccess()))
+				cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, recipe.assemble(craftingInventory.asCraftInput()))
 		).orElse(CompactingResult.EMPTY);
 	}
 

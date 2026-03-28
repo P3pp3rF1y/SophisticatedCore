@@ -5,7 +5,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -18,6 +18,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.*;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
@@ -60,6 +61,7 @@ public class ClientEventHandler {
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
 		modBus.addListener(ClientEventHandler::registerFluidClientExtension);
+		modBus.addListener(ClientEventHandler::registerFluidModels);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
 		modBus.addListener(ClientEventHandler::registerRenderPipelines);
 		IEventBus eventBus = NeoForge.EVENT_BUS;
@@ -69,7 +71,7 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::recipesReceived);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
-		eventBus.addListener(ClientEventHandler::renderLevelStage);
+		eventBus.addListener(ClientEventHandler::submitCustomGeometry);
 		eventBus.addListener(ClientEventHandler::onTickEnd);
 	}
 
@@ -77,9 +79,9 @@ public class ClientEventHandler {
 		ItemStackKey.clearCache();
 	}
 
-	private static void renderLevelStage(RenderLevelStageEvent.AfterEntities event) {
+	private static void submitCustomGeometry(SubmitCustomGeometryEvent event) {
 		float partialTick = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false);
-		BlockHighlightRenderer.render(event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
+		BlockHighlightRenderer.submit(event.getSubmitNodeCollector(), event.getPoseStack(), partialTick, event.getLevelRenderState().cameraRenderState.pos);
 	}
 
 	private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
@@ -197,22 +199,22 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
+	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphicsExtractor guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
 		int x = containerGui.getGuiLeft() + s.x;
 		int y = containerGui.getGuiTop() + s.y;
 
 		int color = ARGB.opaque(stashResult == IStashStorageItem.StashResult.MATCH_AND_SPACE ? ChatFormatting.GREEN.getColor() : 0xFFFF00);
 		if (stack.getItem() instanceof IStashStorageItem) {
-			guiGraphics.drawString(mc.font, "+", x + 10, y + 8, color);
+			guiGraphics.text(mc.font, "+", x + 10, y + 8, color);
 		} else {
-			guiGraphics.drawString(mc.font, "-", x + 1, y, color);
+			guiGraphics.text(mc.font, "-", x + 1, y, color);
 		}
 	}
 
-	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, GuiGraphics guiGraphics, ItemStack stack, Optional<TooltipComponent> tooltipComponent) {
+	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, GuiGraphicsExtractor guiGraphics, ItemStack stack, Optional<TooltipComponent> tooltipComponent) {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
-		GuiHelper.renderTooltip(event.getScreen(), guiGraphics, stack, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), tooltipComponent, x, y);
+		GuiHelper.extractTooltip(event.getScreen(), guiGraphics, stack, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), tooltipComponent, x, y);
 	}
 
 	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack inInventory, ItemStack held) {
@@ -246,16 +248,23 @@ public class ClientEventHandler {
 			private static final Identifier XP_STILL_TEXTURE = Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still");
 			private static final Identifier XP_FLOWING_TEXTURE = Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
-			@Override
 			public Identifier getStillTexture() {
 				return XP_STILL_TEXTURE;
 			}
 
-			@Override
 			public Identifier getFlowingTexture() {
 				return XP_FLOWING_TEXTURE;
 			}
 		}, ModFluids.XP_FLUID_TYPE.get());
+	}
+
+	private static void registerFluidModels(RegisterFluidModelsEvent event) {
+		event.register(new FluidModel.Unbaked(
+				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still")),
+				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing")),
+				null,
+				null
+		), ModFluids.XP_STILL.get(), ModFluids.XP_FLOWING.get());
 	}
 
 	private static class SophisticatedScreenKeyConflictContext implements IKeyConflictContext {

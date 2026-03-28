@@ -90,7 +90,7 @@ public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 					.map(PumpUpgradeTab.Advanced.class::cast)
 					.ifPresent(pumpUpgradeTab -> {
 						dev.architectury.fluid.FluidStack ghostFluidStack = stack.getStack().castValue();
-						addFluidTargets(pumpUpgradeTab, new FluidStack(ghostFluidStack.getFluid(), (int)ghostFluidStack.getAmount()), targets);
+						addFluidTargets(pumpUpgradeTab, new FluidStack(ghostFluidStack.getFluid(), (int) ghostFluidStack.getAmount()), targets);
 					});
 		}
 

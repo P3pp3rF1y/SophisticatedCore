@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
@@ -24,13 +24,13 @@ public class ColorButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		int color = isMouseOver(mouseX, mouseY) ? 0xFF_FFFFFF : 0xFF_CCCCCC;
 		guiGraphics.fill(x, y, x + getWidth(), y + getHeight(), color);
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		int color = colorGetter.get();
 		if (color == -1) {
 			for (int row = 0; row < getHeight() - 2; row++) {
@@ -44,8 +44,8 @@ public class ColorButton extends ButtonBase {
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (visible && isMouseOver(mouseX, mouseY) && !tooltip.isEmpty()) {
 			guiGraphics.setTooltipForNextFrame(screen.getMinecraft().font, tooltip, Optional.empty(), mouseX, mouseY);
 		}

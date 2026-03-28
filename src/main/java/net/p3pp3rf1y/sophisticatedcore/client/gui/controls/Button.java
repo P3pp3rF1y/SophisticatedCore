@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -36,7 +36,7 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			hovered = true;
 			renderHoveredBackground(guiGraphics);
@@ -46,7 +46,7 @@ public class Button extends ButtonBase {
 		}
 	}
 
-	protected void renderHoveredBackground(GuiGraphics guiGraphics) {
+	protected void renderHoveredBackground(GuiGraphicsExtractor guiGraphics) {
 		if (hoveredBackgroundTexture != null) {
 			GuiHelper.blit(guiGraphics, x, y, hoveredBackgroundTexture);
 		}
@@ -57,7 +57,7 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (foregroundTexture != null) {
 			GuiHelper.blit(guiGraphics, x, y, foregroundTexture);
 		}
@@ -73,8 +73,8 @@ public class Button extends ButtonBase {
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (visible && isMouseOver(mouseX, mouseY)) {
 			guiGraphics.setTooltipForNextFrame(screen.getFont(), getTooltip(), Optional.empty(), mouseX, mouseY);
 		}

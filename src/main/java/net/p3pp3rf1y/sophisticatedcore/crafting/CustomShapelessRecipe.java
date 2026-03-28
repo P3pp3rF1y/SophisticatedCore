@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
@@ -17,13 +17,13 @@ import java.util.List;
 public abstract class CustomShapelessRecipe implements CraftingRecipe {
 	final String group;
 	final CraftingBookCategory category;
-	final ItemStack result;
+	final ItemStackTemplate result;
 	final List<Ingredient> ingredients;
 	@Nullable
 	private PlacementInfo placementInfo;
 	private final boolean isSimple;
 
-	public CustomShapelessRecipe(String group, CraftingBookCategory category, ItemStack result, List<Ingredient> ingredients) {
+	public CustomShapelessRecipe(String group, CraftingBookCategory category, ItemStackTemplate result, List<Ingredient> ingredients) {
 		this.group = group;
 		this.category = category;
 		this.result = result;
@@ -47,7 +47,7 @@ public abstract class CustomShapelessRecipe implements CraftingRecipe {
 		return placementInfo;
 	}
 
-	public ItemStack result() {
+	public ItemStackTemplate result() {
 		return result;
 	}
 
@@ -73,8 +73,8 @@ public abstract class CustomShapelessRecipe implements CraftingRecipe {
 		return ingredients;
 	}
 
-	public ItemStack assemble(CraftingInput craftingInput, HolderLookup.Provider registries) {
-		return result.copy();
+	public ItemStack assemble(CraftingInput craftingInput) {
+		return result.create();
 	}
 
 	public List<RecipeDisplay> display() {

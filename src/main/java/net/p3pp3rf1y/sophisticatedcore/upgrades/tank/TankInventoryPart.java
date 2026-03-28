@@ -1,16 +1,17 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.tank;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraft.world.level.material.FluidState;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.client.textures.FluidSpriteCache;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
@@ -36,7 +37,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extract(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y(), GuiHelper.BAR_BACKGROUND_TOP, 18, height < 36 ? height / 2 : 18);
 		int yOffset = 18;
 		for (int i = 0; i < (height - 36) / 18; i++) {
@@ -45,7 +46,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		}
 		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + (height < 36 ? height / 2 : yOffset), GuiHelper.BAR_BACKGROUND_BOTTOM, 18, height < 36 ? height / 2 : 18);
 
-		renderFluid(guiGraphics);
+		extractFluid(guiGraphics);
 
 		yOffset = 0;
 		for (int i = 0; i < height / 18; i++) {
@@ -76,12 +77,12 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 	}
 
 	@Override
-	public void renderErrorOverlay(GuiGraphics guiGraphics) {
-		screen.renderOverlay(guiGraphics, StorageScreenBase.ERROR_SLOT_COLOR, getTankLeft() + 1, pos.y() + 1, 16, height - 2);
+	public void extractErrorOverlay(GuiGraphicsExtractor guiGraphics) {
+		screen.extractOverlay(guiGraphics, StorageScreenBase.ERROR_SLOT_COLOR, getTankLeft() + 1, pos.y() + 1, 16, height - 2);
 	}
 
 	@Override
-	public void renderTooltip(StorageScreenBase<?> screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extractTooltip(StorageScreenBase<?> screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		FluidStack contents = container.getContents();
 		int capacity = container.getTankCapacity();
 		if (contents.isEmpty()) {
@@ -111,7 +112,7 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		return Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tank.contents_tooltip"), String.format("%,d", contents.getAmount()), String.format("%,d", capacity));
 	}
 
-	private void renderFluid(GuiGraphics guiGraphics) {
+	private void extractFluid(GuiGraphicsExtractor guiGraphics) {
 		FluidStack contents = container.getContents();
 		int capacity = container.getTankCapacity();
 		if (contents.isEmpty()) {
@@ -121,10 +122,11 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		Fluid fluid = contents.getFluid();
 		int fill = contents.getAmount();
 		int displayLevel = (int) ((height - 2) * ((float) fill / capacity));
-		IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
-		Identifier texture = renderProperties.getStillTexture(contents);
-		TextureAtlasSprite still = FluidSpriteCache.getSprite(texture);
-		GuiHelper.renderTiledSprite(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		FluidState fluidState = fluid.defaultFluidState();
+		FluidModel fluidModel = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(fluidState);
+		TextureAtlasSprite still = fluidModel.stillMaterial().sprite();
+		int color = fluidModel.tintSource() instanceof FluidTintSource fluidTintSource ? fluidTintSource.colorAsStack(contents) : fluidModel.tintSource() != null ? fluidModel.tintSource().color(fluidState.createLegacyBlock()) : -1;
+		GuiHelper.renderTiledSprite(guiGraphics, still, color, pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
 
 }

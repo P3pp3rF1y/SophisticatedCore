@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.ItemLike;
@@ -40,7 +41,7 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 
 	@Override
 	public ShapelessRecipeDisplayBuilder<CraftingRecipe> requires(ItemStack itemStack) {
-		return requires(CustomDisplayIngredient.of(Ingredient.of(itemStack.getItem()), new SlotDisplay.ItemStackSlotDisplay(itemStack)));
+		return requires(CustomDisplayIngredient.of(Ingredient.of(itemStack.getItem()), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack))));
 	}
 
 	@Override
@@ -56,6 +57,6 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 
 	@Override
 	public void save(ResourceKey<Recipe<?>> id) {
-		generator.acceptCrafting(new RecipeHolder<>(id, new ShapelessRecipe("", CraftingBookCategory.MISC, result, ingredients)));
+		generator.acceptCrafting(new RecipeHolder<>(id, new ShapelessRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(result), ingredients)));
 	}
 }

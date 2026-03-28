@@ -1,7 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.client.render;
 
+import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.platform.CompareOp;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -26,8 +27,7 @@ public class BlockHighlightRenderHelper {
 			.withFragmentShader("core/position_color")
 			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
 			.withCull(false)
-			.withDepthTestFunction(DepthTestFunction.LEQUAL_DEPTH_TEST)
-			.withDepthWrite(true)
+			.withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
 			.withLocation(SophisticatedCore.getIdentifier("pipeline/outline_quads"))
 			.build();
 

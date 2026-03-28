@@ -147,7 +147,7 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 		if (!recipes.isEmpty() && isIndexInRecipeBounds(selectedRecipe.get())) {
 			RecipeHolder<R> recipe = recipes.get(selectedRecipe.get());
 			resultInventory.setRecipeUsed(recipe);
-			outputSlot.set(recipe.value().assemble(new SingleRecipeInput(inputInventory.getItem(0)), level.registryAccess()));
+			outputSlot.set(recipe.value().assemble(new SingleRecipeInput(inputInventory.getItem(0))));
 		} else {
 			outputSlot.set(ItemStack.EMPTY);
 		}

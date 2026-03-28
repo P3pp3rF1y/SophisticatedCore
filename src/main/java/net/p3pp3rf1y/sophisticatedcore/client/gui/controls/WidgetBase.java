@@ -2,7 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
@@ -37,14 +37,14 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (!visible) {
 			return;
 		}
 
 		isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
-		renderBg(guiGraphics, minecraft, mouseX, mouseY);
-		renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
+		extractBg(guiGraphics, minecraft, mouseX, mouseY);
+		extractWidget(guiGraphics, mouseX, mouseY, partialTicks);
 	}
 
 	@Override
@@ -52,9 +52,9 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 		return isHovered ? NarrationPriority.HOVERED : NarrationPriority.NONE;
 	}
 
-	protected abstract void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY);
+	protected abstract void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY);
 
-	protected abstract void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks);
+	protected abstract void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks);
 
 	public int getWidth() {
 		return width;
@@ -91,7 +91,7 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 		return (getWidth() - elementWidth) / 2;
 	}
 
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		//noop
 	}
 

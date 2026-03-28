@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -69,9 +69,9 @@ public record EmiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, Identifi
 
 		if (output != null) {
 			if (payload.action == 1) {
-				container.clicked(output.index, 0, ClickType.PICKUP, player);
+				container.clicked(output.index, 0, ContainerInput.PICKUP, player);
 			} else if (payload.action == 2) {
-				container.clicked(output.index, 0, ClickType.QUICK_MOVE, player);
+				container.clicked(output.index, 0, ContainerInput.QUICK_MOVE, player);
 			}
 		}
 	}

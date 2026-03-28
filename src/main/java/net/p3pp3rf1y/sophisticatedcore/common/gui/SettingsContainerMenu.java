@@ -250,7 +250,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 	@Override
-	public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
+	public void clicked(int slotId, int dragType, ContainerInput clickTypeIn, Player player) {
 		//noop
 	}
 

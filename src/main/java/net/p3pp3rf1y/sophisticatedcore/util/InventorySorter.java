@@ -46,7 +46,7 @@ public class InventorySorter {
 			if (firstItem == secondItem) {
 				return 0;
 			}
-			int ret = compareTags(firstStack.getTags().collect(Collectors.toSet()), secondStack.getTags().collect(Collectors.toSet()));
+			int ret = compareTags(firstStack.typeHolder().tags().collect(Collectors.toSet()), secondStack.typeHolder().tags().collect(Collectors.toSet()));
 			return ret != 0 ? ret : getRegistryName(first.getKey()).compareTo(getRegistryName(second.getKey()));
 		}
 

@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
@@ -31,7 +32,7 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 	public JeiShapedRecipeDisplayBuilder(HolderGetter<Item> items, JeiRecipeDisplayGenerator generator, ItemStack result) {
 		this.items = items;
 		this.generator = generator;
-		this.result = new SlotDisplay.ItemStackSlotDisplay(result);
+		this.result = new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(result));
 	}
 
 	@Override
@@ -48,14 +49,14 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 
 	@Override
 	public JeiShapedRecipeDisplayBuilder define(Character symbol, ItemStack itemStack) {
-		return define(symbol, Ingredient.of(itemStack.getItem()), new SlotDisplay.ItemStackSlotDisplay(itemStack));
+		return define(symbol, Ingredient.of(itemStack.getItem()), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
 	}
 
 	@Override
 	public ShapedRecipeDisplayBuilder<CraftingRecipe> define(Character symbol, List<ItemStack> itemStacks) {
 		return define(symbol,
 				Ingredient.of(itemStacks.isEmpty() ? Items.AIR : itemStacks.getFirst().getItem()),
-				new SlotDisplay.Composite(itemStacks.stream().map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())
+				new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())
 		);
 	}
 
@@ -83,7 +84,7 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 	@Override
 	public ShapedRecipeDisplayBuilder<CraftingRecipe> define(ItemStack itemStack) {
 		ingredients.add(Optional.of(Ingredient.of(itemStack.getItem())));
-		displays.add(new SlotDisplay.ItemStackSlotDisplay(itemStack));
+		displays.add(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
 		return this;
 	}
 

@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -49,8 +48,7 @@ public class ClientRecipeHelper {
 		if (level == null) {
 			throw new NullPointerException("level must not be null.");
 		}
-		RegistryAccess registryAccess = level.registryAccess();
-		return recipe.assemble(container, registryAccess);
+		return recipe.assemble(container);
 	}
 
 	private static ItemStack getVariantResult(CraftingRecipe recipe, ItemStack variantItem) {
@@ -127,12 +125,12 @@ public class ClientRecipeHelper {
 
 	private static <I extends RecipeInput, R extends Recipe<I>> void addRecipe(IRecipeDisplayGenerator<?> generator, RecipeHolder<R> recipe) {
 		if (recipe.value() instanceof ShapedRecipe shapedRecipe) {
-			generator.shaped(shapedRecipe.result)
+			generator.shaped(shapedRecipe.result.create())
 					.setDimensions(shapedRecipe.pattern.width(), shapedRecipe.pattern.height())
 					.defineIngredients(shapedRecipe.getIngredients())
 					.save(recipe.id());
 		} else if (recipe.value() instanceof CustomShapelessRecipe shapelessRecipe) {
-			generator.shapeless(shapelessRecipe.result())
+			generator.shapeless(shapelessRecipe.result().create())
 					.requires(shapelessRecipe.placementInfo().ingredients())
 					.save(recipe.id());
 		} else if (recipe.value() instanceof ICustomSmithingRecipe smithingRecipe) {

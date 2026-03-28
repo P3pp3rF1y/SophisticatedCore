@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -34,7 +34,7 @@ public class ContextButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
+	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		if (isMouseOver(mouseX, mouseY)) {
 			renderBackground(guiGraphics, LEFT_BUTTON_HOVERED_BACKGROUND, MIDDLE_BUTTON_HOVERED_BACKGROUND, RIGHT_BUTTON_HOVERED_BACKGROUND);
 		} else {
@@ -43,14 +43,14 @@ public class ContextButton extends ButtonBase {
 	}
 
 	@Override
-	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		super.extractTooltip(screen, guiGraphics, mouseX, mouseY);
 		if (isMouseOver(mouseX, mouseY)) {
 			guiGraphics.setTooltipForNextFrame(minecraft.font, getTooltipKey.get(), Optional.empty(), mouseX, mouseY);
 		}
 	}
 
-	private void renderBackground(GuiGraphics guiGraphics, TextureBlitData leftButtonHoveredBackground, TextureBlitData middleButtonHoveredBackground, TextureBlitData rightButtonHoveredBackground) {
+	private void renderBackground(GuiGraphicsExtractor guiGraphics, TextureBlitData leftButtonHoveredBackground, TextureBlitData middleButtonHoveredBackground, TextureBlitData rightButtonHoveredBackground) {
 		int left = x;
 		GuiHelper.blit(guiGraphics, left, y, leftButtonHoveredBackground);
 		left += leftButtonHoveredBackground.getWidth();
@@ -62,8 +62,8 @@ public class ContextButton extends ButtonBase {
 	}
 
 	@Override
-	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		guiGraphics.drawCenteredString(minecraft.font, getTitle.get(), x + getWidth() / 2, y - 4 + getHeight() / 2, ARGB.opaque(16777215));
+	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		guiGraphics.centeredText(minecraft.font, getTitle.get(), x + getWidth() / 2, y - 4 + getHeight() / 2, ARGB.opaque(16777215));
 	}
 
 	@Override
