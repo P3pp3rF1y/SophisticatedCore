@@ -482,8 +482,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		sortButton = new Button(new Position(pos.x(), pos.y()), ButtonDefinitions.SORT, button -> {
 			if (button == 0) {
 				getMenu().sort();
-				//noinspection ConstantConditions - by this point player can't be null
-				Minecraft.getInstance().player.displayClientMessage(Component.literal("Sorted"), true);
 			}
 		});
 		addWidget(sortButton);
