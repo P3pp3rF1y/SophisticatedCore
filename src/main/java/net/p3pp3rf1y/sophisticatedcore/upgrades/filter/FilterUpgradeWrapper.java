@@ -39,13 +39,28 @@ public class FilterUpgradeWrapper extends UpgradeWrapperBase<FilterUpgradeWrappe
 	}
 
 	@Override
+	public void setEnabled(boolean enabled) {
+		if (isEnabled() == enabled) {
+			return;
+		}
+		super.setEnabled(enabled);
+		storageWrapper.refreshInventoryForInputOutput();
+	}
+
+	@Override
 	public Optional<FilterLogic> getInputFilter() {
+		if (!isEnabled()) {
+			return Optional.empty();
+		}
 		Direction direction = getDirection();
 		return direction == Direction.INPUT || direction == Direction.BOTH ? Optional.of(getFilterLogic()) : Optional.empty();
 	}
 
 	@Override
 	public Optional<FilterLogic> getOutputFilter() {
+		if (!isEnabled()) {
+			return Optional.empty();
+		}
 		Direction direction = getDirection();
 		return direction == Direction.OUTPUT || direction == Direction.BOTH ? Optional.of(getFilterLogic()) : Optional.empty();
 	}
