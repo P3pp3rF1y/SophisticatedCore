@@ -22,6 +22,7 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 	protected boolean isHovered;
 	protected boolean visible = true;
 	private boolean focused = false;
+	private boolean renderInDefaultPass = true;
 
 	protected WidgetBase(Position position, Dimension dimension) {
 		x = position.x();
@@ -38,10 +39,20 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		if (!visible || !renderInDefaultPass) {
+			return;
+		}
+		actuallyExtractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+	}
+
+	public void extractRenderStateInLatePass(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (!visible) {
 			return;
 		}
+		actuallyExtractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
+	}
 
+	protected void actuallyExtractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		isHovered = mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height;
 		extractBg(guiGraphics, minecraft, mouseX, mouseY);
 		extractWidget(guiGraphics, mouseX, mouseY, partialTicks);
@@ -93,6 +104,10 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 
 	public void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
 		//noop
+	}
+
+	public void setRenderInDefaultPass(boolean renderInDefaultPass) {
+		this.renderInDefaultPass = renderInDefaultPass;
 	}
 
 	@Override
