@@ -30,6 +30,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class ControllerBlockEntityBase extends BlockEntity implements IItemHandlerSimpleInserter, IInsertBlockOverride {
+	private static final long INVALID_SLOT_LOG_INTERVAL_TICKS = 20;
+	private static final int INVALID_SLOT_REFRESH_THRESHOLD = 2;
+	private static final long INVALID_SLOT_REFRESH_COOLDOWN_TICKS = 40;
+
 	private List<BlockPos> storagePositions = new ArrayList<>();
 	private final Map<BlockPos, Integer> storagePositionIndexes = new HashMap<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
@@ -51,6 +55,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private Set<BlockPos> nonConnectingBlocks = new TreeSet<>(distanceComparator);
 
 	private WeakReference<IItemHandlerModifiable>[] cachedHandlers = new WeakReference[0];
+	private long lastInvalidSlotLogTime = -INVALID_SLOT_LOG_INTERVAL_TICKS;
+	private long lastInvalidSlotRefreshTime = -INVALID_SLOT_REFRESH_COOLDOWN_TICKS;
+	private int invalidSlotIncidentCount = 0;
+	private boolean refreshingAfterInvalidSlots = false;
 
 	public boolean addLinkedBlock(BlockPos linkedPos) {
 		if (level != null && !level.isClientSide() && isWithinRange(linkedPos) && !linkedBlocks.contains(linkedPos) && !storagePositions.contains(linkedPos)) {
@@ -614,13 +622,86 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (slot >= 0 && slot < handler.getSlots()) {
 			return true;
 		}
+		handleInvalidSlotAccess(handlerIndex, slot, methodName);
+
+		return false;
+	}
+
+	private void handleInvalidSlotAccess(int handlerIndex, int slot, String methodName) {
+		if (level == null) {
+			return;
+		}
+
+		long gameTime = level.getGameTime();
+		if (gameTime - lastInvalidSlotLogTime < INVALID_SLOT_LOG_INTERVAL_TICKS) {
+			return;
+		}
+
+		lastInvalidSlotLogTime = gameTime;
+		invalidSlotIncidentCount++;
 		if (handlerIndex < 0 || handlerIndex >= storagePositions.size()) {
 			SophisticatedCore.LOGGER.debug("Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}", () -> handlerIndex, () -> methodName, () -> getBlockPos().toShortString());
 		} else {
 			SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}", () -> slot, () -> methodName, () -> storagePositions.get(handlerIndex).toShortString(), () -> getBlockPos().toShortString());
 		}
 
-		return false;
+		if (!refreshingAfterInvalidSlots && invalidSlotIncidentCount >= INVALID_SLOT_REFRESH_THRESHOLD && gameTime - lastInvalidSlotRefreshTime >= INVALID_SLOT_REFRESH_COOLDOWN_TICKS) {
+			lastInvalidSlotRefreshTime = gameTime;
+			refreshingAfterInvalidSlots = true;
+			SophisticatedCore.LOGGER.debug("Refreshing controller at {} after {} invalid slot incidents were logged", () -> getBlockPos().toShortString(), () -> invalidSlotIncidentCount);
+			refreshConnectedStoragesAfterRepeatedInvalidSlots();
+			invalidSlotIncidentCount = 0;
+			refreshingAfterInvalidSlots = false;
+		}
+	}
+
+	private void refreshConnectedStoragesAfterRepeatedInvalidSlots() {
+		unregisterCurrentConnections();
+		clearControllerStateForRefresh();
+		searchAndAddBoundables();
+		rebuildLinkedBlockConnections();
+		setChanged();
+		WorldHelper.notifyBlockUpdate(this);
+	}
+
+	private void unregisterCurrentConnections() {
+		storagePositions.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
+		connectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
+		nonConnectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
+	}
+
+	private void clearControllerStateForRefresh() {
+		storagePositions.clear();
+		storagePositionIndexes.clear();
+		baseIndexes.clear();
+		totalSlots = 0;
+		stackStorages.clear();
+		storageStacks.clear();
+		itemStackKeys.clear();
+		emptySlotsStorages.clear();
+		memorizedItemStorages.clear();
+		storageMemorizedItems.clear();
+		memorizedStackStorages.clear();
+		storageMemorizedStacks.clear();
+		filterItemStorages.clear();
+		storageFilterItems.clear();
+		connectingBlocks.clear();
+		nonConnectingBlocks.clear();
+		cachedHandlers = new WeakReference[0];
+	}
+
+	private void rebuildLinkedBlockConnections() {
+		for (BlockPos linkedPos : new ArrayList<>(linkedBlocks)) {
+			WorldHelper.getBlockEntity(level, linkedPos, ILinkable.class).ifPresent(l -> {
+				if (l.connectLinkedSelf()) {
+					Set<BlockPos> positionsToCheck = new LinkedHashSet<>();
+					positionsToCheck.add(linkedPos);
+					searchAndAddBoundables(positionsToCheck, true);
+				}
+
+				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false);
+			});
+		}
 	}
 
 	@Override
