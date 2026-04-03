@@ -93,4 +93,8 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 	protected void onOpen(ServerLevel level, Vec3 pos) {
 
 	}
+
+	public void onContraptionDestroyed() {
+
+	}
 }
