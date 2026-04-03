@@ -60,7 +60,7 @@ public final class ItemStackKey {
 		}
 
 		//noinspection DataFlowIssue
-		return (!a.hasTag() || a.getTag().equals(b.getTag())) && Objects.equals(getCapNbt(a), getCapNbt(b));
+		return (!a.hasTag() || a.getTag().equals(b.getTag())) && Objects.equals(normalizeCapNbt(getCapNbt(a)), normalizeCapNbt(getCapNbt(b)));
 	}
 
 	public boolean hashCodeNotEquals(ItemStack otherStack) {
@@ -98,6 +98,11 @@ public final class ItemStackKey {
 			SophisticatedCore.LOGGER.error("Error getting capNBT of stack ", e);
 			return null;
 		}
+	}
+
+	@Nullable
+	private static CompoundTag normalizeCapNbt(@Nullable CompoundTag capNbt) {
+		return capNbt == null || capNbt.isEmpty() ? null : capNbt;
 	}
 
 	public boolean matches(ItemStack stack) {
