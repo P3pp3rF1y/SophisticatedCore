@@ -56,7 +56,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 		getCraftMatrix(storageContainer).ifPresent(craftMatrix -> {
 			for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
-				int slotIndex = recipeSlot.getContainerSlot();
+				int slotIndex = recipeSlot.getSlotIndex();
 				ItemStack itemStack = craftMatrix.getItem(slotIndex);
 				if (!itemStack.isEmpty()) {
 					ItemStack returnStack = itemStack.copy();
@@ -138,13 +138,13 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			Container matrixClone = new SimpleContainer(size);
 
 			for (int i = 0; i < size; ++i) {
-				int slotIndex = recipeSlots.get(i).getContainerSlot();
+				int slotIndex = recipeSlots.get(i).getSlotIndex();
 				matrixClone.setItem(i, craftMatrix.getItem(slotIndex));
 			}
 
 			for (int i = 0; i < size; ++i) {
 				if (!ignoresSlotId(i)) {
-					int slotIndex = recipeSlots.get(rotateSlotId(i, counterClockwise)).getContainerSlot();
+					int slotIndex = recipeSlots.get(rotateSlotId(i, counterClockwise)).getSlotIndex();
 					craftMatrix.setItem(slotIndex, matrixClone.getItem(i));
 				}
 			}
@@ -170,7 +170,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 		return getOpenCraftingContainer(container).map(cc -> {
 			List<Slot> recipeSlots = cc.getRecipeSlots();
 			if (!recipeSlots.isEmpty()) {
-				return container.slots.indexOf(recipeSlots.get(0));
+				return recipeSlots.get(0).index;
 			}
 			return 0;
 		}).orElse(0);
@@ -194,7 +194,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 				ArrayListMultimap<String, Integer> itemMap = ArrayListMultimap.create();
 				Multiset<String> itemCount = HashMultiset.create();
 				for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
-					int slotIndex = recipeSlot.getContainerSlot();
+					int slotIndex = recipeSlot.getSlotIndex();
 					ItemStack itemStack = craftMatrix.getItem(slotIndex);
 					if (!itemStack.isEmpty() && itemStack.getMaxStackSize() > 1) {
 						Identifier registryName = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
@@ -250,7 +250,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 					int biggestSlotSize = 1;
 					int biggestSlotIndex = -1;
 					for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
-						int slotIndex = recipeSlot.getContainerSlot();
+						int slotIndex = recipeSlot.getSlotIndex();
 						ItemStack itemStack = craftMatrix.getItem(slotIndex);
 						if (!itemStack.isEmpty() && itemStack.getCount() > biggestSlotSize) {
 							biggestSlotStack = itemStack;
@@ -265,7 +265,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 					boolean emptyBiggestSlot = false;
 					for (Slot recipeSlot : getRecipeSlots(storageContainer)) {
-						int slotIndex = recipeSlot.getContainerSlot();
+						int slotIndex = recipeSlot.getSlotIndex();
 						ItemStack itemStack = craftMatrix.getItem(slotIndex);
 						if (itemStack.isEmpty()) {
 							if (biggestSlotStack.getCount() > 1) {
