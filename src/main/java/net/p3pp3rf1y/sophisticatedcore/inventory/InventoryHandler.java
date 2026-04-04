@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -144,9 +145,28 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		}).orElse(itemTag);
 	}
 
-	private Optional<ItemStack> getStackFromNbt(Tag itemTag, RegistryAccess registryAccess) {
-		return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
-				.resultOrPartial(itemName -> SophisticatedCore.LOGGER.error("Tried to load invalid item: '{}'", itemName));
+	private Optional<ItemStack> getStackFromNbt(int slot, Tag itemTag, RegistryAccess registryAccess) {
+		try {
+			return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
+					.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER.error(
+							"Failed to deserialize stored item in storage '{}' slot {} - {}. Raw item data: {}",
+							getStorageLogName(), slot, errorMessage, itemTag
+					));
+		} catch (Exception e) {
+			SophisticatedCore.LOGGER.error(
+					"Error deserializing stored item in storage '{}' slot {}. Raw item data: {}",
+					getStorageLogName(), slot, itemTag, e
+			);
+			return Optional.empty();
+		}
+	}
+
+	private String getStorageLogName() {
+		String displayName = Optional.ofNullable(storageWrapper.getDisplayName()).map(Component::getString).orElse("");
+		if (!displayName.isEmpty()) {
+			return storageWrapper.getStorageType() + " (" + displayName + ")";
+		}
+		return storageWrapper.getStorageType();
 	}
 
 	@Override
