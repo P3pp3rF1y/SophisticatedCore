@@ -1,6 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -83,9 +86,44 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 	}
 
 	public static class InventoryData {
+		private static final Codec<NonNullList<ItemStack>> LENIENT_STACKS_CODEC = new Codec<>() {
+			@Override
+			public <T> DataResult<T> encode(NonNullList<ItemStack> input, DynamicOps<T> ops, T prefix) {
+				var builder = ops.listBuilder();
+				for (ItemStack stack : input) {
+					builder.add(CodecHelper.OPTIONAL_OVERSIZED_ITEM_STACK_CODEC.encodeStart(ops, stack));
+				}
+				return builder.build(prefix);
+			}
+
+			@Override
+			public <T> DataResult<Pair<NonNullList<ItemStack>, T>> decode(DynamicOps<T> ops, T input) {
+				return ops.getList(input).flatMap(stream -> {
+					NonNullList<ItemStack> stacks = NonNullList.create();
+					stream.accept(value -> stacks.add(decodeStack(value, ops, stacks.size())));
+					return DataResult.success(Pair.of(stacks, ops.empty()));
+				});
+			}
+
+			private <T> ItemStack decodeStack(T value, DynamicOps<T> ops, int slot) {
+				try {
+					return CodecHelper.OPTIONAL_OVERSIZED_ITEM_STACK_CODEC.decode(ops, value)
+							.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER.error(
+									"Failed to deserialize stored item in slot {} - {}. Raw item data: {}",
+									slot, errorMessage, value
+							))
+							.map(Pair::getFirst)
+							.orElse(ItemStack.EMPTY);
+				} catch (Exception e) {
+					SophisticatedCore.LOGGER.error("Error deserializing stored item in slot {}. Raw item data: {}", slot, value, e);
+					return ItemStack.EMPTY;
+				}
+			}
+		};
+
 		public static final Codec<InventoryData> CODEC = RecordCodecBuilder.create(
 				instance -> instance.group(
-						CodecHelper.OPTIONAL_OVERSIZED_ITEM_STACK_CODEC.listOf().xmap(CodecHelper::toMutableNonnullItemStackList, Function.identity()).fieldOf("stacks").forGetter(InventoryData::stacks)
+						LENIENT_STACKS_CODEC.fieldOf("stacks").forGetter(InventoryData::stacks)
 				).apply(instance, InventoryData::new));
 		public static final StreamCodec<RegistryFriendlyByteBuf, InventoryData> STREAM_CODEC = StreamCodec.composite(
 				ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()).map(CodecHelper::toMutableNonnullItemStackList, Function.identity()),
@@ -479,18 +517,29 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 				for (int i = 0; i < tagList.size(); i++) {
 					tagList.getCompound(i).ifPresent(itemTag -> {
 						int slot = itemTag.getIntOr("Slot", 0);
-						if (slot >= 0 && slot < stacks.size()) {
-							getStackFromNbt(itemTag, registryAccess).ifPresent(stack -> stacks.set(slot, stack));
-						}
-					});
-				}
-			});
+					if (slot >= 0 && slot < stacks.size()) {
+						getStackFromNbt(slot, itemTag, registryAccess).ifPresent(stack -> stacks.set(slot, stack));
+					}
+				});
+			}
+		});
 			return new InventoryData(stacks);
 		}
 
-		private static Optional<ItemStack> getStackFromNbt(Tag itemTag, RegistryAccess registryAccess) {
-			return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
-					.resultOrPartial(itemName -> SophisticatedCore.LOGGER.error("Tried to load invalid item: '{}'", itemName));
+		private static Optional<ItemStack> getStackFromNbt(int slot, Tag itemTag, RegistryAccess registryAccess) {
+			try {
+				return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
+						.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER.error(
+								"Failed to deserialize legacy stored item in slot {} - {}. Raw item data: {}",
+								slot, errorMessage, itemTag
+						));
+			} catch (Exception e) {
+				SophisticatedCore.LOGGER.error(
+						"Error deserializing legacy stored item in slot {}. Raw item data: {}",
+						slot, itemTag, e
+				);
+				return Optional.empty();
+			}
 		}
 	}
 }
