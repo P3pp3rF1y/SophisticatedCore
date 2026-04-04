@@ -1,14 +1,19 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi;
 
+import dev.emi.emi.api.recipe.EmiPlayerInventory;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
 import dev.emi.emi.api.recipe.handler.EmiCraftContext;
 import dev.emi.emi.api.recipe.handler.StandardRecipeHandler;
+import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.platform.EmiClient;
 import dev.emi.emi.registry.EmiRecipeFiller;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -45,11 +50,31 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
         return slots;
     }
 
+	@Override
+	public EmiPlayerInventory getInventory(AbstractContainerScreen<C> screen) {
+		C handler = screen.getMenu();
+		List<Slot> slots = handler.getOpenOrFirstCraftingContainer(recipeType).isPresent() ? getInputSources(handler) : getPlayerInventorySlots(handler);
+		return new EmiPlayerInventory(slots.stream().map(Slot::getItem).map(EmiStack::of).toList());
+	}
+
     @Override
     public List<Slot> getCraftingSlots(C handler) {
 		UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = handler.getOpenOrFirstCraftingContainer(recipeType).orElse(null);
         return Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
     }
+
+	private List<Slot> getPlayerInventorySlots(C handler) {
+		Player player = Minecraft.getInstance().player;
+		if (player == null) {
+			return List.of();
+		}
+
+		return handler.realInventorySlots.stream()
+				.filter(slot -> slot.container instanceof Inventory)
+				.filter(slot -> slot.getContainerSlot() >= 0 && slot.getContainerSlot() < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS)
+				.filter(slot -> slot.mayPickup(player))
+				.toList();
+	}
 
     @Override
     public @Nullable Slot getOutputSlot(C handler) {
