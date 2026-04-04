@@ -127,7 +127,21 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private Tag getSlotsStackNbt(int slot, ItemStack slotStack) {
 		CompoundTag itemTag = new CompoundTag();
 		itemTag.putInt("Slot", slot);
-		return RegistryHelper.getRegistryAccess().map(registryAccess -> CodecHelper.OVERSIZED_ITEM_STACK_CODEC.encode(slotStack, registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag).getOrThrow()).orElse(itemTag);
+		return RegistryHelper.getRegistryAccess().map(registryAccess -> {
+			try {
+				return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.encode(
+						slotStack,
+						registryAccess.createSerializationContext(NbtOps.INSTANCE),
+						itemTag
+				).resultOrPartial(err -> SophisticatedCore.LOGGER.error(
+						"Failed to encode item in slot {}: {}", slot, err
+				)).orElse(itemTag);
+			} catch (Exception e) {
+				SophisticatedCore.LOGGER.error(
+						"Exception encoding item in slot {}, slot will be skipped: {}", slot, e.getMessage());
+				return itemTag;
+			}
+		}).orElse(itemTag);
 	}
 
 	private Optional<ItemStack> getStackFromNbt(Tag itemTag, RegistryAccess registryAccess) {
@@ -142,10 +156,20 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		ListTag tagList = nbt.getList("Items", Tag.TAG_COMPOUND);
 		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
 			for (int i = 0; i < tagList.size(); i++) {
-				CompoundTag itemTag = tagList.getCompound(i);
-				int slot = itemTag.getInt("Slot");
-				if (slot >= 0 && slot < stacks.size()) {
-					getStackFromNbt(itemTag, registryAccess).ifPresent(stack -> stacks.set(slot, stack));
+				try {
+					CompoundTag itemTag = tagList.getCompound(i);
+					int slot = itemTag.getInt("Slot");
+					if (slot >= 0 && slot < stacks.size()) {
+						getStackFromNbt(itemTag, registryAccess).ifPresent(stack -> stacks.set(slot, stack));
+					} else {
+						SophisticatedCore.LOGGER.warn(
+								"Skipping item entry at list index {} with out-of-bounds slot index {} (inventory size: {})",
+								i, slot, stacks.size());
+					}
+				} catch (Exception e) {
+					SophisticatedCore.LOGGER.error(
+							"Failed to deserialize item at list index {} in inventory, skipping entry: {}",
+							i, e.getMessage());
 				}
 			}
 		});
@@ -194,7 +218,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void setBaseSlotLimit(int baseSlotLimit) {
-		voidUpgradeInfoInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
+		voidUpgradeInfoInitialized = false;
 		this.baseSlotLimit = baseSlotLimit;
 		maxStackSizeMultiplier = baseSlotLimit / 64f;
 
@@ -389,8 +413,6 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	public void saveInventory() {
 		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(INVENTORY_TAG, serializeNBT(registryAccess)));
 		if (inventoryPartitioner != null) {
-			//inventory parts may affect inventory slots during their initialization in Inventory Partitioner deserialize,
-			// but there's no reason to serialize partitioner at that point as its nbt can't during init/deserialization.
 			contentsNbt.put(PARTITIONER_TAG, inventoryPartitioner.serializeNBT());
 		}
 		saveHandler.run();
