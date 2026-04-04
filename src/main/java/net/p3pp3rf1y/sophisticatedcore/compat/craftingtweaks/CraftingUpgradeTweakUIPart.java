@@ -32,9 +32,17 @@ public class CraftingUpgradeTweakUIPart implements ICraftingUIPart {
 		buttons.add(button);
 		try {
 			ADD_RENDERABLE_WIDGET.invoke(storageScreen, button);
+			moveButtonToFront(button);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			SophisticatedCore.LOGGER.error("Error calling addButton in Screen class", e);
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void moveButtonToFront(AbstractWidget button) {
+		List<GuiEventListener> children = (List<GuiEventListener>) storageScreen.children();
+		children.remove(button);
+		children.addFirst(button);
 	}
 
 	@Override
