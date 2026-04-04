@@ -40,7 +40,7 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 
     @Override
     public List<Slot> getInputSources(C handler) {
-		List<Slot> slots = new ArrayList<>(handler.realInventorySlots.stream().filter(s -> s.mayPickup(Minecraft.getInstance().player)).toList());
+		List<Slot> slots = new ArrayList<>(handler.playerInventorySlots);
 		slots.addAll(getCraftingSlots(handler));
         return slots;
     }

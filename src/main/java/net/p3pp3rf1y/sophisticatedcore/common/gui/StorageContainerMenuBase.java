@@ -67,6 +67,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public final NonNullList<ItemStack> remoteUpgradeSlots = NonNullList.create();
 	public final NonNullList<ItemStack> lastRealSlots = NonNullList.create();
 	public final List<Slot> realInventorySlots = Lists.newArrayList();
+	public final List<Slot> playerInventorySlots = Lists.newArrayList();
 	private final Map<Integer, UpgradeContainerBase<?, ?>> upgradeContainers = new LinkedHashMap<>();
 	private final NonNullList<ItemStack> remoteRealSlots = NonNullList.create();
 	protected final Player player;
@@ -230,6 +231,18 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return slot;
 	}
 
+	private Slot addPlayerInventorySlot(Slot slot) {
+		slot.index = getInventorySlotsSize();
+		slots.add(slot);
+		lastSlots.add(ItemStack.EMPTY);
+		remoteSlots.add(ItemStack.EMPTY);
+		realInventorySlots.add(slot);
+		lastRealSlots.add(ItemStack.EMPTY);
+		remoteRealSlots.add(ItemStack.EMPTY);
+		playerInventorySlots.add(slot);
+		return slot;
+	}
+
 	public int getInventorySlotsSize() {
 		return realInventorySlots.size();
 	}
@@ -328,7 +341,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			slot = new Slot(playerInventory, slotIndex, 0, 0);
 		}
 
-		return addSlot(slot);
+		return addPlayerInventorySlot(slot);
 	}
 
 	public boolean hasSomethingMessedWithStorage() {
