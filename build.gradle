@@ -17,6 +17,7 @@ idea {
 
 version = "${project.minecraft_version}-${project.mod_version}.${getBuildNumber()}${getStable()}"
 group = mod_group_id
+def isClientDataRun = gradle.startParameter.taskNames.any { it.toLowerCase().contains('clientdata') }
 
 repositories {
     maven {
@@ -173,20 +174,32 @@ dependencies {
         }
     }
     compileOnly "mezz.jei:jei-${jei_mc_version}:${jei_version}"
-    localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
+    if (!isClientDataRun) {
+        localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
+    }
     compileOnly "dev.emi:emi-neoforge:${emi_version}"
     //localRuntime "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
-    localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+    if (!isClientDataRun) {
+        localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
+    }
     compileOnly "net.blay09.mods:balm-neoforge:${balm_version}"
-    localRuntime "net.blay09.mods:balm-neoforge:${balm_version}"
+    if (!isClientDataRun) {
+        localRuntime "net.blay09.mods:balm-neoforge:${balm_version}"
+    }
     compileOnly "net.blay09.mods:craftingtweaks-neoforge:${craftingtweaks_version}"
     compileOnly "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
-    localRuntime "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
+    if (!isClientDataRun) {
+        localRuntime "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
+    }
     compileOnly "curse.maven:iceberg-520110:${iceberg_cf_file_id}"
-    localRuntime "curse.maven:iceberg-520110:${iceberg_cf_file_id}"
+    if (!isClientDataRun) {
+        localRuntime "curse.maven:iceberg-520110:${iceberg_cf_file_id}"
+    }
     compileOnly "curse.maven:prism-638111:${prism_cf_file_id}"
-    localRuntime "curse.maven:prism-638111:${prism_cf_file_id}"
+    if (!isClientDataRun) {
+        localRuntime "curse.maven:prism-638111:${prism_cf_file_id}"
+    }
     compileOnly "curse.maven:chipped-456956:${chipped_cf_file_id}"
     //localRuntime "curse.maven:chipped-456956:${chipped_cf_file_id}"
     compileOnly "curse.maven:resourcefullib-570073:${resourcefullib_cf_file_id}"
@@ -194,7 +207,9 @@ dependencies {
     compileOnly "curse.maven:athena-841890:${athena_cf_file_id}"
     //localRuntime "curse.maven:athena-841890:${athena_cf_file_id}"
     compileOnly "curse.maven:curios-309927:${curios_cf_file_id}"
-    localRuntime "curse.maven:curios-309927:${curios_cf_file_id}"
+    if (!isClientDataRun) {
+        localRuntime "curse.maven:curios-309927:${curios_cf_file_id}"
+    }
     compileOnly "curse.maven:sawmill-964817:${sawmill_cf_file_id}"
     //localRuntime "curse.maven:sawmill-964817:${sawmill_cf_file_id}"
     compileOnly "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"

@@ -13,6 +13,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.common.crafting.CompoundIngredient;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.ShapedRecipeDisplayBuilder;
 
 import java.util.ArrayList;
@@ -49,15 +51,39 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 
 	@Override
 	public JeiShapedRecipeDisplayBuilder define(Character symbol, ItemStack itemStack) {
-		return define(symbol, Ingredient.of(itemStack.getItem()), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
+		return define(symbol, DataComponentIngredient.of(true, itemStack), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
 	}
 
 	@Override
 	public ShapedRecipeDisplayBuilder<CraftingRecipe> define(Character symbol, List<ItemStack> itemStacks) {
 		return define(symbol,
-				Ingredient.of(itemStacks.isEmpty() ? Items.AIR : itemStacks.getFirst().getItem()),
+				getDisplayIngredient(itemStacks),
 				new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())
 		);
+	}
+
+	@Override
+	protected ShapedRecipeDisplayBuilder<CraftingRecipe> defineDisplayStacks(List<ItemStack> itemStacks) {
+		if (itemStacks.isEmpty()) {
+			ingredients.add(Optional.empty());
+			displays.add(SlotDisplay.Empty.INSTANCE);
+		} else {
+			ingredients.add(Optional.of(getDisplayIngredient(itemStacks)));
+			displays.add(new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList()));
+		}
+		return this;
+	}
+
+	private static Ingredient getDisplayIngredient(List<ItemStack> itemStacks) {
+		if (itemStacks.isEmpty()) {
+			return Ingredient.of(Items.AIR);
+		}
+
+		if (itemStacks.size() == 1) {
+			return DataComponentIngredient.of(true, itemStacks.getFirst());
+		}
+
+		return CompoundIngredient.of(itemStacks.stream().map(stack -> DataComponentIngredient.of(true, stack)).toArray(Ingredient[]::new));
 	}
 
 	@Override
@@ -83,7 +109,7 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 
 	@Override
 	public ShapedRecipeDisplayBuilder<CraftingRecipe> define(ItemStack itemStack) {
-		ingredients.add(Optional.of(Ingredient.of(itemStack.getItem())));
+		ingredients.add(Optional.of(DataComponentIngredient.of(true, itemStack)));
 		displays.add(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
 		return this;
 	}

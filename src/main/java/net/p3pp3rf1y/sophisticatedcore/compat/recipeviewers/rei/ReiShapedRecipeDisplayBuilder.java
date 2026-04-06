@@ -66,6 +66,12 @@ public class ReiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Di
 	}
 
 	@Override
+	protected ShapedRecipeDisplayBuilder<Display> defineDisplayStacks(List<ItemStack> itemStacks) {
+		inputs.add(EntryIngredients.ofItemStacks(itemStacks));
+		return this;
+	}
+
+	@Override
 	public ShapedRecipeDisplayBuilder<Display> setDimensions(int width, int height) {
 		this.width = width;
 		this.height = height;

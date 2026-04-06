@@ -46,6 +46,12 @@ public class EmiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 	}
 
 	@Override
+	protected ShapelessRecipeDisplayBuilder<EmiCraftingRecipe> requiresItemStacks(List<ItemStack> itemStacks) {
+		inputs.add(EmiTags.getIngredient(Item.class, itemStacks.stream().map(EmiStack::of).toList(), 1));
+		return this;
+	}
+
+	@Override
 	public ShapelessRecipeDisplayBuilder<EmiCraftingRecipe> requires(HolderSet<Item> items) {
 		inputs.add(EmiTags.getIngredient(Item.class, items.stream().map(h -> EmiStack.of(h.value())).toList(), 1));
 		return this;

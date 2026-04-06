@@ -18,6 +18,7 @@ import net.neoforged.neoforge.common.crafting.ICustomIngredient;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes.PropertyBasedSubtypeInterpreter;
 import net.p3pp3rf1y.sophisticatedcore.crafting.CustomShapelessRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ICustomSmithingRecipe;
+import net.p3pp3rf1y.sophisticatedcore.crafting.IExactDisplayStacksIngredient;
 import net.p3pp3rf1y.sophisticatedcore.util.ICreativeTabSupplier;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
@@ -52,7 +53,7 @@ public class ClientRecipeHelper {
 	}
 
 	private static ItemStack getVariantResult(CraftingRecipe recipe, ItemStack variantItem) {
-		Collection<Optional<Ingredient>> ingredients = RecipeHelper.getIngredients(recipe);
+		Collection<Optional<Ingredient>> ingredients = RecipeViewerRecipeHelper.getIngredients(recipe);
 		CraftingContainer craftingInventory = new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
 			@Override
 			public ItemStack quickMoveStack(Player player, int index) {
@@ -89,11 +90,7 @@ public class ClientRecipeHelper {
 	}
 
 	private static boolean ingredientMatchesVariantItem(ItemStack variantItem, Ingredient ingredient) {
-		if (ingredient.getCustomIngredient() != null) {
-			return ingredient.getCustomIngredient().items().anyMatch(holder -> holder.value() == variantItem.getItem());
-		}
-
-		return ingredient.getValues().stream().anyMatch(holder -> holder.value() == variantItem.getItem());
+		return ingredient.test(variantItem);
 	}
 
 	public static <U extends CraftingRecipe> void addVariantRecipes(IRecipeDisplayGenerator<?> generator,
@@ -124,27 +121,31 @@ public class ClientRecipeHelper {
 	}
 
 	private static <I extends RecipeInput, R extends Recipe<I>> void addRecipe(IRecipeDisplayGenerator<?> generator, RecipeHolder<R> recipe) {
-		if (recipe.value() instanceof ShapedRecipe shapedRecipe) {
-			generator.shaped(shapedRecipe.result.create())
-					.setDimensions(shapedRecipe.pattern.width(), shapedRecipe.pattern.height())
-					.defineIngredients(shapedRecipe.getIngredients())
-					.save(recipe.id());
-		} else if (recipe.value() instanceof CustomShapelessRecipe shapelessRecipe) {
-			generator.shapeless(shapelessRecipe.result().create())
-					.requires(shapelessRecipe.placementInfo().ingredients())
+		Optional<ShapedRecipe> shapedRecipe = RecipeViewerRecipeHelper.getShapedRecipe(recipe.value());
+		if (shapedRecipe.isPresent()) {
+			ShapedRecipe shaped = shapedRecipe.get();
+			generator.shaped(shaped.result.create())
+					.setDimensions(shaped.pattern.width(), shaped.pattern.height())
+					.defineIngredients(shaped.getIngredients())
 					.save(recipe.id());
 		} else if (recipe.value() instanceof ICustomSmithingRecipe smithingRecipe) {
 			generator.smithing(smithingRecipe.templateIngredient(), smithingRecipe.baseIngredient(), smithingRecipe.additionIngredient(), smithingRecipe.result())
 					.save(recipe.id());
+		} else {
+			RecipeViewerRecipeHelper.getShapelessResult(recipe.value()).ifPresent(result -> RecipeViewerRecipeHelper.getShapelessIngredients(recipe.value()).ifPresent(ingredients -> generator.shapeless(result)
+					.requires(ingredients)
+					.save(recipe.id())));
 		}
 	}
 
 	private static void addVariantIngredientRecipe(IRecipeDisplayGenerator<?> generator, Recipe<?> recipe, ItemStack variantItem, ItemStack result, Identifier id) {
-		if (recipe instanceof ShapedRecipe shapedRecipe) {
+		Optional<ShapedRecipe> shapedRecipe = RecipeViewerRecipeHelper.getShapedRecipe(recipe);
+		if (shapedRecipe.isPresent()) {
+			ShapedRecipe shapedRecipeValue = shapedRecipe.get();
 			ShapedRecipeDisplayBuilder<?> shaped = generator.shaped(result)
-					.setDimensions(shapedRecipe.pattern.width(), shapedRecipe.pattern.height());
+					.setDimensions(shapedRecipeValue.pattern.width(), shapedRecipeValue.pattern.height());
 
-			for (Optional<Ingredient> ingredient : shapedRecipe.getIngredients()) {
+			for (Optional<Ingredient> ingredient : shapedRecipeValue.getIngredients()) {
 				ingredient.ifPresentOrElse(
 						i -> {
 							if (ingredientMatchesVariantItem(variantItem, i)) {
@@ -157,10 +158,8 @@ public class ClientRecipeHelper {
 			}
 
 			shaped.save(ResourceKey.create(Registries.RECIPE, id));
-		} else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
-			addShapelessRecipe(generator, variantItem, result, id, shapelessRecipe.ingredients);
-		} else if (recipe instanceof CustomShapelessRecipe customShapelessRecipe) {
-			addShapelessRecipe(generator, variantItem, result, id, customShapelessRecipe.placementInfo().ingredients());
+		} else {
+			RecipeViewerRecipeHelper.getShapelessIngredients(recipe).ifPresent(ingredients -> addShapelessRecipe(generator, variantItem, result, id, ingredients));
 		}
 	}
 
@@ -185,7 +184,7 @@ public class ClientRecipeHelper {
 
 	public static List<ItemStack> getIngredientCreativeTabVariants(Recipe<?> recipe, Class<? extends ICreativeTabSupplier> itemClass, Consumer<ItemStack> updateStack) {
 		List<ItemStack> ingredientItems = new ArrayList<>();
-		for (Optional<Ingredient> ingredient : RecipeHelper.getIngredients(recipe)) {
+		for (Optional<Ingredient> ingredient : RecipeViewerRecipeHelper.getIngredients(recipe)) {
 			ingredient.ifPresent(i -> {
 				getIngredientValues(i).map(Holder::value).filter(itemClass::isInstance).map(itemClass::cast).forEach(item -> {
 					item.addCreativeTabItems(stack -> {
@@ -209,12 +208,32 @@ public class ClientRecipeHelper {
 	}
 
 	public static List<ItemStack> getCustomIngredientVariants(Recipe<?> recipe, Class<? extends ICustomIngredient> customIngredientClass) {
-		for (Optional<Ingredient> ingredient : RecipeHelper.getIngredients(recipe)) {
+		for (Optional<Ingredient> ingredient : RecipeViewerRecipeHelper.getIngredients(recipe)) {
 			if (ingredient.isPresent()) {
 				Ingredient i = ingredient.get();
 				if (customIngredientClass.isInstance(i.getCustomIngredient())) {
 					ICustomIngredient customIngredient = i.getCustomIngredient();
-					return customIngredient.display().resolveForStacks(RecipeHelper.getContextMap());
+					if (customIngredient instanceof IExactDisplayStacksIngredient exactDisplayStacksIngredient) {
+						List<ItemStack> exactDisplayStacks = exactDisplayStacksIngredient.getExactDisplayStacks();
+						if (!exactDisplayStacks.isEmpty()) {
+							return exactDisplayStacks;
+						}
+					}
+					List<ItemStack> displayStacks = customIngredient.display().resolveForStacks(RecipeHelper.getContextMap());
+					if (!displayStacks.isEmpty()) {
+						return displayStacks;
+					}
+
+					List<ItemStack> creativeTabVariants = new ArrayList<>();
+					customIngredient.items().map(Holder::value)
+							.filter(ICreativeTabSupplier.class::isInstance)
+							.map(ICreativeTabSupplier.class::cast)
+							.forEach(item -> item.addCreativeTabItems(stack -> {
+								if (customIngredient.test(stack)) {
+									creativeTabVariants.add(stack);
+								}
+							}));
+					return creativeTabVariants;
 				}
 			}
 		}

@@ -28,7 +28,7 @@ import java.util.function.Function;
 public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 	private final HolderGetter<Item> items;
 	private final RecipeCategory category;
-	private final ItemStack result;
+	private final Item result;
 	private final ItemStackTemplate resultTemplate;
 	private final List<String> rows = Lists.newArrayList();
 	private final Map<Character, Ingredient> key = Maps.newLinkedHashMap();
@@ -41,8 +41,24 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 	private ShapeBasedRecipeBuilder(HolderGetter<Item> items, ItemStack result, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
 		this.items = items;
 		this.category = RecipeCategory.MISC;
-		this.result = result;
+		this.result = result.getItem();
 		this.resultTemplate = ItemStackTemplate.fromNonEmptyStack(result);
+		this.factory = factory;
+	}
+
+	private ShapeBasedRecipeBuilder(HolderGetter<Item> items, ItemLike result, int count, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
+		this.items = items;
+		this.category = RecipeCategory.MISC;
+		this.result = result.asItem();
+		this.resultTemplate = new ItemStackTemplate(this.result, count);
+		this.factory = factory;
+	}
+
+	private ShapeBasedRecipeBuilder(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
+		this.items = items;
+		this.category = RecipeCategory.MISC;
+		this.result = result.asItem();
+		this.resultTemplate = resultTemplate;
 		this.factory = factory;
 	}
 
@@ -51,11 +67,23 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 	}
 
 	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result) {
-		return shaped(items, new ItemStack(result));
+		return new ShapeBasedRecipeBuilder(items, result, 1, r -> r);
 	}
 
 	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
-		return shaped(items, new ItemStack(result, 1), factory);
+		return new ShapeBasedRecipeBuilder(items, result, 1, factory);
+	}
+
+	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result, int count) {
+		return new ShapeBasedRecipeBuilder(items, result, count, r -> r);
+	}
+
+	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate) {
+		return new ShapeBasedRecipeBuilder(items, result, resultTemplate, r -> r);
+	}
+
+	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
+		return new ShapeBasedRecipeBuilder(items, result, resultTemplate, factory);
 	}
 
 	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemStack result, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
@@ -107,7 +135,7 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 
 	@Override
 	public ResourceKey<Recipe<?>> defaultId() {
-		return RecipeBuilder.getDefaultRecipeId(result);
+		return RecipeBuilder.getDefaultRecipeId(resultTemplate);
 	}
 
 	@Override
@@ -120,6 +148,6 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 		);
 		HoldingRecipeOutput holdingRecipeOutput = new HoldingRecipeOutput(recipeOutput.advancement());
 		holdingRecipeOutput.accept(id, compose, advancementBuilder.build(recipeOutput, id, category));
-		recipeOutput.withConditions(new ItemEnabledCondition(result.getItem())).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(), holdingRecipeOutput.getConditions());
+		recipeOutput.withConditions(new ItemEnabledCondition(result)).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(), holdingRecipeOutput.getConditions());
 	}
 }

@@ -47,6 +47,12 @@ public class ReiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 	}
 
 	@Override
+	protected ShapelessRecipeDisplayBuilder<Display> requiresItemStacks(List<ItemStack> itemStacks) {
+		inputs.add(EntryIngredients.ofItemStacks(itemStacks));
+		return this;
+	}
+
+	@Override
 	public ShapelessRecipeDisplayBuilder<Display> requires(HolderSet<Item> items) {
 		inputs.add(EntryIngredients.ofItemsHolderSet(items));
 		return this;

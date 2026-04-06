@@ -7,10 +7,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.common.crafting.CompoundIngredient;
 import net.neoforged.neoforge.common.crafting.CustomDisplayIngredient;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.ShapelessRecipeDisplayBuilder;
 
 import java.util.ArrayList;
@@ -41,7 +44,25 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 
 	@Override
 	public ShapelessRecipeDisplayBuilder<CraftingRecipe> requires(ItemStack itemStack) {
-		return requires(CustomDisplayIngredient.of(Ingredient.of(itemStack.getItem()), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack))));
+		return requires(CustomDisplayIngredient.of(DataComponentIngredient.of(true, itemStack), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack))));
+	}
+
+	@Override
+	protected ShapelessRecipeDisplayBuilder<CraftingRecipe> requiresItemStacks(List<ItemStack> itemStacks) {
+		return requires(CustomDisplayIngredient.of(getDisplayIngredient(itemStacks),
+				new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())));
+	}
+
+	private static Ingredient getDisplayIngredient(List<ItemStack> itemStacks) {
+		if (itemStacks.isEmpty()) {
+			return Ingredient.of(Items.AIR);
+		}
+
+		if (itemStacks.size() == 1) {
+			return DataComponentIngredient.of(true, itemStacks.getFirst());
+		}
+
+		return CompoundIngredient.of(itemStacks.stream().map(stack -> DataComponentIngredient.of(true, stack)).toArray(Ingredient[]::new));
 	}
 
 	@Override

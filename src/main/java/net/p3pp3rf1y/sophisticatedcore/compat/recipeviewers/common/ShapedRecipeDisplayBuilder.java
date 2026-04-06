@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +44,20 @@ public abstract class ShapedRecipeDisplayBuilder<R> implements IRecipeDisplayBui
 
 	public abstract ShapedRecipeDisplayBuilder<R> define(ItemStack itemStack);
 
+	protected abstract ShapedRecipeDisplayBuilder<R> defineDisplayStacks(List<ItemStack> itemStacks);
+
+	private boolean tryDefineDisplayStacks(Ingredient ingredient) {
+		List<ItemStack> displayStacks = ingredient.display().resolveForStacks(RecipeHelper.getContextMap());
+		if (displayStacks.isEmpty()) {
+			return false;
+		}
+
+		defineDisplayStacks(displayStacks);
+		return true;
+	}
+
 	public ShapedRecipeDisplayBuilder<R> define(Ingredient ingredient) {
-		if (ingredient.getCustomIngredient() != null) {
+		if (ingredient.getCustomIngredient() != null && !tryDefineDisplayStacks(ingredient)) {
 			define(HolderSet.direct(ingredient.getCustomIngredient().items().toList()));
 		} else {
 			define(ingredient.getValues());
@@ -53,7 +66,7 @@ public abstract class ShapedRecipeDisplayBuilder<R> implements IRecipeDisplayBui
 	}
 
 	public ShapedRecipeDisplayBuilder<R> defineIngredients(List<Optional<Ingredient>> ingredients) {
-		ingredients.forEach(i -> define(i.map(Ingredient::getValues).orElse(HolderSet.empty())));
+		ingredients.forEach(i -> i.ifPresentOrElse(this::define, () -> define(HolderSet.empty())));
 		return this;
 	}
 

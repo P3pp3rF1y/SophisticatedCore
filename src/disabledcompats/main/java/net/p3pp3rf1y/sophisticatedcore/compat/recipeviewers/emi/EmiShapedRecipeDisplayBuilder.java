@@ -67,6 +67,12 @@ public class EmiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Em
 	}
 
 	@Override
+	protected ShapedRecipeDisplayBuilder<EmiCraftingRecipe> defineDisplayStacks(List<ItemStack> itemStacks) {
+		inputs.add(EmiTags.getIngredient(Item.class, itemStacks.stream().map(EmiStack::of).toList(), 1));
+		return this;
+	}
+
+	@Override
 	public ShapedRecipeDisplayBuilder<EmiCraftingRecipe> setDimensions(int width, int height) {
 		//noop - not required for EMI
 		return this;
