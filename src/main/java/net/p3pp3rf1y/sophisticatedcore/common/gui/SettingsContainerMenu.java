@@ -34,10 +34,12 @@ import net.p3pp3rf1y.sophisticatedcore.settings.nosort.NoSortSettingsContainer;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer, IAdditionalSlotInfoMenu {
 	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
+	private static Consumer<SettingsContainerMenu<?>> constructCallback = menu -> {};
 
 	static {
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
@@ -65,10 +67,19 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		super(menuType, windowId);
 		this.player = player;
 		this.storageWrapper = storageWrapper;
+		constructCallback.accept(this);
 
 		addStorageInventorySlots();
 		addSettingsContainers();
 		templatePersistanceContainer = new TemplatePersistanceContainer(this);
+	}
+
+	public static void setConstructCallback(@Nullable Consumer<SettingsContainerMenu<?>> constructCallback) {
+		SettingsContainerMenu.constructCallback = constructCallback == null ? menu -> {} : constructCallback;
+	}
+
+	public Slot addInternalCompatibilitySlot(Slot slot) {
+		return super.addSlot(slot);
 	}
 
 	public int getNumberOfStorageInventorySlots() {
