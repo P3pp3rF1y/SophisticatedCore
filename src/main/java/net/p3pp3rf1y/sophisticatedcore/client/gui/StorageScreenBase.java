@@ -288,7 +288,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (getMenu().shouldKeepSearchPhrase()) {
 			searchBox.setValue(getMenu().getSearchPhrase());
 		}
-		addRenderableWidget(searchBox);
+		addWidget(searchBox);
 
 		if (noResultsLabel != null) {
 			removeWidget(noResultsLabel);
@@ -572,6 +572,12 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		poseStack.translate(i, j, 0.0D);
 
 		renderLabels(guiGraphics, mouseX, mouseY);
+		if (searchBox != null) {
+			poseStack.pushPose();
+			poseStack.translate(-i, -j, 0.0D);
+			searchBox.render(guiGraphics, mouseX, mouseY, partialTick);
+			poseStack.popPose();
+		}
 		//noinspection UnstableApiUsage
 		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, mouseX, mouseY));
 		ItemStack itemstack = draggingItem.isEmpty() ? menu.getCarried() : draggingItem;
