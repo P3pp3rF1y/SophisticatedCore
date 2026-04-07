@@ -527,7 +527,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		renderTransparentBackground(guiGraphics);
+		renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 	}
 
 	@Override
@@ -540,7 +540,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updateNoResultsLabel();
 			updateTransferButtonsPositions();
 		}
-		renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+		Matrix3x2fStack pose = guiGraphics.pose();
+		pose.pushMatrix();
+		pose.translate(0.0F, -20.0F);
+		super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
+		pose.popMatrix();
 		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
 
 		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
