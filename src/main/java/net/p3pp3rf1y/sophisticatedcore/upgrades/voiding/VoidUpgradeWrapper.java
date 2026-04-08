@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.voiding;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -10,8 +11,8 @@ import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
+import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -46,7 +47,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public int onBeforeInsert(InventoryHandler inventoryHandler, int slot, ItemResource resource, int amount) {
 		if (voidType == VoidType.SLOT_OVERFLOW && inventoryHandler.getStackInSlot(slot).isEmpty() && filterLogic.matchesFilter(resource)) {
-			if (inventoryHandler.getSlotTracker().getFullStacks().contains(ItemStackKey.of(resource))) {
+			if (hasSlotOverflowMatch(inventoryHandler, resource)) {
 				return amount;
 			}
 			return 0;
@@ -159,6 +160,48 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public boolean matchesFilter(ItemResource resource) {
 		return filterLogic.matchesFilter(resource);
+	}
+
+	@Override
+	public boolean hasSlotOverflowMatch(InventoryHandler inventoryHandler, ItemStack stack) {
+		if (filterLogic.shouldMatchDurability() && filterLogic.shouldMatchComponents()) {
+			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, stack);
+		}
+
+		return inventoryHandler.getSlotTracker().hasMatchingFullStack(stack, fullStack -> stacksMatchForOverflow(stack, fullStack));
+	}
+
+	@Override
+	public boolean hasSlotOverflowMatch(InventoryHandler inventoryHandler, ItemResource resource) {
+		if (filterLogic.shouldMatchDurability() && filterLogic.shouldMatchComponents()) {
+			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, resource);
+		}
+
+		return inventoryHandler.getSlotTracker().hasMatchingFullStack(resource.toStack(), fullStack -> stacksMatchForOverflow(resource, fullStack));
+	}
+
+	private boolean stacksMatchForOverflow(ItemStack stack, ItemStack fullStack) {
+		if (stack.getItem() != fullStack.getItem()) {
+			return false;
+		}
+
+		if (filterLogic.shouldMatchDurability() && stack.getDamageValue() != fullStack.getDamageValue()) {
+			return false;
+		}
+
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack.isEmpty(), stack.getComponents(), fullStack.isEmpty(), fullStack.getComponents());
+	}
+
+	private boolean stacksMatchForOverflow(ItemResource resource, ItemStack fullStack) {
+		if (resource.getItem() != fullStack.getItem()) {
+			return false;
+		}
+
+		if (filterLogic.shouldMatchDurability() && resource.getOrDefault(DataComponents.DAMAGE, 0) != fullStack.getDamageValue()) {
+			return false;
+		}
+
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(resource.isEmpty(), resource.getComponents(), fullStack.isEmpty(), fullStack.getComponents());
 	}
 
 	public boolean isVoidAlwaysEnabled() {

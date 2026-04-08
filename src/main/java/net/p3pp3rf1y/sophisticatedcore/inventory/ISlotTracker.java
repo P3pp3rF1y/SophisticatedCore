@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public interface ISlotTracker {
 
@@ -19,6 +20,8 @@ public interface ISlotTracker {
 	Set<ItemStackKey> getPartialStacks();
 
 	Set<Item> getItems();
+
+	boolean hasMatchingFullStack(ItemStack stack, Predicate<ItemStack> stackMatcher);
 
 	void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack);
 
@@ -65,6 +68,11 @@ public interface ISlotTracker {
 		@Override
 		public Set<Item> getItems() {
 			return Collections.emptySet();
+		}
+
+		@Override
+		public boolean hasMatchingFullStack(ItemStack stack, Predicate<ItemStack> stackMatcher) {
+			return false;
 		}
 
 		@Override
