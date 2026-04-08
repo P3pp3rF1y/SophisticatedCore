@@ -33,7 +33,6 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.network.*;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
@@ -517,7 +516,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private boolean findSlotWithMatchingStack(ItemStack cursorStack, Consumer<ItemStack> updateCursorStack, IOverflowResponseUpgrade overflowUpgrade) {
-		if (storageWrapper.getInventoryHandler().getSlotTracker().getFullStacks().contains(ItemStackKey.of(cursorStack))) {
+		if (overflowUpgrade.hasSlotOverflowMatch(storageWrapper.getInventoryHandler(), cursorStack)) {
 			ItemStack result = cursorStack;
 			result = overflowUpgrade.onSlotOverflow(result);
 			updateCursorStack.accept(result);
