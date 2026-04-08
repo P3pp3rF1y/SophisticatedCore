@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 public class InventoryHandlerSlotTracker implements ISlotTracker {
@@ -79,6 +80,22 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	@Override
 	public Set<Item> getItems() {
 		return itemStackKeys.keySet();
+	}
+
+	@Override
+	public boolean hasMatchingFullStack(ItemStack stack, Predicate<ItemStack> stackMatcher) {
+		Set<ItemStackKey> stackKeys = itemStackKeys.get(stack.getItem());
+		if (stackKeys == null || stackKeys.isEmpty()) {
+			return false;
+		}
+
+		for (ItemStackKey stackKey : stackKeys) {
+			if (fullStackSlots.containsKey(stackKey) && stackMatcher.test(stackKey.getStack())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public void addFull(int slot, ItemStack stack) {
