@@ -15,10 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record SyncBlockHighlightsPayload(Map<Integer, List<BlockPos>> highlightPositions) implements CustomPacketPayload {
+public record SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> highlightPositions) implements CustomPacketPayload {
 	public static final Type<SyncBlockHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_block_highlights"));
 	public static final StreamCodec<ByteBuf, SyncBlockHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
-			StreamCodecHelper.ofMap(ByteBufCodecs.INT, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HashMap::new),
+			StreamCodecHelper.ofMap(ByteBufCodecs.INT, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()).apply(ByteBufCodecs.list()), HashMap::new),
 			SyncBlockHighlightsPayload::highlightPositions,
 			SyncBlockHighlightsPayload::new);
 
