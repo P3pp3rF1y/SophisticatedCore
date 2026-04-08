@@ -545,7 +545,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updateNoResultsLabel();
 			updateTransferButtonsPositions();
 		}
-		extractTransparentBackground(guiGraphics);
+		super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
 		settingsTabControl.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		extractBg(guiGraphics, partialTicks, mouseX, mouseY);
 	}

@@ -152,7 +152,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@Override
 	public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		menu.detectSettingsChangeAndReload();
-		extractTransparentBackground(guiGraphics);
+		super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
 		settingsTabControl.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		extractBg(guiGraphics, partialTicks, mouseX, mouseY);
 	}
