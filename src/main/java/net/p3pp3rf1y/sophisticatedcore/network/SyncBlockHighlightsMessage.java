@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public record SyncBlockHighlightsMessage(Map<Integer, List<BlockPos>> highlightPositions) {
+public record SyncBlockHighlightsMessage(Map<Integer, List<List<BlockPos>>> highlightPositions) {
 	public static void encode(SyncBlockHighlightsMessage msg, FriendlyByteBuf packetBuffer) {
-		packetBuffer.writeMap(msg.highlightPositions, FriendlyByteBuf::writeInt, (buf, list) -> buf.writeCollection(list, FriendlyByteBuf::writeBlockPos));
+		packetBuffer.writeMap(msg.highlightPositions, FriendlyByteBuf::writeInt, (buf, groups) -> buf.writeCollection(groups, (groupBuf, group) -> groupBuf.writeCollection(group, FriendlyByteBuf::writeBlockPos)));
 	}
 
 	public static SyncBlockHighlightsMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SyncBlockHighlightsMessage(packetBuffer.readMap(FriendlyByteBuf::readInt, buf -> buf.readList(FriendlyByteBuf::readBlockPos)));
+		return new SyncBlockHighlightsMessage(packetBuffer.readMap(FriendlyByteBuf::readInt, buf -> buf.readList(groupBuf -> groupBuf.readList(FriendlyByteBuf::readBlockPos))));
 	}
 
 	static void onMessage(SyncBlockHighlightsMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
