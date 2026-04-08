@@ -9,8 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
+import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -44,7 +44,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public ItemStack onBeforeInsert(InventoryHandler inventoryHandler, int slot, ItemStack stack, boolean simulate) {
 		if (voidType == VoidType.SLOT_OVERFLOW && inventoryHandler.getStackInSlot(slot).isEmpty() && filterLogic.matchesFilter(stack)) {
-			if (inventoryHandler.getSlotTracker().getFullStacks().contains(ItemStackKey.of(stack))) {
+			if (hasSlotOverflowMatch(inventoryHandler, stack)) {
 				return ItemStack.EMPTY;
 			}
 			return stack;
@@ -145,6 +145,27 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public boolean stackMatchesFilter(ItemStack stack) {
 		return filterLogic.matchesFilter(stack);
+	}
+
+	@Override
+	public boolean hasSlotOverflowMatch(InventoryHandler inventoryHandler, ItemStack stack) {
+		if (filterLogic.shouldMatchDurability() && filterLogic.shouldMatchComponents()) {
+			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, stack);
+		}
+
+		return inventoryHandler.getSlotTracker().hasMatchingFullStack(stack, fullStack -> stacksMatchForOverflow(stack, fullStack));
+	}
+
+	private boolean stacksMatchForOverflow(ItemStack stack, ItemStack fullStack) {
+		if (stack.getItem() != fullStack.getItem()) {
+			return false;
+		}
+
+		if (filterLogic.shouldMatchDurability() && stack.getDamageValue() != fullStack.getDamageValue()) {
+			return false;
+		}
+
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack, fullStack);
 	}
 
 	public boolean isVoidAlwaysEnabled() {
