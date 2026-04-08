@@ -7,16 +7,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.ChestType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.p3pp3rf1y.sophisticatedcore.util.Easing;
-import net.p3pp3rf1y.sophisticatedcore.util.IDoubleBlock;
 import net.p3pp3rf1y.sophisticatedcore.util.VoxelOutliner;
 
 import javax.annotation.Nullable;
@@ -29,15 +25,15 @@ import java.util.Objects;
 public class BlockHighlightRenderer {
 	public static final int HIGHLIGHT_DURATION = 40;
 
-	private static Map<Integer, List<BlockPos>> highlightedPositions = new HashMap<>();
+	private static Map<Integer, List<List<BlockPos>>> highlightedPositions = new HashMap<>();
 	private static long highlightExpireTime = 0;
 	@Nullable
-	private static Map<Integer, List<HighlightedBlock>> cachedHighlightedBlocks = new HashMap<>();
+	private static Map<Integer, List<HighlightedGroup>> cachedHighlightedBlocks = new HashMap<>();
 
-	private record HighlightedBlock(BlockPos pos, List<VoxelOutliner.Edge> edges, Vec3 pivot) {
+	private record HighlightedGroup(List<VoxelOutliner.Edge> edges, Vec3 pivot) {
 	}
 
-	public static void addHighlightedPositions(Map<Integer, List<BlockPos>> highlightPositions) {
+	public static void addHighlightedPositions(Map<Integer, List<List<BlockPos>>> highlightPositions) {
 		highlightPositions.forEach((color, positions) ->
 				highlightedPositions.computeIfAbsent(color, k -> new ArrayList<>()).addAll(positions)
 		);
@@ -58,8 +54,8 @@ public class BlockHighlightRenderer {
 
 		if (cachedHighlightedBlocks == null) {
 			cachedHighlightedBlocks = new HashMap<>();
-			highlightedPositions.forEach((color, positions) -> {
-				cachedHighlightedBlocks.put(color, positions.stream().map(pos -> getHighlightedBlock(mc, pos)).filter(Objects::nonNull).toList());
+			highlightedPositions.forEach((color, positionGroups) -> {
+				cachedHighlightedBlocks.put(color, positionGroups.stream().map(positions -> getHighlightedGroup(mc, positions)).filter(Objects::nonNull).toList());
 			});
 		}
 
@@ -69,47 +65,31 @@ public class BlockHighlightRenderer {
 		});
 	}
 
-	private static void submitHighlightedBlock(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedBlock bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
+	private static void submitHighlightedBlock(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedGroup bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
 		poseStack.pushPose();
-		poseStack.translate(bh.pos.getX() - cameraPos.x(), bh.pos.getY() - cameraPos.y(), bh.pos.getZ() - cameraPos.z());
+		poseStack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z());
 		poseStack.translate(bh.pivot.x, bh.pivot.y, bh.pivot.z);
 		float scale = 1 + Easing.EASE_IN_OUT_CUBIC.ease((float) tri01(mc.level.getGameTime(), 15, partialTick)) * 0.05f;
 		poseStack.scale(scale, scale, scale);
 		poseStack.translate(-bh.pivot.x, -bh.pivot.y, -bh.pivot.z);
-		BlockHighlightRenderHelper.submitThickEdges(submitNodeCollector, poseStack, color, bh.edges(), bh.pos().getX(), bh.pos().getY(), bh.pos().getZ());
+		BlockHighlightRenderHelper.submitThickEdges(submitNodeCollector, poseStack, color, bh.edges(), 0, 0, 0);
 		poseStack.popPose();
 	}
 
-	private static HighlightedBlock getHighlightedBlock(Minecraft mc, BlockPos pos) {
+	private static HighlightedGroup getHighlightedGroup(Minecraft mc, List<BlockPos> positions) {
 		ClientLevel level = mc.level;
-		if (!level.isLoaded(pos) || level.isEmptyBlock(pos)) {
+		VoxelShape shape = Shapes.empty();
+		for (BlockPos pos : positions) {
+			if (!level.isLoaded(pos) || level.isEmptyBlock(pos)) {
+				continue;
+			}
+			BlockState state = level.getBlockState(pos);
+			shape = Shapes.join(shape, state.getShape(level, pos).move(pos.getX(), pos.getY(), pos.getZ()), BooleanOp.OR);
+		}
+		if (shape.isEmpty()) {
 			return null;
 		}
-		BlockState state = level.getBlockState(pos);
-
-		VoxelShape shape = state.getShape(level, pos);
-		if (state.getBlock() instanceof IDoubleBlock doubleBlock) {
-			VoxelShape finalShape = shape;
-			shape = doubleBlock.getOtherPosition(state, pos).map(otherPos -> {
-				if (!level.isLoaded(otherPos) || level.isEmptyBlock(otherPos)) {
-					return finalShape;
-				}
-				BlockState otherState = level.getBlockState(otherPos);
-				VoxelShape otherShape = otherState.getShape(level, otherPos);
-				otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
-				return Shapes.join(finalShape, otherShape, BooleanOp.OR);
-			}).orElse(shape);
-		} else if (state.getBlock() instanceof ChestBlock && state.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
-			Direction connectedDir = ChestBlock.getConnectedDirection(state);
-			BlockPos otherPos = pos.relative(connectedDir);
-			if (level.isLoaded(otherPos) && !level.isEmptyBlock(otherPos)) {
-				BlockState otherState = level.getBlockState(otherPos);
-				VoxelShape otherShape = otherState.getShape(level, otherPos);
-				otherShape = otherShape.move(otherPos.getX() - pos.getX(), otherPos.getY() - pos.getY(), otherPos.getZ() - pos.getZ());
-				shape = Shapes.join(shape, otherShape, BooleanOp.OR);
-			}
-		}
-		return new HighlightedBlock(pos, VoxelOutliner.linesFromVoxelShapeSimplified(shape, pos), shape.bounds().getCenter());
+		return new HighlightedGroup(VoxelOutliner.linesFromVoxelShapeSimplified(shape, BlockPos.ZERO), shape.bounds().getCenter());
 	}
 
 	public static double tri01(double ticks, double periodTicks, double phaseOffsetTicks) {
