@@ -48,12 +48,19 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		renderClosedTabs(guiGraphics, mouseX, mouseY, partialTicks);
+		renderOpenTab(guiGraphics, mouseX, mouseY, partialTicks);
+	}
+
+	public void renderClosedTabs(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		children.forEach(child -> {
 			if (child != openTab) {
 				child.render(guiGraphics, mouseX, mouseY, partialTicks);
 			}
 		});
+	}
 
+	public void renderOpenTab(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		if (openTab != null) {
 			openTab.render(guiGraphics, mouseX, mouseY, partialTicks);
 		}
