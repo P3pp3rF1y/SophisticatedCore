@@ -525,13 +525,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return GuiHelper.getPositiveRectangle(sortButton.getX(), sortButton.getY(), sortByButton.getX() + sortByButton.getWidth() - sortButton.getX(), sortByButton.getY() + sortByButton.getHeight() - sortButton.getY());
 	}
 
-	@Override
-	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		renderBg(guiGraphics, partialTicks, mouseX, mouseY);
-	}
-
-	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+	private void refreshForSettingsChange() {
 		if (menu.detectSettingsChangeAndReload()) {
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
@@ -540,12 +534,19 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updateNoResultsLabel();
 			updateTransferButtonsPositions();
 		}
-		Matrix3x2fStack pose = guiGraphics.pose();
-		pose.pushMatrix();
-		pose.translate(0.0F, -20.0F);
-		super.renderBackground(guiGraphics, mouseX, mouseY, partialTicks);
-		pose.popMatrix();
+	}
+
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		refreshForSettingsChange();
+		renderTransparentBackground(guiGraphics);
 		settingsTabControl.render(guiGraphics, mouseX, mouseY, partialTicks);
+		renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+	}
+
+	@Override
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		refreshForSettingsChange();
 
 		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
 
