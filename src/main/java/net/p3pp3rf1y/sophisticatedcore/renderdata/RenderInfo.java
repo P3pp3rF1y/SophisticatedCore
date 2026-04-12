@@ -2,7 +2,9 @@ package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
 import net.minecraft.nbt.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedBatteryUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedTankUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeRenderData;
@@ -190,6 +192,35 @@ public abstract class RenderInfo {
 		upgradeData.remove(type);
 		serializeUpgradeData(upgrades -> upgrades.remove(type.getName()));
 		save();
+	}
+
+	public boolean validate(IStorageWrapper storageWrapper, Level level) {
+		boolean changed = false;
+		Iterator<Map.Entry<UpgradeRenderDataType<?>, IUpgradeRenderData>> iterator = upgradeData.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<UpgradeRenderDataType<?>, IUpgradeRenderData> entry = iterator.next();
+			if (!isUpgradeDataValid(storageWrapper, level, entry.getKey(), entry.getValue())) {
+				iterator.remove();
+				changed = true;
+			}
+		}
+		if (changed) {
+			CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+			CompoundTag upgrades = renderInfo.getCompound(UPGRADES_TAG);
+			upgrades.getAllKeys().removeIf(key -> !upgradeData.keySet().stream().map(UpgradeRenderDataType::getName).collect(Collectors.toSet()).contains(key));
+			renderInfo.put(UPGRADES_TAG, upgrades);
+			serializeRenderInfo(renderInfo);
+			save();
+		}
+		return changed;
+	}
+
+	private static <T extends IUpgradeRenderData> boolean isUpgradeDataValid(IStorageWrapper storageWrapper, Level level, UpgradeRenderDataType<?> type, IUpgradeRenderData data) {
+		//noinspection unchecked
+		UpgradeRenderDataType<T> typedType = (UpgradeRenderDataType<T>) type;
+		return UpgradeRenderDataValidatorRegistry.getValidator(typedType)
+				.map(validator -> validator.isValid(storageWrapper, level, typedType.cast(data).orElseThrow()))
+				.orElse(true);
 	}
 
 	private void deserializeUpgradeData(CompoundTag renderInfoTag) {
