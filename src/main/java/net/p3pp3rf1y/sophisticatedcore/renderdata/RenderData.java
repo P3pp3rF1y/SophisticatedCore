@@ -11,7 +11,9 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
@@ -54,7 +56,7 @@ public final class RenderData {
 			StreamCodec.composite(
 					ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()), RenderData::upgradeItems,
 					StreamCodecHelper.ofMap(ByteBufCodecs.STRING_UTF8.map(CLIENT_DATA_TYPES::get, UpgradeClientDataType::getName),
-							(UpgradeClientDataType<?> type) -> new StreamCodec<>() {
+							(UpgradeClientDataType<?> type) -> new StreamCodec<RegistryFriendlyByteBuf, IUpgradeClientData>() {
 								@Override
 								public IUpgradeClientData decode(RegistryFriendlyByteBuf buf) {
 									//noinspection unchecked
@@ -115,6 +117,27 @@ public final class RenderData {
 
 	public void removeAllUpgradeData() {
 		upgradeData.clear();
+	}
+
+	public boolean validate(IStorageWrapper storageWrapper, Level level) {
+		boolean changed = false;
+		Iterator<Map.Entry<UpgradeClientDataType<?>, IUpgradeClientData>> iterator = upgradeData.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<UpgradeClientDataType<?>, IUpgradeClientData> entry = iterator.next();
+			if (!isUpgradeDataValid(storageWrapper, level, entry.getKey(), entry.getValue())) {
+				iterator.remove();
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	private static <T extends IUpgradeClientData> boolean isUpgradeDataValid(IStorageWrapper storageWrapper, Level level, UpgradeClientDataType<?> type, IUpgradeClientData data) {
+		//noinspection unchecked
+		UpgradeClientDataType<T> typed = (UpgradeClientDataType<T>) type;
+		return UpgradeRenderDataValidatorRegistry.getValidator(typed)
+				.map(validator -> validator.isValid(storageWrapper, level, typed.cast(data).orElseThrow()))
+				.orElse(true);
 	}
 
 	public void clearTanks() {

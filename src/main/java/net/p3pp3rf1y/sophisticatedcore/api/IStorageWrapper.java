@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.api;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
@@ -88,7 +89,7 @@ public interface IStorageWrapper extends ITintable {
 		return 1;
 	}
 
-	default void onInit() {
+	default void onInit(Level level) {
 		getInventoryHandler().onInit();
 	}
 
