@@ -3,12 +3,11 @@ package net.p3pp3rf1y.sophisticatedcore.api;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderDataHandler;
+import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.ITintable;
@@ -17,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface IStorageWrapper extends ITintable {
-	String SETTINGS = "settings";
+	String SETTINGS_TAG = "settings";
 
 	void setContentsChangeHandler(Runnable contentsChangeHandler);
 
@@ -25,11 +24,11 @@ public interface IStorageWrapper extends ITintable {
 		//noop
 	}
 
-	ITrackedContentsItemResourceHandler getInventoryForUpgradeProcessing();
+	ITrackedContentsItemHandler getInventoryForUpgradeProcessing();
 
 	InventoryHandler getInventoryHandler();
 
-	ITrackedContentsItemResourceHandler getInventoryForInputOutput();
+	ITrackedContentsItemHandler getInventoryForInputOutput();
 
 	default void setUpgradeCachesInvalidatedHandler(Runnable handler) {
 		//noop
@@ -53,7 +52,7 @@ public interface IStorageWrapper extends ITintable {
 
 	void sort();
 
-	void onContentsUpdated();
+	void onContentsNbtUpdated();
 
 	void refreshInventoryForUpgradeProcessing();
 
@@ -63,7 +62,7 @@ public interface IStorageWrapper extends ITintable {
 
 	void fillWithLoot(Player playerEntity);
 
-	RenderDataHandler getRenderDataHandler();
+	RenderInfo getRenderInfo();
 
 	void setColumnsTaken(int columnsTaken, boolean hasChanged);
 
@@ -77,9 +76,7 @@ public interface IStorageWrapper extends ITintable {
 		return Optional.empty();
 	}
 
-	default Optional<EnergyHandler> getEnergyHandler() {
-		return Optional.empty();
-	}
+	default Optional<IEnergyStorage> getEnergyStorage() {return Optional.empty();}
 
 	default ItemStack getWrappedStorageStack() {
 		return ItemStack.EMPTY;
@@ -89,7 +86,7 @@ public interface IStorageWrapper extends ITintable {
 		return 1;
 	}
 
-	default void onInit(Level level) {
+	default void onInit() {
 		getInventoryHandler().onInit();
 	}
 
