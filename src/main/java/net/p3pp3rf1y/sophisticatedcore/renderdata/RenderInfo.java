@@ -5,7 +5,9 @@ import net.minecraft.nbt.FloatTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedBatteryUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedTankUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeClientData;
@@ -197,6 +199,31 @@ public abstract class RenderInfo {
 		clientData.remove(type);
 		serializeUpgradeData(upgrades -> upgrades.remove(type.getName()));
 		save();
+	}
+
+	public boolean validate(IStorageWrapper storageWrapper, Level level) {
+		boolean changed = false;
+		Iterator<Map.Entry<UpgradeClientDataType<?>, IUpgradeClientData>> iterator = clientData.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<UpgradeClientDataType<?>, IUpgradeClientData> entry = iterator.next();
+			if (!isUpgradeDataValid(storageWrapper, level, entry.getKey(), entry.getValue())) {
+				iterator.remove();
+				serializeUpgradeData(upgrades -> upgrades.remove(entry.getKey().getName()));
+				changed = true;
+			}
+		}
+		if (changed) {
+			save();
+		}
+		return changed;
+	}
+
+	private static <T extends IUpgradeClientData> boolean isUpgradeDataValid(IStorageWrapper storageWrapper, Level level, UpgradeClientDataType<?> type, IUpgradeClientData data) {
+		//noinspection unchecked
+		UpgradeClientDataType<T> typed = (UpgradeClientDataType<T>) type;
+		return UpgradeRenderDataValidatorRegistry.getValidator(typed)
+				.map(validator -> validator.isValid(storageWrapper, level, typed.cast(data).orElseThrow()))
+				.orElse(true);
 	}
 
 	private void deserializeUpgradeData(CompoundTag renderInfoTag) {
