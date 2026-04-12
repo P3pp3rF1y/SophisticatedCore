@@ -1,6 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeClientData;
 
@@ -112,6 +114,12 @@ public class RenderDataHandler {
 
 	public RenderData getData() {
 		return renderData;
+	}
+
+	public void validate(IStorageWrapper storageWrapper, Level level) {
+		if (renderData.validate(storageWrapper, level)) {
+			save();
+		}
 	}
 
 	public void reloadFrom(RenderData renderData) {
