@@ -2,6 +2,8 @@ package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
 import net.minecraft.nbt.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedBatteryUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IRenderedTankUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeRenderData;
@@ -172,6 +174,39 @@ public abstract class RenderInfo {
 
 	public Map<UpgradeRenderDataType<?>, IUpgradeRenderData> getUpgradeRenderData() {
 		return upgradeData;
+	}
+
+	public void validate(IStorageWrapper storageWrapper, Level level) {
+		boolean changed = false;
+		Iterator<Map.Entry<UpgradeRenderDataType<?>, IUpgradeRenderData>> iterator = upgradeData.entrySet().iterator();
+		while (iterator.hasNext()) {
+			Map.Entry<UpgradeRenderDataType<?>, IUpgradeRenderData> entry = iterator.next();
+			if (!isUpgradeDataValid(storageWrapper, level, entry.getKey(), entry.getValue())) {
+				iterator.remove();
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			CompoundTag renderInfo = getRenderInfoTag().orElse(new CompoundTag());
+			if (upgradeData.isEmpty()) {
+				renderInfo.remove(UPGRADES_TAG);
+			} else {
+				CompoundTag upgrades = new CompoundTag();
+				upgradeData.forEach((type, data) -> upgrades.put(type.getName(), data.serializeNBT()));
+				renderInfo.put(UPGRADES_TAG, upgrades);
+			}
+			serializeRenderInfo(renderInfo);
+			save();
+		}
+	}
+
+	private static <T extends IUpgradeRenderData> boolean isUpgradeDataValid(IStorageWrapper storageWrapper, Level level, UpgradeRenderDataType<?> type, IUpgradeRenderData data) {
+		//noinspection unchecked
+		UpgradeRenderDataType<T> typed = (UpgradeRenderDataType<T>) type;
+		return UpgradeRenderDataValidatorRegistry.getValidator(typed)
+				.map(validator -> validator.isValid(storageWrapper, level, typed.cast(data).orElseThrow()))
+				.orElse(true);
 	}
 
 	public void removeAllUpgradeRenderData() {
