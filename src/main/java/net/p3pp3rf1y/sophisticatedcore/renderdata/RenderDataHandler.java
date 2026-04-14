@@ -44,12 +44,12 @@ public class RenderDataHandler {
 	}
 
 	public void setUpgradeItems(List<ItemStack> upgradeItems) {
-		renderData.setUpgradeItems(upgradeItems);
+		renderData = renderData.withUpgradeItems(upgradeItems);
 		save();
 	}
 
 	public <T extends IUpgradeClientData> void setUpgradeClientData(UpgradeClientDataType<T> upgradeClientDataType, T clientData) {
-		renderData.putUpgradeData(upgradeClientDataType, clientData);
+		renderData = renderData.withUpgradeClientData(upgradeClientDataType, clientData);
 		save();
 	}
 
@@ -61,19 +61,19 @@ public class RenderDataHandler {
 	}
 
 	public void refreshDisplayData(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots, List<Integer> slotCounts, List<Float> slotFillRatios) {
-		renderData.display().refreshData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
+		renderData = renderData.withDisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
 		save();
 		renderUpdateChangeListener.accept(this);
 	}
 
 	public void refreshDisplayItemsAndInaccessibleSlots(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots) {
-		renderData.display().refreshDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots);
+		renderData = renderData.withDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots);
 		save();
 		renderUpdateChangeListener.accept(this);
 	}
 
 	public void refreshSlotCountsFillRatiosAndInfiniteSlots(List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
-		renderData.display().refreshSlotCountsFillRatiosAndInfiniteSlots(infiniteSlots, slotCounts, slotFillRatios);
+		renderData = renderData.withSlotCountsFillRatiosAndInfiniteSlots(slotCounts, slotFillRatios, infiniteSlots);
 		save();
 	}
 
@@ -103,12 +103,12 @@ public class RenderDataHandler {
 	}
 
 	public void removeAllUpgradeClientData() {
-		renderData.removeAllUpgradeData();
+		renderData = renderData.withoutAllUpgradeData();
 		save();
 	}
 
 	public void removeUpgradeClientData(UpgradeClientDataType<?> type) {
-		renderData.removeUpgradeData(type);
+		renderData = renderData.withoutUpgradeData(type);
 		save();
 	}
 
@@ -117,23 +117,24 @@ public class RenderDataHandler {
 	}
 
 	public void validate(IStorageWrapper storageWrapper, Level level) {
-		if (renderData.validate(storageWrapper, level)) {
+		RenderData validated = renderData.validated(storageWrapper, level);
+		if (validated != renderData) {
+			renderData = validated;
 			save();
 		}
 	}
 
 	public void reloadFrom(RenderData renderData) {
-		this.renderData = renderData;
+		this.renderData = renderData.copy();
 	}
 
 	public void resetUpgradeInfo(boolean triggerChangeListener) {
-		renderData.clearTanks();
-		renderData.clearBattery();
+		renderData = renderData.withoutUpgradeRenderInfo();
 		save(triggerChangeListener);
 	}
 
 	public void setTankRenderData(TankPosition tankPosition, RenderData.TankRenderData data) {
-		renderData.setTank(tankPosition, data);
+		renderData = renderData.withTank(tankPosition, data);
 		save();
 	}
 
@@ -146,12 +147,12 @@ public class RenderDataHandler {
 	}
 
 	public void setBatteryRenderData(RenderData.BatteryRenderData batteryRenderData) {
-		renderData.setBattery(batteryRenderData);
+		renderData = renderData.withBattery(batteryRenderData);
 		save();
 	}
 
 	public List<ItemStack> getUpgradeItems() {
-		return renderData.upgradeItems();
+		return renderData.getUpgradeItemStacks();
 	}
 
 	public boolean showsCountsAndFillRatios() {

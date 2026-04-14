@@ -62,7 +62,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		for (int slotIndex : data.slotIndexes()) {
 			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
 
-			ItemStack stack = previousDisplayItems.get(i).item();
+			ItemStack stack = previousDisplayItems.get(i).createItemStack();
 			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack)
 					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandler.isSlotAccessible(slotIndex))) {
 				return true;
