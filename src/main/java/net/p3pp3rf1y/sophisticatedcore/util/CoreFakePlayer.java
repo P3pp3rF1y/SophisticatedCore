@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
@@ -14,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @SuppressWarnings({"squid:S2160", "squid:MaximumInheritanceDepth"})
 public class CoreFakePlayer extends FakePlayer {
@@ -69,5 +71,10 @@ public class CoreFakePlayer extends FakePlayer {
 	public void setPosition(Vec3 position) {
 		this.position = position;
 		blockPosition = BlockPos.containing(position);
+	}
+
+	@Override
+	public void syncData(Supplier<? extends AttachmentType<?>> type) {
+		//noop
 	}
 }

@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class UpgradeClientDataType<T extends IUpgradeClientData> {
@@ -36,5 +37,21 @@ public class UpgradeClientDataType<T extends IUpgradeClientData> {
 
 	public StreamCodec<? extends ByteBuf, T> streamCodec() {
 		return streamCodec;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof UpgradeClientDataType<?> that)) {
+			return false;
+		}
+		return Objects.equals(name, that.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
 	}
 }
