@@ -1803,7 +1803,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		private final UpgradeHandler upgradeHandler;
 
 		public StorageUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex) {
-			super(-15, 0);
+			super(slotIndex, -15, 0);
 			this.slotIndex = slotIndex;
 			this.upgradeHandler = upgradeHandler;
 		}
