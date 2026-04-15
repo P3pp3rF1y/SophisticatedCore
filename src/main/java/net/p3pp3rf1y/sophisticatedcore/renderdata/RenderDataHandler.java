@@ -44,13 +44,11 @@ public class RenderDataHandler {
 	}
 
 	public void setUpgradeItems(List<ItemStack> upgradeItems) {
-		renderData = renderData.withUpgradeItems(upgradeItems);
-		save();
+		update(renderData.withUpgradeItems(upgradeItems), false);
 	}
 
 	public <T extends IUpgradeClientData> void setUpgradeClientData(UpgradeClientDataType<T> upgradeClientDataType, T clientData) {
-		renderData = renderData.withUpgradeClientData(upgradeClientDataType, clientData);
-		save();
+		update(renderData.withUpgradeClientData(upgradeClientDataType, clientData), false);
 	}
 
 	public <T extends IUpgradeClientData> Optional<T> getUpgradeClientData(UpgradeClientDataType<T> upgradeClientDataType) {
@@ -61,20 +59,15 @@ public class RenderDataHandler {
 	}
 
 	public void refreshDisplayData(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots, List<Integer> slotCounts, List<Float> slotFillRatios) {
-		renderData = renderData.withDisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
-		save();
-		renderUpdateChangeListener.accept(this);
+		update(renderData.withDisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios), true);
 	}
 
 	public void refreshDisplayItemsAndInaccessibleSlots(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots) {
-		renderData = renderData.withDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots);
-		save();
-		renderUpdateChangeListener.accept(this);
+		update(renderData.withDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots), true);
 	}
 
 	public void refreshSlotCountsFillRatiosAndInfiniteSlots(List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
-		renderData = renderData.withSlotCountsFillRatiosAndInfiniteSlots(slotCounts, slotFillRatios, infiniteSlots);
-		save();
+		update(renderData.withSlotCountsFillRatiosAndInfiniteSlots(slotCounts, slotFillRatios, infiniteSlots), false);
 	}
 
 	public void setRenderUpdateChangeListener(Consumer<RenderDataHandler> renderUpdateChangeListener) {
@@ -103,13 +96,11 @@ public class RenderDataHandler {
 	}
 
 	public void removeAllUpgradeClientData() {
-		renderData = renderData.withoutAllUpgradeData();
-		save();
+		update(renderData.withoutAllUpgradeData(), false);
 	}
 
 	public void removeUpgradeClientData(UpgradeClientDataType<?> type) {
-		renderData = renderData.withoutUpgradeData(type);
-		save();
+		update(renderData.withoutUpgradeData(type), false);
 	}
 
 	public RenderData getData() {
@@ -117,11 +108,7 @@ public class RenderDataHandler {
 	}
 
 	public void validate(IStorageWrapper storageWrapper, Level level) {
-		RenderData validated = renderData.validated(storageWrapper, level);
-		if (validated != renderData) {
-			renderData = validated;
-			save();
-		}
+		update(renderData.validated(storageWrapper, level), false);
 	}
 
 	public void reloadFrom(RenderData renderData) {
@@ -129,13 +116,11 @@ public class RenderDataHandler {
 	}
 
 	public void resetUpgradeInfo(boolean triggerChangeListener) {
-		renderData = renderData.withoutUpgradeRenderInfo();
-		save(triggerChangeListener);
+		update(renderData.withoutUpgradeRenderInfo(), triggerChangeListener);
 	}
 
 	public void setTankRenderData(TankPosition tankPosition, RenderData.TankRenderData data) {
-		renderData = renderData.withTank(tankPosition, data);
-		save();
+		update(renderData.withTank(tankPosition, data), false);
 	}
 
 	public Map<TankPosition, RenderData.TankRenderData> getTankRenderData() {
@@ -147,8 +132,7 @@ public class RenderDataHandler {
 	}
 
 	public void setBatteryRenderData(RenderData.BatteryRenderData batteryRenderData) {
-		renderData = renderData.withBattery(batteryRenderData);
-		save();
+		update(renderData.withBattery(batteryRenderData), false);
 	}
 
 	public List<ItemStack> getUpgradeItems() {
@@ -157,5 +141,14 @@ public class RenderDataHandler {
 
 	public boolean showsCountsAndFillRatios() {
 		return showsCountsAndFillRatios;
+	}
+
+	private void update(RenderData updatedRenderData, boolean triggerChangeListener) {
+		if (updatedRenderData.equals(renderData)) {
+			return;
+		}
+
+		renderData = updatedRenderData;
+		save(triggerChangeListener);
 	}
 }
