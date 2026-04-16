@@ -189,7 +189,7 @@ public final class RenderData {
 	}
 
 	public List<ItemStack> upgradeItems() {
-		return copyItemStacks(upgradeItems);
+		return upgradeItems;
 	}
 
 	public List<ItemStack> getUpgradeItemStacks() {
@@ -247,7 +247,7 @@ public final class RenderData {
 	}
 
 	private static List<ItemStack> copyItemStacks(List<ItemStack> upgradeItems) {
-		return List.copyOf(upgradeItems.stream().filter(stack -> !stack.isEmpty()).map(ItemStack::copy).toList());
+		return List.copyOf(upgradeItems.stream().filter(Objects::nonNull).map(ItemStack::copy).toList());
 	}
 
 	private static Map<UpgradeClientDataType<?>, IUpgradeClientData> copyUpgradeData(Map<UpgradeClientDataType<?>, IUpgradeClientData> upgradeData) {
@@ -420,7 +420,7 @@ public final class RenderData {
 			List<ItemStack> upgradeItems = new ArrayList<>();
 			RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
 				for (int i = 0; i < upgradeItemsTag.size(); i++) {
-					NBTHelper.deserializeStackFromTag(upgradeItemsTag.getCompoundOrEmpty(i)).filter(stack -> !stack.isEmpty()).map(ItemStack::copy).ifPresent(upgradeItems::add);
+					upgradeItems.add(NBTHelper.deserializeStackFromTag(upgradeItemsTag.getCompoundOrEmpty(i)).orElse(ItemStack.EMPTY));
 				}
 			});
 			CompoundTag upgrades = renderInfoTag.getCompoundOrEmpty(UPGRADES_TAG);
