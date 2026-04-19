@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
+	private static final String ENABLED_ITEM_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+\\|(true|false))";
 
 	private Config() {}
 
@@ -40,11 +41,9 @@ public class Config {
 		public final ModConfigSpec.BooleanValue mouseTweaksScrollEnabled;
 
 		Client(ModConfigSpec.Builder builder) {
-			builder.comment("Client Settings").push("client");
 			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods").defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
 			playButtonSound = builder.comment("Whether click sound should play when custom buttons are clicked in gui").define("playButtonSound", true);
 			mouseTweaksScrollEnabled = builder.comment("Whether scrolling in inventory should be handled by Mouse Tweaks mod if it is in the pack").define("mouseTweaksScrollEnabled", true);
-			builder.pop();
 		}
 	}
 
@@ -62,8 +61,6 @@ public class Config {
 		}
 
 		Common(ModConfigSpec.Builder builder) {
-			builder.comment("Common Settings").push("common");
-
 			enabledItems = new EnabledItems(builder, () -> configChanged = true);
 		}
 
@@ -75,12 +72,13 @@ public class Config {
 		}
 
 		public static class EnabledItems {
-			private final ModConfigSpec.ConfigValue<List<String>> itemsEnableList;
+			private final ModConfigSpec.ConfigValue<List<? extends String>> itemsEnableList;
 			private final Runnable onConfigChange;
 			private final Map<Identifier, Boolean> enabledMap = new ConcurrentHashMap<>();
 
 			EnabledItems(ModConfigSpec.Builder builder, Runnable onConfigChange) {
-				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)").define("enabledItems", new ArrayList<>());
+				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)")
+						.defineListAllowEmpty("enabledItems", ArrayList::new, () -> "minecraft:bundle|true", itemName -> itemName instanceof String s && s.matches(ENABLED_ITEM_MATCHER));
 				this.onConfigChange = onConfigChange;
 			}
 
@@ -102,7 +100,7 @@ public class Config {
 			}
 
 			private void addEnabledItemToConfig(Identifier itemRegistryName) {
-				List<String> list = itemsEnableList.get();
+				List<String> list = new ArrayList<>(itemsEnableList.get());
 				list.add(itemRegistryName + "|true");
 				itemsEnableList.set(list);
 				onConfigChange.run();

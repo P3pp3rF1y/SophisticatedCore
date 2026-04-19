@@ -6,10 +6,13 @@ import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -37,6 +40,9 @@ public class SophisticatedCore {
 	public SophisticatedCore(IEventBus modBus, Dist dist, ModContainer container) {
 		container.registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
 		container.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
+		if (dist == Dist.CLIENT && !ModList.get().isLoaded("configured")) {
+			container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+		}
 		commonEventHandler.registerHandlers(modBus);
 		ModCompat.register();
 		if (dist == Dist.CLIENT) {

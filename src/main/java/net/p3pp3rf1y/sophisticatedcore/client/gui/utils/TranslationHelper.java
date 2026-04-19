@@ -21,6 +21,7 @@ public class TranslationHelper {
 	public static final TranslationHelper INSTANCE = new TranslationHelper(SophisticatedCore.MOD_ID);
 
 	private final String guiPrefix;
+	private final String configPrefix;
 	private final String guiUpgradePrefix;
 	private final String guiSettingsPrefix;
 	private final String guiStatusPrefix;
@@ -34,6 +35,7 @@ public class TranslationHelper {
 
 	public TranslationHelper(String modId) {
 		guiPrefix = "gui." + modId + ".";
+		configPrefix = modId + ".configuration.";
 		keybindPrefix = "key." + modId + ".";
 		itemUpgradePrefix = "item." + modId + ".";
 		blockPrefix = "block." + modId + ".";
@@ -156,6 +158,10 @@ public class TranslationHelper {
 
 	public String translGui(String guiTranslateKey) {
 		return guiPrefix + guiTranslateKey;
+	}
+
+	public String translConfig(String configKey) {
+		return configPrefix + configKey;
 	}
 
 	public String translGuiTooltip(String guiTranslateKey) {
