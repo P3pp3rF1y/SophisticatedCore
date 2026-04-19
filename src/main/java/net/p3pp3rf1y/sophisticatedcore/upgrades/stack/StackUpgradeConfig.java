@@ -17,16 +17,14 @@ import java.util.Set;
 
 public class StackUpgradeConfig {
 	private static final String REGISTRY_NAME_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+)";
-	private final ModConfigSpec.ConfigValue<List<String>> nonStackableItemsList;
+	private final ModConfigSpec.ConfigValue<List<? extends String>> nonStackableItemsList;
 	@Nullable
 	private Set<Item> nonStackableItems = null;
 
 	public StackUpgradeConfig(ModConfigSpec.Builder builder) {
 		builder.comment("Stack Upgrade Settings").push("stackUpgrade");
-		nonStackableItemsList = builder.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.").define("nonStackableItems", this::getDefaultNonStackableList, itemNames -> {
-			List<String> registryNames = (List<String>) itemNames;
-			return registryNames != null && registryNames.stream().allMatch(itemName -> itemName.matches(REGISTRY_NAME_MATCHER));
-		});
+		nonStackableItemsList = builder.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.")
+				.defineList("nonStackableItems", this::getDefaultNonStackableList, () -> "minecraft:bundle", itemName -> itemName instanceof String s && s.matches(REGISTRY_NAME_MATCHER));
 		builder.pop();
 	}
 
@@ -63,10 +61,11 @@ public class StackUpgradeConfig {
 			nonStackableItems = new HashSet<>();
 			nonStackableItemsList.get().forEach(name -> {
 				ResourceLocation registryName = ResourceLocation.parse(name);
-				BuiltInRegistries.ITEM.get(registryName).ifPresentOrElse(
-						e -> nonStackableItems.add(e.value()),
-						() -> SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry", name)
-				);
+				if (BuiltInRegistries.ITEM.containsKey(registryName)) {
+					nonStackableItems.add(BuiltInRegistries.ITEM.getValue(registryName));
+				} else {
+					SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry", name);
+				}
 			});
 		}
 		return !nonStackableItems.contains(item);

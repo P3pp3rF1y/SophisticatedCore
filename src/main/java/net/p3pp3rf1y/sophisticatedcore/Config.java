@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
+	private static final String ENABLED_ITEM_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+\\|(true|false))";
 
 	private Config() {}
 
@@ -75,12 +76,13 @@ public class Config {
 		}
 
 		public static class EnabledItems {
-			private final ModConfigSpec.ConfigValue<List<String>> itemsEnableList;
+			private final ModConfigSpec.ConfigValue<List<? extends String>> itemsEnableList;
 			private final Runnable onConfigChange;
 			private final Map<ResourceLocation, Boolean> enabledMap = new ConcurrentHashMap<>();
 
 			EnabledItems(ModConfigSpec.Builder builder, Runnable onConfigChange) {
-				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)").define("enabledItems", new ArrayList<>());
+				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)")
+						.defineListAllowEmpty("enabledItems", ArrayList::new, () -> "minecraft:bundle|true", itemName -> itemName instanceof String s && s.matches(ENABLED_ITEM_MATCHER));
 				this.onConfigChange = onConfigChange;
 			}
 
@@ -102,7 +104,7 @@ public class Config {
 			}
 
 			private void addEnabledItemToConfig(ResourceLocation itemRegistryName) {
-				List<String> list = itemsEnableList.get();
+				List<String> list = new ArrayList<>(itemsEnableList.get());
 				list.add(itemRegistryName + "|true");
 				itemsEnableList.set(list);
 				onConfigChange.run();
