@@ -17,16 +17,14 @@ import java.util.Set;
 
 public class StackUpgradeConfig {
 	private static final String REGISTRY_NAME_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+)";
-	private final ModConfigSpec.ConfigValue<List<String>> nonStackableItemsList;
+	private final ModConfigSpec.ConfigValue<List<? extends String>> nonStackableItemsList;
 	@Nullable
 	private Set<Item> nonStackableItems = null;
 
 	public StackUpgradeConfig(ModConfigSpec.Builder builder) {
 		builder.comment("Stack Upgrade Settings").push("stackUpgrade");
-		nonStackableItemsList = builder.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.").define("nonStackableItems", this::getDefaultNonStackableList, itemNames -> {
-			List<String> registryNames = (List<String>) itemNames;
-			return registryNames != null && registryNames.stream().allMatch(itemName -> itemName.matches(REGISTRY_NAME_MATCHER));
-		});
+		nonStackableItemsList = builder.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.")
+				.defineList("nonStackableItems", this::getDefaultNonStackableList, () -> "minecraft:bundle", itemName -> itemName instanceof String s && s.matches(REGISTRY_NAME_MATCHER));
 		builder.pop();
 	}
 
