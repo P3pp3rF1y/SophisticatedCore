@@ -32,6 +32,11 @@ public class StorageInventorySlot extends SlotSuppliedHandler {
 		return storageWrapper.getInventoryHandler().isItemValid(slotIndex, stack, player);
 	}
 
+	@Override
+	public boolean mayPickup(Player player) {
+		return storageWrapper.getInventoryHandler().isSlotAccessible(slotIndex);
+	}
+
 	private static void processSlotChangeResponse(int slot, InventoryHandler handler, IStorageWrapper storageWrapper) {
 		storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(ISlotChangeResponseUpgrade.class).forEach(u -> u.onSlotChange(handler, slot));
 	}

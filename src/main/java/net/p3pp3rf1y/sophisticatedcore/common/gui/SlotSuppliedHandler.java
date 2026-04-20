@@ -90,18 +90,6 @@ public class SlotSuppliedHandler extends Slot {
 	}
 
 	@Override
-	public boolean mayPickup(Player player) {
-		ItemResource resource = itemHandlerSupplier.get().getResource(slot);
-		if (resource.isEmpty()) {
-			return false;
-		} else {
-			try (Transaction tx = Transaction.openRoot()) {
-				return itemHandlerSupplier.get().extract(slot, resource, 1, tx) == 1;
-			}
-		}
-	}
-
-	@Override
 	public int getSlotIndex() {
 		return slot;
 	}

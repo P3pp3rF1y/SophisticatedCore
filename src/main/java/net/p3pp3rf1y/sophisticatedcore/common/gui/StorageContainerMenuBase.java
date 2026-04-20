@@ -268,11 +268,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 
 				@Override
-				public boolean mayPickup(Player playerIn) {
-					return !inaccessibleSlots.contains(finalSlotIndex) && super.mayPickup(playerIn);
-				}
-
-				@Override
 				public int getMaxStackSize(ItemStack stack) {
 					return slotLimitOverrides.containsKey(finalSlotIndex) ? slotLimitOverrides.get(finalSlotIndex) : super.getMaxStackSize(stack);
 				}
