@@ -1,30 +1,37 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentHolder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 
 import java.util.function.Predicate;
 
 public class SimpleItemContent implements DataComponentHolder {
 	public static final SimpleItemContent EMPTY = new SimpleItemContent(Items.AIR.builtInRegistryHolder(), 0, DataComponentPatch.EMPTY);
-	public static final Codec<SimpleItemContent> CODEC = ItemStackTemplate.CODEC.xmap(
-			template -> new SimpleItemContent(template.item(), template.count(), template.components()),
-			content -> new ItemStackTemplate(content.item, content.count, content.components)
-	);
-	public static final StreamCodec<RegistryFriendlyByteBuf, SimpleItemContent> STREAM_CODEC = ItemStackTemplate.STREAM_CODEC.map(
-			template -> new SimpleItemContent(template.item(), template.count(), template.components()),
-			content -> new ItemStackTemplate(content.item, content.count, content.components)
+	public static final Codec<SimpleItemContent> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			Item.CODEC.optionalFieldOf("id", Items.AIR.builtInRegistryHolder()).forGetter(SimpleItemContent::itemHolder),
+			Codec.intRange(0, 99).optionalFieldOf("count", 0).forGetter(SimpleItemContent::getCount),
+			DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(SimpleItemContent::componentsPatch)
+	).apply(instance, SimpleItemContent::fromSerialized));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SimpleItemContent> STREAM_CODEC = StreamCodec.composite(
+			Item.STREAM_CODEC,
+			SimpleItemContent::itemHolder,
+			ByteBufCodecs.VAR_INT,
+			SimpleItemContent::getCount,
+			DataComponentPatch.STREAM_CODEC,
+			SimpleItemContent::componentsPatch,
+			SimpleItemContent::fromSerialized
 	);
 
 	private final Holder<Item> item;
@@ -35,6 +42,18 @@ public class SimpleItemContent implements DataComponentHolder {
 		this.item = item;
 		this.count = count;
 		this.components = components;
+	}
+
+	private static SimpleItemContent fromSerialized(Holder<Item> item, int count, DataComponentPatch components) {
+		return count <= 0 || item.is(Items.AIR.builtInRegistryHolder()) ? EMPTY : new SimpleItemContent(item, count, components);
+	}
+
+	private Holder<Item> itemHolder() {
+		return item;
+	}
+
+	private DataComponentPatch componentsPatch() {
+		return components;
 	}
 
 	public static SimpleItemContent copyOf(ItemStack itemStack) {

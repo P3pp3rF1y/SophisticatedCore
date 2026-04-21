@@ -26,7 +26,12 @@ public class BlockTransformationUpgradeWrapper extends UpgradeWrapperBase<BlockT
 			protected void onContentsChanged(int slot, ItemStack previousContents) {
 				super.onContentsChanged(slot, previousContents);
 				if (slot == 0) {
-					upgrade.set(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.copyOf(getResource(0).toStack(getAmountAsInt(0))));
+					ItemStack inputStack = getResource(0).toStack(getAmountAsInt(0));
+					if (inputStack.isEmpty()) {
+						upgrade.remove(ModCoreDataComponents.INPUT_ITEM);
+					} else {
+						upgrade.set(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.copyOf(inputStack));
+					}
 				}
 				save();
 			}
