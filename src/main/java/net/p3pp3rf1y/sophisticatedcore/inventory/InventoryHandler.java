@@ -368,7 +368,6 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	@Override
 	public int insert(int index, ItemResource resource, int amount, TransactionContext tx) {
 		int inserted = runOnBeforeInsert(resource, amount, storageWrapper);
-		inserted = runOnBeforeInsert(index, resource, amount - inserted, storageWrapper);
 		if (inserted >= amount) {
 			return amount;
 		}
