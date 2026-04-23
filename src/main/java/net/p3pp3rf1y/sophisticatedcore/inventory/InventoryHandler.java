@@ -86,7 +86,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	protected void onContentsChanged(int index, ItemStack previousContents) {
 		super.onContentsChanged(index, previousContents);
 
-		ItemStack current = getInternalStack(index);
+		ItemStack current = getStackInSlot(index);
 		getSlotTracker().removeAndSetSlotIndexes(this, index, current);
 
 		if (persistent && updateSlotStack(index)) {
@@ -258,7 +258,6 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	public void setStackInSlotInternal(int slot, ItemStack stack) {
 		ItemStack previousContents = stacks.get(slot);
 		stacks.set(slot, stack);
-		getSlotTracker().removeAndSetSlotIndexes(this, slot, stack);
 		onContentsChanged(slot, previousContents);
 	}
 
