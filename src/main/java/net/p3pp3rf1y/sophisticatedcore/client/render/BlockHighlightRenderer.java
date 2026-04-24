@@ -32,10 +32,14 @@ public class BlockHighlightRenderer {
 	}
 
 	public static void addHighlightedPositions(Map<Integer, List<List<BlockPos>>> highlightPositions) {
+		addHighlightedPositions(highlightPositions, HIGHLIGHT_DURATION);
+	}
+
+	public static void addHighlightedPositions(Map<Integer, List<List<BlockPos>>> highlightPositions, int durationTicks) {
 		highlightPositions.forEach((color, positions) ->
 				highlightedPositions.computeIfAbsent(color, k -> new ArrayList<>()).addAll(positions)
 		);
-		highlightExpireTime = Minecraft.getInstance().level.getGameTime() + HIGHLIGHT_DURATION;
+		highlightExpireTime = Minecraft.getInstance().level.getGameTime() + durationTicks;
 		cachedHighlightedBlocks = null;
 	}
 
