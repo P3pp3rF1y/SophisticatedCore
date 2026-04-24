@@ -15,12 +15,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public record SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> highlightPositions) implements CustomPacketPayload {
+public record SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> highlightPositions, int durationTicks) implements CustomPacketPayload {
 	public static final Type<SyncBlockHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_block_highlights"));
 	public static final StreamCodec<ByteBuf, SyncBlockHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			StreamCodecHelper.ofMap(ByteBufCodecs.INT, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()).apply(ByteBufCodecs.list()), HashMap::new),
 			SyncBlockHighlightsPayload::highlightPositions,
+			ByteBufCodecs.INT,
+			SyncBlockHighlightsPayload::durationTicks,
 			SyncBlockHighlightsPayload::new);
+
+	public SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> highlightPositions) {
+		this(highlightPositions, BlockHighlightRenderer.HIGHLIGHT_DURATION);
+	}
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
@@ -28,6 +34,6 @@ public record SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> high
 	}
 
 	public static void handlePayload(SyncBlockHighlightsPayload payload, IPayloadContext context) {
-		BlockHighlightRenderer.addHighlightedPositions(payload.highlightPositions());
+		BlockHighlightRenderer.addHighlightedPositions(payload.highlightPositions(), payload.durationTicks());
 	}
 }
