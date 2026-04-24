@@ -31,11 +31,11 @@ public class BlockHighlightRenderer {
 	private record HighlightedGroup(List<VoxelOutliner.Edge> edges, Vec3 pivot) {
 	}
 
-	public static void addHighlightedPositions(Map<Integer, List<List<BlockPos>>> highlightPositions) {
+	public static void addHighlightedPositions(Map<Integer, List<List<BlockPos>>> highlightPositions, int durationTicks) {
 		highlightPositions.forEach((color, positions) ->
 				highlightedPositions.computeIfAbsent(color, k -> new ArrayList<>()).addAll(positions)
 		);
-		highlightExpireTime = Minecraft.getInstance().level.getGameTime() + HIGHLIGHT_DURATION;
+		highlightExpireTime = Minecraft.getInstance().level.getGameTime() + durationTicks;
 		cachedHighlightedBlocks = null;
 	}
 
