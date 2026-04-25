@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import org.jspecify.annotations.Nullable;
@@ -18,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
 		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
@@ -168,7 +170,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, stack);
 		}
 
-		return inventoryHandler.getSlotTracker().hasMatchingFullStack(stack, fullStack -> stacksMatchForOverflow(stack, fullStack));
+		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(), stackKey -> stacksMatchForOverflow(stack, stackKey.stack()));
 	}
 
 	@Override
@@ -177,31 +179,47 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, resource);
 		}
 
-		return inventoryHandler.getSlotTracker().hasMatchingFullStack(resource.toStack(), fullStack -> stacksMatchForOverflow(resource, fullStack));
+		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(), stackKey -> stacksMatchForOverflow(resource, stackKey.stack()));
 	}
 
-	private boolean stacksMatchForOverflow(ItemStack stack, ItemStack fullStack) {
-		if (stack.getItem() != fullStack.getItem()) {
-			return false;
+	static boolean hasOverflowMatch(Set<ItemStackKey> fullStacks, Set<ItemStackKey> partialStacks, Predicate<ItemStackKey> stackMatcher) {
+		for (ItemStackKey stackKey : fullStacks) {
+			if (stackMatcher.test(stackKey)) {
+				return true;
+			}
 		}
 
-		if (filterLogic.shouldMatchDurability() && stack.getDamageValue() != fullStack.getDamageValue()) {
-			return false;
+		for (ItemStackKey stackKey : partialStacks) {
+			if (stackMatcher.test(stackKey)) {
+				return true;
+			}
 		}
 
-		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack.isEmpty(), stack.getComponents(), fullStack.isEmpty(), fullStack.getComponents());
+		return false;
 	}
 
-	private boolean stacksMatchForOverflow(ItemResource resource, ItemStack fullStack) {
-		if (resource.getItem() != fullStack.getItem()) {
+	private boolean stacksMatchForOverflow(ItemStack stack, ItemStack matchingStack) {
+		if (stack.getItem() != matchingStack.getItem()) {
 			return false;
 		}
 
-		if (filterLogic.shouldMatchDurability() && resource.getOrDefault(DataComponents.DAMAGE, 0) != fullStack.getDamageValue()) {
+		if (filterLogic.shouldMatchDurability() && stack.getDamageValue() != matchingStack.getDamageValue()) {
 			return false;
 		}
 
-		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(resource.isEmpty(), resource.getComponents(), fullStack.isEmpty(), fullStack.getComponents());
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack.isEmpty(), stack.getComponents(), matchingStack.isEmpty(), matchingStack.getComponents());
+	}
+
+	private boolean stacksMatchForOverflow(ItemResource resource, ItemStack matchingStack) {
+		if (resource.getItem() != matchingStack.getItem()) {
+			return false;
+		}
+
+		if (filterLogic.shouldMatchDurability() && resource.getOrDefault(DataComponents.DAMAGE, 0) != matchingStack.getDamageValue()) {
+			return false;
+		}
+
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(resource.isEmpty(), resource.getComponents(), matchingStack.isEmpty(), matchingStack.getComponents());
 	}
 
 	public boolean isVoidAlwaysEnabled() {
