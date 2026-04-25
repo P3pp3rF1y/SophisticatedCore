@@ -75,7 +75,13 @@ public class InventorySorter {
 	}
 
 	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {
-		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, noSortSlots, false);
+		sortHandler(handler, comparator, noSortSlots, Set.of());
+	}
+
+	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots, Set<Integer> ignoredSlots) {
+		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
+		skippedSlots.addAll(ignoredSlots);
+		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, skippedSlots, false);
 		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(comparator);
 
@@ -83,7 +89,7 @@ public class InventorySorter {
 
 		sortIntoNoSortSlots(handler, noSortSlots, sortedList);
 
-		sortIntoOtherSlots(handler, noSortSlots, sortedList, slots);
+		sortIntoOtherSlots(handler, skippedSlots, sortedList, slots);
 	}
 
 	private static void sortIntoOtherSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList, int slots) {
@@ -119,7 +125,7 @@ public class InventorySorter {
 				for (int slot : noSortSlots) {
 					ItemStack slotStack = handler.getStackInSlot(slot);
 					if (ItemStack.isSameItemSameComponents(slotStack, current.getStack())) {
-						int placedCount = placeStack(handler, current, count, slot, true);
+						int placedCount = topUpNoSortSlot(handler, current, count, slot, slotStack);
 						count -= placedCount;
 						entry.setValue(count);
 						if (count <= 0) {
@@ -131,6 +137,26 @@ public class InventorySorter {
 			}
 
 		}
+	}
+
+	private static int topUpNoSortSlot(IItemHandlerModifiable handler, ItemStackKey current, int count, int slot, ItemStack slotStack) {
+		if (handler instanceof InventoryHandler inventoryHandler && inventoryHandler.isInfinite(slot)) {
+			return placeStack(handler, current, count, slot, true);
+		}
+
+		int existingCount = slotStack.getCount();
+		int slotLimit = handler instanceof InventoryHandler inventoryHandler ? inventoryHandler.getStackLimit(slot, current.getStack()) : handler.getSlotLimit(slot);
+		int countPlaced = (int) Math.min((long) slotLimit, existingCount + (long) count) - existingCount;
+		if (countPlaced <= 0) {
+			return 0;
+		}
+
+		ItemStack copy = current.getStack().copy();
+		copy.setCount(existingCount + countPlaced);
+		if (!ItemStack.matches(slotStack, copy)) {
+			handler.setStackInSlot(slot, copy);
+		}
+		return countPlaced;
 	}
 
 	private static void emptySlot(IItemHandlerModifiable handler, int slot) {
