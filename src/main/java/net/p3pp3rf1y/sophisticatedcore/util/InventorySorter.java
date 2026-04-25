@@ -80,7 +80,13 @@ public class InventorySorter {
 	}
 
 	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {
-		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, noSortSlots, false);
+		sortHandler(handler, comparator, noSortSlots, Set.of());
+	}
+
+	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots, Set<Integer> ignoredSlots) {
+		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
+		skippedSlots.addAll(ignoredSlots);
+		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, skippedSlots, false);
 		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(comparator);
 
@@ -88,7 +94,7 @@ public class InventorySorter {
 
 		sortIntoNoSortSlots(handler, noSortSlots, sortedList);
 
-		sortIntoOtherSlots(handler, noSortSlots, sortedList, slots);
+		sortIntoOtherSlots(handler, skippedSlots, sortedList, slots);
 	}
 
 	private static void sortIntoOtherSlots(InventoryHandler handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList, int slots) {
@@ -124,7 +130,7 @@ public class InventorySorter {
 				for (int slot : noSortSlots) {
 					ItemStack slotStack = handler.getStackInSlot(slot);
 					if (ItemStack.isSameItemSameComponents(slotStack, current.stack())) {
-						int placedCount = placeStack(handler, current, count, slot, true);
+						int placedCount = topUpNoSortSlot(handler, current, count, slot, slotStack);
 						count -= placedCount;
 						entry.setValue(count);
 						if (count <= 0) {
@@ -138,11 +144,31 @@ public class InventorySorter {
 		}
 	}
 
+	private static int topUpNoSortSlot(InventoryHandler handler, ItemStackKey current, int count, int slot, ItemStack slotStack) {
+		if (handler.isInfinite(slot)) {
+			return placeStack(handler, current, count, slot, true);
+		}
+
+		int existingCount = slotStack.getCount();
+		long slotLimit = handler.getCapacityAsLong(slot, ItemResource.of(current.stack()));
+		int countPlaced = (int) Math.min(slotLimit, existingCount + (long) count) - existingCount;
+		if (countPlaced <= 0) {
+			return 0;
+		}
+
+		ItemStack copy = current.stack().copy();
+		copy.setCount(existingCount + countPlaced);
+		if (!ItemStack.matches(slotStack, copy)) {
+			handler.setStackInSlot(slot, copy);
+		}
+		return countPlaced;
+	}
+
 	private static void emptySlot(ResourceHandler<ItemResource> handler, int slot) {
 		ItemResource resource = handler.getResource(slot);
 		if (!resource.isEmpty()) {
 			if (handler instanceof InventoryHandler inventoryHandler) {
-				inventoryHandler.setStackInSlot(slot, ItemStack.EMPTY);
+				inventoryHandler.setStackInSlotInternal(slot, ItemStack.EMPTY);
 			} else {
 				InventoryHelper.extract(handler, resource, handler.getAmountAsInt(slot));
 			}
@@ -150,7 +176,7 @@ public class InventorySorter {
 	}
 
 	private static int placeStack(InventoryHandler handler, ItemStackKey current, int count, int slot, boolean countWithCurrentStack) {
-		return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getBaseCapacity(ItemResource.of(stack)), handler::getInternalStack, handler::setStackInSlot);
+		return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getBaseCapacity(ItemResource.of(stack)), handler::getInternalStack, handler::setStackInSlotInternal);
 	}
 
 	private static int placeStack(ItemStackKey current, int count, int slot, boolean countWithCurrentStack,
