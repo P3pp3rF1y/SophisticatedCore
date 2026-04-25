@@ -8,6 +8,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
@@ -16,6 +17,7 @@ import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
 		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
@@ -153,19 +155,35 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, stack);
 		}
 
-		return inventoryHandler.getSlotTracker().hasMatchingFullStack(stack, fullStack -> stacksMatchForOverflow(stack, fullStack));
+		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(), stackKey -> stacksMatchForOverflow(stack, stackKey.getStack()));
 	}
 
-	private boolean stacksMatchForOverflow(ItemStack stack, ItemStack fullStack) {
-		if (stack.getItem() != fullStack.getItem()) {
+	static <T> boolean hasOverflowMatch(Set<T> fullStacks, Set<T> partialStacks, Predicate<T> stackMatcher) {
+		for (T stackKey : fullStacks) {
+			if (stackMatcher.test(stackKey)) {
+				return true;
+			}
+		}
+
+		for (T stackKey : partialStacks) {
+			if (stackMatcher.test(stackKey)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean stacksMatchForOverflow(ItemStack stack, ItemStack matchingStack) {
+		if (stack.getItem() != matchingStack.getItem()) {
 			return false;
 		}
 
-		if (filterLogic.shouldMatchDurability() && stack.getDamageValue() != fullStack.getDamageValue()) {
+		if (filterLogic.shouldMatchDurability() && stack.getDamageValue() != matchingStack.getDamageValue()) {
 			return false;
 		}
 
-		return !filterLogic.shouldMatchNbt() || ItemStackHelper.areItemStackTagsEqualIgnoreDurability(stack, fullStack);
+		return !filterLogic.shouldMatchNbt() || ItemStackHelper.areItemStackTagsEqualIgnoreDurability(stack, matchingStack);
 	}
 
 	public boolean isVoidAlwaysEnabled() {
