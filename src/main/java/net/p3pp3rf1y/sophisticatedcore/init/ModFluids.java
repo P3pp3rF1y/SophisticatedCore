@@ -1,8 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.init;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -20,7 +25,7 @@ public class ModFluids {
 	private ModFluids() {}
 
 	private static ForgeFlowingFluid.Properties fluidProperties() {
-		return new ForgeFlowingFluid.Properties(XP_FLUID_TYPE, XP_STILL, XP_FLOWING);
+		return new ForgeFlowingFluid.Properties(XP_FLUID_TYPE, XP_STILL, XP_FLOWING).bucket(XP_BUCKET);
 	}
 
 	public static final ResourceLocation EXPERIENCE_TAG_NAME = new ResourceLocation("forge:experience");
@@ -51,9 +56,21 @@ public class ModFluids {
 			});
 		}
 	});
+
+	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SophisticatedCore.MOD_ID);
+	public static final RegistryObject<Item> XP_BUCKET = ITEMS.register("xp_bucket", () -> new BucketItem(XP_STILL, new Item.Properties().stacksTo(1)));
+
+	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, SophisticatedCore.MOD_ID);
+	public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () -> CreativeModeTab.builder()
+			.icon(() -> new ItemStack(XP_BUCKET.get()))
+			.title(Component.translatable("itemGroup.sophisticatedcore"))
+			.displayItems((featureFlags, output) -> output.accept(new ItemStack(XP_BUCKET.get())))
+			.build());
 	
 	public static void registerHandlers(IEventBus modBus) {
 		FLUIDS.register(modBus);
 		FLUID_TYPES.register(modBus);
+		ITEMS.register(modBus);
+		CREATIVE_MODE_TABS.register(modBus);
 	}
 }
