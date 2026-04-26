@@ -7,12 +7,34 @@ plugins {
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
     id 'org.spongepowered.mixin' version '0.7.+'
+    id "com.diffplug.spotless" version "7.0.4"
 }
 
 idea {
     module {
         downloadJavadoc = true
         downloadSources = true
+    }
+}
+
+spotless {
+    enforceCheck = false
+    def spotlessFiles = findProperty("spotlessFiles")
+
+    java {
+        target spotlessFiles == null ? "src/*/java/**/*.java" : spotlessFiles.toString().split(/\s*,\s*/).findAll { it.endsWith(".java") }
+
+        eclipse().configFile "$projectDir/codeformat/eclipse-java-format.xml"
+        importOrder "", "javax", "java"
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+
+    groovyGradle {
+        target spotlessFiles == null ? "*.gradle" : spotlessFiles.toString().split(/\s*,\s*/).findAll { it.endsWith(".gradle") }
+        trimTrailingWhitespace()
+        endWithNewline()
     }
 }
 
@@ -158,9 +180,7 @@ dependencies {
         transitive = false
     }
     compileOnly fg.deobf("vazkii.botania:Botania:${botania_version}:api")
-    runtimeOnly fg.deobf("vazkii.botania:Botania:${botania_version}")
     compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
-    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 
     compileOnly fg.deobf("dev.ftb.mods:ftb-chunks-forge:${ftb_chunks_version}")
     compileOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
