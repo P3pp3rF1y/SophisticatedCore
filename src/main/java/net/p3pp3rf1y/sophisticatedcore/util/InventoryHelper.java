@@ -387,7 +387,7 @@ public class InventoryHelper {
 	}
 
 	public static List<ItemStack> getCompactedStacksSortedByCount(IItemHandler handler) {
-		Map<ItemStackKey, Integer> compactedStacks = getCompactedStacks(handler);
+		Map<ItemStackKey, Integer> compactedStacks = getCompactedStacks(handler, Set.of(), false);
 		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(InventorySorter.BY_COUNT);
 
