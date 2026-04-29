@@ -34,7 +34,7 @@ public class BlockHighlightRenderHelper {
 			THICK_HIGHLIGHT_PIPELINE,
 			RenderType.CompositeState.builder()
 					.setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
-					.setOutputState(RenderType.ITEM_ENTITY_TARGET)
+					.setOutputState(RenderType.MAIN_TARGET)
 					.createCompositeState(false)
 	);
 

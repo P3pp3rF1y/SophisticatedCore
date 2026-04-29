@@ -109,6 +109,12 @@ repositories {
             includeGroup "io.wispforest"
         }
     }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 base {
@@ -213,9 +219,10 @@ dependencies {
         transitive = false
     }
     compileOnly "dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}"
-    compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
+	compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
 
-    compileOnly "curse.maven:openpartiesandclaims-636608:${openpartiesandclaims_cf_file_id}"
+	compileOnly "curse.maven:openpartiesandclaims-636608:${openpartiesandclaims_cf_file_id}"
+	compileOnly "maven.modrinth:iris:${iris_version}"
 /*
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly "curse.maven:quark-243121:${quark_cf_file_id}")
