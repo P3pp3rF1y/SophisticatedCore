@@ -12,7 +12,7 @@ public class ModPayloads {
 	private ModPayloads() {}
 
 	public static void registerPayloads(final RegisterPayloadHandlersEvent event) {
-		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned("1.0");
+		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned(SophisticatedCore.getNetworkProtocolVersion());
 		registrar.playToServer(SyncContainerClientDataPayload.TYPE, SyncContainerClientDataPayload.STREAM_CODEC, SyncContainerClientDataPayload::handlePayload);
 		registrar.playToServer(TransferFullSlotPayload.TYPE, TransferFullSlotPayload.STREAM_CODEC, TransferFullSlotPayload::handlePayload);
 		registrar.playToClient(SyncContainerStacksPayload.TYPE, SyncContainerStacksPayload.STREAM_CODEC, SyncContainerStacksPayload::handlePayload);

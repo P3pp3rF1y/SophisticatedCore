@@ -34,10 +34,12 @@ import org.apache.logging.log4j.Logger;
 public class SophisticatedCore {
 	public static final String MOD_ID = "sophisticatedcore";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+	private static String networkProtocolVersion;
 	public final CommonEventHandler commonEventHandler = new CommonEventHandler();
 
 	@SuppressWarnings("java:S1118") //needs to be public for mod to work
 	public SophisticatedCore(IEventBus modBus, Dist dist, ModContainer container) {
+		networkProtocolVersion = container.getModInfo().getVersion().toString();
 		container.registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
 		container.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
 		if (dist == Dist.CLIENT && !ModList.get().isLoaded("configured")) {
@@ -98,5 +100,9 @@ public class SophisticatedCore {
 
 	public static String getRegistryName(String regName) {
 		return MOD_ID + ":" + regName;
+	}
+
+	public static String getNetworkProtocolVersion() {
+		return networkProtocolVersion;
 	}
 }
