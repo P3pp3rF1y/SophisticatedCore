@@ -20,4 +20,5 @@ public class CompatModIds {
 	public static final String FTB_CHUNKS = "ftbchunks";
 	public static final String OPEN_PARTIES_AND_CLAIMS_CHUNKS = "openpartiesandclaims";
 	public static final String ACCESSORIES = "accessories";
+	public static final String IRIS = "iris";
 }
