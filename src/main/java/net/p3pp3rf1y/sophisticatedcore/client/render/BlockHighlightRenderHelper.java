@@ -36,7 +36,7 @@ public class BlockHighlightRenderHelper {
 					RenderSetup.builder(THICK_HIGHLIGHT_PIPELINE)
 							.bufferSize(1536)
 							.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-							.setOutputTarget(OutputTarget.ITEM_ENTITY_TARGET)
+							.setOutputTarget(OutputTarget.MAIN_TARGET)
 							.createRenderSetup()
 			);
 
