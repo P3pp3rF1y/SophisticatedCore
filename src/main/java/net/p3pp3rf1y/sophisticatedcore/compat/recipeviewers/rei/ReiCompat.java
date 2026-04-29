@@ -19,7 +19,7 @@ public class ReiCompat implements ICompat {
 	}
 
 	private void registerPackets(final RegisterPayloadHandlersEvent event) {
-		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned("1.0");
+		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned(SophisticatedCore.getNetworkProtocolVersion());
 		registrar.optional().playToServer(ReiTransferRecipePayload.TYPE, ReiTransferRecipePayload.STREAM_CODEC, ReiTransferRecipePayload::handlePayload);
 
 		CommonPayloads.registerPackets(registrar);
