@@ -10,14 +10,19 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.HelperAssertions;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
 
@@ -50,6 +55,46 @@ class InventoryHelperTest {
 				return isStackValidForSlot.test(slot, stack);
 			}
 		};
+	}
+
+	@Test
+	void runPickupOnPickupResponseUpgradesDoesNotRunPickupForEmptyStack() {
+		UpgradeHandler upgradeHandler = Mockito.mock(UpgradeHandler.class);
+		IPickupResponseUpgrade pickupUpgrade = Mockito.mock(IPickupResponseUpgrade.class);
+		Mockito.when(upgradeHandler.getWrappersThatImplement(IPickupResponseUpgrade.class)).thenReturn(List.of(pickupUpgrade));
+
+		ItemStack result = InventoryHelper.runPickupOnPickupResponseUpgrades(null, upgradeHandler, ItemStack.EMPTY, true);
+
+		Assertions.assertTrue(result.isEmpty());
+		Mockito.verifyNoInteractions(pickupUpgrade);
+	}
+
+	@Test
+	void runPickupOnPickupResponseUpgradesDoesNotRunPickupForBrokenZeroMaxStackSizeStack() {
+		UpgradeHandler upgradeHandler = Mockito.mock(UpgradeHandler.class);
+		IPickupResponseUpgrade pickupUpgrade = Mockito.mock(IPickupResponseUpgrade.class);
+		Mockito.when(upgradeHandler.getWrappersThatImplement(IPickupResponseUpgrade.class)).thenReturn(List.of(pickupUpgrade));
+		ItemStack brokenPickupStack = Mockito.spy(new ItemStack(Items.DIAMOND));
+		Mockito.doReturn(0).when(brokenPickupStack).getMaxStackSize();
+
+		ItemStack result = InventoryHelper.runPickupOnPickupResponseUpgrades(null, upgradeHandler, brokenPickupStack, true);
+
+		Assertions.assertSame(brokenPickupStack, result);
+		Mockito.verifyNoInteractions(pickupUpgrade);
+	}
+
+	@Test
+	void runPickupOnPickupResponseUpgradesRunsPickupForValidStack() {
+		UpgradeHandler upgradeHandler = Mockito.mock(UpgradeHandler.class);
+		IPickupResponseUpgrade pickupUpgrade = Mockito.mock(IPickupResponseUpgrade.class);
+		Mockito.when(upgradeHandler.getWrappersThatImplement(IPickupResponseUpgrade.class)).thenReturn(List.of(pickupUpgrade));
+		ItemStack stack = new ItemStack(Items.DIAMOND);
+		Mockito.when(pickupUpgrade.pickup(null, stack, true)).thenReturn(ItemStack.EMPTY);
+
+		ItemStack result = InventoryHelper.runPickupOnPickupResponseUpgrades(null, upgradeHandler, stack, true);
+
+		Assertions.assertTrue(result.isEmpty());
+		Mockito.verify(pickupUpgrade).pickup(null, stack, true);
 	}
 
 	@ParameterizedTest
