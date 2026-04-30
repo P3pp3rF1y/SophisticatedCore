@@ -205,6 +205,11 @@ public class InventoryHelper {
 
 	public static ItemStack runPickupOnPickupResponseUpgrades(Level level,
 			@Nullable Player player, UpgradeHandler upgradeHandler, ItemStack remainingStack, boolean simulate) {
+		// Some broken pickup stacks are not empty but report 0 max stack size; skip them to avoid crashing stack-limit calculations.
+		if (remainingStack.isEmpty() || remainingStack.getMaxStackSize() <= 0) {
+			return remainingStack;
+		}
+
 		List<IPickupResponseUpgrade> pickupUpgrades = upgradeHandler.getWrappersThatImplement(IPickupResponseUpgrade.class);
 
 		for (IPickupResponseUpgrade pickupUpgrade : pickupUpgrades) {
