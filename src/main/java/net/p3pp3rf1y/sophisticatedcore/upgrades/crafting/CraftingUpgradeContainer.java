@@ -256,6 +256,16 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	}
 
 	@Override
+	public int getCraftingGridWidth() {
+		return craftMatrix.getWidth();
+	}
+
+	@Override
+	public int getCraftingGridHeight() {
+		return craftMatrix.getHeight();
+	}
+
+	@Override
 	public Container getCraftMatrix() {
 		return craftMatrix;
 	}

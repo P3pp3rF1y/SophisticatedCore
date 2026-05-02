@@ -41,7 +41,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 		if (!(containerMenu instanceof StorageContainerMenuBase<?> storageContainer)) {
 			return;
 		}
-		builder.addGrid(getCraftingGridStart(storageContainer), getCraftingGridSize(storageContainer))
+		builder.addGrid(getCraftingGridStart(storageContainer), getCraftingGridWidth(storageContainer), getCraftingGridHeight(storageContainer))
 				.clearHandler((craftingGrid, player, menu, forced) -> clearGrid(player, menu, forced))
 				.rotateHandler((craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse))
 				.balanceHandler(new StorageCraftingGridBalanceHandler())
@@ -178,6 +178,14 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 	private static int getCraftingGridSize(StorageContainerMenuBase<?> container) {
 		return getOpenCraftingContainer(container).map(cc -> cc.getRecipeSlots().size()).orElse(0);
+	}
+
+	private static int getCraftingGridWidth(StorageContainerMenuBase<?> container) {
+		return getOpenCraftingContainer(container).map(ICraftingContainer::getCraftingGridWidth).orElse(0);
+	}
+
+	private static int getCraftingGridHeight(StorageContainerMenuBase<?> container) {
+		return getOpenCraftingContainer(container).map(ICraftingContainer::getCraftingGridHeight).orElse(0);
 	}
 
 	private static List<Slot> getRecipeSlots(StorageContainerMenuBase<?> container) {

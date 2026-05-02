@@ -11,6 +11,10 @@ import java.util.List;
 public interface ICraftingContainer {
 	List<Slot> getRecipeSlots();
 
+	int getCraftingGridWidth();
+
+	int getCraftingGridHeight();
+
 	Container getCraftMatrix();
 
 	void setRecipeUsed(ResourceKey<Recipe<?>> recipeId);

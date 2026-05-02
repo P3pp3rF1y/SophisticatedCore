@@ -181,9 +181,7 @@ sourceSets.main.resources {
 sourceSets.main.java {
     exclude 'net/p3pp3rf1y/sophisticatedcore/compat/accessories/**'
     exclude 'net/p3pp3rf1y/sophisticatedcore/compat/chipped/**'
-    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/craftingtweaks/**'
     exclude 'net/p3pp3rf1y/sophisticatedcore/compat/recipeviewers/rei/**'
-    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/trashslot/**'
 }
 
 configurations {
