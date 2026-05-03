@@ -11,8 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class CodecHelper {
 	public static final Codec<ItemStack> OVERSIZED_ITEM_STACK_CODEC = Codec.lazyInitialized(
@@ -68,5 +67,13 @@ public class CodecHelper {
 
 	public static <T> Codec<Set<T>> setOf(Codec<T> elementCodec) {
 		return new SetCodec<>(elementCodec);
+	}
+
+	public static <T> List<T> toMutable(List<T> list) {
+		return new ArrayList<>(list);
+	}
+
+	public static <K, V> Map<K, V> toMutable(Map<K, V> map) {
+		return new HashMap<>(map);
 	}
 }

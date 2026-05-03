@@ -219,6 +219,7 @@
   "gui.sophisticatedcore.buttons.confirm": "Confirm",
   "gui.sophisticatedcore.buttons.cancel": "Cancel",
   "gui.sophisticatedcore.buttons.transparent": "No Color",
+  "gui.sophisticatedcore.buttons.browse_results": "Open expanded output list with search",
   "gui.sophisticatedcore.buttons.upgrade_switch_enabled": "ON",
   "gui.sophisticatedcore.buttons.upgrade_switch_disabled": "OFF",
   "gui.sophisticatedcore.buttons.upgrade_switch_inactive": "INACTIVE",
