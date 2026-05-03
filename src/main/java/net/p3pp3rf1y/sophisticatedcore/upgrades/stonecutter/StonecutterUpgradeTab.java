@@ -9,8 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterRec
 import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterUpgradeTab;
 
 public class StonecutterUpgradeTab extends BlockConverterUpgradeTab<StonecutterRecipe, StonecutterRecipeContainer, StonecutterUpgradeContainer> {
-	public StonecutterUpgradeTab(StonecutterUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton) {
-		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("stonecutter"), TranslationHelper.INSTANCE.translUpgradeTooltip("stonecutter"), shiftClickTargetButton);
+	public StonecutterUpgradeTab(StonecutterUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillInputButton) {
+		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("stonecutter"), TranslationHelper.INSTANCE.translUpgradeTooltip("stonecutter"), shiftClickTargetButton, refillInputButton);
 	}
 
 	@Override
