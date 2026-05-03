@@ -15,6 +15,8 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
@@ -49,6 +51,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import org.joml.Matrix3x2fStack;
 import org.jspecify.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -92,8 +95,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private Button transferToStorageButton;
 	@Nullable
 	private Button transferToInventoryButton;
+	private int transferButtonsShiftX = 0;
 	private TextBox searchBox;
 	private Label noResultsLabel;
+	@Nullable
+	private WidgetBase modalOverlay;
 	private Predicate<ItemStack> stackFilter = stack -> searchBox == null || searchBox.getValue().isEmpty()
 			|| (!stack.isEmpty() && stack.getHoverName().getString().toLowerCase().contains(searchBox.getValue().toLowerCase()));
 	private int visibleSlotsCount;
@@ -122,6 +128,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public void resize(int width, int height) {
 		updateDimensionsAndSlotPositions(height);
 		super.resize(width, height);
+		centerModalOverlay();
 	}
 
 	private void updateDimensionsAndSlotPositions(int height) {
@@ -371,8 +378,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (transferToStorageButton == null || transferToInventoryButton == null) {
 			return;
 		}
-		transferToStorageButton.setPosition(new Position(leftPos + inventoryLabelX + 137, topPos + inventoryLabelY - 2));
-		transferToInventoryButton.setPosition(new Position(leftPos + inventoryLabelX + 149, topPos + inventoryLabelY - 2));
+		transferToStorageButton.setPosition(new Position(leftPos + inventoryLabelX + 137 + transferButtonsShiftX, topPos + inventoryLabelY - 2));
+		transferToInventoryButton.setPosition(new Position(leftPos + inventoryLabelX + 149 + transferButtonsShiftX, topPos + inventoryLabelY - 2));
 	}
 
 	public Optional<Position> getTransferToInventoryButtonPosition() {
@@ -382,12 +389,13 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return Optional.of(new Position(transferToInventoryButton.getX(), transferToInventoryButton.getY()));
 	}
 
-	public void shiftTransferButtons(int shiftX) {
-		if (transferToStorageButton == null || transferToInventoryButton == null || shiftX == 0) {
+	public void setTransferButtonsShift(int shiftX) {
+		if (transferButtonsShiftX == shiftX) {
 			return;
 		}
-		transferToStorageButton.setPosition(new Position(transferToStorageButton.getX() + shiftX, transferToStorageButton.getY()));
-		transferToInventoryButton.setPosition(new Position(transferToInventoryButton.getX() + shiftX, transferToInventoryButton.getY()));
+
+		transferButtonsShiftX = shiftX;
+		updateTransferButtonsPositions();
 	}
 
 	public void setExternalSearchPhrase(String searchPhrase) {
@@ -397,6 +405,18 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		} else {
 			getMenu().setSearchPhrase(phrase);
 			updateSearchFilter(phrase);
+		}
+	}
+
+	public void setModalOverlay(@Nullable WidgetBase modalOverlay) {
+		this.modalOverlay = modalOverlay;
+		centerModalOverlay();
+		setFocused(modalOverlay);
+	}
+
+	private void centerModalOverlay() {
+		if (modalOverlay != null) {
+			modalOverlay.setPosition(new Position((width - modalOverlay.getWidth()) / 2, (height - modalOverlay.getHeight()) / 2));
 		}
 	}
 
@@ -556,7 +576,20 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		}
 		renderErrorOverlay(guiGraphics);
-		renderTooltip(guiGraphics, mouseX, mouseY);
+		if (modalOverlay == null) {
+			renderTooltip(guiGraphics, mouseX, mouseY);
+		} else {
+			renderModalOverlay(guiGraphics, mouseX, mouseY, partialTicks);
+		}
+	}
+
+	private void renderModalOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		Matrix3x2fStack poseStack = guiGraphics.pose();
+		poseStack.pushMatrix();
+		guiGraphics.fill(0, 0, width, height, 0x99000000);
+		modalOverlay.render(guiGraphics, mouseX, mouseY, partialTicks);
+		modalOverlay.renderTooltip(this, guiGraphics, mouseX, mouseY);
+		poseStack.popMatrix();
 	}
 
 	private void renderSuper(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) { //copy of super.render with storage inventory slots rendering and snap rendering removed
@@ -910,6 +943,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public boolean mouseReleased(MouseButtonEvent event) {
+		if (modalOverlay != null) {
+			modalOverlay.mouseReleased(event);
+			return true;
+		}
+
 		for (UpgradeInventoryPartBase<?> inventoryPart : inventoryParts.values()) {
 			if (inventoryPart.handleMouseReleased(event)) {
 				return true;
@@ -1010,13 +1048,25 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClicked) {
-		Slot slot = getHoveredSlot(event.x(), event.y());
+		double mouseX = event.x();
+		double mouseY = event.y();
+		if (modalOverlay != null) {
+			if (modalOverlay.mouseClicked(event, doubleClicked)) {
+				return true;
+			}
+			if (!modalOverlay.isMouseOver(mouseX, mouseY)) {
+				setModalOverlay(null);
+			}
+			return true;
+		}
+
+		Slot slot = getHoveredSlot(mouseX, mouseY);
 		if (event.hasShiftDown() && event.hasControlDown() && slot instanceof StorageInventorySlot && event.button() == 0) {
 			ClientPacketDistributor.sendToServer(new TransferFullSlotPayload(slot.index));
 			return true;
 		}
 		GuiEventListener focused = getFocused();
-		if (focused != null && !focused.isMouseOver(event.x(), event.y()) && (focused instanceof WidgetBase widgetBase)) {
+		if (focused != null && !focused.isMouseOver(mouseX, mouseY) && (focused instanceof WidgetBase widgetBase)) {
 			widgetBase.setFocused(false);
 		}
 
@@ -1120,18 +1170,14 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-		if (getChildAt(mouseX, mouseY).filter(child -> child.mouseScrolled(mouseX, mouseY, scrollX, scrollY)).isPresent()) {
-			return true;
-		}
-
-		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-	}
-
-	@Override
 	public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
 		double mouseX = event.x();
 		double mouseY = event.y();
+		if (modalOverlay != null) {
+			modalOverlay.mouseDragged(event, dragX, dragY);
+			return true;
+		}
+
 		for (GuiEventListener child : children()) {
 			if (child.isMouseOver(mouseX, mouseY) && child.mouseDragged(event, dragX, dragY)) {
 				return true;
@@ -1152,6 +1198,37 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 
 		return super.mouseDragged(event, dragX, dragY);
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (modalOverlay != null) {
+			modalOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+			return true;
+		}
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+	}
+
+	@Override
+	public boolean keyPressed(KeyEvent event) {
+		if (modalOverlay != null) {
+			if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
+				setModalOverlay(null);
+				return true;
+			}
+			modalOverlay.keyPressed(event);
+			return true;
+		}
+		return super.keyPressed(event);
+	}
+
+	@Override
+	public boolean charTyped(CharacterEvent event) {
+		if (modalOverlay != null) {
+			modalOverlay.charTyped(event);
+			return true;
+		}
+		return super.charTyped(event);
 	}
 
 	private boolean isAllowedSlotCombination(Slot slot, ItemStack carried) {
@@ -1284,6 +1361,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected boolean isHovering(Slot slot, double mouseX, double mouseY) {
+		if (modalOverlay != null) {
+			return false;
+		}
 		return super.isHovering(slot, mouseX, mouseY) && getUpgradeSettingsControl().slotIsNotCoveredAt(slot, mouseX, mouseY);
 	}
 
