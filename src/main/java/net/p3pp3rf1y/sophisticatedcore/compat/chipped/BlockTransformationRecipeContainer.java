@@ -1,8 +1,14 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.chipped;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.common.base.Suppliers;
 import earth.terrarium.chipped.common.recipes.ChippedRecipe;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -14,23 +20,25 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.RecentCraftedResultStorage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BlockTransformationRecipeContainer {
 	private static final String DATA_SELECTED_RECIPE_INDEX = "selectedRecipeIndex";
+	private final BlockTransformationUpgradeContainer upgradeContainer;
 	private final RecipeType<ChippedRecipe> recipeType;
 	private final Slot inputSlot;
 	private final IServerUpdater serverUpdater;
@@ -45,9 +53,11 @@ public class BlockTransformationRecipeContainer {
 	private Runnable inventoryUpdateListener = () -> {};
 	private final Supplier<Optional<ItemStack>> getLastSelectedResult;
 	private final Consumer<ItemStack> setLastSelectedResult;
+	private final List<ResourceLocation> recentResultItems = new ArrayList<>();
 	private long lastOnTake = -1;
 
 	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
+		this.upgradeContainer = upgradeContainer;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
 			public void setChanged() {
@@ -83,6 +93,7 @@ public class BlockTransformationRecipeContainer {
 			inputItem = itemstack.getItem();
 			updateRecipe(inventoryIn, itemstack);
 		}
+		refreshRecentResultsFromClientCache();
 		inventoryUpdateListener.run();
 	}
 
@@ -145,6 +156,19 @@ public class BlockTransformationRecipeContainer {
 		return true;
 	}
 
+	public boolean isRecentResult(int resultIndex) {
+		return isIndexInRecipeBounds(resultIndex) && recentResultItems.contains(getItemRegistryName(results.get().get(resultIndex)));
+	}
+
+	public int getRecentResultOrder(int resultIndex) {
+		if (!isIndexInRecipeBounds(resultIndex)) {
+			return Integer.MAX_VALUE;
+		}
+
+		int recentIndex = recentResultItems.indexOf(getItemRegistryName(results.get().get(resultIndex)));
+		return recentIndex < 0 ? Integer.MAX_VALUE : recentIndex;
+	}
+
 	private boolean isIndexInRecipeBounds(int index) {
 		return recipe != null && index >= 0 && index < recipe.getResults(inputInventory.getItem(0)).count();
 	}
@@ -162,6 +186,121 @@ public class BlockTransformationRecipeContainer {
 		if (data.contains(DATA_SELECTED_RECIPE_INDEX)) {
 			selectRecipeIndex(data.getInt(DATA_SELECTED_RECIPE_INDEX));
 		}
+	}
+
+	public void refreshRecentResultsFromClientCache() {
+		updateClientRecentResults(inputSlot.getItem());
+	}
+
+	private void updateClientRecentResults(ItemStack ingredient) {
+		if (upgradeContainer.getPlayer().level().isClientSide) {
+			updateRecentResultItems(ingredient.isEmpty() ? List.of() : getClientRecentResults(ingredient));
+		}
+	}
+
+	private List<ResourceLocation> getClientRecentResults(ItemStack ingredient) {
+		List<ResourceLocation> recentResults = getMatchingIngredientKey(ingredient)
+				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
+				.orElse(List.of());
+		if (!recentResults.isEmpty()) {
+			return recentResults;
+		}
+
+		recentResults = getRecipeNamespaceIngredientKey(ingredient)
+				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
+				.orElse(List.of());
+		if (!recentResults.isEmpty()) {
+			return recentResults;
+		}
+
+		recentResults = RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient));
+		if (!recentResults.isEmpty()) {
+			return recentResults;
+		}
+
+		return getResultGroupKey()
+				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
+				.orElse(List.of());
+	}
+
+	private void updateRecentResultItems(List<ResourceLocation> recentResults) {
+		List<ResourceLocation> previousRecentResultItems = List.copyOf(recentResultItems);
+		recentResultItems.clear();
+		for (ResourceLocation result : recentResults) {
+			if (!recentResultItems.contains(result)) {
+				recentResultItems.add(result);
+			}
+		}
+		if (!previousRecentResultItems.equals(recentResultItems)) {
+			inventoryUpdateListener.run();
+		}
+	}
+
+	private ResourceLocation getRecipeScope() {
+		return BuiltInRegistries.RECIPE_TYPE.getKey(recipeType);
+	}
+
+	private ResourceLocation getItemRegistryName(ItemStack stack) {
+		return BuiltInRegistries.ITEM.getKey(stack.getItem());
+	}
+
+	private ResourceLocation getRecentResultsKey(ItemStack ingredient) {
+		return getMatchingIngredientKey(ingredient).orElseGet(() -> getResultGroupKey().orElseGet(() -> getItemRegistryName(ingredient)));
+	}
+
+	private Optional<ResourceLocation> getRecipeNamespaceIngredientKey(ItemStack ingredient) {
+		if (recipe == null || ingredient.isEmpty()) {
+			return Optional.empty();
+		}
+
+		return Optional.of(new ResourceLocation(recipe.getId().getNamespace(), getItemRegistryName(ingredient).getPath()));
+	}
+
+	private Optional<ResourceLocation> getMatchingIngredientKey(ItemStack inputStack) {
+		if (recipe == null || inputStack.isEmpty()) {
+			return Optional.empty();
+		}
+
+		for (Ingredient ingredient : recipe.getIngredients()) {
+			if (ingredient.test(inputStack)) {
+				Optional<ResourceLocation> ingredientKey = getIngredientGroupKey(ingredient);
+				if (ingredientKey.isPresent()) {
+					return ingredientKey;
+				}
+			}
+		}
+		return Optional.empty();
+	}
+
+	private Optional<ResourceLocation> getIngredientGroupKey(Ingredient ingredient) {
+		ItemStack[] matchingItems = ingredient.getItems();
+		if (matchingItems.length > 0) {
+			return Optional.of(new ResourceLocation(recipe.getId().getNamespace(), getItemRegistryName(matchingItems[0]).getPath()));
+		}
+
+		return getIngredientKey(ingredient);
+	}
+
+	private Optional<ResourceLocation> getIngredientKey(Ingredient ingredient) {
+		JsonElement ingredientJson = ingredient.toJson();
+		if (!(ingredientJson instanceof JsonObject ingredientObject)) {
+			return Optional.empty();
+		}
+
+		if (ingredientObject.has("tag")) {
+			return Optional.of(new ResourceLocation(ingredientObject.get("tag").getAsString()));
+		}
+		return Optional.empty();
+	}
+
+	private Optional<ResourceLocation> getResultGroupKey() {
+		List<String> resultIds = results.get().stream().map(result -> getItemRegistryName(result).toString()).sorted().toList();
+		if (resultIds.isEmpty()) {
+			return Optional.empty();
+		}
+
+		UUID resultGroupId = UUID.nameUUIDFromBytes(String.join("|", resultIds).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+		return Optional.of(SophisticatedCore.getRL("result_group/" + resultGroupId));
 	}
 
 	public boolean isNotResultSlot(Slot slot) {
@@ -183,6 +322,11 @@ public class BlockTransformationRecipeContainer {
 
 		@Override
 		public void onTake(Player thePlayer, ItemStack stack) {
+			if (upgradeContainer.getPlayer().level() instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(thePlayer, getRecipeScope(), getRecentResultsKey(inputSlot.getItem()), getItemRegistryName(stack))) {
+				if (thePlayer instanceof ServerPlayer serverPlayer) {
+					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
+				}
+			}
 			stack.onCraftedBy(thePlayer.level(), thePlayer, stack.getCount());
 			resultInventory.awardUsedRecipes(thePlayer, List.of(inputSlot.getItem()));
 			ItemStack itemstack = inputSlot.remove(1);

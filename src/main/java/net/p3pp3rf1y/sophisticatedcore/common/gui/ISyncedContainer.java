@@ -4,4 +4,8 @@ import net.minecraft.nbt.CompoundTag;
 
 public interface ISyncedContainer {
 	void handleMessage(CompoundTag data);
+
+	default void handlePacket(CompoundTag data) {
+		handleMessage(data);
+	}
 }

@@ -1,8 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.stonecutter;
 
 import com.google.common.collect.Lists;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -19,10 +22,12 @@ import net.minecraft.world.item.crafting.StonecutterRecipe;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.RecentCraftedResultStorage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.CraftingItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -42,6 +47,7 @@ public class StonecutterRecipeContainer {
 	private Runnable inventoryUpdateListener = () -> {};
 	private final Supplier<Optional<ResourceLocation>> getLastSelectedRecipeId;
 	private final Consumer<ResourceLocation> setLastSelectedRecipeId;
+	private final List<ResourceLocation> recentResultItems = new ArrayList<>();
 	private long lastOnTake = -1;
 
 	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level) {
@@ -80,6 +86,7 @@ public class StonecutterRecipeContainer {
 			inputItem = itemstack.getItem();
 			updateAvailableRecipes(inventoryIn, itemstack);
 		}
+		refreshRecentResultsFromClientCache();
 		inventoryUpdateListener.run();
 	}
 
@@ -134,6 +141,19 @@ public class StonecutterRecipeContainer {
 		return true;
 	}
 
+	public boolean isRecentResult(int resultIndex) {
+		return isIndexInRecipeBounds(resultIndex) && recentResultItems.contains(getItemRegistryName(recipes.get(resultIndex).getResultItem(level.registryAccess())));
+	}
+
+	public int getRecentResultOrder(int resultIndex) {
+		if (!isIndexInRecipeBounds(resultIndex)) {
+			return Integer.MAX_VALUE;
+		}
+
+		int recentIndex = recentResultItems.indexOf(getItemRegistryName(recipes.get(resultIndex).getResultItem(level.registryAccess())));
+		return recentIndex < 0 ? Integer.MAX_VALUE : recentIndex;
+	}
+
 	private boolean isIndexInRecipeBounds(int index) {
 		return index >= 0 && index < recipes.size();
 	}
@@ -152,6 +172,37 @@ public class StonecutterRecipeContainer {
 		if (data.contains(DATA_SELECTED_RECIPE_INDEX)) {
 			selectRecipe(data.getInt(DATA_SELECTED_RECIPE_INDEX));
 		}
+	}
+
+	public void refreshRecentResultsFromClientCache() {
+		updateClientRecentResults(inputSlot.getItem());
+	}
+
+	private void updateClientRecentResults(ItemStack ingredient) {
+		if (level.isClientSide) {
+			updateRecentResultItems(ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
+		}
+	}
+
+	private void updateRecentResultItems(List<ResourceLocation> recentResults) {
+		List<ResourceLocation> previousRecentResultItems = List.copyOf(recentResultItems);
+		recentResultItems.clear();
+		for (ResourceLocation result : recentResults) {
+			if (!recentResultItems.contains(result)) {
+				recentResultItems.add(result);
+			}
+		}
+		if (!previousRecentResultItems.equals(recentResultItems)) {
+			inventoryUpdateListener.run();
+		}
+	}
+
+	private ResourceLocation getRecipeScope() {
+		return BuiltInRegistries.RECIPE_TYPE.getKey(RecipeType.STONECUTTING);
+	}
+
+	private ResourceLocation getItemRegistryName(ItemStack stack) {
+		return BuiltInRegistries.ITEM.getKey(stack.getItem());
 	}
 
 	public boolean isNotResultSlot(Slot slot) {
@@ -173,6 +224,11 @@ public class StonecutterRecipeContainer {
 
 		@Override
 		public void onTake(Player player, ItemStack stack) {
+			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(), getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
+				if (player instanceof ServerPlayer serverPlayer) {
+					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
+				}
+			}
 			stack.onCraftedBy(player.level(), player, stack.getCount());
 			resultInventory.awardUsedRecipes(player, List.of(inputSlot.getItem()));
 			ItemStack itemstack = inputSlot.remove(1);

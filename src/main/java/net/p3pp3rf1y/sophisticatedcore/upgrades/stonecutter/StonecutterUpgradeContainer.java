@@ -6,9 +6,10 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.IRecentCraftedResultsRefresh;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-public class StonecutterUpgradeContainer extends UpgradeContainerBase<StonecutterUpgradeWrapper, StonecutterUpgradeContainer> {
+public class StonecutterUpgradeContainer extends UpgradeContainerBase<StonecutterUpgradeWrapper, StonecutterUpgradeContainer> implements IRecentCraftedResultsRefresh {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
 	private final StonecutterRecipeContainer recipeContainer;
 
@@ -29,6 +30,11 @@ public class StonecutterUpgradeContainer extends UpgradeContainerBase<Stonecutte
 
 	public boolean shouldShiftClickIntoStorage() {
 		return upgradeWrapper.shouldShiftClickIntoStorage();
+	}
+
+	@Override
+	public void refreshRecentResultsFromClientCache() {
+		recipeContainer.refreshRecentResultsFromClientCache();
 	}
 
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {

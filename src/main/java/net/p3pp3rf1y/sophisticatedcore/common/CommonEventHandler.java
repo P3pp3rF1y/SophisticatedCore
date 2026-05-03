@@ -1,13 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.common;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.RecentCraftedResultStorage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.magnet.MagnetUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.CoreFakePlayer;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
@@ -26,6 +29,13 @@ public class CommonEventHandler {
 		eventBus.addListener(MagnetUpgradeWrapper::globalPostTick);
 		eventBus.addListener(MagnetUpgradeWrapper::onWorldUnload);
 		eventBus.addListener(CoreFakePlayer::onDimensionUnload);
+		eventBus.addListener(CommonEventHandler::onPlayerLoggedIn);
+	}
+
+	private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+		if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+			RecentCraftedResultStorage.syncToPlayer(serverPlayer);
+		}
 	}
 
 	public static void onTickEnd(TickEvent.ServerTickEvent event) {
