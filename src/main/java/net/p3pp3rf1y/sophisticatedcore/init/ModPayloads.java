@@ -17,6 +17,7 @@ public class ModPayloads {
 		registrar.playToServer(TransferFullSlotPayload.TYPE, TransferFullSlotPayload.STREAM_CODEC, TransferFullSlotPayload::handlePayload);
 		registrar.playToClient(SyncContainerStacksPayload.TYPE, SyncContainerStacksPayload.STREAM_CODEC, SyncContainerStacksPayload::handlePayload);
 		registrar.playToClient(SyncSlotStackPayload.TYPE, SyncSlotStackPayload.STREAM_CODEC, SyncSlotStackPayload::handlePayload);
+		registrar.playToClient(SyncRecentCraftedResultsPayload.TYPE, SyncRecentCraftedResultsPayload.STREAM_CODEC, SyncRecentCraftedResultsPayload::handlePayload);
 		registrar.playToClient(SyncPlayerSettingsPayload.TYPE, SyncPlayerSettingsPayload.STREAM_CODEC, SyncPlayerSettingsPayload::handlePayload);
 		registrar.playToClient(PlayDiscPayload.TYPE, PlayDiscPayload.STREAM_CODEC, PlayDiscPayload::handlePayload);
 		registrar.playToClient(StopDiscPlaybackPayload.TYPE, StopDiscPlaybackPayload.STREAM_CODEC, StopDiscPlaybackPayload::handlePayload);

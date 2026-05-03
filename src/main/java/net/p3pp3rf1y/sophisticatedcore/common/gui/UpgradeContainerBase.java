@@ -78,6 +78,10 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 		return upgradeWrapper;
 	}
 
+	public Player getPlayer() {
+		return player;
+	}
+
 	public void setUpgradeWrapper(IUpgradeWrapper updatedUpgradeWrapper) {
 		//noinspection unchecked - only used in logic that makes sure the item is the same and the same item will have a wrapper with the same (W) class
 		upgradeWrapper = (W) updatedUpgradeWrapper;
