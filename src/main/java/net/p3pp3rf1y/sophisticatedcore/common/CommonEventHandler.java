@@ -1,13 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.common;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.init.ModPayloads;
 import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.RecentCraftedResultStorage;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.ServerStorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.magnet.MagnetUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.CoreFakePlayer;
@@ -29,6 +32,13 @@ public class CommonEventHandler {
 		eventBus.addListener(MagnetUpgradeWrapper::globalPostTick);
 		eventBus.addListener(MagnetUpgradeWrapper::onWorldUnload);
 		eventBus.addListener(CoreFakePlayer::onDimensionUnload);
+		eventBus.addListener(CommonEventHandler::onPlayerLoggedIn);
+	}
+
+	private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+		if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+			RecentCraftedResultStorage.syncToPlayer(serverPlayer);
+		}
 	}
 
 	public static void onTickEnd(ServerTickEvent.Post event) {

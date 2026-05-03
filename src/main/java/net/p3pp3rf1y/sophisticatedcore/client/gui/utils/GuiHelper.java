@@ -178,6 +178,66 @@ public class GuiHelper {
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x + halfWidth, y + halfHeight, (float) u + textureBgWidth - halfWidth, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 	}
 
+	public static void renderTabBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height) {
+		int halfHeight = height / 2;
+		int secondHalfHeight = halfHeight + height % 2;
+		if (width <= GUI_CONTROLS_TEXTURE_WIDTH / 2) {
+			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y, (float) GUI_CONTROLS_TEXTURE_WIDTH - width, 0, width, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) GUI_CONTROLS_TEXTURE_WIDTH - width, (float) GUI_CONTROLS_TEXTURE_HEIGHT - secondHalfHeight, width, secondHalfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x - 3, y, GUI_CONTROLS_TEXTURE_WIDTH / 2, GUI_CONTROLS_TEXTURE_HEIGHT - height, 3, height, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+			return;
+		}
+
+		renderTiledControlBackground(guiGraphics, x, y, width, height, GUI_CONTROLS_TEXTURE_WIDTH / 2, 0, GUI_CONTROLS_TEXTURE_WIDTH / 2, GUI_CONTROLS_TEXTURE_HEIGHT, 6, 6, halfHeight, secondHalfHeight);
+	}
+
+	public static void renderTiledControlBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight) {
+		renderTiledControlBackground(guiGraphics, x, y, width, height, u, v, textureWidth, textureHeight, 1);
+	}
+
+	public static void renderTiledControlBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight, int borderWidth) {
+		renderTiledControlBackground(guiGraphics, x, y, width, height, u, v, textureWidth, textureHeight, borderWidth, borderWidth, borderWidth, borderWidth);
+	}
+
+	public static void renderTiledControlBackground(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight, int leftWidth, int rightWidth, int topHeight, int bottomHeight) {
+		rightWidth = Math.min(rightWidth, width - leftWidth);
+		bottomHeight = Math.min(bottomHeight, height - topHeight);
+		int sourceRightU = u + textureWidth - rightWidth;
+		int sourceBottomV = v + textureHeight - bottomHeight;
+		int centerWidth = width - leftWidth - rightWidth;
+		int centerHeight = height - topHeight - bottomHeight;
+		int sourceCenterWidth = textureWidth - leftWidth - rightWidth;
+		int sourceCenterHeight = textureHeight - topHeight - bottomHeight;
+
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y, (float) u, (float) v, leftWidth, topHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x + leftWidth + centerWidth, y, (float) sourceRightU, (float) v, rightWidth, topHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y + topHeight + centerHeight, (float) u, (float) sourceBottomV, leftWidth, bottomHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x + leftWidth + centerWidth, y + topHeight + centerHeight, (float) sourceRightU, (float) sourceBottomV, rightWidth, bottomHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+
+		renderTiledTexture(guiGraphics, x + leftWidth, y, centerWidth, topHeight, u + leftWidth, v, sourceCenterWidth, topHeight);
+		renderTiledTexture(guiGraphics, x + leftWidth, y + topHeight + centerHeight, centerWidth, bottomHeight, u + leftWidth, sourceBottomV, sourceCenterWidth, bottomHeight);
+		renderTiledTexture(guiGraphics, x, y + topHeight, leftWidth, centerHeight, u, v + topHeight, leftWidth, sourceCenterHeight);
+		renderTiledTexture(guiGraphics, x + leftWidth + centerWidth, y + topHeight, rightWidth, centerHeight, sourceRightU, v + topHeight, rightWidth, sourceCenterHeight);
+		renderTiledTexture(guiGraphics, x + leftWidth, y + topHeight, centerWidth, centerHeight, u + leftWidth, v + topHeight, sourceCenterWidth, sourceCenterHeight);
+	}
+
+	private static void renderTiledTexture(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight) {
+		if (width <= 0 || height <= 0 || textureWidth <= 0 || textureHeight <= 0) {
+			return;
+		}
+		int renderedY = 0;
+		while (renderedY < height) {
+			int chunkHeight = Math.min(textureHeight, height - renderedY);
+			int renderedX = 0;
+			while (renderedX < width) {
+				int chunkWidth = Math.min(textureWidth, width - renderedX);
+				guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x + renderedX, y + renderedY, (float) u, (float) v, chunkWidth, chunkHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+				renderedX += chunkWidth;
+			}
+			renderedY += chunkHeight;
+		}
+	}
+
 	private static MultiBufferSource.BufferSource getBufferSource() {
 		return Minecraft.getInstance().renderBuffers().bufferSource();
 	}
