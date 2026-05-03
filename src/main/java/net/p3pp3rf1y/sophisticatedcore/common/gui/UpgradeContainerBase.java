@@ -5,6 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.network.SyncContainerClientDataPayload;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
@@ -76,6 +77,10 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 
 	public W getUpgradeWrapper() {
 		return upgradeWrapper;
+	}
+
+	public Player getPlayer() {
+		return player;
 	}
 
 	public void setUpgradeWrapper(IUpgradeWrapper updatedUpgradeWrapper) {

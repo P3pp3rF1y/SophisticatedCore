@@ -9,7 +9,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-public abstract class BlockConverterUpgradeContainer<R extends SingleItemRecipe, W extends BlockConverterUpgradeWrapper<?, ?>, C extends BlockConverterUpgradeContainer<R, W, C, RC>, RC extends BlockConverterRecipeContainer<R, W, RC, C>> extends UpgradeContainerBase<W, C> {
+public abstract class BlockConverterUpgradeContainer<R extends SingleItemRecipe, W extends BlockConverterUpgradeWrapper<?, ?>, C extends BlockConverterUpgradeContainer<R, W, C, RC>, RC extends BlockConverterRecipeContainer<R, W, RC, C>> extends UpgradeContainerBase<W, C> implements IRecentCraftedResultsRefresh {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
 	private final RC recipeContainer;
 
@@ -38,6 +38,11 @@ public abstract class BlockConverterUpgradeContainer<R extends SingleItemRecipe,
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
 		upgradeWrapper.setShiftClickIntoStorage(shiftClickIntoStorage);
 		sendDataToServer(() -> NBTHelper.putBoolean(new CompoundTag(), DATA_SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage));
+	}
+
+	@Override
+	public void refreshRecentResultsFromClientCache() {
+		recipeContainer.refreshRecentResultsFromClientCache();
 	}
 
 	@Override

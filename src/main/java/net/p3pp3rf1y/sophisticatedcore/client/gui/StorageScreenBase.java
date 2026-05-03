@@ -48,6 +48,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import org.joml.Matrix3x2fStack;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.text.NumberFormat;
@@ -92,8 +93,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private Button transferToStorageButton;
 	@Nullable
 	private Button transferToInventoryButton;
+	private int transferButtonsShiftX = 0;
 	private TextBox searchBox;
 	private Label noResultsLabel;
+	@Nullable
+	private WidgetBase modalOverlay;
 	private Predicate<ItemStack> stackFilter = stack -> searchBox == null || searchBox.getValue().isEmpty()
 			|| (!stack.isEmpty() && stack.getHoverName().getString().toLowerCase().contains(searchBox.getValue().toLowerCase()));
 	private int visibleSlotsCount;
@@ -122,6 +126,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	public void resize(Minecraft minecraft, int width, int height) {
 		updateDimensionsAndSlotPositions(height);
 		super.resize(minecraft, width, height);
+		centerModalOverlay();
 	}
 
 	private void updateDimensionsAndSlotPositions(int height) {
@@ -371,8 +376,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (transferToStorageButton == null || transferToInventoryButton == null) {
 			return;
 		}
-		transferToStorageButton.setPosition(new Position(leftPos + inventoryLabelX + 137, topPos + inventoryLabelY - 2));
-		transferToInventoryButton.setPosition(new Position(leftPos + inventoryLabelX + 149, topPos + inventoryLabelY - 2));
+		transferToStorageButton.setPosition(new Position(leftPos + inventoryLabelX + 137 + transferButtonsShiftX, topPos + inventoryLabelY - 2));
+		transferToInventoryButton.setPosition(new Position(leftPos + inventoryLabelX + 149 + transferButtonsShiftX, topPos + inventoryLabelY - 2));
 	}
 
 	public Optional<Position> getTransferToInventoryButtonPosition() {
@@ -382,12 +387,13 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return Optional.of(new Position(transferToInventoryButton.getX(), transferToInventoryButton.getY()));
 	}
 
-	public void shiftTransferButtons(int shiftX) {
-		if (transferToStorageButton == null || transferToInventoryButton == null || shiftX == 0) {
+	public void setTransferButtonsShift(int shiftX) {
+		if (transferButtonsShiftX == shiftX) {
 			return;
 		}
-		transferToStorageButton.setPosition(new Position(transferToStorageButton.getX() + shiftX, transferToStorageButton.getY()));
-		transferToInventoryButton.setPosition(new Position(transferToInventoryButton.getX() + shiftX, transferToInventoryButton.getY()));
+
+		transferButtonsShiftX = shiftX;
+		updateTransferButtonsPositions();
 	}
 
 	public void setExternalSearchPhrase(String searchPhrase) {
@@ -397,6 +403,18 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		} else {
 			getMenu().setSearchPhrase(phrase);
 			updateSearchFilter(phrase);
+		}
+	}
+
+	public void setModalOverlay(@Nullable WidgetBase modalOverlay) {
+		this.modalOverlay = modalOverlay;
+		centerModalOverlay();
+		setFocused(modalOverlay);
+	}
+
+	private void centerModalOverlay() {
+		if (modalOverlay != null) {
+			modalOverlay.setPosition(new Position((width - modalOverlay.getWidth()) / 2, (height - modalOverlay.getHeight()) / 2));
 		}
 	}
 
@@ -563,7 +581,20 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		upgradeSwitches.forEach(us -> us.render(guiGraphics, mouseX, mouseY, partialTicks));
 		renderErrorOverlay(guiGraphics);
-		renderTooltip(guiGraphics, mouseX, mouseY);
+		if (modalOverlay == null) {
+			renderTooltip(guiGraphics, mouseX, mouseY);
+		} else {
+			renderModalOverlay(guiGraphics, mouseX, mouseY, partialTicks);
+		}
+	}
+
+	private void renderModalOverlay(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+		Matrix3x2fStack pose = guiGraphics.pose();
+		pose.pushMatrix();
+		guiGraphics.fill(0, 0, width, height, 0x99000000);
+		modalOverlay.render(guiGraphics, mouseX, mouseY, partialTicks);
+		modalOverlay.renderTooltip(this, guiGraphics, mouseX, mouseY);
+		pose.popMatrix();
 	}
 
 	@SuppressWarnings("java:S4449")
@@ -911,6 +942,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		if (modalOverlay != null) {
+			modalOverlay.mouseReleased(mouseX, mouseY, button);
+			return true;
+		}
+
 		for (UpgradeInventoryPartBase<?> inventoryPart : inventoryParts.values()) {
 			if (inventoryPart.handleMouseReleased(mouseX, mouseY, button)) {
 				return true;
@@ -1011,7 +1047,17 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		Slot slot = getHoveredSlot(mouseX, mouseY);
+		if (modalOverlay != null) {
+			if (modalOverlay.mouseClicked(mouseX, mouseY, button)) {
+				return true;
+			}
+			if (!modalOverlay.isMouseOver(mouseX, mouseY)) {
+				setModalOverlay(null);
+			}
+			return true;
+		}
+
+		Slot slot = findSlot(mouseX, mouseY);
 		if (hasShiftDown() && hasControlDown() && slot instanceof StorageInventorySlot && button == 0) {
 			ClientPacketDistributor.sendToServer(new TransferFullSlotPayload(slot.index));
 			return true;
@@ -1125,6 +1171,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		if (modalOverlay != null) {
+			modalOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+			return true;
+		}
 		if (getChildAt(mouseX, mouseY).filter(child -> child.mouseScrolled(mouseX, mouseY, scrollX, scrollY)).isPresent()) {
 			return true;
 		}
@@ -1134,6 +1184,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+		if (modalOverlay != null) {
+			modalOverlay.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+			return true;
+		}
+
 		for (GuiEventListener child : children()) {
 			if (child.isMouseOver(mouseX, mouseY) && child.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
 				return true;
@@ -1154,6 +1209,28 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 
 		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+	}
+
+	@Override
+	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+		if (modalOverlay != null) {
+			if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+				setModalOverlay(null);
+				return true;
+			}
+			modalOverlay.keyPressed(keyCode, scanCode, modifiers);
+			return true;
+		}
+		return super.keyPressed(keyCode, scanCode, modifiers);
+	}
+
+	@Override
+	public boolean charTyped(char codePoint, int modifiers) {
+		if (modalOverlay != null) {
+			modalOverlay.charTyped(codePoint, modifiers);
+			return true;
+		}
+		return super.charTyped(codePoint, modifiers);
 	}
 
 	private boolean isAllowedSlotCombination(Slot slot, ItemStack carried) {
@@ -1286,6 +1363,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected boolean isHovering(Slot slot, double mouseX, double mouseY) {
+		if (modalOverlay != null) {
+			return false;
+		}
 		return super.isHovering(slot, mouseX, mouseY) && getUpgradeSettingsControl().slotIsNotCoveredAt(slot, mouseX, mouseY);
 	}
 
