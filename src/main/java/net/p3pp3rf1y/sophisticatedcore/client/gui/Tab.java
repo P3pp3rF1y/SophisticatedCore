@@ -21,8 +21,6 @@ import java.util.function.Function;
 import java.util.function.IntConsumer;
 
 public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
-	private static final int TEXTURE_WIDTH = 256;
-	private static final int TEXTURE_HEIGHT = 256;
 	public static final int DEFAULT_HEIGHT = 24;
 	protected static final int DEFAULT_WIDTH = 21;
 
@@ -88,12 +86,7 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		int halfHeight = height / 2;
-		int oddHeightAddition = height % 2;
-		int secondHalfHeight = halfHeight + oddHeightAddition;
-		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y, (float) TEXTURE_WIDTH - width, 0, width, halfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) TEXTURE_WIDTH - width, (float) TEXTURE_HEIGHT - secondHalfHeight, width, secondHalfHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, GuiHelper.GUI_CONTROLS, x - 3, y, TEXTURE_WIDTH / 2, TEXTURE_HEIGHT - height, 3, height, 256, 256);
+		GuiHelper.renderTabBackground(guiGraphics, x, y, width, height);
 	}
 
 	protected boolean isClosedTooltipVisible(int mouseX, int mouseY) {
