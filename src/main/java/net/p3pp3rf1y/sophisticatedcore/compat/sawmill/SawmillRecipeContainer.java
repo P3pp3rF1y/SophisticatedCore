@@ -44,6 +44,10 @@ public class SawmillRecipeContainer extends BlockConverterRecipeContainer<Woodcu
 
 	@Override
 	protected int getInputCount() {
+		if (getSelectedRecipe() < 0 || getSelectedRecipe() >= getRecipeList().size()) {
+			return 0;
+		}
+
 		return getRecipeList().get(getSelectedRecipe()).value().getInputCount();
 	}
 }
