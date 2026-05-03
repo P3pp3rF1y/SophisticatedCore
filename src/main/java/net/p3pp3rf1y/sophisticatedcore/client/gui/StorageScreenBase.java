@@ -577,6 +577,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		renderErrorOverlay(guiGraphics);
 		if (modalOverlay == null) {
+			settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 			renderTooltip(guiGraphics, mouseX, mouseY);
 		} else {
 			renderModalOverlay(guiGraphics, mouseX, mouseY, partialTicks);
@@ -1206,6 +1207,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			modalOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 			return true;
 		}
+		if (getChildAt(mouseX, mouseY).filter(child -> child.mouseScrolled(mouseX, mouseY, scrollX, scrollY)).isPresent()) {
+			return true;
+		}
+
 		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 

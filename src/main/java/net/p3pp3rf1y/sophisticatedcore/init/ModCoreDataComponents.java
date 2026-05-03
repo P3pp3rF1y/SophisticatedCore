@@ -63,6 +63,9 @@ public class ModCoreDataComponents {
 	public static final Supplier<DataComponentType<Boolean>> REFILL_CRAFTING_GRID = DATA_COMPONENT_TYPES.register("refill_crafting_grid",
 			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
 
+	public static final Supplier<DataComponentType<Boolean>> REFILL_INPUT = DATA_COMPONENT_TYPES.register("refill_input",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+
 	public static final Supplier<DataComponentType<SimpleItemContent>> INPUT_ITEM = DATA_COMPONENT_TYPES.register("input_item",
 			() -> new DataComponentType.Builder<SimpleItemContent>().persistent(SimpleItemContent.CODEC).networkSynchronized(SimpleItemContent.STREAM_CODEC).build());
 
