@@ -18,12 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.LargeResultSelector;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +32,7 @@ public class StonecutterRecipeControl extends WidgetBase {
 	private static final TextureBlitData LIST_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 146), new Dimension(81, 56));
 	private static final TextureBlitData RESULT_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 146), new Dimension(66, 56));
 	private static final TextureBlitData SCROLLBAR_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(96, 146), new Dimension(14, 56));
-	private static final TextureBlitData BROWSE_BUTTON_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(49, 157), Dimension.SQUARE_12);
+	private static final TextureBlitData BROWSE_BUTTON_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(2, 2), Dimension.SQUARE_256, new UV(49, 157), Dimension.SQUARE_12);
 	private static final ButtonDefinition BROWSE_RESULTS = new ButtonDefinition(new Dimension(14, 14), GuiHelper.DEFAULT_BUTTON_BACKGROUND, GuiHelper.DEFAULT_BUTTON_HOVERED_BACKGROUND, BROWSE_BUTTON_FOREGROUND,
 			Component.translatable(TranslationHelper.INSTANCE.translButton("browse_results")));
 

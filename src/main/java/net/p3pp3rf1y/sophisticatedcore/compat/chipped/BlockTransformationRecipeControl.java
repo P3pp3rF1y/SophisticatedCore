@@ -17,12 +17,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Button;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.LargeResultSelector;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.WidgetBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +39,6 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 	private static final int INPUT_SLOT_HEIGHT = 18;
 	private static final int SPACING = 4;
 	private static final int SCROLLBAR_X_OFFSET = 67;
-	private static final int SCROLLBAR_HEIGHT = 54;
 	private static final int BROWSE_BUTTON_SIZE = 14;
 
 	private boolean clickedOnScroll;

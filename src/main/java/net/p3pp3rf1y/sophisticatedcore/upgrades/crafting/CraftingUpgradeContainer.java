@@ -297,4 +297,9 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	public boolean allowsPickupAll(Slot slot) {
 		return slot != craftingResultSlot;
 	}
+
+	@Override
+	public int getRepeatedQuickMoveLimit(Slot slot, ItemStack transferredStack) {
+		return slot == craftingResultSlot && shouldRefillCraftingGrid() ? transferredStack.getMaxStackSize() : 0;
+	}
 }

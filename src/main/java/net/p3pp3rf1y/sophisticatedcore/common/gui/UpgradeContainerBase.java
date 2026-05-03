@@ -115,6 +115,11 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 		return true;
 	}
 
+	@SuppressWarnings({"unused", "java:S1172"}) //parameters are used in overrides
+	public int getRepeatedQuickMoveLimit(Slot slot, ItemStack transferredStack) {
+		return 0;
+	}
+
 	public int getUpgradeContainerId() {
 		return upgradeContainerId;
 	}

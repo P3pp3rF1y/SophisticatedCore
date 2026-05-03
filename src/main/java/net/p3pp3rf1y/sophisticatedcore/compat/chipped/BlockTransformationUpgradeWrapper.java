@@ -7,6 +7,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.Optional;
@@ -64,6 +65,19 @@ public class BlockTransformationUpgradeWrapper extends UpgradeWrapperBase<BlockT
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
 		NBTHelper.setBoolean(upgrade, "shiftClickIntoStorage", shiftClickIntoStorage);
 		save();
+	}
+
+	public boolean shouldRefillInput() {
+		return NBTHelper.getBoolean(upgrade, "refill_input").orElse(false);
+	}
+
+	public void setRefillInput(boolean refillInput) {
+		NBTHelper.setBoolean(upgrade, "refill_input", refillInput);
+		save();
+	}
+
+	public ItemStack extractFromStorage(ItemStack stack, boolean simulate) {
+		return InventoryHelper.extractFromInventory(stack, storageWrapper.getInventoryHandler(), simulate);
 	}
 
 	public RecipeType<ChippedRecipe> getRecipeType() {

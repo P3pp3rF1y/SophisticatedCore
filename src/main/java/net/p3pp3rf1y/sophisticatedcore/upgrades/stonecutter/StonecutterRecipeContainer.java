@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 
 public class StonecutterRecipeContainer {
 	private static final String DATA_SELECTED_RECIPE_INDEX = "selectedRecipeIndex";
+	private final StonecutterUpgradeContainer upgradeContainer;
 	private final Slot inputSlot;
 	private final IServerUpdater serverUpdater;
 	private final Level level;
@@ -51,6 +52,7 @@ public class StonecutterRecipeContainer {
 	private long lastOnTake = -1;
 
 	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level) {
+		this.upgradeContainer = upgradeContainer;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
 			public void setChanged() {
@@ -229,10 +231,13 @@ public class StonecutterRecipeContainer {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}
 			}
+			ItemStack inputStack = inputSlot.getItem().copy();
+			int inputCount = 1;
 			stack.onCraftedBy(player.level(), player, stack.getCount());
 			resultInventory.awardUsedRecipes(player, List.of(inputSlot.getItem()));
-			ItemStack itemstack = inputSlot.remove(1);
+			ItemStack itemstack = inputSlot.remove(inputCount);
 			if (!itemstack.isEmpty()) {
+				tryRefillInput(inputStack, inputCount);
 				updateRecipeResultSlot();
 			}
 
@@ -245,5 +250,17 @@ public class StonecutterRecipeContainer {
 			});
 			super.onTake(player, stack);
 		}
+	}
+
+	private boolean tryRefillInput(ItemStack inputStack, int inputCount) {
+		if (!inputStack.isEmpty() && inputCount > 0 && inputSlot.getItem().isEmpty() && upgradeContainer.shouldRefillInput()) {
+			ItemStack extracted = upgradeContainer.getUpgradeWrapper().extractFromStorage(inputStack.copyWithCount(inputCount), false);
+			if (extracted.getCount() == inputCount) {
+				inputSlot.safeInsert(extracted, inputCount);
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
