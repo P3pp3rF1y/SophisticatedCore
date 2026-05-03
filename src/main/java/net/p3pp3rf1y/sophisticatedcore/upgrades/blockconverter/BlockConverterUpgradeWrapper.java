@@ -8,6 +8,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
+import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import javax.annotation.Nullable;
@@ -64,5 +65,18 @@ public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgra
 	public void setShiftClickIntoStorage(boolean shiftClickIntoStorage) {
 		upgrade.set(ModCoreDataComponents.SHIFT_CLICK_INTO_STORAGE, shiftClickIntoStorage);
 		save();
+	}
+
+	public boolean shouldRefillInput() {
+		return upgrade.getOrDefault(ModCoreDataComponents.REFILL_INPUT, false);
+	}
+
+	public void setRefillInput(boolean refillInput) {
+		upgrade.set(ModCoreDataComponents.REFILL_INPUT, refillInput);
+		save();
+	}
+
+	public ItemStack extractFromStorage(ItemStack stack, boolean simulate) {
+		return InventoryHelper.extractFromInventory(stack, storageWrapper.getInventoryHandler(), simulate);
 	}
 }

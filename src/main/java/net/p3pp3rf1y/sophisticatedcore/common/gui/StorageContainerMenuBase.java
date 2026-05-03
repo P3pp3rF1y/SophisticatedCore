@@ -1154,11 +1154,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				if (isStorageInventorySlot(slotId)) {
 					quickMoveStack(this.player, slotId).copy();
 				} else {
+					Optional<UpgradeContainerBase<?, ?>> upgradeContainer = getSlotUpgradeContainer(slot6);
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					if (getOpenOrFirstCraftingContainer(RecipeType.CRAFTING).map(ICraftingContainer::shouldRefillCraftingGrid).orElse(false)) {
+					int repeatedQuickMoveLimit = itemstack8.isEmpty() || upgradeContainer.isEmpty() ? 0 : upgradeContainer.get().getRepeatedQuickMoveLimit(slot6, itemstack8);
+					if (repeatedQuickMoveLimit > 0) {
 						int i = 1;
-						int maxStackSize = itemstack8.getMaxStackSize();
-						while (!itemstack8.isEmpty() && ItemStack.isSameItemSameComponents(slot6.getItem(), itemstack8) && i < maxStackSize) {
+						while (!itemstack8.isEmpty() && ItemStack.isSameItemSameComponents(slot6.getItem(), itemstack8) && i < repeatedQuickMoveLimit) {
 							itemstack8 = quickMoveStack(this.player, slotId);
 							i++;
 						}

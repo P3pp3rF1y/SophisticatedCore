@@ -563,7 +563,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		renderSuper(guiGraphics, mouseX, mouseY, partialTicks);
 
-		settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 		if (sortButton != null && sortByButton != null) {
 			sortButton.render(guiGraphics, mouseX, mouseY, partialTicks);
 			sortByButton.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -571,6 +570,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		upgradeSwitches.forEach(us -> us.render(guiGraphics, mouseX, mouseY, partialTicks));
 		renderErrorOverlay(guiGraphics);
 		if (modalOverlay == null) {
+			settingsTabControl.renderTooltip(this, guiGraphics, mouseX, mouseY);
 			renderTooltip(guiGraphics, mouseX, mouseY);
 		} else {
 			renderModalOverlay(guiGraphics, mouseX, mouseY, partialTicks);
