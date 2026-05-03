@@ -1180,6 +1180,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			modalOverlay.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 			return true;
 		}
+		if (getChildAt(mouseX, mouseY).filter(child -> child.mouseScrolled(mouseX, mouseY, scrollX, scrollY)).isPresent()) {
+			return true;
+		}
 		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
 	}
 

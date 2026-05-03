@@ -313,10 +313,13 @@ public class BlockTransformationRecipeContainer {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}
 			}
+			ItemStack inputStack = inputSlot.getItem().copy();
+			int inputCount = 1;
 			stack.onCraftedBy(thePlayer.level(), thePlayer, stack.getCount());
 			resultInventory.awardUsedRecipes(thePlayer, List.of(inputSlot.getItem()));
-			ItemStack itemstack = inputSlot.remove(1);
+			ItemStack itemstack = inputSlot.remove(inputCount);
 			if (!itemstack.isEmpty()) {
+				tryRefillInput(inputStack, inputCount);
 				updateRecipeResultSlot();
 			}
 
@@ -329,5 +332,19 @@ public class BlockTransformationRecipeContainer {
 			});
 			super.onTake(thePlayer, stack);
 		}
+	}
+
+	private boolean tryRefillInput(ItemStack inputStack, int inputCount) {
+		if (!upgradeContainer.shouldRefillInput() || inputStack.isEmpty()) {
+			return false;
+		}
+
+		ItemStack extracted = upgradeContainer.getUpgradeWrapper().extractFromStorage(inputStack.copyWithCount(inputCount), false);
+		if (extracted.getCount() != inputCount) {
+			return false;
+		}
+
+		inputSlot.safeInsert(extracted, inputCount);
+		return true;
 	}
 }

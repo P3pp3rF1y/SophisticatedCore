@@ -54,7 +54,7 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 	private final boolean renderResultCount;
 
 	public BlockConverterRecipeControl(StorageScreenBase<?> screen, BlockConverterRecipeContainer<R, ?, RC, ?> container, Position position, boolean renderResultCount) {
-		super(position, new Dimension(96, 108));
+		super(position, new Dimension(81, 108));
 		this.screen = screen;
 		this.container = container;
 		browseButton = new Button(getBrowseButtonPosition(), BROWSE_RESULTS, button -> {
@@ -83,23 +83,23 @@ public abstract class BlockConverterRecipeControl<R extends SingleItemRecipe, RC
 
 	public void moveSlotsToView() {
 		Slot inputSlot = container.getInputSlot();
-		inputSlot.x = x + getListCenteredX(16) - screen.getGuiLeft();
+		inputSlot.x = x + getResultAreaCenteredX(16) - screen.getGuiLeft();
 		inputSlot.y = y - screen.getGuiTop() + 1;
 		Slot outputSlot = container.getOutputSlot();
-		outputSlot.x = x + getListCenteredX(16) - screen.getGuiLeft();
+		outputSlot.x = x + getResultAreaCenteredX(16) - screen.getGuiLeft();
 		outputSlot.y = inputSlot.y + INPUT_SLOT_HEIGHT + SPACING + LIST_BACKGROUND.getHeight() + SPACING + 4;
 	}
 
-	private int getListCenteredX(int elementWidth) {
-		return (LIST_BACKGROUND.getWidth() - elementWidth) / 2;
+	private int getResultAreaCenteredX(int elementWidth) {
+		return (RESULT_BACKGROUND.getWidth() - elementWidth) / 2;
 	}
 
 	@Override
 	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		GuiHelper.renderSlotsBackground(guiGraphics, x + getListCenteredX(18), y, 1, 1);
+		GuiHelper.renderSlotsBackground(guiGraphics, x + getResultAreaCenteredX(18), y, 1, 1);
 		GuiHelper.renderTiledControlBackground(guiGraphics, x, y + LIST_Y_OFFSET, RESULT_BACKGROUND.getWidth(), RESULT_BACKGROUND.getHeight(), RESULT_BACKGROUND.getU(), RESULT_BACKGROUND.getV(), RESULT_BACKGROUND.getWidth(), RESULT_BACKGROUND.getHeight());
 		GuiHelper.renderTiledControlBackground(guiGraphics, getScrollbarBackgroundX(), getScrollbarBackgroundY(), SCROLLBAR_BACKGROUND.getWidth(), getScrollbarBackgroundHeight(), SCROLLBAR_BACKGROUND.getU(), SCROLLBAR_BACKGROUND.getV(), SCROLLBAR_BACKGROUND.getWidth(), SCROLLBAR_BACKGROUND.getHeight());
-		GuiHelper.blit(guiGraphics, x + getListCenteredX(26), y + INPUT_SLOT_HEIGHT + SPACING + LIST_BACKGROUND.getHeight() + SPACING, GuiHelper.CRAFTING_RESULT_SLOT);
+		GuiHelper.blit(guiGraphics, x + getResultAreaCenteredX(26), y + INPUT_SLOT_HEIGHT + SPACING + LIST_BACKGROUND.getHeight() + SPACING, GuiHelper.CRAFTING_RESULT_SLOT);
 		browseButton.extractRenderState(guiGraphics, mouseX, mouseY, 0);
 		int sliderYOffset = (int) (getSliderTravel() * sliderProgress);
 		GuiHelper.blit(guiGraphics, getSliderX(), getScrollbarY() + sliderYOffset, canScroll() ? SLIDER : DISABLED_SLIDER);

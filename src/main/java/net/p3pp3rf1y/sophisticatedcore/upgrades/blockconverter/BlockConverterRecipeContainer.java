@@ -234,9 +234,12 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 				}
 			}
 			stack.onCraftedBy(player, stack.getCount());
+			ItemStack inputStack = inputSlot.getItem().copy();
+			int inputCount = getInputCount();
 			resultInventory.awardUsedRecipes(player, List.of(inputSlot.getItem()));
-			ItemStack itemstack = inputSlot.remove(getInputCount());
+			ItemStack itemstack = inputSlot.remove(inputCount);
 			if (!itemstack.isEmpty()) {
+				tryRefillInput(inputStack, inputCount);
 				updateRecipeResultSlot();
 			}
 
@@ -249,6 +252,20 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 			});
 			super.onTake(player, stack);
 		}
+	}
+
+	private boolean tryRefillInput(ItemStack inputStack, int inputCount) {
+		if (!upgradeContainer.shouldRefillInput() || inputStack.isEmpty()) {
+			return false;
+		}
+
+		ItemStack extracted = upgradeContainer.getUpgradeWrapper().extractFromStorage(inputStack.copyWithCount(inputCount), false);
+		if (extracted.getCount() != inputCount) {
+			return false;
+		}
+
+		inputSlot.safeInsert(extracted, extracted.getCount());
+		return true;
 	}
 
 	protected abstract int getInputCount();
