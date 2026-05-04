@@ -21,8 +21,11 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
 import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
@@ -174,6 +177,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		guiGraphics.pose().pushMatrix();
 		guiGraphics.pose().translate(leftPos, topPos);
 		extractLabels(guiGraphics, mouseX, mouseY);
+		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, mouseX, mouseY));
 		guiGraphics.pose().popMatrix();
 	}
 
@@ -305,7 +309,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 			return Collections.emptyList();
 		}
 
-		List<Rect2i> rectangles = settingsTabControl.getTabRectangles();
+		List<Rect2i> rectangles = new ArrayList<>(settingsTabControl.getTabRectangles());
 		rectangles.add(getTemplatePersistanceControlRectangle());
 		return rectangles;
 	}
