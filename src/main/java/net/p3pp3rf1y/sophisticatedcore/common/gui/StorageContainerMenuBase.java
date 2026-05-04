@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -1178,7 +1179,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				ItemStack slotStack = slot7.getItem();
 				ItemStack carriedStack = getCarried();
 				player.updateTutorialInventoryAction(carriedStack, slot7.getItem(), clickaction);
-				if (!carriedStack.overrideStackedOnOther(slot7, clickaction, player) && !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, createCarriedSlotAccess())) {
+				if (!CommonHooks.onItemStackedOn(carriedStack, slotStack, slot7, clickaction, player, createCarriedSlotAccess())
+						&& !carriedStack.overrideStackedOnOther(slot7, clickaction, player)
+						&& !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, createCarriedSlotAccess())) {
 					if (slotStack.isEmpty()) {
 						if (!carriedStack.isEmpty()) {
 							int l2 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
