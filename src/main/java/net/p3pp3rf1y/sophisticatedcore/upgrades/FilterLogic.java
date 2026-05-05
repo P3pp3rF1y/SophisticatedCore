@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,7 +14,10 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
@@ -199,7 +201,7 @@ public class FilterLogic {
 	}
 
 	protected void initTags() {
-		tagKeys = new ObjectLinkedOpenHashSet<>(getAttributes().tagKeys());
+		tagKeys = new TreeSet<>(getAttributes().tagKeys());
 	}
 
 	public void setAllowList(boolean isAllowList) {
