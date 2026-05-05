@@ -14,10 +14,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
@@ -201,7 +198,8 @@ public class FilterLogic {
 	}
 
 	protected void initTags() {
-		tagKeys = new TreeSet<>(getAttributes().tagKeys());
+		tagKeys = new TreeSet<>(Comparator.comparing(TagKey::location));
+		tagKeys.addAll(getAttributes().tagKeys());
 	}
 
 	public void setAllowList(boolean isAllowList) {
