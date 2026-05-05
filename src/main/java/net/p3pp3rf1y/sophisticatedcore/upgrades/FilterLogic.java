@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.p3pp3rf1y.sophisticatedcore.mixin.Holder$ReferenceAccessor;
 import net.p3pp3rf1y.sophisticatedcore.util.FilterItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
@@ -18,8 +20,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FilterLogic {
 	protected final ItemStack upgrade;
@@ -85,17 +85,17 @@ public class FilterLogic {
 	}
 
 	private boolean isTagMatch(ItemStack stack) {
+		var tags = ((Holder$ReferenceAccessor) stack.getItemHolder()).getTags();
 		if (shouldMatchAnyTag()) {
-			return anyTagMatches(stack.getTags());
+			return anyTagMatches(tags);
 		}
-		return allTagsMatch(stack.getTags());
+		return allTagsMatch(tags);
 	}
 
-	private boolean allTagsMatch(Stream<TagKey<Item>> tagsStream) {
+	private boolean allTagsMatch(Set<TagKey<Item>> tags) {
 		if (tagKeys == null) {
 			initTags();
 		}
-		Set<TagKey<Item>> tags = tagsStream.collect(Collectors.toSet());
 		for (TagKey<Item> tagName : tagKeys) {
 			if (!tags.contains(tagName)) {
 				return false;
@@ -104,11 +104,22 @@ public class FilterLogic {
 		return true;
 	}
 
-	private boolean anyTagMatches(Stream<TagKey<Item>> tags) {
+	private boolean anyTagMatches(Set<TagKey<Item>> tags) {
 		if (tagKeys == null) {
 			initTags();
 		}
-		return tags.anyMatch(t -> tagKeys.contains(t));
+
+		if (tags.isEmpty() || tagKeys.isEmpty()) {
+			return false;
+		}
+
+		for (var tagName : tagKeys) {
+			if (tags.contains(tagName)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	protected FilterAttributes getAttributes() {
@@ -188,8 +199,7 @@ public class FilterLogic {
 	}
 
 	protected void initTags() {
-		tagKeys = new TreeSet<>(Comparator.comparing(TagKey::location));
-		tagKeys.addAll(getAttributes().tagKeys());
+		tagKeys = new ObjectLinkedOpenHashSet<>(getAttributes().tagKeys());
 	}
 
 	public void setAllowList(boolean isAllowList) {
