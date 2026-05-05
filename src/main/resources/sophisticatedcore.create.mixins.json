@@ -1,11 +1,12 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.p3pp3rf1y.sophisticatedcore.mixin",
+  "package": "net.p3pp3rf1y.sophisticatedcore.mixin.create",
   "compatibilityLevel": "JAVA_17",
   "refmap": "sophisticatedcore.refmap.json",
+  "plugin": "net.p3pp3rf1y.sophisticatedcore.mixin.CreateMixinConfigPlugin",
   "mixins": [
-    "MixinVanillaInventoryCodeHooks"
+    "MixinAbstractContraptionEntity"
   ],
   "injectors": {
     "defaultRequire": 1
