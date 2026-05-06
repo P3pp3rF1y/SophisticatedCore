@@ -204,7 +204,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		int originalSize = tracker.getFullSlots(stackKey).size();
 		int i = 0;
 
-		while (extracted < amount && i++ < originalSize) {
+		while (extracted < amount && i++ < originalSize && !tracker.getFullSlots(stackKey).isEmpty()) {
 			int slot = tracker.getFullSlots(stackKey).iterator().next();
 			extracted += extract(slot, resource, amount - extracted, transaction);
 		}
@@ -216,7 +216,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		originalSize = tracker.getPartialSlots(stackKey).size();
 		i = 0;
 
-		while (extracted < amount && i++ < originalSize) {
+		while (extracted < amount && i++ < originalSize && !tracker.getPartialSlots(stackKey).isEmpty()) {
 			int slot = tracker.getPartialSlots(stackKey).iterator().next();
 			extracted += extract(slot, resource, amount - extracted, transaction);
 		}
@@ -284,7 +284,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		if (!tracker.getPartialSlots(key).isEmpty()) {
 			int sizeBefore = tracker.getPartialSlots(key).size();
 			int i = 0;
-			while (moved < amount && i++ < sizeBefore) {
+			while (moved < amount && i++ < sizeBefore && !tracker.getPartialSlots(key).isEmpty()) {
 				int slot = tracker.getPartialSlots(key).iterator().next();
 				if (slot == -1) {
 					break;
