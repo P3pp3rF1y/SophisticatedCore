@@ -10,11 +10,13 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,6 +52,32 @@ public class InventoryHandlerTest {
 				return true;
 			}
 		};
+	}
+
+	@Test
+	void insertHandlesPartialSlotsBecomingEmptyMidLoop() throws Exception {
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, new ItemStack(Items.DIAMOND, 60)), 64);
+		setSlotTracker(inventoryHandler, new StalePartialSlotTracker(0, ItemStack.EMPTY));
+
+		try (Transaction tx = Transaction.openRoot()) {
+			Assertions.assertDoesNotThrow(() -> inventoryHandler.insert(ItemResource.of(new ItemStack(Items.DIAMOND, 4)), 4, tx));
+		}
+	}
+
+	@Test
+	void extractHandlesTrackedSlotsBecomingEmptyMidLoop() throws Exception {
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, new ItemStack(Items.DIAMOND, 64)), 64);
+		setSlotTracker(inventoryHandler, new StaleFullSlotTracker(0, ItemStack.EMPTY));
+
+		try (Transaction tx = Transaction.openRoot()) {
+			Assertions.assertDoesNotThrow(() -> inventoryHandler.extract(ItemResource.of(new ItemStack(Items.DIAMOND, 64)), 64, tx));
+		}
+	}
+
+	private static void setSlotTracker(InventoryHandler inventoryHandler, ISlotTracker slotTracker) throws NoSuchFieldException, IllegalAccessException {
+		Field slotTrackerField = InventoryHandler.class.getDeclaredField("slotTracker");
+		slotTrackerField.setAccessible(true);
+		slotTrackerField.set(inventoryHandler, slotTracker);
 	}
 
 
@@ -458,6 +486,61 @@ public class InventoryHandlerTest {
 					.expected(expected)
 					.actual(actual)
 					.buildAndThrow();
+		}
+	}
+
+	private static class StalePartialSlotTracker extends ISlotTracker.Noop {
+		private final Set<Integer> partialSlots;
+		private final int slotToRemove;
+		private final ItemStack nextStack;
+
+		private StalePartialSlotTracker(int slotToRemove, ItemStack nextStack) {
+			partialSlots = new LinkedHashSet<>(Set.of(slotToRemove));
+			this.slotToRemove = slotToRemove;
+			this.nextStack = nextStack;
+		}
+
+		@Override
+		public Set<Integer> getPartialSlots(ItemStackKey key) {
+			return partialSlots;
+		}
+
+		@Override
+		public void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack) {
+			if (slot == slotToRemove) {
+				partialSlots.clear();
+				inventoryHandler.setStackInSlot(slot, nextStack);
+			}
+		}
+
+		@Override
+		public Set<Integer> getEmptySlots() {
+			return Collections.emptySet();
+		}
+	}
+
+	private static class StaleFullSlotTracker extends ISlotTracker.Noop {
+		private final Set<Integer> fullSlots;
+		private final int slotToRemove;
+		private final ItemStack nextStack;
+
+		private StaleFullSlotTracker(int slotToRemove, ItemStack nextStack) {
+			fullSlots = new LinkedHashSet<>(Set.of(slotToRemove));
+			this.slotToRemove = slotToRemove;
+			this.nextStack = nextStack;
+		}
+
+		@Override
+		public Set<Integer> getFullSlots(ItemStackKey key) {
+			return fullSlots;
+		}
+
+		@Override
+		public void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack) {
+			if (slot == slotToRemove) {
+				fullSlots.clear();
+				inventoryHandler.setStackInSlot(slot, nextStack);
+			}
 		}
 	}
 }
