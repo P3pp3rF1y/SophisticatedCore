@@ -286,7 +286,7 @@
   "key.category.sophisticatedcore.main": "精妙模组",
   "key.sophisticatedcore.sort": "整理容器/背包",
   "key.sophisticatedcore.transfer_to_storage": "转移至容器",
-  "key.sophisticatedcore.transfer_to_inventory": "转移至背包",
+  "key.sophisticatedcore.transfer_to_inventory": "转移至物品栏",
   "sophisticatedcore.configuration.client": "客户端",
   "sophisticatedcore.configuration.common": "通用",
   "sophisticatedcore.configuration.sortButtonsPosition": "整理按钮位置",
