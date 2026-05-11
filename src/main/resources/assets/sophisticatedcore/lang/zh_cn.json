@@ -294,8 +294,8 @@
   "sophisticatedcore.configuration.mouseTweaksScrollEnabled": "鼠标手势滚轮控制",
   "sophisticatedcore.configuration.enabledItems": "已启用的模组物品",
   "sophisticatedcore.configuration.enabledItems.tooltip": "已经预填写的所有支持的物品。修改 |true 为 |false 以禁用对应物品。\n格式：item_id|true 或 false\n示例：sophisticatedbackpacks:smelting_upgrade|true",
-  "sophisticatedcore.configuration.sortButtonsPosition.title_line_right": "在标题栏右侧",
-  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrades": "在升级下侧",
-  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrade_tabs": "在升级栏下侧",
+  "sophisticatedcore.configuration.sortButtonsPosition.title_line_right": "标题行右侧",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrades": "升级插槽下方",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrade_tabs": "升级标签页下方",
   "sophisticatedcore.configuration.sortButtonsPosition.hidden": "已隐藏"
 }
