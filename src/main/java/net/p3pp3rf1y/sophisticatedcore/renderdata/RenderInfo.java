@@ -172,7 +172,8 @@ public abstract class RenderInfo {
 		upgradeItems.clear();
 		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
 			for (int i = 0; i < upgradeItemsTag.size(); i++) {
-				upgradeItems.add(ItemStack.parse(registryAccess, upgradeItemsTag.getCompoundOrEmpty(i)).orElse(ItemStack.EMPTY));
+				CompoundTag upgradeItemTag = upgradeItemsTag.getCompoundOrEmpty(i);
+				upgradeItems.add(upgradeItemTag.isEmpty() ? ItemStack.EMPTY : ItemStack.parse(registryAccess, upgradeItemTag).orElse(ItemStack.EMPTY));
 			}
 		});
 	}
@@ -473,8 +474,8 @@ public abstract class RenderInfo {
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
-			return new DisplayItem(RegistryHelper.getRegistryAccess().flatMap(registryAccess ->
-					tag.getCompound(ITEM_TAG).flatMap(itemTag -> ItemStack.parse(registryAccess, itemTag))).orElse(ItemStack.EMPTY),
+			return new DisplayItem(RegistryHelper.getRegistryAccess().flatMap(registryAccess -> tag.getCompound(ITEM_TAG).flatMap(itemTag ->
+					itemTag.isEmpty() ? Optional.of(ItemStack.EMPTY) : ItemStack.parse(registryAccess, itemTag))).orElse(ItemStack.EMPTY),
 					tag.getIntOr(ROTATION_TAG, 0), tag.getIntOr(SLOT_INDEX_TAG, 0), tag.getString(DISPLAY_SIDE_TAG).map(DisplaySide::fromName).orElse(DisplaySide.FRONT));
 		}
 

@@ -18,7 +18,6 @@ import java.util.Optional;
 
 public class ReiRecipeDisplayGenerator implements IRecipeDisplayGenerator<Display> {
 	private final DisplayRegistry registry;
-
 	public ReiRecipeDisplayGenerator(DisplayRegistry registry) {
 		this.registry = registry;
 	}
@@ -34,12 +33,12 @@ public class ReiRecipeDisplayGenerator implements IRecipeDisplayGenerator<Displa
 	}
 
 	@Override
-	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Ingredient base, Optional<Ingredient> addition, ItemStack result) {
+	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Optional<Ingredient> base, Optional<Ingredient> addition, ItemStack result) {
 		return id -> {
 			registry.add(new DefaultSmithingDisplay(
 					List.of(
 							template.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty()),
-							EntryIngredients.ofIngredient(base),
+							base.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty()),
 							addition.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty())
 					),
 					List.of(EntryIngredients.of(result)),
