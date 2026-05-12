@@ -62,7 +62,10 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 
 	@Override
 	public Iterable<SlotAccessor> getInputSlots(Context context) {
-		StorageContainerMenuBase<?> storageContainerMenuBase = (StorageContainerMenuBase<?>) context.getMenu();
+		if (!(context.getMenu() instanceof StorageContainerMenuBase<?> storageContainerMenuBase)) {
+			return List.of();
+		}
+
 		return storageContainerMenuBase.getOpenOrFirstCraftingContainer(recipeType)
 				.map(c -> c.getRecipeSlots().stream().map(ReiSlotAccessor::fromSlot).toList())
 				.orElse(List.of());
@@ -70,7 +73,10 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 
 	@Override
 	public Iterable<SlotAccessor> getInventorySlots(Context context) {
-		StorageContainerMenuBase<?> storageContainerMenuBase = (StorageContainerMenuBase<?>) context.getMenu();
+		if (!(context.getMenu() instanceof StorageContainerMenuBase<?> storageContainerMenuBase)) {
+			return List.of();
+		}
+
 		return storageContainerMenuBase.realInventorySlots.stream().map(ReiSlotAccessor::fromSlot).toList();
 	}
 
