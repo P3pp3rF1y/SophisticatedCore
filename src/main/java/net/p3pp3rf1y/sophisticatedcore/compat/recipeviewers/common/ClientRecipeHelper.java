@@ -3,44 +3,148 @@ package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.neoforged.neoforge.common.crafting.ICustomIngredient;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.subtypes.PropertyBasedSubtypeInterpreter;
-import net.p3pp3rf1y.sophisticatedcore.crafting.CustomShapelessRecipe;
-import net.p3pp3rf1y.sophisticatedcore.crafting.ICustomSmithingRecipe;
-import net.p3pp3rf1y.sophisticatedcore.util.ICreativeTabSupplier;
+import net.neoforged.neoforge.common.crafting.IngredientType;
+import net.p3pp3rf1y.sophisticatedcore.crafting.IWrapperRecipe;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class ClientRecipeHelper {
-	private ClientRecipeHelper() {
+	private static final Ingredient EMPTY_DISPLAY_INGREDIENT = new EmptyDisplayIngredient().toVanilla();
+
+	private ClientRecipeHelper() {}
+
+	public static Ingredient emptyDisplayIngredient() {
+		return EMPTY_DISPLAY_INGREDIENT;
 	}
 
-	public static <I extends RecipeInput, R extends Recipe<I>, U extends Recipe<?>> void runOnAllRecipesOfType(RecipeType<R> recipeType, Class<U> filterRecipeClass, Consumer<RecipeHolder<R>> run) {
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipesOfType(RecipeType<T> recipeType, Class<U> filterRecipeClass, BiFunction<Identifier, U, V> transformRecipe) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {
-			return;
+			return Collections.emptyList();
 		}
-		RecipeHelper.getRecipesOfType(recipeType)
-				.stream()
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipesOfType(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
+		}
+
+		return RecipeHelper.getRecipesOfType(recipeType).stream()
 				.filter(r -> filterRecipeClass.isInstance(r.value()))
-				.forEach(run);
+				.map(r -> transformRecipe.apply(r.id().identifier(), filterRecipeClass.cast(r.value())))
+				.toList();
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipesOfType(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass, BiFunction<Identifier, U, V> transformRecipe) {
+		return recipeManager
+				.getRecipes()
+				.stream()
+				.filter(r -> r.value().getType().equals(recipeType))
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(r.id().identifier(), filterRecipeClass.cast(r.value())))
+				.toList();
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipeHoldersOfType(RecipeType<T> recipeType, Class<U> filterRecipeClass,
+			BiFunction<Identifier, RecipeHolder<U>, V> transformRecipe) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			return Collections.emptyList();
+		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipeHoldersOfType(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
+		}
+
+		return RecipeHelper.getRecipesOfType(recipeType).stream()
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(r.id().identifier(), new RecipeHolder<>(r.id(), filterRecipeClass.cast(r.value()))))
+				.toList();
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipeHoldersOfType(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass,
+			BiFunction<Identifier, RecipeHolder<U>, V> transformRecipe) {
+		return recipeManager
+				.getRecipes()
+				.stream()
+				.filter(r -> r.value().getType().equals(recipeType))
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(r.id().identifier(), new RecipeHolder<>(r.id(), filterRecipeClass.cast(r.value()))))
+				.toList();
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipesOfTypeIntoMultiple(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<V>> transformRecipe) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			return Collections.emptyList();
+		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipesOfTypeIntoMultiple(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
+		}
+
+		return RecipeHelper.getRecipesOfType(recipeType).stream()
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r.value())))
+				.collect(ArrayList::new, List::addAll, List::addAll);
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipesOfTypeIntoMultiple(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<V>> transformRecipe) {
+		return recipeManager
+				.getRecipes()
+				.stream()
+				.filter(r -> r.value().getType().equals(recipeType))
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r.value())))
+				.collect(ArrayList::new, List::addAll, List::addAll);
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipeHoldersOfTypeIntoMultiple(RecipeType<T> recipeType, Class<U> filterRecipeClass,
+			Function<RecipeHolder<U>, List<V>> transformRecipe) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			return Collections.emptyList();
+		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipeHoldersOfTypeIntoMultiple(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
+		}
+
+		return RecipeHelper.getRecipesOfType(recipeType).stream()
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(new RecipeHolder<>(r.id(), filterRecipeClass.cast(r.value()))))
+				.collect(ArrayList::new, List::addAll, List::addAll);
+	}
+
+	public static <I extends RecipeInput, T extends Recipe<I>, U extends Recipe<?>, V> List<V> transformAllRecipeHoldersOfTypeIntoMultiple(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass,
+			Function<RecipeHolder<U>, List<V>> transformRecipe) {
+		return recipeManager
+				.getRecipes()
+				.stream()
+				.filter(r -> r.value().getType().equals(recipeType))
+				.filter(r -> filterRecipeClass.isInstance(r.value()))
+				.map(r -> transformRecipe.apply(new RecipeHolder<>(r.id(), filterRecipeClass.cast(r.value()))))
+				.collect(ArrayList::new, List::addAll, List::addAll);
 	}
 
 	public static <I extends RecipeInput> ItemStack assemble(Recipe<I> recipe, I container) {
@@ -50,176 +154,64 @@ public class ClientRecipeHelper {
 			throw new NullPointerException("level must not be null.");
 		}
 		RegistryAccess registryAccess = level.registryAccess();
-		return recipe.assemble(container, registryAccess);
+		return assemble(recipe, container, registryAccess);
 	}
 
-	private static ItemStack getVariantResult(CraftingRecipe recipe, ItemStack variantItem) {
-		Collection<Optional<Ingredient>> ingredients = RecipeHelper.getIngredients(recipe);
-		CraftingContainer craftingInventory = new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
-			@Override
-			public ItemStack quickMoveStack(Player player, int index) {
-				return ItemStack.EMPTY;
-			}
+	public static <I extends RecipeInput> ItemStack assemble(Recipe<I> recipe, I container, HolderLookup.Provider registries) {
+		return recipe.assemble(container, registries);
+	}
 
-			public boolean stillValid(Player playerIn) {
-				return false;
-			}
-		}, 3, 3);
-		int slot = 0;
-		for (Optional<Ingredient> ingredient : ingredients) {
-			int fSlot = slot;
-			ingredient.ifPresentOrElse(
-					i -> {
-						if (ingredientMatchesVariantItem(variantItem, i)) {
-							craftingInventory.setItem(fSlot, variantItem.copy());
-						} else {
-							craftingInventory.setItem(fSlot, getStackFromIngredient(i));
-						}
-					}, () -> craftingInventory.setItem(fSlot, ItemStack.EMPTY)
-			);
-			slot++;
+	public static <I extends RecipeInput> ItemStack getResultItem(Recipe<I> recipe) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			throw new NullPointerException("level must not be null.");
 		}
-		return assemble(recipe, craftingInventory.asCraftInput());
+		RegistryAccess registryAccess = level.registryAccess();
+		return getResultItem(recipe, registryAccess);
 	}
 
-	private static ItemStack getStackFromIngredient(Ingredient i) {
-		if (i.getCustomIngredient() != null) {
-			return i.getCustomIngredient().items().findFirst().map(holder -> new ItemStack(holder.value())).orElse(ItemStack.EMPTY);
+	public static <I extends RecipeInput> ItemStack getResultItem(Recipe<I> recipe, HolderLookup.Provider registries) {
+		if (recipe instanceof IWrapperRecipe<?> wrapperRecipe) {
+			return getResultItem(wrapperRecipe.getCompose(), registries);
 		}
-
-		return i.getValues().size() > 0 ? new ItemStack(i.getValues().get(0).value()) : ItemStack.EMPTY;
-	}
-
-	private static boolean ingredientMatchesVariantItem(ItemStack variantItem, Ingredient ingredient) {
-		if (ingredient.getCustomIngredient() != null) {
-			return ingredient.getCustomIngredient().items().anyMatch(holder -> holder.value() == variantItem.getItem());
-		}
-
-		return ingredient.getValues().stream().anyMatch(holder -> holder.value() == variantItem.getItem());
-	}
-
-	public static <U extends CraftingRecipe> void addVariantRecipes(IRecipeDisplayGenerator<?> generator,
-																	Class<U> originalRecipeClass,
-																	Function<CraftingRecipe, List<ItemStack>> getVariantItems,
-																	Function<ItemStack, Optional<PropertyBasedSubtypeInterpreter>> getSubtypeInterpreter,
-																	String modId, String idPrefix) {
-		runOnAllRecipesOfType(RecipeType.CRAFTING, originalRecipeClass, recipe -> getVariantItems.apply(recipe.value()).forEach(variantItem -> {
-					ItemStack result = getVariantResult(recipe.value(), variantItem.copy());
-					Identifier id = Identifier.fromNamespaceAndPath(modId,
-							idPrefix
-									+ getItemString(getSubtypeInterpreter, variantItem)
-									+ "_to_"
-									+ getItemString(getSubtypeInterpreter, result)
-					);
-					addVariantIngredientRecipe(generator, recipe.value(), variantItem, result, id);
-				}
-
-		));
-	}
-
-	private static <U extends PropertyBasedSubtypeInterpreter> String getItemString(Function<ItemStack, Optional<U>> getSubtypeInterpreter, ItemStack storageItem) {
-		return getSubtypeInterpreter.apply(storageItem).map(interpreter -> interpreter.getRegistrySanitizedItemString(storageItem)).orElse("");
-	}
-
-	public static <I extends RecipeInput, R extends Recipe<I>> void addAllRecipesOfType(IRecipeDisplayGenerator<?> generator, RecipeType<R> recipeType, Class<? extends Recipe<?>> filterRecipeClass) {
-		runOnAllRecipesOfType(recipeType, filterRecipeClass, recipe -> addRecipe(generator, recipe));
-	}
-
-	private static <I extends RecipeInput, R extends Recipe<I>> void addRecipe(IRecipeDisplayGenerator<?> generator, RecipeHolder<R> recipe) {
-		if (recipe.value() instanceof ShapedRecipe shapedRecipe) {
-			generator.shaped(shapedRecipe.result)
-					.setDimensions(shapedRecipe.pattern.width(), shapedRecipe.pattern.height())
-					.defineIngredients(shapedRecipe.getIngredients())
-					.save(recipe.id());
-		} else if (recipe.value() instanceof CustomShapelessRecipe shapelessRecipe) {
-			generator.shapeless(shapelessRecipe.result())
-					.requires(shapelessRecipe.placementInfo().ingredients())
-					.save(recipe.id());
-		} else if (recipe.value() instanceof ICustomSmithingRecipe smithingRecipe) {
-			generator.smithing(smithingRecipe.templateIngredient(), smithingRecipe.baseIngredient(), smithingRecipe.additionIngredient(), smithingRecipe.result())
-					.save(recipe.id());
-		}
-	}
-
-	private static void addVariantIngredientRecipe(IRecipeDisplayGenerator<?> generator, Recipe<?> recipe, ItemStack variantItem, ItemStack result, Identifier id) {
 		if (recipe instanceof ShapedRecipe shapedRecipe) {
-			ShapedRecipeDisplayBuilder<?> shaped = generator.shaped(result)
-					.setDimensions(shapedRecipe.pattern.width(), shapedRecipe.pattern.height());
-
-			for (Optional<Ingredient> ingredient : shapedRecipe.getIngredients()) {
-				ingredient.ifPresentOrElse(
-						i -> {
-							if (ingredientMatchesVariantItem(variantItem, i)) {
-								shaped.define(variantItem);
-							} else {
-								shaped.define(i);
-							}
-						}, () -> shaped.define(HolderSet.empty())
-				);
-			}
-
-			shaped.save(ResourceKey.create(Registries.RECIPE, id));
-		} else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
-			addShapelessRecipe(generator, variantItem, result, id, shapelessRecipe.ingredients);
-		} else if (recipe instanceof CustomShapelessRecipe customShapelessRecipe) {
-			addShapelessRecipe(generator, variantItem, result, id, customShapelessRecipe.placementInfo().ingredients());
+			return shapedRecipe.result.copy();
 		}
+		if (recipe instanceof ShapelessRecipe shapelessRecipe) {
+			return shapelessRecipe.result.copy();
+		}
+		return ItemStack.EMPTY;
 	}
 
-	private static void addShapelessRecipe(IRecipeDisplayGenerator<?> generator, ItemStack variantItem, ItemStack result, Identifier id, List<Ingredient> ingredients) {
-		ShapelessRecipeDisplayBuilder<?> shapeless = generator.shapeless(result);
-
-		for (Ingredient ingredient : ingredients) {
-			if (ingredientMatchesVariantItem(variantItem, ingredient)) {
-				shapeless.requires(variantItem);
-			} else {
-				shapeless.requires(ingredient);
-			}
-		}
-
-		shapeless.save(ResourceKey.create(Registries.RECIPE, id));
+	public static ResourceKey<Recipe<?>> recipeKey(Identifier id) {
+		return ResourceKey.create(Registries.RECIPE, id);
 	}
 
-	public static List<ItemStack> getIngredientCreativeTabVariants(Recipe<?> recipe, Class<? extends ICreativeTabSupplier> itemClass) {
-		return getIngredientCreativeTabVariants(recipe, itemClass, stack -> {
-		});
-	}
-
-	public static List<ItemStack> getIngredientCreativeTabVariants(Recipe<?> recipe, Class<? extends ICreativeTabSupplier> itemClass, Consumer<ItemStack> updateStack) {
-		List<ItemStack> ingredientItems = new ArrayList<>();
-		for (Optional<Ingredient> ingredient : RecipeHelper.getIngredients(recipe)) {
-			ingredient.ifPresent(i -> {
-				getIngredientValues(i).map(Holder::value).filter(itemClass::isInstance).map(itemClass::cast).forEach(item -> {
-					item.addCreativeTabItems(stack -> {
-						updateStack.accept(stack);
-						ingredientItems.add(stack);
-					});
-				});
-			});
-			if (!ingredientItems.isEmpty()) {
-				break;
-			}
+	private record EmptyDisplayIngredient() implements ICustomIngredient {
+		@Override
+		public boolean test(ItemStack stack) {
+			return stack.isEmpty();
 		}
-		return ingredientItems;
-	}
 
-	private static Stream<Holder<Item>> getIngredientValues(Ingredient i) {
-		if (i.getCustomIngredient() != null) {
-			return i.getCustomIngredient().items();
+		@Override
+		public Stream<Holder<Item>> items() {
+			return Stream.empty();
 		}
-		return i.getValues().stream();
-	}
 
-	public static List<ItemStack> getCustomIngredientVariants(Recipe<?> recipe, Class<? extends ICustomIngredient> customIngredientClass) {
-		for (Optional<Ingredient> ingredient : RecipeHelper.getIngredients(recipe)) {
-			if (ingredient.isPresent()) {
-				Ingredient i = ingredient.get();
-				if (customIngredientClass.isInstance(i.getCustomIngredient())) {
-					ICustomIngredient customIngredient = i.getCustomIngredient();
-					return customIngredient.display().resolveForStacks(RecipeHelper.getContextMap());
-				}
-			}
+		@Override
+		public boolean isSimple() {
+			return true;
 		}
-		return Collections.emptyList();
+
+		@Override
+		public @Nullable IngredientType<?> getType() {
+			return null;
+		}
+
+		@Override
+		public SlotDisplay display() {
+			return SlotDisplay.Empty.INSTANCE;
+		}
 	}
 }

@@ -38,6 +38,10 @@ public class StorageWrapperRepository {
 		return wrapperClass.cast(storageWrapper);
 	}
 
+	public static void setStorageWrapper(ItemStack stack, IStorageWrapper storageWrapper) {
+		stackStorageWrappers.put(stack, storageWrapper);
+	}
+
 /*    public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) { //TODO future UUID based caching and retrieval
         IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid);
         if (storageWrapper == null) {
