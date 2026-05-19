@@ -31,7 +31,8 @@ public class SmithingSpecCategoryExtension<R extends SmithingRecipe> implements 
 
 	@Override
 	public <T extends IIngredientAcceptor<T>> void setBase(R recipe, T ingredientAcceptor) {
-		specFactory.apply(recipe).getBaseStacks(specFactory.apply(recipe).getAllDisplays()).forEach(ingredientAcceptor::addItemStack);
+		SmithingDisplaySpec spec = specFactory.apply(recipe);
+		spec.getBaseStacks(spec.getGlobalDisplays()).forEach(ingredientAcceptor::addItemStack);
 	}
 
 	@Override
@@ -41,7 +42,8 @@ public class SmithingSpecCategoryExtension<R extends SmithingRecipe> implements 
 
 	@Override
 	public <T extends IIngredientAcceptor<T>> void setOutput(R recipe, T ingredientAcceptor) {
-		specFactory.apply(recipe).getResultStacks(specFactory.apply(recipe).getAllDisplays()).forEach(ingredientAcceptor::addItemStack);
+		SmithingDisplaySpec spec = specFactory.apply(recipe);
+		spec.getResultStacks(spec.getGlobalDisplays()).forEach(ingredientAcceptor::addItemStack);
 	}
 
 	@Override

@@ -70,6 +70,11 @@ public record CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int wi
 	}
 
 	public CraftingRecipe recipe(CraftingDisplayVariant variant) {
+		return recipe(List.of(variant));
+	}
+
+	public CraftingRecipe recipe(List<CraftingDisplayVariant> displayVariants) {
+		CraftingDisplayVariant variant = displayVariants.get(0);
 		NonNullList<Ingredient> ingredients = NonNullList.createWithCapacity(baseIngredients.size());
 		for (int i = 0; i < baseIngredients.size(); i++) {
 			if (variant.inputs().size() > i && !variant.inputs().get(i).isEmpty()) {
@@ -78,8 +83,50 @@ public record CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int wi
 				ingredients.add(baseIngredients.get(i));
 			}
 		}
-		return shapeless ? new ShapelessRecipe(id, "", CraftingBookCategory.MISC, variant.firstOutput(), ingredients)
-				: new ShapedRecipe(id, "", CraftingBookCategory.MISC, width, height, ingredients, variant.firstOutput());
+		return shapeless ? new SpecShapelessRecipe(this, displayVariants, variant.firstOutput(), ingredients)
+				: new SpecShapedRecipe(this, displayVariants, width, height, ingredients, variant.firstOutput());
+	}
+
+	public static class SpecShapedRecipe extends ShapedRecipe implements IRecipeViewerCraftingSpecRecipe {
+		private final CraftingDisplaySpec spec;
+		private final List<CraftingDisplayVariant> variants;
+
+		private SpecShapedRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int width, int height, NonNullList<Ingredient> ingredients, ItemStack result) {
+			super(spec.id(), "", CraftingBookCategory.MISC, width, height, ingredients, result);
+			this.spec = spec;
+			this.variants = List.copyOf(variants);
+		}
+
+		@Override
+		public CraftingDisplaySpec spec() {
+			return spec;
+		}
+
+		@Override
+		public List<CraftingDisplayVariant> variants() {
+			return variants;
+		}
+	}
+
+	public static class SpecShapelessRecipe extends ShapelessRecipe implements IRecipeViewerCraftingSpecRecipe {
+		private final CraftingDisplaySpec spec;
+		private final List<CraftingDisplayVariant> variants;
+
+		private SpecShapelessRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, ItemStack result, NonNullList<Ingredient> ingredients) {
+			super(spec.id(), "", CraftingBookCategory.MISC, result, ingredients);
+			this.spec = spec;
+			this.variants = List.copyOf(variants);
+		}
+
+		@Override
+		public CraftingDisplaySpec spec() {
+			return spec;
+		}
+
+		@Override
+		public List<CraftingDisplayVariant> variants() {
+			return variants;
+		}
 	}
 
 }

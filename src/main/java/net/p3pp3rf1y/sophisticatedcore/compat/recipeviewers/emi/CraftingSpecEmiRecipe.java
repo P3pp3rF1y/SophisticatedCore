@@ -6,10 +6,12 @@ import dev.emi.emi.api.render.EmiTexture;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayVariant;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayView;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IGroupedOutputFocusBehavior;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SourceResultFocusBehavior;
 
 import java.util.ArrayList;
@@ -27,14 +29,24 @@ public class CraftingSpecEmiRecipe extends BasicEmiRecipe {
 	// variants are registered statically and constrained through input/output indexing.
 	public static List<CraftingSpecEmiRecipe> ofGroupedUsageAndFocusedRecipes(CraftingDisplaySpec spec) {
 		List<CraftingDisplayVariant> variants = spec.getAllDisplays();
+		if (variants.isEmpty()) {
+			return List.of();
+		}
+		List<CraftingDisplayVariant> globalVariants = spec.getGlobalDisplays();
+		boolean groupGlobalOutputs = spec.focusBehavior() instanceof IGroupedOutputFocusBehavior;
 		int sourceInputIndex = getSourceInputIndex(spec);
 		List<CraftingSpecEmiRecipe> recipes = new ArrayList<>(sourceInputIndex >= 0 ? variants.size() * 2 + 1 : variants.size() + 1);
 		recipes.add(new CraftingSpecEmiRecipe(spec, variants, "", inputIndex -> inputIndex != sourceInputIndex, false));
+		if (groupGlobalOutputs && !globalVariants.isEmpty()) {
+			recipes.add(new CraftingSpecEmiRecipe(spec, globalVariants, "/outputs", inputIndex -> false, true));
+		}
 		for (int variantIndex = 0; variantIndex < variants.size(); variantIndex++) {
 			if (sourceInputIndex >= 0) {
 				recipes.add(new CraftingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/source/" + variantIndex, inputIndex -> inputIndex == sourceInputIndex, false));
 			}
-			recipes.add(new CraftingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/" + variantIndex, inputIndex -> false, true));
+			if (!groupGlobalOutputs || !globalVariants.contains(variants.get(variantIndex))) {
+				recipes.add(new CraftingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/" + variantIndex, inputIndex -> false, true));
+			}
 		}
 		return recipes;
 	}
@@ -118,7 +130,15 @@ public class CraftingSpecEmiRecipe extends BasicEmiRecipe {
 
 	@Override
 	public Recipe<?> getBackingRecipe() {
-		return spec.recipe(variants.get(0));
+		return spec.recipe(variants);
+	}
+
+	public List<List<ItemStack>> getDisplayInputSlots() {
+		return spec.getInputSlots(variants);
+	}
+
+	public List<List<ItemStack>> getDisplayOutputSlots() {
+		return spec.getOutputStacks(variants).stream().map(List::of).toList();
 	}
 
 	private boolean canFit(int width, int height) {

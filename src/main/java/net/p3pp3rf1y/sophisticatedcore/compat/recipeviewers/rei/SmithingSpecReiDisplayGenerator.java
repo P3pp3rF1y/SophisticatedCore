@@ -32,36 +32,22 @@ public class SmithingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 		}
 
 		List<DefaultSmithingDisplay> displays = new ArrayList<>();
-		catalogSupplier.get().getSmithingRecipesFor(stack).forEach(view -> displays.add(toDisplay(view.spec(), view.variants(), false)));
+		catalogSupplier.get().getSmithingRecipesFor(stack).forEach(view -> displays.add(toDisplay(view.spec(), view.variants())));
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
 	@Override
 	public Optional<List<DefaultSmithingDisplay>> getUsageFor(EntryStack<?> entry) {
-		if (!(entry.getValue() instanceof ItemStack stack)) {
+		if (!(entry.getValue() instanceof ItemStack stack) || !focusedStackPredicate.test(stack)) {
 			return Optional.empty();
 		}
 
 		List<DefaultSmithingDisplay> displays = new ArrayList<>();
-		if (focusedStackPredicate.test(stack)) {
-			catalogSupplier.get().getSmithingUsagesFor(stack).forEach(view -> displays.add(toDisplay(view.spec(), view.variants(), false)));
-		} else {
-			catalogSupplier.get().getGlobalSmithingDisplays().stream()
-					.filter(view -> view.spec().template().filter(ingredient -> ingredient.test(stack)).isPresent() || view.spec().addition().filter(ingredient -> ingredient.test(stack)).isPresent())
-					.forEach(view -> displays.add(toDisplay(view.spec(), view.variants(), true)));
-		}
+		catalogSupplier.get().getSmithingUsagesFor(stack).forEach(view -> displays.add(toDisplay(view.spec(), view.variants())));
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
-	private static DefaultSmithingDisplay toDisplay(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, boolean legacy) {
-		if (legacy) {
-			List<EntryIngredient> inputs = List.of(
-					EntryIngredients.ofItemStacks(spec.getBaseStacks(variants)),
-					EntryIngredients.ofIngredient(spec.addition().orElseThrow())
-			);
-			return new DefaultSmithingDisplay(inputs, List.of(EntryIngredients.ofItemStacks(spec.getResultStacks(variants))), Optional.of(spec.id()));
-		}
-
+	private static DefaultSmithingDisplay toDisplay(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants) {
 		List<EntryIngredient> inputs = List.of(
 				EntryIngredients.ofIngredient(spec.template().orElseThrow()),
 				EntryIngredients.ofItemStacks(spec.getBaseStacks(variants)),

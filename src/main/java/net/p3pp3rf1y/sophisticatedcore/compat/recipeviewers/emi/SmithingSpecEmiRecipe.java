@@ -8,6 +8,7 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayVariant;
@@ -23,6 +24,10 @@ public class SmithingSpecEmiRecipe implements EmiRecipe {
 	private final EmiIngredient addition;
 	private final List<EmiStack> outputs;
 	private final ResourceLocation id;
+	private final boolean indexTemplate;
+	private final boolean indexBase;
+	private final boolean indexAddition;
+	private final boolean indexOutputs;
 
 	public static List<SmithingSpecEmiRecipe> of(SmithingDisplayView view) {
 		List<SmithingSpecEmiRecipe> recipes = new ArrayList<>(view.variants().size());
@@ -41,14 +46,33 @@ public class SmithingSpecEmiRecipe implements EmiRecipe {
 		return recipes;
 	}
 
+	public static List<SmithingSpecEmiRecipe> ofGroupedUsageAndFocusedRecipes(SmithingDisplaySpec spec) {
+		List<SmithingDisplayVariant> variants = spec.getAllDisplays();
+		List<SmithingSpecEmiRecipe> recipes = new ArrayList<>(variants.size() * 2 + 1);
+		recipes.add(new SmithingSpecEmiRecipe(spec, variants, "", true, false, true, false));
+		for (int variantIndex = 0; variantIndex < variants.size(); variantIndex++) {
+			recipes.add(new SmithingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/source/" + variantIndex, false, true, false, false));
+			recipes.add(new SmithingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/" + variantIndex, false, false, false, true));
+		}
+		return recipes;
+	}
+
 	private SmithingSpecEmiRecipe(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, int variantIndex) {
+		this(spec, variants, variantIndex >= 0 ? "/" + variantIndex : "", true, true, true, true);
+	}
+
+	private SmithingSpecEmiRecipe(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, String idSuffix, boolean indexTemplate, boolean indexBase, boolean indexAddition, boolean indexOutputs) {
 		this.spec = spec;
 		this.variants = variants;
-		id = spec.id().withPath(path -> (path.startsWith("/") ? path : "/" + path) + (variantIndex >= 0 ? "/" + variantIndex : ""));
+		id = spec.id().withPath(path -> (path.startsWith("/") ? path : "/" + path) + idSuffix);
 		template = EmiIngredient.of(spec.template().orElseThrow());
 		base = EmiIngredient.of(spec.getBaseStacks(variants).stream().map(EmiStack::of).toList());
 		addition = EmiIngredient.of(spec.addition().orElseThrow());
 		outputs = spec.getResultStacks(variants).stream().map(EmiStack::of).toList();
+		this.indexTemplate = indexTemplate;
+		this.indexBase = indexBase;
+		this.indexAddition = indexAddition;
+		this.indexOutputs = indexOutputs;
 	}
 
 	@Override
@@ -63,12 +87,34 @@ public class SmithingSpecEmiRecipe implements EmiRecipe {
 
 	@Override
 	public List<EmiIngredient> getInputs() {
-		return List.of(template, base, addition);
+		List<EmiIngredient> inputs = new ArrayList<>(3);
+		if (indexTemplate) {
+			inputs.add(template);
+		}
+		if (indexBase) {
+			inputs.add(base);
+		}
+		if (indexAddition) {
+			inputs.add(addition);
+		}
+		return inputs;
 	}
 
 	@Override
 	public List<EmiStack> getOutputs() {
-		return outputs;
+		return indexOutputs ? outputs : List.of();
+	}
+
+	public List<List<ItemStack>> getDisplayInputSlots() {
+		return List.of(itemStacks(template), itemStacks(base), itemStacks(addition));
+	}
+
+	public List<List<ItemStack>> getDisplayOutputSlots() {
+		return outputs.stream().map(EmiStack::getItemStack).map(List::of).toList();
+	}
+
+	private static List<ItemStack> itemStacks(EmiIngredient ingredient) {
+		return ingredient.getEmiStacks().stream().map(EmiStack::getItemStack).toList();
 	}
 
 	@Override

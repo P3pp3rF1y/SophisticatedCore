@@ -5,11 +5,14 @@ import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.advanced.ISimpleRecipeManagerPlugin;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayVariant;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayView;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IGroupedOutputFocusBehavior;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerDisplayCatalog;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SourceResultFocusBehavior;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +49,10 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 		IRecipeViewerDisplayCatalog catalog = catalogSupplier.get();
 		List<CraftingRecipe> globalRecipes = getGlobalRecipes(catalog);
 		return distinctRecipes(catalog.getCraftingUsagesFor(stack).stream()
-				.flatMap(view -> view.variants().stream()
-						.filter(variant -> !isDuplicateFocusedSourceRecipe(view, variant, stack, globalRecipes))
-						.map(view.spec()::recipe))
+				.filter(view -> !isReplaceableVanillaDisplay(view, stack))
+				.filter(view -> !isReplaceableSourceDisplay(view, view.variants().get(0), stack))
+				.filter(view -> !isDuplicateFocusedSourceRecipe(view, view.variants().get(0), stack, globalRecipes))
+				.map(view -> view.spec().recipe(view.variants()))
 				.toList());
 	}
 
@@ -59,20 +63,30 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 			return List.of();
 		}
 		IRecipeViewerDisplayCatalog catalog = catalogSupplier.get();
-		List<CraftingRecipe> globalRecipes = getGlobalRecipes(catalog);
 		return distinctRecipes(catalog.getCraftingRecipesFor(stack).stream()
-				.flatMap(view -> view.variants().stream()
-						.filter(variant -> !hasSameDisplayRecipe(globalRecipes, view.spec().recipe(variant)))
-						.map(view.spec()::recipe))
+				.filter(view -> !isReplaceableVanillaOutputDisplay(view, stack))
+				.map(view -> view.spec().recipe(view.variants()))
 				.toList());
 	}
 
 	@Override
 	public List<CraftingRecipe> getAllRecipes() {
-		return distinctRecipes(catalogSupplier.get().getGlobalCraftingDisplays().stream()
+		IRecipeViewerDisplayCatalog catalog = catalogSupplier.get();
+		List<CraftingRecipe> recipes = new ArrayList<>(catalog.getGlobalCraftingDisplays().stream()
+				.filter(view -> !(view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior))
 				.filter(view -> view.spec().replacedRecipeIds().isEmpty())
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
+				.map(view -> view.spec().recipe(view.variants()))
 				.toList());
+		catalog.getCraftingSpecs().stream()
+				.filter(spec -> spec.focusBehavior() instanceof IGroupedOutputFocusBehavior)
+				.filter(spec -> !spec.getGlobalDisplays().isEmpty())
+				.map(CraftingDisplayCatalogRecipeManagerPlugin::globalDisplaysRecipe)
+				.forEach(recipes::add);
+		return distinctRecipes(recipes);
+	}
+
+	private static CraftingRecipe globalDisplaysRecipe(CraftingDisplaySpec spec) {
+		return spec.recipe(spec.getGlobalDisplays());
 	}
 
 	private static List<CraftingRecipe> distinctRecipes(List<CraftingRecipe> recipes) {
@@ -85,12 +99,32 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 
 	private static List<CraftingRecipe> getGlobalRecipes(IRecipeViewerDisplayCatalog catalog) {
 		return catalog.getGlobalCraftingDisplays().stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
+				.map(view -> view.spec().recipe(view.variants()))
 				.toList();
 	}
 
 	private static boolean isDuplicateFocusedSourceRecipe(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedInput, List<CraftingRecipe> globalRecipes) {
-		return hasSameDisplayRecipe(globalRecipes, view.spec().recipe(variant)) && isSourceFocus(view, variant, focusedInput);
+		return !focusedInput.hasTag() && hasSameDisplayRecipe(globalRecipes, view.spec().recipe(variant)) && isSourceFocus(view, variant, focusedInput);
+	}
+
+	private static boolean isReplaceableVanillaDisplay(CraftingDisplayView view, ItemStack focusedStack) {
+		return !focusedStack.hasTag()
+				&& !(view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior)
+				&& !view.spec().replacedRecipeIds().isEmpty()
+				&& view.variants().stream().allMatch(variant -> !isSourceFocus(view, variant, focusedStack));
+	}
+
+	private static boolean isReplaceableVanillaOutputDisplay(CraftingDisplayView view, ItemStack focusedStack) {
+		return !focusedStack.hasTag()
+				&& !(view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior)
+				&& !view.spec().replacedRecipeIds().isEmpty()
+				&& view.variants().stream().allMatch(variant -> !isSourceFocus(view, variant, focusedStack));
+	}
+
+	private static boolean isReplaceableSourceDisplay(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedStack) {
+		return !view.spec().replacedRecipeIds().isEmpty()
+				&& isSourceFocus(view, variant, focusedStack)
+				&& !focusedStack.hasTag();
 	}
 
 	private static boolean isSourceFocus(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedInput) {

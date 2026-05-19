@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.SmithingRecipe;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +11,7 @@ import java.util.Optional;
 public interface IRecipeViewerDisplayCatalog {
 	void addGroupedCraftingSpec(SingleColorDyeRecipeSpec spec);
 
-	List<SingleColorDyeRecipeSpec> getGroupedCraftingSpecs();
+	List<IRecipeViewerDisplaySpec<GroupedCraftingRecipe>> getGroupedCraftingSpecs();
 
 	void addCraftingSpec(CraftingDisplaySpec spec);
 
@@ -23,6 +24,8 @@ public interface IRecipeViewerDisplayCatalog {
 	void addSmithingSpec(SmithingDisplaySpec spec);
 
 	List<SmithingDisplaySpec> getSmithingSpecs();
+
+	Optional<SmithingDisplaySpec> getSmithingDisplaySpecReplacing(SmithingRecipe recipe);
 
 	List<SmithingDisplayView> getGlobalSmithingDisplays();
 
