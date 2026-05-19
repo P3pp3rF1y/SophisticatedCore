@@ -6,16 +6,20 @@ import mezz.jei.api.recipe.advanced.ISimpleRecipeManagerPlugin;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.ClientRecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayVariant;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayView;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IGroupedOutputFocusBehavior;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerDisplayCatalog;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SourceResultFocusBehavior;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeManagerPlugin<RecipeHolder<CraftingRecipe>> {
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
@@ -47,9 +51,7 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 		IRecipeViewerDisplayCatalog catalog = catalogSupplier.get();
 		List<RecipeHolder<CraftingRecipe>> globalRecipes = getGlobalRecipes(catalog);
 		return distinctRecipes(catalog.getCraftingUsagesFor(stack).stream()
-				.flatMap(view -> view.variants().stream()
-						.filter(variant -> !isDuplicateFocusedSourceRecipe(view, variant, stack, globalRecipes))
-						.map(view.spec()::recipeHolder))
+				.flatMap(view -> recipeHoldersForInput(view, stack, globalRecipes))
 				.toList());
 	}
 
@@ -63,7 +65,8 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 		List<RecipeHolder<CraftingRecipe>> globalRecipes = getGlobalRecipes(catalog);
 		return distinctRecipes(catalog.getCraftingRecipesFor(stack).stream()
 				.flatMap(view -> view.variants().stream()
-						.filter(variant -> !hasSameDisplayRecipe(globalRecipes, view.spec().recipeHolder(variant)))
+						.filter(variant -> !isReplaceableGlobalOutput(view, stack))
+						.filter(variant -> !isDuplicateGlobalOutputRecipe(view, variant, stack, globalRecipes))
 						.map(view.spec()::recipeHolder))
 				.toList());
 	}
@@ -87,6 +90,34 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 		return catalog.getGlobalCraftingDisplays().stream()
 				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
 				.toList();
+	}
+
+	private static Stream<RecipeHolder<CraftingRecipe>> recipeHoldersForInput(CraftingDisplayView view, ItemStack stack, List<RecipeHolder<CraftingRecipe>> globalRecipes) {
+		if (!view.spec().replacedRecipeIds().isEmpty() && shouldSuppressSyntheticInput(stack)) {
+			return Stream.empty();
+		}
+		if (view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior) {
+			return Stream.of(view.spec().recipeHolder(view.variants()));
+		}
+		return view.variants().stream()
+				.filter(variant -> !isDuplicateFocusedSourceRecipe(view, variant, stack, globalRecipes))
+				.map(view.spec()::recipeHolder);
+	}
+
+	private static boolean isDuplicateGlobalOutputRecipe(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedOutput, List<RecipeHolder<CraftingRecipe>> globalRecipes) {
+		return focusedOutput.getComponentsPatch().isEmpty() && hasSameDisplayRecipe(globalRecipes, view.spec().recipeHolder(variant));
+	}
+
+	private static boolean isReplaceableGlobalOutput(CraftingDisplayView view, ItemStack focusedOutput) {
+		return !view.spec().replacedRecipeIds().isEmpty() && (!SyntheticDisplayComponents.hasAny(focusedOutput) || hasOnlyRenderInfo(focusedOutput));
+	}
+
+	private static boolean hasOnlyRenderInfo(ItemStack stack) {
+		return stack.has(ModCoreDataComponents.RENDER_INFO_TAG) && !stack.has(ModCoreDataComponents.MAIN_COLOR) && !stack.has(ModCoreDataComponents.ACCENT_COLOR);
+	}
+
+	private static boolean shouldSuppressSyntheticInput(ItemStack stack) {
+		return !SyntheticDisplayComponents.hasAny(stack) || hasOnlyRenderInfo(stack);
 	}
 
 	private static boolean isDuplicateFocusedSourceRecipe(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedInput, List<RecipeHolder<CraftingRecipe>> globalRecipes) {
@@ -117,7 +148,7 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 	private static boolean hasSameDisplayRecipe(RecipeHolder<CraftingRecipe> first, RecipeHolder<CraftingRecipe> second) {
 		return first.id().equals(second.id())
 				&& ingredientsMatch(first.value(), second.value())
-				&& ItemStack.isSameItemSameComponents(first.value().getResultItem(null), second.value().getResultItem(null));
+				&& ItemStack.isSameItemSameComponents(ClientRecipeHelper.getResultItem(first.value()), ClientRecipeHelper.getResultItem(second.value()));
 	}
 
 	private static boolean ingredientsMatch(CraftingRecipe first, CraftingRecipe second) {

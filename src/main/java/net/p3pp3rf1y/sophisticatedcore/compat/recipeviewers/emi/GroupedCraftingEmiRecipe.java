@@ -7,6 +7,7 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.GroupedCraftingRecipe;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.GroupedCraftingVariant;
@@ -14,15 +15,23 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.GroupedCrafti
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.function.IntPredicate;
 
 public class GroupedCraftingEmiRecipe extends BasicEmiRecipe {
 	private final RecipeHolder<GroupedCraftingRecipe> recipeHolder;
 
 	private GroupedCraftingEmiRecipe(ResourceLocation id, GroupedCraftingRecipe recipe, boolean indexInputs, boolean indexOutputs) {
+		this(id, recipe, inputIndex -> indexInputs, indexOutputs);
+	}
+
+	private GroupedCraftingEmiRecipe(ResourceLocation id, GroupedCraftingRecipe recipe, IntPredicate inputIndexFilter, boolean indexOutputs) {
 		super(VanillaEmiRecipeCategories.CRAFTING, id.withPath(path -> path.startsWith("/") ? path : "/" + path), 76, 54);
 		recipeHolder = new RecipeHolder<>(id, recipe);
-		if (indexInputs) {
-			recipe.getInputSlots().forEach(inputSlot -> inputs.add(EmiIngredient.of(inputSlot.stream().map(EmiStack::of).toList())));
+		List<List<ItemStack>> inputSlots = recipe.getInputSlots();
+		for (int inputIndex = 0; inputIndex < inputSlots.size(); inputIndex++) {
+			if (inputIndexFilter.test(inputIndex)) {
+				inputs.add(EmiIngredient.of(inputSlots.get(inputIndex).stream().map(EmiStack::of).toList()));
+			}
 		}
 		if (indexOutputs) {
 			outputs.addAll(recipe.getResultStacks().stream().map(EmiStack::of).toList());
@@ -32,14 +41,45 @@ public class GroupedCraftingEmiRecipe extends BasicEmiRecipe {
 	public static List<GroupedCraftingEmiRecipe> ofGroupedUsageAndFocusedRecipes(RecipeHolder<GroupedCraftingRecipe> recipeHolder) {
 		GroupedCraftingRecipe recipe = recipeHolder.value();
 		List<GroupedCraftingEmiRecipe> recipes = new ArrayList<>(recipe.getVariants().size() + 1);
-		recipes.add(new GroupedCraftingEmiRecipe(recipeHolder.id(), recipe, true, false));
+		recipes.add(new GroupedCraftingEmiRecipe(recipeHolder.id(), recipe, inputIndex -> !isBroadFixedInput(recipe, inputIndex), false));
+		addFixedInputFocusedUsageRecipes(recipeHolder.id(), recipe, recipes);
 		for (int i = 0; i < recipe.getVariants().size(); i++) {
 			int variantIndex = i;
 			ResourceLocation id = recipeHolder.id().withPath(path -> path + "/" + variantIndex);
-			GroupedCraftingRecipe narrowedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(), recipe.getFixedInputSlots(), List.of(recipe.getVariants().get(i)));
+			GroupedCraftingRecipe narrowedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(), recipe.getFixedInputSlots(), List.of(recipe.getVariants().get(i)), recipe.getResultMatcher());
 			recipes.add(new GroupedCraftingEmiRecipe(id, narrowedRecipe, false, true));
 		}
 		return recipes;
+	}
+
+	private static void addFixedInputFocusedUsageRecipes(ResourceLocation baseId, GroupedCraftingRecipe recipe, List<GroupedCraftingEmiRecipe> recipes) {
+		List<List<ItemStack>> fixedInputSlots = recipe.getFixedInputSlots();
+		for (int slotIndex = 0; slotIndex < fixedInputSlots.size(); slotIndex++) {
+			List<ItemStack> fixedInputSlot = fixedInputSlots.get(slotIndex);
+			if (fixedInputSlot.size() <= 1) {
+				continue;
+			}
+			for (int stackIndex = 0; stackIndex < fixedInputSlot.size(); stackIndex++) {
+				int focusedSlotIndex = slotIndex;
+				int focusedStackIndex = stackIndex;
+				ResourceLocation id = baseId.withPath(path -> path + "/input/" + focusedSlotIndex + "/" + focusedStackIndex);
+				GroupedCraftingRecipe focusedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(), narrowFixedInputSlot(fixedInputSlots, slotIndex, fixedInputSlot.get(stackIndex)), recipe.getVariants(), recipe.getResultMatcher());
+				recipes.add(new GroupedCraftingEmiRecipe(id, focusedRecipe, true, false));
+			}
+		}
+	}
+
+	private static boolean isBroadFixedInput(GroupedCraftingRecipe recipe, int inputIndex) {
+		List<List<ItemStack>> fixedInputSlots = recipe.getFixedInputSlots();
+		return inputIndex < fixedInputSlots.size() && fixedInputSlots.get(inputIndex).size() > 1;
+	}
+
+	private static List<List<ItemStack>> narrowFixedInputSlot(List<List<ItemStack>> fixedInputSlots, int focusedSlotIndex, ItemStack focusedStack) {
+		List<List<ItemStack>> focusedSlots = new ArrayList<>(fixedInputSlots.size());
+		for (int slotIndex = 0; slotIndex < fixedInputSlots.size(); slotIndex++) {
+			focusedSlots.add(slotIndex == focusedSlotIndex ? List.of(focusedStack) : fixedInputSlots.get(slotIndex));
+		}
+		return focusedSlots;
 	}
 
 	@Override

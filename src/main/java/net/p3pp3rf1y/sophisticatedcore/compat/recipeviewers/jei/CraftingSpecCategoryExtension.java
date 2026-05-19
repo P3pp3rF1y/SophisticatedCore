@@ -11,6 +11,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayVariant;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerCraftingSpecRecipe;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SourceResultFocusBehavior;
 
 import java.util.List;
@@ -30,11 +31,16 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 	@Override
 	public void setRecipe(RecipeHolder<R> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
 		CraftingDisplaySpec spec = specFactory.apply(recipeHolder);
-		List<CraftingDisplayVariant> variants = narrowToFocus(spec, focuses);
-		List<IRecipeSlotBuilder> inputSlots = craftingGridHelper.createAndSetInputs(builder, spec.getInputSlots(variants), spec.width(), spec.height());
-		IRecipeSlotBuilder outputSlot = craftingGridHelper.createAndSetOutputs(builder, spec.getOutputStacks(variants));
+		List<CraftingDisplayVariant> variants = recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe ? specRecipe.variants() : narrowToFocus(spec, focuses);
+		List<List<ItemStack>> inputStacks = spec.getInputSlots(variants);
+		List<ItemStack> outputStacks = spec.getOutputStacks(variants);
+		List<IRecipeSlotBuilder> inputSlots = craftingGridHelper.createAndSetInputs(builder, inputStacks, spec.width(), spec.height());
+		IRecipeSlotBuilder outputSlot = craftingGridHelper.createAndSetOutputs(builder, outputStacks);
 		if (spec.focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior && sourceResultFocusBehavior.sourceInputIndex() < inputSlots.size()) {
-			builder.createFocusLink(inputSlots.get(sourceResultFocusBehavior.sourceInputIndex()), outputSlot);
+			List<ItemStack> sourceStacks = inputStacks.get(sourceResultFocusBehavior.sourceInputIndex());
+			if (sourceStacks.size() == 1 && outputStacks.size() == 1) {
+				builder.createFocusLink(inputSlots.get(sourceResultFocusBehavior.sourceInputIndex()), outputSlot);
+			}
 		}
 	}
 
