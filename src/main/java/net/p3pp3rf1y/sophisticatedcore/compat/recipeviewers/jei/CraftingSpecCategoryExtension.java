@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.jei;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
+import mezz.jei.api.gui.ingredient.IRecipeSlotDrawable;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayVariant;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerCraftingSpecRecipe;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SourceResultFocusBehavior;
 
 import java.util.List;
@@ -36,12 +38,38 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 
 	public void setRecipe(RecipeHolder<R> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
 		CraftingDisplaySpec spec = specFactory.apply(recipeHolder);
-		List<CraftingDisplayVariant> variants = narrowToFocus(spec, focuses);
-		List<IRecipeSlotBuilder> inputSlots = craftingGridHelper.createAndSetInputs(builder, spec.getInputSlots(variants), spec.width(), spec.height());
-		IRecipeSlotBuilder outputSlot = craftingGridHelper.createAndSetOutputs(builder, spec.getOutputStacks(variants));
+		List<CraftingDisplayVariant> variants = recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe ? specRecipe.variants() : narrowToFocus(spec, focuses);
+		List<List<ItemStack>> inputStacks = spec.getInputSlots(variants);
+		List<ItemStack> outputStacks = spec.getOutputStacks(variants);
+		List<IRecipeSlotBuilder> inputSlots = craftingGridHelper.createAndSetInputs(builder, inputStacks, spec.width(), spec.height());
+		IRecipeSlotBuilder outputSlot = craftingGridHelper.createAndSetOutputs(builder, outputStacks);
 		if (spec.focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior && sourceResultFocusBehavior.sourceInputIndex() < inputSlots.size()) {
-			builder.createFocusLink(inputSlots.get(sourceResultFocusBehavior.sourceInputIndex()), outputSlot);
+			List<ItemStack> sourceStacks = inputStacks.get(sourceResultFocusBehavior.sourceInputIndex());
+			if (sourceStacks.size() == 1 && outputStacks.size() == 1) {
+				builder.createFocusLink(inputSlots.get(sourceResultFocusBehavior.sourceInputIndex()), outputSlot);
+			}
 		}
+	}
+
+	@Override
+	public void onDisplayedIngredientsUpdate(RecipeHolder<R> recipeHolder, List<IRecipeSlotDrawable> recipeSlots, IFocusGroup focuses) {
+		CraftingDisplaySpec spec = specFactory.apply(recipeHolder);
+		List<CraftingDisplayVariant> variants = recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe ? specRecipe.variants() : narrowToFocus(spec, focuses);
+		List<List<ItemStack>> inputStacks = spec.getInputSlots(variants);
+		List<IRecipeSlotDrawable> inputSlots = recipeSlots.stream().filter(slot -> slot.getRole() == RecipeIngredientRole.INPUT).toList();
+		for (int i = 0; i < Math.min(inputStacks.size(), inputSlots.size()); i++) {
+			if (!inputStacks.get(i).isEmpty()) {
+				inputSlots.get(i).createDisplayOverrides().addItemStacks(inputStacks.get(i));
+			}
+		}
+		List<ItemStack> outputs = spec.getOutputStacks(variants);
+		if (outputs.isEmpty()) {
+			return;
+		}
+		recipeSlots.stream()
+				.filter(slot -> slot.getRole() == RecipeIngredientRole.OUTPUT)
+				.findFirst()
+				.ifPresent(slot -> slot.createDisplayOverrides().addItemStacks(outputs));
 	}
 
 	@Override

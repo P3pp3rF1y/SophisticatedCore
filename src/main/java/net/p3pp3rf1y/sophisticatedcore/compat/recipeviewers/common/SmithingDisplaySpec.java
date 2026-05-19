@@ -10,13 +10,20 @@ import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public record SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> template, Optional<Ingredient> addition, List<SmithingDisplayVariant> variants,
-								 List<SmithingDisplayVariant> globalVariants, IFocusBehavior<SmithingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<SmithingDisplayVariant> {
+								 List<SmithingDisplayVariant> globalVariants, Set<SmithingRecipe> replacedRecipes,
+								 IFocusBehavior<SmithingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<SmithingDisplayVariant> {
+	public SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> template, Optional<Ingredient> addition, List<SmithingDisplayVariant> variants,
+			List<SmithingDisplayVariant> globalVariants, IFocusBehavior<SmithingDisplayVariant> focusBehavior) {
+		this(id, template, addition, variants, globalVariants, Set.of(), focusBehavior);
+	}
 
 	public SmithingDisplaySpec {
 		variants = List.copyOf(variants);
 		globalVariants = List.copyOf(globalVariants);
+		replacedRecipes = Set.copyOf(replacedRecipes);
 	}
 
 	@Override
@@ -45,6 +52,10 @@ public record SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> temp
 
 	public List<ItemStack> getResultStacks(List<SmithingDisplayVariant> displayVariants) {
 		return displayVariants.stream().map(SmithingDisplayVariant::result).toList();
+	}
+
+	public boolean replacesSmithingRecipe(SmithingRecipe recipe) {
+		return replacedRecipes.contains(recipe);
 	}
 
 	public RecipeHolder<SmithingRecipe> recipeHolder(SmithingDisplayVariant variant) {

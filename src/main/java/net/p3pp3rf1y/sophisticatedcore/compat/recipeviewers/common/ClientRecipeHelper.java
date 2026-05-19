@@ -7,6 +7,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
@@ -25,6 +26,10 @@ public class ClientRecipeHelper {
 		ClientLevel level = minecraft.level;
 		if (level == null) {
 			return Collections.emptyList();
+		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipesOfType(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
 		}
 
 		return RecipeHelper.getRecipesOfType(recipeType).stream()
@@ -50,6 +55,10 @@ public class ClientRecipeHelper {
 		if (level == null) {
 			return Collections.emptyList();
 		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipeHoldersOfType(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
+		}
 
 		return RecipeHelper.getRecipesOfType(recipeType).stream()
 				.filter(r -> filterRecipeClass.isInstance(r.value()))
@@ -74,6 +83,10 @@ public class ClientRecipeHelper {
 		if (level == null) {
 			return Collections.emptyList();
 		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipesOfTypeIntoMultiple(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
+		}
 
 		return RecipeHelper.getRecipesOfType(recipeType).stream()
 				.filter(r -> filterRecipeClass.isInstance(r.value()))
@@ -97,6 +110,10 @@ public class ClientRecipeHelper {
 		ClientLevel level = minecraft.level;
 		if (level == null) {
 			return Collections.emptyList();
+		}
+		MinecraftServer server = minecraft.getSingleplayerServer();
+		if (server != null) {
+			return transformAllRecipeHoldersOfTypeIntoMultiple(server.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
 		}
 
 		return RecipeHelper.getRecipesOfType(recipeType).stream()

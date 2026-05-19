@@ -1,15 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 
-import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.SmithingRecipe;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class RecipeViewerDisplayCatalog implements IRecipeViewerDisplayCatalog {
-	private final List<SingleColorDyeRecipeSpec> groupedCraftingSpecs = new ArrayList<>();
+	private final List<IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>>> groupedCraftingSpecs = new ArrayList<>();
 	private final List<CraftingDisplaySpec> craftingSpecs = new ArrayList<>();
 	private final List<Class<? extends CraftingRecipe>> craftingSpecExtensionRecipeClasses = new ArrayList<>();
 	private final List<SmithingDisplaySpec> smithingSpecs = new ArrayList<>();
@@ -21,7 +22,7 @@ public class RecipeViewerDisplayCatalog implements IRecipeViewerDisplayCatalog {
 	}
 
 	@Override
-	public List<SingleColorDyeRecipeSpec> getGroupedCraftingSpecs() {
+	public List<IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>>> getGroupedCraftingSpecs() {
 		return List.copyOf(groupedCraftingSpecs);
 	}
 
@@ -53,6 +54,11 @@ public class RecipeViewerDisplayCatalog implements IRecipeViewerDisplayCatalog {
 	@Override
 	public List<SmithingDisplaySpec> getSmithingSpecs() {
 		return List.copyOf(smithingSpecs);
+	}
+
+	@Override
+	public Optional<SmithingDisplaySpec> getSmithingDisplaySpecReplacing(SmithingRecipe recipe) {
+		return smithingSpecs.stream().filter(spec -> spec.replacesSmithingRecipe(recipe)).findFirst();
 	}
 
 	@Override

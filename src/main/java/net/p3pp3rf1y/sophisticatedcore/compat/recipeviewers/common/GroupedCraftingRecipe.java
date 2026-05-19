@@ -76,6 +76,10 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 		return variants.stream().filter(variant -> resultMatcher.test(variant.result(), stack)).findFirst();
 	}
 
+	public BiPredicate<ItemStack, ItemStack> getResultMatcher() {
+		return resultMatcher;
+	}
+
 	public Optional<ItemStack> findResultForDisplayedInput(ItemStack stack) {
 		return variants.stream()
 				.filter(variant -> variant.displayedInputs().stream().anyMatch(input -> ItemStack.isSameItemSameComponents(input, stack)))

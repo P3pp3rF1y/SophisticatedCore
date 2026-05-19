@@ -31,7 +31,7 @@ public class GroupedCraftingRecipeManagerPlugin implements ISimpleRecipeManagerP
 	@Override
 	public boolean isHandledOutput(ITypedIngredient<?> output) {
 		ItemStack stack = output.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-		return focusedStackPredicate.test(stack) && specsSupplier.get().stream().anyMatch(spec -> !spec.getRecipesFor(stack).isEmpty());
+		return hasSophisticatedComponents(stack) && focusedStackPredicate.test(stack) && specsSupplier.get().stream().anyMatch(spec -> !spec.getRecipesFor(stack).isEmpty());
 	}
 
 	@Override
@@ -46,6 +46,9 @@ public class GroupedCraftingRecipeManagerPlugin implements ISimpleRecipeManagerP
 	@Override
 	public List<RecipeHolder<CraftingRecipe>> getRecipesForOutput(ITypedIngredient<?> output) {
 		ItemStack stack = output.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
+		if (!hasSophisticatedComponents(stack)) {
+			return List.of();
+		}
 		return specsSupplier.get().stream()
 				.flatMap(spec -> spec.getRecipesFor(stack).stream())
 				.map(GroupedCraftingRecipeManagerPlugin::toCraftingRecipeHolder)
@@ -54,13 +57,15 @@ public class GroupedCraftingRecipeManagerPlugin implements ISimpleRecipeManagerP
 
 	@Override
 	public List<RecipeHolder<CraftingRecipe>> getAllRecipes() {
-		return specsSupplier.get().stream()
-				.flatMap(spec -> spec.getAllDisplays().stream())
-				.map(GroupedCraftingRecipeManagerPlugin::toCraftingRecipeHolder)
-				.toList();
+		return List.of();
 	}
 
 	private static RecipeHolder<CraftingRecipe> toCraftingRecipeHolder(RecipeHolder<GroupedCraftingRecipe> recipeHolder) {
 		return new RecipeHolder<>(recipeHolder.id(), recipeHolder.value());
+	}
+
+	private static boolean hasSophisticatedComponents(ItemStack stack) {
+		String components = stack.getComponents().toString();
+		return components.contains("sophisticatedcore:") || components.contains("sophisticatedstorage:") || components.contains("sophisticatedstorageinmotion:");
 	}
 }
