@@ -16,6 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDispl
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerCraftingSpecRecipe;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SourceResultFocusBehavior;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -33,7 +34,23 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 	@Override
 	public List<SlotDisplay> getIngredients(RecipeHolder<R> recipeHolder) {
 		CraftingDisplaySpec spec = specFactory.apply(recipeHolder);
+		if (recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe) {
+			List<List<ItemStack>> inputStacks = spec.getInputSlots(specRecipe.variants());
+			List<SlotDisplay> displays = new ArrayList<>(spec.baseIngredients().size());
+			for (int i = 0; i < spec.baseIngredients().size(); i++) {
+				List<ItemStack> stacks = i < inputStacks.size() ? inputStacks.get(i) : List.of();
+				displays.add(stacks.isEmpty() ? spec.baseIngredients().get(i).display() : slotDisplay(stacks));
+			}
+			return displays;
+		}
 		return spec.baseIngredients().stream().map(ingredient -> (SlotDisplay) ingredient.display()).toList();
+	}
+
+	private static SlotDisplay slotDisplay(List<ItemStack> stacks) {
+		if (stacks.size() == 1) {
+			return new SlotDisplay.ItemStackSlotDisplay(stacks.getFirst());
+		}
+		return new SlotDisplay.Composite(stacks.stream().map(SlotDisplay.ItemStackSlotDisplay::new).map(display -> (SlotDisplay) display).toList());
 	}
 
 	public void setRecipe(RecipeHolder<R> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
@@ -53,9 +70,10 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 
 	@Override
 	public void onDisplayedIngredientsUpdate(RecipeHolder<R> recipeHolder, List<IRecipeSlotDrawable> recipeSlots, IFocusGroup focuses) {
+		recipeSlots.forEach(IRecipeSlotDrawable::clearDisplayOverrides);
 		CraftingDisplaySpec spec = specFactory.apply(recipeHolder);
 		List<CraftingDisplayVariant> variants = recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe ? specRecipe.variants() : narrowToFocus(spec, focuses);
-		List<List<ItemStack>> inputStacks = spec.getInputSlots(variants);
+		List<List<ItemStack>> inputStacks = gridInputStacks(spec, variants);
 		List<IRecipeSlotDrawable> inputSlots = recipeSlots.stream().filter(slot -> slot.getRole() == RecipeIngredientRole.INPUT).toList();
 		for (int i = 0; i < Math.min(inputStacks.size(), inputSlots.size()); i++) {
 			if (!inputStacks.get(i).isEmpty()) {
@@ -101,5 +119,29 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 			return variants.isEmpty() ? spec.getGlobalDisplays() : variants;
 		}
 		return spec.getGlobalDisplays();
+	}
+
+	private static List<List<ItemStack>> gridInputStacks(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants) {
+		List<List<ItemStack>> inputStacks = spec.getInputSlots(variants);
+		if (spec.width() == 3 && spec.height() == 3) {
+			return inputStacks;
+		}
+
+		List<List<ItemStack>> gridInputStacks = new ArrayList<>(9);
+		for (int i = 0; i < 9; i++) {
+			gridInputStacks.add(List.of());
+		}
+
+		int xOffset = spec.width() == 1 ? 1 : 0;
+		int yOffset = spec.height() == 1 ? 1 : 0;
+		for (int y = 0; y < spec.height(); y++) {
+			for (int x = 0; x < spec.width(); x++) {
+				int sourceIndex = x + y * spec.width();
+				if (sourceIndex < inputStacks.size()) {
+					gridInputStacks.set(x + xOffset + (y + yOffset) * 3, inputStacks.get(sourceIndex));
+				}
+			}
+		}
+		return gridInputStacks;
 	}
 }

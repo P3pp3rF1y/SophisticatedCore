@@ -115,6 +115,9 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 		if (!view.spec().replacedRecipeIds().isEmpty() && shouldSuppressSyntheticInput(stack)) {
 			return Stream.empty();
 		}
+		if (!view.spec().replacedRecipeIds().isEmpty() && view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior && stack.getComponentsPatch().isEmpty() && isGlobalSource(view, stack)) {
+			return Stream.empty();
+		}
 		if (view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior) {
 			return Stream.of(view.spec().recipeHolder(view.variants()));
 		}
@@ -136,7 +139,7 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 	}
 
 	private static boolean shouldSuppressSyntheticInput(ItemStack stack) {
-		return shouldSuppressSyntheticReplacement(stack);
+		return stack.getComponentsPatch().isEmpty() || hasOnlyRenderInfo(stack) || (!SyntheticDisplayComponents.hasAny(stack) && hasCoreRecipeMetadata(stack));
 	}
 
 	private static boolean shouldSuppressSyntheticReplacement(ItemStack stack) {
@@ -145,6 +148,14 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 
 	private static boolean hasCoreRecipeMetadata(ItemStack stack) {
 		return stack.has(ModCoreDataComponents.NUMBER_OF_INVENTORY_SLOTS) || stack.has(ModCoreDataComponents.NUMBER_OF_UPGRADE_SLOTS) || stack.has(ModCoreDataComponents.STORAGE_UUID);
+	}
+
+	private static boolean isGlobalSource(CraftingDisplayView view, ItemStack focusedInput) {
+		return view.spec().focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior
+				&& view.spec().getGlobalDisplays().stream()
+						.filter(variant -> sourceResultFocusBehavior.sourceInputIndex() < variant.inputs().size())
+						.map(variant -> variant.inputs().get(sourceResultFocusBehavior.sourceInputIndex()))
+						.anyMatch(source -> ItemStack.isSameItemSameComponents(source, focusedInput));
 	}
 
 	private static boolean isDuplicateFocusedSourceRecipe(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedInput, List<RecipeHolder<CraftingRecipe>> globalRecipes) {
