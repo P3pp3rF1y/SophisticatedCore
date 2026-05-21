@@ -17,16 +17,22 @@ import java.util.function.Supplier;
 
 public class GroupedCraftingReiDisplayGenerator implements DynamicDisplayGenerator<GroupedCraftingReiDisplay> {
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
-	private final Predicate<ItemStack> stackPredicate;
+	private final Predicate<ItemStack> usageStackPredicate;
+	private final Predicate<ItemStack> recipeStackPredicate;
 
 	public GroupedCraftingReiDisplayGenerator(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> stackPredicate) {
+		this(catalogSupplier, stackPredicate, stackPredicate);
+	}
+
+	public GroupedCraftingReiDisplayGenerator(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> usageStackPredicate, Predicate<ItemStack> recipeStackPredicate) {
 		this.catalogSupplier = catalogSupplier;
-		this.stackPredicate = stackPredicate;
+		this.usageStackPredicate = usageStackPredicate;
+		this.recipeStackPredicate = recipeStackPredicate;
 	}
 
 	@Override
 	public Optional<List<GroupedCraftingReiDisplay>> getRecipeFor(EntryStack<?> entry) {
-		if (!(entry.getValue() instanceof ItemStack stack) || !stackPredicate.test(stack)) {
+		if (!(entry.getValue() instanceof ItemStack stack) || !recipeStackPredicate.test(stack)) {
 			return Optional.empty();
 		}
 
@@ -39,7 +45,7 @@ public class GroupedCraftingReiDisplayGenerator implements DynamicDisplayGenerat
 
 	@Override
 	public Optional<List<GroupedCraftingReiDisplay>> getUsageFor(EntryStack<?> entry) {
-		if (!(entry.getValue() instanceof ItemStack stack) || !stackPredicate.test(stack)) {
+		if (!(entry.getValue() instanceof ItemStack stack) || !usageStackPredicate.test(stack)) {
 			return Optional.empty();
 		}
 
