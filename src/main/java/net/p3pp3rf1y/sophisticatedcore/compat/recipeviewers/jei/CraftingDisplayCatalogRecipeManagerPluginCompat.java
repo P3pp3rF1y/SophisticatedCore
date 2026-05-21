@@ -9,6 +9,7 @@ import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerDisplayCatalog;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -16,7 +17,8 @@ import java.util.function.Supplier;
 
 public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeManagerPlugin {
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
-	private final Predicate<ItemStack> focusedStackPredicate;
+	private final Predicate<ItemStack> focusedInputPredicate;
+	private final Predicate<ItemStack> focusedOutputPredicate;
 	private final Map<String, List<RecipeHolder<CraftingRecipe>>> inputRecipesByFocus = new HashMap<>();
 	private final Map<String, List<RecipeHolder<CraftingRecipe>>> outputRecipesByFocus = new HashMap<>();
 
@@ -25,8 +27,19 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 	}
 
 	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedStackPredicate) {
+		this(catalogSupplier, focusedStackPredicate, focusedStackPredicate);
+	}
+
+	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate, Predicate<ItemStack> focusedOutputPredicate) {
 		this.catalogSupplier = catalogSupplier;
-		this.focusedStackPredicate = focusedStackPredicate;
+		this.focusedInputPredicate = focusedInputPredicate;
+		this.focusedOutputPredicate = focusedOutputPredicate;
+		RecipeHelper.addRecipeChangeListener(this::clearCaches);
+	}
+
+	private void clearCaches() {
+		inputRecipesByFocus.clear();
+		outputRecipesByFocus.clear();
 	}
 
 	@Override
@@ -64,9 +77,6 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 
 	private boolean isHandledFocus(IFocus<ItemStack> focus) {
 		ItemStack stack = focus.getTypedValue().getIngredient();
-		if (!focusedStackPredicate.test(stack)) {
-			return false;
-		}
 		return switch (focus.getRole()) {
 			case INPUT -> !getRecipesForInput(stack).isEmpty();
 			case OUTPUT -> !getRecipesForOutput(stack).isEmpty();
@@ -76,9 +86,6 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 
 	private List<RecipeHolder<CraftingRecipe>> getRecipesForFocus(IFocus<ItemStack> focus) {
 		ItemStack stack = focus.getTypedValue().getIngredient();
-		if (!focusedStackPredicate.test(stack)) {
-			return List.of();
-		}
 		if (focus.getRole() == RecipeIngredientRole.INPUT) {
 			return getRecipesForInput(stack);
 		}
@@ -89,12 +96,18 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 	}
 
 	private List<RecipeHolder<CraftingRecipe>> getRecipesForInput(ItemStack stack) {
+		if (!focusedInputPredicate.test(stack)) {
+			return List.of();
+		}
 		return inputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(catalogSupplier.get().getCraftingUsagesFor(stack).stream()
 				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
 				.toList()));
 	}
 
 	private List<RecipeHolder<CraftingRecipe>> getRecipesForOutput(ItemStack stack) {
+		if (!focusedOutputPredicate.test(stack)) {
+			return List.of();
+		}
 		return outputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(catalogSupplier.get().getCraftingRecipesFor(stack).stream()
 				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
 				.toList()));
