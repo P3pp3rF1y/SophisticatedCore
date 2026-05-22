@@ -18,16 +18,22 @@ import java.util.function.Supplier;
 
 public class SmithingSpecReiDisplayGenerator implements DynamicDisplayGenerator<DefaultSmithingDisplay> {
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
-	private final Predicate<ItemStack> focusedStackPredicate;
+	private final Predicate<ItemStack> focusedInputPredicate;
+	private final Predicate<ItemStack> focusedOutputPredicate;
 
 	public SmithingSpecReiDisplayGenerator(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedStackPredicate) {
+		this(catalogSupplier, focusedStackPredicate, focusedStackPredicate);
+	}
+
+	public SmithingSpecReiDisplayGenerator(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate, Predicate<ItemStack> focusedOutputPredicate) {
 		this.catalogSupplier = catalogSupplier;
-		this.focusedStackPredicate = focusedStackPredicate;
+		this.focusedInputPredicate = focusedInputPredicate;
+		this.focusedOutputPredicate = focusedOutputPredicate;
 	}
 
 	@Override
 	public Optional<List<DefaultSmithingDisplay>> getRecipeFor(EntryStack<?> entry) {
-		if (!(entry.getValue() instanceof ItemStack stack) || !focusedStackPredicate.test(stack)) {
+		if (!(entry.getValue() instanceof ItemStack stack) || !focusedInputPredicate.test(stack)) {
 			return Optional.empty();
 		}
 
@@ -38,7 +44,7 @@ public class SmithingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 
 	@Override
 	public Optional<List<DefaultSmithingDisplay>> getUsageFor(EntryStack<?> entry) {
-		if (!(entry.getValue() instanceof ItemStack stack) || !focusedStackPredicate.test(stack)) {
+		if (!(entry.getValue() instanceof ItemStack stack) || !focusedOutputPredicate.test(stack)) {
 			return Optional.empty();
 		}
 

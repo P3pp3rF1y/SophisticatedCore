@@ -13,28 +13,37 @@ import java.util.function.Supplier;
 
 public class SmithingSpecRecipeManagerPlugin implements ISimpleRecipeManagerPlugin<SmithingRecipe> {
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
-	private final Predicate<ItemStack> focusedStackPredicate;
+	private final Predicate<ItemStack> focusedInputPredicate;
+	private final Predicate<ItemStack> focusedOutputPredicate;
 
 	public SmithingSpecRecipeManagerPlugin(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedStackPredicate) {
+		this(catalogSupplier, focusedStackPredicate, focusedStackPredicate);
+	}
+
+	public SmithingSpecRecipeManagerPlugin(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate, Predicate<ItemStack> focusedOutputPredicate) {
 		this.catalogSupplier = catalogSupplier;
-		this.focusedStackPredicate = focusedStackPredicate;
+		this.focusedInputPredicate = focusedInputPredicate;
+		this.focusedOutputPredicate = focusedOutputPredicate;
 	}
 
 	@Override
 	public boolean isHandledInput(ITypedIngredient<?> input) {
 		ItemStack stack = input.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-		return focusedStackPredicate.test(stack) && !catalogSupplier.get().getSmithingUsagesFor(stack).isEmpty();
+		return focusedInputPredicate.test(stack) && !catalogSupplier.get().getSmithingUsagesFor(stack).isEmpty();
 	}
 
 	@Override
 	public boolean isHandledOutput(ITypedIngredient<?> output) {
 		ItemStack stack = output.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-		return focusedStackPredicate.test(stack) && !catalogSupplier.get().getSmithingRecipesFor(stack).isEmpty();
+		return focusedOutputPredicate.test(stack) && !catalogSupplier.get().getSmithingRecipesFor(stack).isEmpty();
 	}
 
 	@Override
 	public List<SmithingRecipe> getRecipesForInput(ITypedIngredient<?> input) {
 		ItemStack stack = input.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
+		if (!focusedInputPredicate.test(stack)) {
+			return List.of();
+		}
 		return catalogSupplier.get().getSmithingUsagesFor(stack).stream()
 				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
 				.toList();
@@ -43,6 +52,9 @@ public class SmithingSpecRecipeManagerPlugin implements ISimpleRecipeManagerPlug
 	@Override
 	public List<SmithingRecipe> getRecipesForOutput(ITypedIngredient<?> output) {
 		ItemStack stack = output.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
+		if (!focusedOutputPredicate.test(stack)) {
+			return List.of();
+		}
 		return catalogSupplier.get().getSmithingRecipesFor(stack).stream()
 				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
 				.toList();

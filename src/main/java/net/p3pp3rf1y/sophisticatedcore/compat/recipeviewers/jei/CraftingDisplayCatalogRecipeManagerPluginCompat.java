@@ -9,7 +9,9 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerDisplayCatalog;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,15 +20,29 @@ import java.util.function.Supplier;
 
 public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeManagerPlugin {
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
-	private final Predicate<ItemStack> focusedStackPredicate;
+	private final Predicate<ItemStack> focusedInputPredicate;
+	private final Predicate<ItemStack> focusedOutputPredicate;
+	private final Map<String, List<CraftingRecipe>> inputRecipesByFocus = new HashMap<>();
+	private final Map<String, List<CraftingRecipe>> outputRecipesByFocus = new HashMap<>();
 
 	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier) {
 		this(catalogSupplier, stack -> true);
 	}
 
 	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedStackPredicate) {
+		this(catalogSupplier, focusedStackPredicate, focusedStackPredicate);
+	}
+
+	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate, Predicate<ItemStack> focusedOutputPredicate) {
 		this.catalogSupplier = catalogSupplier;
-		this.focusedStackPredicate = focusedStackPredicate;
+		this.focusedInputPredicate = focusedInputPredicate;
+		this.focusedOutputPredicate = focusedOutputPredicate;
+		RecipeHelper.addRecipeChangeListener(this::clearCaches);
+	}
+
+	private void clearCaches() {
+		inputRecipesByFocus.clear();
+		outputRecipesByFocus.clear();
 	}
 
 	@Override
@@ -64,32 +80,40 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 
 	private boolean isHandledFocus(IFocus<ItemStack> focus) {
 		ItemStack stack = focus.getTypedValue().getIngredient();
-		if (!focusedStackPredicate.test(stack)) {
-			return false;
-		}
 		return switch (focus.getRole()) {
-			case INPUT -> !catalogSupplier.get().getCraftingUsagesFor(stack).isEmpty();
-			case OUTPUT -> !catalogSupplier.get().getCraftingRecipesFor(stack).isEmpty();
+			case INPUT -> !getRecipesForInput(stack).isEmpty();
+			case OUTPUT -> !getRecipesForOutput(stack).isEmpty();
 			default -> false;
 		};
 	}
 
 	private List<CraftingRecipe> getRecipesForFocus(IFocus<ItemStack> focus) {
 		ItemStack stack = focus.getTypedValue().getIngredient();
-		if (!focusedStackPredicate.test(stack)) {
-			return List.of();
-		}
 		if (focus.getRole() == RecipeIngredientRole.INPUT) {
-			return distinctRecipes(catalogSupplier.get().getCraftingUsagesFor(stack).stream()
-					.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
-					.toList());
+			return getRecipesForInput(stack);
 		}
 		if (focus.getRole() == RecipeIngredientRole.OUTPUT) {
-			return distinctRecipes(catalogSupplier.get().getCraftingRecipesFor(stack).stream()
-					.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
-					.toList());
+			return getRecipesForOutput(stack);
 		}
 		return List.of();
+	}
+
+	private List<CraftingRecipe> getRecipesForInput(ItemStack stack) {
+		if (!focusedInputPredicate.test(stack)) {
+			return List.of();
+		}
+		return inputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(catalogSupplier.get().getCraftingUsagesFor(stack).stream()
+				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
+				.toList()));
+	}
+
+	private List<CraftingRecipe> getRecipesForOutput(ItemStack stack) {
+		if (!focusedOutputPredicate.test(stack)) {
+			return List.of();
+		}
+		return outputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(catalogSupplier.get().getCraftingRecipesFor(stack).stream()
+				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
+				.toList()));
 	}
 
 	private static List<CraftingRecipe> distinctRecipes(List<CraftingRecipe> recipes) {
@@ -109,5 +133,9 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 			}
 		});
 		return key.toString();
+	}
+
+	private static String getFocusKey(ItemStack stack) {
+		return stack.getItem() + "|" + stack.getTag();
 	}
 }
