@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Label;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
@@ -25,6 +26,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainerMenu<?>> implements InventoryScrollPanel.IInventoryScreen {
@@ -171,9 +173,38 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderLabels(guiGraphics, mouseX, mouseY);
+		renderSettingsTitle(guiGraphics);
+		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 4210752, false);
 		if (inventoryScrollPanel == null) {
 			renderStorageInventorySlots(guiGraphics, mouseX, mouseY, true);
+		}
+	}
+
+	private void renderSettingsTitle(GuiGraphics guiGraphics) {
+		int titleMaxWidth = getTitleMaxWidth();
+		if (Label.isTextTruncated(font, title, titleMaxWidth)) {
+			guiGraphics.drawString(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, 4210752, false);
+		} else {
+			guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 4210752, false);
+		}
+	}
+
+	private int getTitleMaxWidth() {
+		return Math.max(0, imageWidth - titleLabelX - 7);
+	}
+
+	@Override
+	protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+		renderSettingsTitleTooltip(guiGraphics, x, y);
+		super.renderTooltip(guiGraphics, x, y);
+	}
+
+	private void renderSettingsTitleTooltip(GuiGraphics guiGraphics, int x, int y) {
+		int titleMaxWidth = getTitleMaxWidth();
+		int titleX = leftPos + titleLabelX;
+		int titleY = topPos + titleLabelY;
+		if (Label.isTextTruncated(font, title, titleMaxWidth) && x >= titleX && x < titleX + titleMaxWidth && y >= titleY && y < titleY + font.lineHeight) {
+			guiGraphics.setTooltipForNextFrame(font, List.of(title), Optional.empty(), x, y);
 		}
 	}
 
