@@ -29,6 +29,7 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	private Runnable onClose = () -> {};
 	private final List<WidgetBase> hideableChildren = new ArrayList<>();
 	private final List<Component> openTooltip;
+	private Label titleLabel;
 
 	protected SettingsTabBase(Position position, T screen, Component tabLabel, List<Component> tooltip, List<Component> openTooltip, Function<IntConsumer, ButtonBase> getTabButton) {
 		super(position, tooltip, getTabButton);
@@ -38,7 +39,7 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	}
 
 	private void addLabel(Component tabLabel) {
-		addHideableChild(new Label(new Position(x + 20, y + 8), tabLabel));
+		titleLabel = addHideableChildWithoutSizing(new Label(new Position(x + 20, y + 8), tabLabel, () -> Math.max(0, getWidth() - 20 - RIGHT_BORDER_WIDTH)));
 	}
 
 	protected SettingsTabBase(Position position, T screen, Component tabLabel, Component tooltip, Function<IntConsumer, ButtonBase> getTabButton) {
@@ -51,6 +52,11 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	protected <U extends WidgetBase> U addHideableChild(U widget) {
 		hideableChildren.add(widget);
 		updateOpenTabDimension(widget);
+		return widget;
+	}
+
+	protected <U extends WidgetBase> U addHideableChildWithoutSizing(U widget) {
+		hideableChildren.add(widget);
 		return widget;
 	}
 
@@ -74,6 +80,9 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	@Override
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+		if (isOpen && titleLabel != null) {
+			titleLabel.renderTooltip(screen, guiGraphics, mouseX, mouseY);
+		}
 		if (!openTooltip.isEmpty() && isOpenTooltipVisible(mouseX, mouseY)) {
 			guiGraphics.setTooltipForNextFrame(screen.getFont(), openTooltip, Optional.empty(), mouseX, mouseY);
 		}
@@ -89,7 +98,7 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	}
 
 	protected void onTabOpen() {
-		setWidth(openTabDimension.width());
+		setWidth(Math.max(openTabDimension.width(), DEFAULT_WIDTH));
 		setHeight(openTabDimension.height());
 
 		hideableChildren.forEach(this::addChild);
