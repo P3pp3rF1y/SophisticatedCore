@@ -65,6 +65,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private static final int UPGRADE_TOP_HEIGHT = 7;
 	private static final int UPGRADE_SLOT_HEIGHT = 16;
 	private static final int UPGRADE_BOTTOM_HEIGHT = 6;
+	private static final int TITLE_CONTROL_PADDING = 2;
 	public static final int UPGRADE_INVENTORY_OFFSET = 21;
 	public static final int DISABLED_SLOT_X_POS = -2000;
 	static final int SLOTS_Y_OFFSET = 17;
@@ -95,7 +96,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Nullable
 	private Button transferToInventoryButton;
 	private int transferButtonsShiftX = 0;
-	private TextBox searchBox;
+	private SearchBox searchBox;
 	private Label noResultsLabel;
 	@Nullable
 	private WidgetBase modalOverlay;
@@ -285,9 +286,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	protected void addSearchBox() {
-		SortButtonsPosition sortButtonsPosition = Config.CLIENT.sortButtonsPosition.get();
 		int x = 7;
-		int xEnd = sortButtonsPosition == SortButtonsPosition.TITLE_LINE_RIGHT ? getSortButtonsPosition(sortButtonsPosition).x() - 1 - leftPos : imageWidth - 7;
+		int xEnd = getTitleLineEndBeforeSortButtons();
 		int width = xEnd - x;
 
 		searchBox = new SearchBox(new Position(leftPos + x, topPos + 5), new Dimension(width, 10), this);
@@ -676,13 +676,43 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		super.renderLabels(guiGraphics, mouseX, mouseY);
+		renderStorageTitle(guiGraphics);
+		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 4210752, false);
 		renderUpgradeInventoryParts(guiGraphics, mouseX, mouseY);
 		renderUpgradeSlots(guiGraphics, mouseX, mouseY);
 		if (inventoryScrollPanel == null) {
 			renderStorageInventorySlots(guiGraphics, mouseX, mouseY);
 		}
 		renderPlayerInventorySlots(guiGraphics, mouseX, mouseY);
+	}
+
+	private void renderStorageTitle(GuiGraphics guiGraphics) {
+		int titleMaxWidth = getTitleMaxWidth();
+		if (Label.isTextTruncated(font, title, titleMaxWidth)) {
+			guiGraphics.drawString(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, 4210752, false);
+		} else {
+			guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 4210752, false);
+		}
+	}
+
+	private int getTitleMaxWidth() {
+		int titleLineEnd;
+		if (searchBox != null) {
+			titleLineEnd = searchBox.getX() + searchBox.getWidth() - leftPos - SearchBox.MIN_WIDTH - TITLE_CONTROL_PADDING;
+		} else if (hasTitleLineSortButtons()) {
+			titleLineEnd = sortButton.getX() - leftPos - 1 - TITLE_CONTROL_PADDING;
+		} else {
+			titleLineEnd = imageWidth - 7;
+		}
+		return Math.max(0, titleLineEnd - titleLabelX);
+	}
+
+	private int getTitleLineEndBeforeSortButtons() {
+		return hasTitleLineSortButtons() ? sortButton.getX() - leftPos - 1 : imageWidth - 7;
+	}
+
+	private boolean hasTitleLineSortButtons() {
+		return Config.CLIENT.sortButtonsPosition.get() == SortButtonsPosition.TITLE_LINE_RIGHT && sortButton != null;
 	}
 
 	private void renderUpgradeInventoryParts(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -887,6 +917,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
 		inventoryParts.values().forEach(part -> part.renderTooltip(this, guiGraphics, x, y));
+		renderStorageTitleTooltip(guiGraphics, x, y);
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
 				super.renderTooltip(guiGraphics, x, y);
@@ -910,6 +941,19 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			searchBox.renderTooltip(this, guiGraphics, x, y);
 		}
 		upgradeSwitches.forEach(us -> us.renderTooltip(this, guiGraphics, x, y));
+	}
+
+	private void renderStorageTitleTooltip(GuiGraphics guiGraphics, int x, int y) {
+		if (searchBox != null && searchBox.isExpandedOrFocused()) {
+			return;
+		}
+
+		int titleMaxWidth = getTitleMaxWidth();
+		int titleX = leftPos + titleLabelX;
+		int titleY = topPos + titleLabelY;
+		if (Label.isTextTruncated(font, title, titleMaxWidth) && x >= titleX && x < titleX + titleMaxWidth && y >= titleY && y < titleY + font.lineHeight) {
+			guiGraphics.renderTooltip(font, List.of(title), Optional.empty(), x, y);
+		}
 	}
 
 	@Override
