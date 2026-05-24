@@ -11,10 +11,12 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Label;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
@@ -28,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class SettingsScreen extends AbstractContainerScreen<SettingsContainerMenu<?>> implements InventoryScrollPanel.IInventoryScreen {
@@ -183,9 +186,32 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-		super.extractLabels(guiGraphics, mouseX, mouseY);
+		extractSettingsTitle(guiGraphics);
+		guiGraphics.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ARGB.opaque(4210752), false);
 		if (inventoryScrollPanel == null) {
 			extractStorageInventorySlots(guiGraphics, mouseX, mouseY, true);
+		}
+	}
+
+	private void extractSettingsTitle(GuiGraphicsExtractor guiGraphics) {
+		int titleMaxWidth = getTitleMaxWidth();
+		if (Label.isTextTruncated(font, title, titleMaxWidth)) {
+			guiGraphics.text(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
+		} else {
+			guiGraphics.text(font, title, titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
+		}
+	}
+
+	private int getTitleMaxWidth() {
+		return Math.max(0, imageWidth - titleLabelX - 7);
+	}
+
+	private void extractSettingsTitleTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
+		int titleMaxWidth = getTitleMaxWidth();
+		int titleX = leftPos + titleLabelX;
+		int titleY = topPos + titleLabelY;
+		if (Label.isTextTruncated(font, title, titleMaxWidth) && x >= titleX && x < titleX + titleMaxWidth && y >= titleY && y < titleY + font.lineHeight) {
+			guiGraphics.setTooltipForNextFrame(font, List.of(title), Optional.empty(), x, y);
 		}
 	}
 
@@ -221,6 +247,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	protected void extractTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		extractSettingsTitleTooltip(guiGraphics, mouseX, mouseY);
 		settingsTabControl.extractTooltip(this, guiGraphics, mouseX, mouseY);
 		templatePersistanceControl.extractTooltip(this, guiGraphics, mouseX, mouseY);
 		super.extractTooltip(guiGraphics, mouseX, mouseY);
