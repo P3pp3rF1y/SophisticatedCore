@@ -20,6 +20,7 @@ class SearchBox extends TextBox {
 					Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box_detail")).withStyle(ChatFormatting.GRAY)
 	);
 	public static final String MAGNIFYING_GLASS = "\uD83D\uDD0D";
+	public static final int MIN_WIDTH = 10;
 	public static final int UNFOCUSED_COLOR = 0xBBBBBB;
 	private final StorageScreenBase<?> screen;
 	private long lastFocusChangeTime = 0;
@@ -71,7 +72,7 @@ class SearchBox extends TextBox {
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		int minWidth = getHeight();
+		int minWidth = MIN_WIDTH;
 		if ((isFocused() && maximizedWidth > getWidth()) || (!isFocused() && getValue().isEmpty() && getWidth() > minWidth)) {
 			float ratio = Easing.EASE_IN_OUT_CUBIC.ease(Math.min((System.currentTimeMillis() - lastFocusChangeTime) / 200f, 1));
 			int currentWidth = isFocused() ? (int) (minWidth + (maximizedWidth - minWidth) * ratio) : (int) (maximizedWidth - (maximizedWidth - minWidth) * ratio);
@@ -96,5 +97,9 @@ class SearchBox extends TextBox {
 		if (!isFocused() && isMouseOver(mouseX, mouseY)) {
 			guiGraphics.renderTooltip(screen.getFont(), TOOLTIP, Optional.empty(), mouseX, mouseY);
 		}
+	}
+
+	boolean isExpandedOrFocused() {
+		return isFocused() || getWidth() > MIN_WIDTH;
 	}
 }
