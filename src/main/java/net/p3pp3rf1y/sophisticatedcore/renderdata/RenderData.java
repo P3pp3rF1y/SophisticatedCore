@@ -20,7 +20,6 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.cooking.CookingUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeClientData;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
-import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 import org.jspecify.annotations.Nullable;
 
@@ -76,14 +75,16 @@ public final class RenderData {
 					},
 					LinkedHashMap::new
 			);
+	private static final Codec<List<Optional<ItemStackTemplate>>> UPGRADE_ITEMS_CODEC = ItemStack.OPTIONAL_CODEC.listOf()
+			.xmap(RenderData::toItemStackTemplates, RenderData::toItemStacks);
 
 	private static final Codec<RenderData> CURRENT_STRUCTURE_CODEC = RecordCodecBuilder.create(inst -> inst.group(
-			ItemStack.OPTIONAL_CODEC.listOf().xmap(RenderData::copyItemStacks, Function.identity()).fieldOf("upgradeItems").forGetter(RenderData::upgradeItems),
+			UPGRADE_ITEMS_CODEC.fieldOf("upgradeItems").forGetter(renderData -> renderData.upgradeItems),
 			UPGRADE_DATA_CODEC.fieldOf("upgradeData").forGetter(RenderData::upgradeData),
 			Codec.unboundedMap(TankPosition.CODEC, TankRenderData.CODEC).xmap(RenderData::copyTankData, RenderData::copyTankData).fieldOf("tanks").forGetter(RenderData::tanks),
 			BatteryRenderData.CODEC.optionalFieldOf("battery").forGetter(RenderData::battery),
 			DisplayData.CODEC.fieldOf("display").forGetter(RenderData::display)
-	).apply(inst, RenderData::new));
+	).apply(inst, RenderData::newFromUpgradeItemTemplates));
 
 	//TODO remove legacy current structure codec in 26.2
 	private static final Codec<RenderData> LEGACY_CURRENT_CODEC = Codec.either(CURRENT_STRUCTURE_CODEC, LegacyCurrentStructure.CODEC)
@@ -92,22 +93,22 @@ public final class RenderData {
 	public static final Codec<RenderData> CODEC = Codec.withAlternative(LEGACY_CURRENT_CODEC, CompoundTag.CODEC, LegacyDeserialization::legacyDeserialize);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, RenderData> STREAM_CODEC = StreamCodec.composite(
-			ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()), RenderData::upgradeItems,
+			ByteBufCodecs.optional(ItemStackTemplate.STREAM_CODEC).apply(ByteBufCodecs.list()), renderData -> renderData.upgradeItems,
 			UPGRADE_DATA_STREAM_CODEC, RenderData::upgradeData,
 			StreamCodecHelper.ofMap(TankPosition.STREAM_CODEC, TankRenderData.STREAM_CODEC, LinkedHashMap::new), RenderData::tanks,
 			ByteBufCodecs.optional(BatteryRenderData.STREAM_CODEC), RenderData::battery,
 			DisplayData.STREAM_CODEC, RenderData::display,
-			RenderData::new
+			RenderData::newFromUpgradeItemTemplates
 	);
 
-	private final List<ItemStack> upgradeItems;
+	private final List<Optional<ItemStackTemplate>> upgradeItems;
 	private final Map<UpgradeClientDataType<?>, IUpgradeClientData> upgradeData;
 	private final Map<TankPosition, TankRenderData> tanks;
 	private final Optional<BatteryRenderData> battery;
 	private final DisplayData display;
 
 	public RenderData() {
-		this(List.of(), Map.of(), Map.of(), Optional.empty(), DisplayData.EMPTY);
+		this(List.of(), Map.of(), Map.of(), Optional.empty(), DisplayData.EMPTY, true);
 	}
 
 	public RenderData(List<ItemStack> upgradeItems,
@@ -115,11 +116,28 @@ public final class RenderData {
 					  Map<TankPosition, TankRenderData> tanks,
 					  Optional<BatteryRenderData> battery,
 					  DisplayData display) {
-		this.upgradeItems = copyItemStacks(upgradeItems);
+		this(toItemStackTemplates(upgradeItems), upgradeData, tanks, battery, display, true);
+	}
+
+	private RenderData(List<Optional<ItemStackTemplate>> upgradeItems,
+					   Map<UpgradeClientDataType<?>, IUpgradeClientData> upgradeData,
+					   Map<TankPosition, TankRenderData> tanks,
+					   Optional<BatteryRenderData> battery,
+					   DisplayData display,
+					   boolean ignored) {
+		this.upgradeItems = copyItemStackTemplates(upgradeItems);
 		this.upgradeData = copyUpgradeData(upgradeData);
 		this.tanks = copyTankData(tanks);
 		this.battery = battery.map(BatteryRenderData::copy);
 		this.display = display.copy();
+	}
+
+	private static RenderData newFromUpgradeItemTemplates(List<Optional<ItemStackTemplate>> upgradeItems,
+												 Map<UpgradeClientDataType<?>, IUpgradeClientData> upgradeData,
+												 Map<TankPosition, TankRenderData> tanks,
+												 Optional<BatteryRenderData> battery,
+												 DisplayData display) {
+		return new RenderData(upgradeItems, upgradeData, tanks, battery, display, true);
 	}
 
 	public RenderData withUpgradeItems(List<ItemStack> upgradeItems) {
@@ -129,7 +147,7 @@ public final class RenderData {
 	public <T extends IUpgradeClientData> RenderData withUpgradeClientData(UpgradeClientDataType<T> upgradeClientDataType, T clientData) {
 		Map<UpgradeClientDataType<?>, IUpgradeClientData> updated = new LinkedHashMap<>(upgradeData);
 		updated.put(upgradeClientDataType, clientData.copy());
-		return new RenderData(upgradeItems, updated, tanks, battery, display);
+		return new RenderData(upgradeItems, updated, tanks, battery, display, true);
 	}
 
 	public RenderData withoutUpgradeData(UpgradeClientDataType<?> type) {
@@ -138,11 +156,11 @@ public final class RenderData {
 		}
 		Map<UpgradeClientDataType<?>, IUpgradeClientData> updated = new LinkedHashMap<>(upgradeData);
 		updated.remove(type);
-		return new RenderData(upgradeItems, updated, tanks, battery, display);
+		return new RenderData(upgradeItems, updated, tanks, battery, display, true);
 	}
 
 	public RenderData withoutAllUpgradeData() {
-		return upgradeData.isEmpty() ? this : new RenderData(upgradeItems, Map.of(), tanks, battery, display);
+		return upgradeData.isEmpty() ? this : new RenderData(upgradeItems, Map.of(), tanks, battery, display, true);
 	}
 
 	public RenderData validated(IStorageWrapper storageWrapper, Level level) {
@@ -155,7 +173,7 @@ public final class RenderData {
 				changed = true;
 			}
 		}
-		return changed ? new RenderData(upgradeItems, validated, tanks, battery, display) : this;
+		return changed ? new RenderData(upgradeItems, validated, tanks, battery, display, true) : this;
 	}
 
 	private static <T extends IUpgradeClientData> boolean isUpgradeDataValid(IStorageWrapper storageWrapper, Level level, UpgradeClientDataType<?> type, IUpgradeClientData data) {
@@ -167,38 +185,34 @@ public final class RenderData {
 	}
 
 	public RenderData withoutUpgradeRenderInfo() {
-		return (tanks.isEmpty() && battery.isEmpty()) ? this : new RenderData(upgradeItems, upgradeData, Map.of(), Optional.empty(), display);
+		return (tanks.isEmpty() && battery.isEmpty()) ? this : new RenderData(upgradeItems, upgradeData, Map.of(), Optional.empty(), display, true);
 	}
 
 	public RenderData withBattery(@Nullable BatteryRenderData data) {
 		Optional<BatteryRenderData> updatedBattery = Optional.ofNullable(data).map(BatteryRenderData::copy);
-		return Objects.equals(battery, updatedBattery) ? this : new RenderData(upgradeItems, upgradeData, tanks, updatedBattery, display);
+		return Objects.equals(battery, updatedBattery) ? this : new RenderData(upgradeItems, upgradeData, tanks, updatedBattery, display, true);
 	}
 
 	public RenderData withTank(TankPosition tankPosition, TankRenderData data) {
 		Map<TankPosition, TankRenderData> updated = new LinkedHashMap<>(tanks);
 		updated.put(tankPosition, data.copy());
-		return new RenderData(upgradeItems, upgradeData, updated, battery, display);
+		return new RenderData(upgradeItems, upgradeData, updated, battery, display, true);
 	}
 
 	public RenderData withDisplayData(List<DisplayItemData> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots, List<Integer> slotCounts, List<Float> slotFillRatios) {
-		return new RenderData(upgradeItems, upgradeData, tanks, battery, new DisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios));
+		return new RenderData(upgradeItems, upgradeData, tanks, battery, new DisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios), true);
 	}
 
 	public RenderData withDisplayItemsAndInaccessibleSlots(List<DisplayItemData> displayItems, List<Integer> inaccessibleSlots) {
-		return new RenderData(upgradeItems, upgradeData, tanks, battery, display.withDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots));
+		return new RenderData(upgradeItems, upgradeData, tanks, battery, display.withDisplayItemsAndInaccessibleSlots(displayItems, inaccessibleSlots), true);
 	}
 
 	public RenderData withSlotCountsFillRatiosAndInfiniteSlots(List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
-		return new RenderData(upgradeItems, upgradeData, tanks, battery, display.withSlotCountsFillRatiosAndInfiniteSlots(infiniteSlots, slotCounts, slotFillRatios));
-	}
-
-	public List<ItemStack> upgradeItems() {
-		return upgradeItems;
+		return new RenderData(upgradeItems, upgradeData, tanks, battery, display.withSlotCountsFillRatiosAndInfiniteSlots(infiniteSlots, slotCounts, slotFillRatios), true);
 	}
 
 	public List<ItemStack> getUpgradeItemStacks() {
-		return copyItemStacks(upgradeItems);
+		return upgradeItems.stream().map(template -> template.map(ItemStackTemplate::create).orElse(ItemStack.EMPTY)).toList();
 	}
 
 	public Map<UpgradeClientDataType<?>, IUpgradeClientData> upgradeData() {
@@ -251,8 +265,16 @@ public final class RenderData {
 				+ "display=" + display + ']';
 	}
 
-	private static List<ItemStack> copyItemStacks(List<ItemStack> upgradeItems) {
-		return List.copyOf(upgradeItems.stream().filter(Objects::nonNull).map(ItemStack::copy).toList());
+	private static List<Optional<ItemStackTemplate>> toItemStackTemplates(List<ItemStack> upgradeItems) {
+		return List.copyOf(upgradeItems.stream().map(stack -> stack.isEmpty() ? Optional.<ItemStackTemplate>empty() : Optional.of(ItemStackTemplate.fromNonEmptyStack(stack))).toList());
+	}
+
+	private static List<ItemStack> toItemStacks(List<Optional<ItemStackTemplate>> upgradeItems) {
+		return upgradeItems.stream().map(template -> template.map(ItemStackTemplate::create).orElse(ItemStack.EMPTY)).toList();
+	}
+
+	private static List<Optional<ItemStackTemplate>> copyItemStackTemplates(List<Optional<ItemStackTemplate>> upgradeItems) {
+		return List.copyOf(upgradeItems);
 	}
 
 	private static Map<UpgradeClientDataType<?>, IUpgradeClientData> copyUpgradeData(Map<UpgradeClientDataType<?>, IUpgradeClientData> upgradeData) {
@@ -483,11 +505,11 @@ public final class RenderData {
 			DisplayData itemDisplayData = legacyDeserializeItemDisplay(renderInfoTag.getCompoundOrEmpty(ITEM_DISPLAY_TAG));
 			ListTag upgradeItemsTag = renderInfoTag.getListOrEmpty(UPGRADE_ITEMS_TAG);
 			List<ItemStack> upgradeItems = new ArrayList<>();
-			RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> {
-				for (int i = 0; i < upgradeItemsTag.size(); i++) {
-					upgradeItems.add(NBTHelper.deserializeStackFromTag(upgradeItemsTag.getCompoundOrEmpty(i)).orElse(ItemStack.EMPTY));
-				}
-			});
+
+			for (int i = 0; i < upgradeItemsTag.size(); i++) {
+				upgradeItems.add(NBTHelper.deserializeStackFromTag(upgradeItemsTag.getCompoundOrEmpty(i)).orElse(ItemStack.EMPTY));
+			}
+
 			CompoundTag upgrades = renderInfoTag.getCompoundOrEmpty(UPGRADES_TAG);
 			Map<UpgradeClientDataType<?>, IUpgradeClientData> clientData = new LinkedHashMap<>();
 			upgrades.keySet().forEach(key -> {
