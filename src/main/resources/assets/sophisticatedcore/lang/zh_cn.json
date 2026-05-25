@@ -280,5 +280,18 @@
   "fluid_type.sophisticatedcore.experience": "经验",
   "gui.sophisticatedcore.tooltip.stack_count": "数量：%s",
   "key.category.sophisticatedcore.main": "精妙模组",
-  "key.sophisticatedcore.sort": "整理容器/背包"
+  "key.sophisticatedcore.sort": "整理容器/背包",
+  "key.sophisticatedcore.transfer_to_storage": "转移至容器",
+  "key.sophisticatedcore.transfer_to_inventory": "转移至物品栏",
+  "sophisticatedcore.configuration.client": "客户端",
+  "sophisticatedcore.configuration.common": "通用",
+  "sophisticatedcore.configuration.sortButtonsPosition": "整理按钮位置",
+  "sophisticatedcore.configuration.playButtonSound": "播放按钮音效",
+  "sophisticatedcore.configuration.mouseTweaksScrollEnabled": "鼠标手势滚轮控制",
+  "sophisticatedcore.configuration.enabledItems": "已启用的模组物品",
+  "sophisticatedcore.configuration.enabledItems.tooltip": "已预先填入所有支持的物品。修改 |true 为 |false 以禁用对应物品。\n格式：item_id|true 或 false\n示例：sophisticatedbackpacks:smelting_upgrade|true",
+  "sophisticatedcore.configuration.sortButtonsPosition.title_line_right": "标题行右侧",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrades": "升级插槽下方",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrade_tabs": "升级标签页下方",
+  "sophisticatedcore.configuration.sortButtonsPosition.hidden": "已隐藏"
 }
