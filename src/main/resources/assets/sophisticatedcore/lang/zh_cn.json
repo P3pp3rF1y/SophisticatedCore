@@ -1,4 +1,5 @@
 {
+  "item.sophisticatedcore.xp_bucket": "经验桶",
   "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "右击添加",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "堆叠倍数：%s",
   "item.sophisticatedcore.storage.tooltip.energy": "%s FE",
@@ -215,6 +216,7 @@
   "gui.sophisticatedcore.buttons.confirm": "确认",
   "gui.sophisticatedcore.buttons.cancel": "取消",
   "gui.sophisticatedcore.buttons.transparent": "无颜色",
+  "gui.sophisticatedcore.buttons.browse_results": "打开带搜索功能的扩展输出列表",
   "gui.sophisticatedcore.buttons.upgrade_switch_enabled": "开",
   "gui.sophisticatedcore.buttons.upgrade_switch_disabled": "关",
   "gui.sophisticatedcore.buttons.upgrade_switch_inactive": "未激活",
@@ -282,16 +284,5 @@
   "key.category.sophisticatedcore.main": "精妙模组",
   "key.sophisticatedcore.sort": "整理容器/背包",
   "key.sophisticatedcore.transfer_to_storage": "转移至容器",
-  "key.sophisticatedcore.transfer_to_inventory": "转移至物品栏",
-  "sophisticatedcore.configuration.client": "客户端",
-  "sophisticatedcore.configuration.common": "通用",
-  "sophisticatedcore.configuration.sortButtonsPosition": "整理按钮位置",
-  "sophisticatedcore.configuration.playButtonSound": "播放按钮音效",
-  "sophisticatedcore.configuration.mouseTweaksScrollEnabled": "鼠标手势滚轮控制",
-  "sophisticatedcore.configuration.enabledItems": "已启用的模组物品",
-  "sophisticatedcore.configuration.enabledItems.tooltip": "已预先填入所有支持的物品。修改 |true 为 |false 以禁用对应物品。\n格式：item_id|true 或 false\n示例：sophisticatedbackpacks:smelting_upgrade|true",
-  "sophisticatedcore.configuration.sortButtonsPosition.title_line_right": "标题行右侧",
-  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrades": "升级插槽下方",
-  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrade_tabs": "升级标签页下方",
-  "sophisticatedcore.configuration.sortButtonsPosition.hidden": "已隐藏"
+  "key.sophisticatedcore.transfer_to_inventory": "转移至物品栏"
 }
