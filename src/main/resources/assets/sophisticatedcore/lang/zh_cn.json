@@ -1,4 +1,5 @@
 {
+  "itemGroup.sophisticatedcore": "精妙核心",
   "item.sophisticatedcore.xp_bucket": "经验桶",
   "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "右击添加",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "堆叠倍数：%s",
@@ -63,6 +64,7 @@
   "gui.sophisticatedcore.upgrades.chipped_loom_table": "织布",
   "gui.sophisticatedcore.upgrades.chipped_alchemy_bench": "炼金术",
   "gui.sophisticatedcore.upgrades.chipped_tinkering_table": "工匠",
+  "gui.sophisticatedcore.upgrades.sawmill": "锯木",
   "gui.sophisticatedcore.upgrades.pickup.tooltip": "拾取设置",
   "gui.sophisticatedcore.upgrades.advanced_pickup.tooltip": "高级拾取设置",
   "gui.sophisticatedcore.upgrades.filter.tooltip": "过滤设置",
@@ -90,6 +92,7 @@
   "gui.sophisticatedcore.upgrades.chipped_loom_table.tooltip": "纺织台",
   "gui.sophisticatedcore.upgrades.chipped_alchemy_bench.tooltip": "炼金术台",
   "gui.sophisticatedcore.upgrades.chipped_tinkering_table.tooltip": "工匠台",
+  "gui.sophisticatedcore.upgrades.sawmill.tooltip": "锯木机",
   "gui.sophisticatedcore.upgrades.jukebox.tooltip": "唱片机",
   "gui.sophisticatedcore.upgrades.advanced_jukebox.tooltip": "高级唱片机",
   "gui.sophisticatedcore.upgrades.tank.tooltip": "储罐",
