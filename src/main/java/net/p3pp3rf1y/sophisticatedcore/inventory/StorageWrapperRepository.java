@@ -2,11 +2,14 @@ package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.MapMaker;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -15,6 +18,7 @@ public class StorageWrapperRepository {
 
 	private static final Cache<ItemStack, IStorageWrapper> stackStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
 	private static final Cache<UUID, IStorageWrapper> uuidStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
+	private static final Cache<UUID, Set<IStorageWrapper>> storageWrappersByUuid = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
 
 	public static <T extends IStorageWrapper> Optional<T> getExistingStorageWrapper(ItemStack stack, Class<T> wrapperClass) {
 		IStorageWrapper storageWrapper = stackStorageWrappers.getIfPresent(stack);
@@ -42,6 +46,23 @@ public class StorageWrapperRepository {
 		stackStorageWrappers.put(stack, storageWrapper);
 	}
 
+	public static void registerStorageWrapper(UUID storageUuid, IStorageWrapper storageWrapper) {
+		storageWrappersByUuid.asMap().computeIfAbsent(storageUuid, uuid -> Collections.newSetFromMap(new MapMaker().weakKeys().makeMap())).add(storageWrapper);
+	}
+
+	public static void invalidateStorageWrapperContents(UUID storageUuid, IStorageWrapper sourceWrapper) {
+		Set<IStorageWrapper> storageWrappers = storageWrappersByUuid.getIfPresent(storageUuid);
+		if (storageWrappers == null) {
+			return;
+		}
+
+		storageWrappers.forEach(storageWrapper -> {
+			if (storageWrapper != sourceWrapper) {
+				storageWrapper.onContentsUpdated();
+			}
+		});
+	}
+
 /*    public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) { //TODO future UUID based caching and retrieval
         IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid);
         if (storageWrapper == null) {
@@ -63,10 +84,12 @@ public class StorageWrapperRepository {
 	public static void migrateToUuid(IStorageWrapper storageWrapper, ItemStack stack, UUID storageUuid) {
 		stackStorageWrappers.invalidate(stack);
 		uuidStorageWrappers.put(storageUuid, storageWrapper);
+		registerStorageWrapper(storageUuid, storageWrapper);
 	}
 
 	public static void clearCache() {
 		stackStorageWrappers.invalidateAll();
 		uuidStorageWrappers.invalidateAll();
+		storageWrappersByUuid.invalidateAll();
 	}
 }
