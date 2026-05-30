@@ -12,7 +12,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryControlBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
@@ -22,14 +22,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeContainer> {
+public class TankInventoryControl extends UpgradeInventoryControlBase {
 	private static final TextureBlitData OVERLAY = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(47, 30), new Dimension(16, 18));
+	private final int upgradeSlot;
+	private final TankUpgradeContainer container;
 	private final Position pos;
 	private final int height;
 	private final StorageScreenBase<?> screen;
 
-	public TankInventoryPart(int upgradeSlot, TankUpgradeContainer container, Position pos, int height, StorageScreenBase<?> screen) {
-		super(upgradeSlot, container);
+	public TankInventoryControl(int upgradeSlot, TankUpgradeContainer container, Position pos, int height, StorageScreenBase<?> screen) {
+		this.upgradeSlot = upgradeSlot;
+		this.container = container;
 		this.pos = pos;
 		this.height = height;
 		this.screen = screen;
@@ -129,5 +132,4 @@ public class TankInventoryPart extends UpgradeInventoryPartBase<TankUpgradeConta
 		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
 		GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
-
 }

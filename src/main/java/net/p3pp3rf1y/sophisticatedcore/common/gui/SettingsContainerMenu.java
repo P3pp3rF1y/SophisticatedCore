@@ -60,6 +60,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	public final List<Slot> ghostSlots = new ArrayList<>();
 	private boolean inventorySlotStackChanged = false;
 	private final Set<Integer> inaccessibleSlots = new HashSet<>();
+	private final Set<Integer> inaccessibleSlotsWithoutOverlay = new HashSet<>();
 	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
 	private final Map<Integer, Pair<ResourceLocation, ResourceLocation>> emptySlotIcons = new HashMap<>();
 
@@ -311,7 +312,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		@Nullable
 		@Override
 		public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-			return inaccessibleSlots.contains(getSlotIndex()) ? StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(getSlotIndex(), null);
+			return inaccessibleSlots.contains(getSlotIndex()) && !inaccessibleSlotsWithoutOverlay.contains(getSlotIndex()) ? StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(getSlotIndex(), null);
 		}
 	}
 
@@ -354,24 +355,31 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 			return;
 		}
 		Set<Integer> inaccessibleSlots = new HashSet<>();
+		Set<Integer> inaccessibleSlotsWithoutOverlay = new HashSet<>();
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
 		Map<Integer, Item> slotFilterItems = new HashMap<>();
 		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
 			if (!inventoryHandler.isSlotAccessible(slot)) {
 				inaccessibleSlots.add(slot);
+				if (!inventoryHandler.shouldRenderInaccessibleSlotOverlay(slot)) {
+					inaccessibleSlotsWithoutOverlay.add(slot);
+				}
 			}
 
 			if (inventoryHandler.getFilterItem(slot) != Items.AIR) {
 				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot));
 			}
 		}
-		PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncAdditionalSlotInfoMessage(inaccessibleSlots, Map.of(), Set.of(), slotFilterItems));
+		PacketHandler.INSTANCE.sendToClient(serverPlayer, new SyncAdditionalSlotInfoMessage(inaccessibleSlots, inaccessibleSlotsWithoutOverlay, Map.of(), Set.of(), slotFilterItems));
 	}
 
 	@Override
-	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Item> slotFilterItems) {
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Item> slotFilterItems) {
 		this.inaccessibleSlots.clear();
 		this.inaccessibleSlots.addAll(inaccessibleSlots);
+
+		this.inaccessibleSlotsWithoutOverlay.clear();
+		this.inaccessibleSlotsWithoutOverlay.addAll(inaccessibleSlotsWithoutOverlay);
 
 		this.slotFilterItems.clear();
 		slotFilterItems.forEach((slot, item) -> this.slotFilterItems.put(slot, new ItemStack(item)));

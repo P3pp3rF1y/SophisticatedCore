@@ -1,8 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
+import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.Bootstrap;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,6 +18,11 @@ import java.util.Optional;
 import static org.mockito.Mockito.when;
 
 class InventoryPartitionerTest {
+	@BeforeAll
+	static void setup() {
+		SharedConstants.tryDetectVersion();
+		Bootstrap.bootStrap();
+	}
 
 	@BeforeEach
 	public void testSetup() throws Exception {
@@ -25,6 +33,37 @@ class InventoryPartitionerTest {
 		InventoryHandler inventoryHandler = Mockito.mock(InventoryHandler.class);
 		when(inventoryHandler.getSlots()).thenReturn(slots);
 		return inventoryHandler;
+	}
+
+	@Test
+	void defaultPartDoesNotRenderInaccessibleOverlay() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+
+		Assertions.assertFalse(partitioner.shouldRenderInaccessibleSlotOverlay(0));
+	}
+
+	@Test
+	void inaccessibleOverlayIsDelegatedToCurrentPart() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		IInventoryPartHandler partHandler = new IInventoryPartHandler() {
+			@Override
+			public String getName() {
+				return "dummy";
+			}
+
+			@Override
+			public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+				return slot == 3;
+			}
+		};
+
+		partitioner.addInventoryPart(0, 9, partHandler);
+
+		Assertions.assertTrue(partitioner.shouldRenderInaccessibleSlotOverlay(3));
+		Assertions.assertFalse(partitioner.shouldRenderInaccessibleSlotOverlay(9));
 	}
 
 	@Test

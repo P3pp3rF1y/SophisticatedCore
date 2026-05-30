@@ -64,7 +64,7 @@ public class TransferItemsMessage {
 
 	private static void mergeToPlayersInventory(IStorageWrapper storageWrapper, Player player) {
 		InventoryHelper.iterate(storageWrapper.getInventoryHandler(), (slot, stack) -> {
-			if (stack.isEmpty()) {
+			if (stack.isEmpty() || !storageWrapper.getInventoryHandler().isSlotAccessible(slot)) {
 				return;
 			}
 
@@ -78,7 +78,7 @@ public class TransferItemsMessage {
 	private static void mergeToPlayersInventoryFiltered(Player player, IStorageWrapper storageWrapper) {
 		Set<ItemStackKey> uniqueStacks = InventoryHelper.getUniqueStacks(new PlayerMainInvWrapper(player.getInventory()));
 		InventoryHelper.iterate(storageWrapper.getInventoryHandler(), (slot, stack) -> {
-			if (stack.isEmpty() || !uniqueStacks.contains(ItemStackKey.of(stack))) {
+			if (stack.isEmpty() || !storageWrapper.getInventoryHandler().isSlotAccessible(slot) || !uniqueStacks.contains(ItemStackKey.of(stack))) {
 				return;
 			}
 			ItemStack result = InventoryHelper.mergeIntoPlayerInventory(player, stack, 0);
