@@ -28,6 +28,37 @@ class InventoryPartitionerTest {
 	}
 
 	@Test
+	void defaultPartDoesNotRenderInaccessibleOverlay() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+
+		Assertions.assertFalse(partitioner.shouldRenderInaccessibleSlotOverlay(0));
+	}
+
+	@Test
+	void inaccessibleOverlayIsDelegatedToCurrentPart() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		IInventoryPartHandler partHandler = new IInventoryPartHandler() {
+			@Override
+			public String getName() {
+				return "dummy";
+			}
+
+			@Override
+			public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+				return slot == 3;
+			}
+		};
+
+		partitioner.addInventoryPart(0, 9, partHandler);
+
+		Assertions.assertTrue(partitioner.shouldRenderInaccessibleSlotOverlay(3));
+		Assertions.assertFalse(partitioner.shouldRenderInaccessibleSlotOverlay(9));
+	}
+
+	@Test
 	void addInventoryPartWithMaxIntSlotsAddsItForAllSlotsFromTheBaseIndex() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 
