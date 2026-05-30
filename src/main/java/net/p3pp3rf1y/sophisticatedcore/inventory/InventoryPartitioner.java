@@ -57,6 +57,10 @@ public class InventoryPartitioner {
 		return getPartBySlot(slot).getNoItemIcon(slot);
 	}
 
+	public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+		return getPartBySlot(slot).shouldRenderInaccessibleSlotOverlay(slot);
+	}
+
 	public void onSlotLimitChange() {
 		for (IInventoryPartHandler inventoryPartHandler : inventoryPartHandlers) {
 			inventoryPartHandler.onSlotLimitChange();
