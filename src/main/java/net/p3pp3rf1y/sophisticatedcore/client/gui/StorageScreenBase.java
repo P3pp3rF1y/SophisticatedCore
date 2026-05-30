@@ -45,6 +45,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.*;
 import net.p3pp3rf1y.sophisticatedcore.network.TransferFullSlotPayload;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import org.joml.Matrix3x2fStack;
@@ -83,7 +84,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private InventoryScrollPanel inventoryScrollPanel = null;
 	private final Set<ToggleButton<Boolean>> upgradeSwitches = new HashSet<>();
 
-	private final Map<Integer, UpgradeInventoryPartBase<?>> inventoryParts = new LinkedHashMap<>();
+	private final Map<Integer, UpgradeInventoryControlBase> inventoryControls = new LinkedHashMap<>();
+	private final Map<UpgradeType<?>, UpgradeInventoryControlBase> storageInventoryControls = new LinkedHashMap<>();
 
 	private static ICraftingUIPart craftingUIPart = ICraftingUIPart.NOOP;
 	private static ISlotDecorationRenderer slotDecorationRenderer = (guiGraphics, slot) -> {
@@ -259,19 +261,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		updateInventoryScrollPanel();
 		craftingUIPart.setStorageScreen(this);
 		initUpgradeSettingsControl();
-		initUpgradeInventoryParts();
+		initUpgradeInventoryControls();
 		addUpgradeSwitches();
 		getMenu().setUpgradeChangeListener(c -> {
-			updateStorageSlotsPositions();
-			updatePlayerSlotsPositions();
-			updateExtraSlotsPositions();
-			updateUpgradeSlotsPositions();
+			updateDimensionsAndSlotPositions(height);
 			updateInventoryScrollPanel();
 			updateNoResultsLabel();
 			children().remove(settingsTabControl);
 			craftingUIPart.onCraftingSlotsHidden();
 			initUpgradeSettingsControl();
-			initUpgradeInventoryParts();
+			initUpgradeInventoryControls();
 			addUpgradeSwitches();
 		});
 		if (shouldShowSortButtons()) {
@@ -426,8 +425,13 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return storageBackgroundProperties.getSlotsOnLine() - getMenu().getColumnsTaken();
 	}
 
-	private void initUpgradeInventoryParts() {
-		inventoryParts.clear();
+	private void initUpgradeInventoryControls() {
+		inventoryControls.clear();
+		storageInventoryControls.clear();
+		if (!getMenu().isUpgradeColumnCountSynced()) {
+			return;
+		}
+		storageInventoryControls.putAll(UpgradeGuiManager.getStorageUpgradeInventoryControls(this));
 		if (getMenu().getColumnsTaken() == 0) {
 			return;
 		}
@@ -438,8 +442,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		int height = numberOfVisibleRows * 18;
 		for (Map.Entry<Integer, UpgradeContainerBase<?, ?>> entry : getMenu().getUpgradeContainers().entrySet()) {
 			UpgradeContainerBase<?, ?> container = entry.getValue();
-			UpgradeGuiManager.getInventoryPart(entry.getKey(), container, pos.get(), height, this).ifPresent(part -> {
-				inventoryParts.put(entry.getKey(), part);
+			UpgradeGuiManager.getInventoryControl(entry.getKey(), container, pos.get(), height, this).ifPresent(control -> {
+				inventoryControls.put(entry.getKey(), control);
 				pos.set(new Position(pos.get().x() + 36, pos.get().y()));
 			});
 		}
@@ -675,7 +679,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		renderStorageTitle(guiGraphics);
 		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 4210752, false);
-		renderUpgradeInventoryParts(guiGraphics, mouseX, mouseY);
+		renderUpgradeInventoryControls(guiGraphics, mouseX, mouseY);
 		renderUpgradeSlots(guiGraphics, mouseX, mouseY);
 		if (inventoryScrollPanel == null) {
 			renderStorageInventorySlots(guiGraphics, mouseX, mouseY);
@@ -712,8 +716,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		return Config.CLIENT.sortButtonsPosition.get() == SortButtonsPosition.TITLE_LINE_RIGHT && sortButton != null;
 	}
 
-	private void renderUpgradeInventoryParts(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		inventoryParts.values().forEach(ip -> ip.render(guiGraphics, mouseX, mouseY));
+	private void renderUpgradeInventoryControls(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		inventoryControls.values().forEach(control -> control.render(guiGraphics, mouseX, mouseY));
 	}
 
 	private void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -742,6 +746,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			if (!canShow.test(slot)) {
 				continue;
 			}
+			if (getMenu().isStorageInventorySlot(slot) && isStorageSlotRenderReplaced(slot.index)) {
+				continue;
+			}
 			if (canShowHover && slot == hoveredSlot) {
 				renderSlotHighlightBack(guiGraphics);
 			}
@@ -754,6 +761,17 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (hoveredSlotBefore != null && hoveredSlotBefore != hoveredSlot) {
 			onStopHovering(hoveredSlotBefore);
 		}
+		storageInventoryControls.values().forEach(control -> control.render(guiGraphics, mouseX, mouseY));
+	}
+
+	private boolean isStorageSlotRenderReplaced(int slotId) {
+		return getAllInventoryControls().stream().anyMatch(control -> control.replacesSlotRender(slotId));
+	}
+
+	private List<UpgradeInventoryControlBase> getAllInventoryControls() {
+		List<UpgradeInventoryControlBase> controls = new ArrayList<>(inventoryControls.values());
+		controls.addAll(storageInventoryControls.values());
+		return controls;
 	}
 
 	private void renderUpgradeSlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -897,7 +915,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-		inventoryParts.values().forEach(part -> part.renderTooltip(this, guiGraphics, x, y));
+		getAllInventoryControls().forEach(control -> control.renderTooltip(this, guiGraphics, x, y));
 		renderStorageTitleTooltip(guiGraphics, x, y);
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
@@ -990,8 +1008,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			return true;
 		}
 
-		for (UpgradeInventoryPartBase<?> inventoryPart : inventoryParts.values()) {
-			if (inventoryPart.handleMouseReleased(mouseX, mouseY, button)) {
+		for (UpgradeInventoryControlBase inventoryControl : getAllInventoryControls()) {
+			if (inventoryControl.handleMouseReleased(mouseX, mouseY, button)) {
 				return true;
 			}
 		}
@@ -1101,6 +1119,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 
 		Slot slot = findSlot(mouseX, mouseY);
+		for (UpgradeInventoryControlBase control : getAllInventoryControls()) {
+			if (control.mouseClicked(mouseX, mouseY, button)) {
+				return true;
+			}
+		}
 		if (hasShiftDown() && hasControlDown() && slot instanceof StorageInventorySlot && button == 0) {
 			ClientPacketDistributor.sendToServer(new TransferFullSlotPayload(slot.index));
 			return true;
@@ -1341,7 +1364,20 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				Slot upgradeSlot = menu.getSlot(menu.getFirstUpgradeSlot() + slotIndex);
 				renderSlotOverlay(guiGraphics, upgradeSlot, ERROR_SLOT_COLOR);
 			});
-			upgradeSlotChangeResult.errorInventorySlots().forEach(slotIndex -> {
+			Set<Integer> inventorySlotsHandledByControls = new HashSet<>();
+			getAllInventoryControls().forEach(control -> {
+				Set<Integer> controlErrorSlots = new HashSet<>();
+				upgradeSlotChangeResult.errorInventorySlots().forEach(slotIndex -> {
+					if (control.replacesSlotRender(slotIndex)) {
+						controlErrorSlots.add(slotIndex);
+					}
+				});
+				if (!controlErrorSlots.isEmpty()) {
+					control.renderErrorOverlay(guiGraphics, controlErrorSlots);
+					inventorySlotsHandledByControls.addAll(controlErrorSlots);
+				}
+			});
+			upgradeSlotChangeResult.errorInventorySlots().stream().filter(slotIndex -> !inventorySlotsHandledByControls.contains(slotIndex)).forEach(slotIndex -> {
 				Slot slot = menu.getSlot(slotIndex);
 				//noinspection ConstantConditions
 				if (slot != null) {
@@ -1349,9 +1385,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				}
 			});
 			upgradeSlotChangeResult.errorInventoryParts().forEach(partIndex -> {
-				UpgradeInventoryPartBase<?> inventoryPart = inventoryParts.get(partIndex);
-				if (inventoryPart != null) {
-					inventoryPart.renderErrorOverlay(guiGraphics);
+				UpgradeInventoryControlBase inventoryControl = inventoryControls.get(partIndex);
+				if (inventoryControl != null) {
+					inventoryControl.renderErrorOverlay(guiGraphics);
 				}
 			});
 			pose.popMatrix();

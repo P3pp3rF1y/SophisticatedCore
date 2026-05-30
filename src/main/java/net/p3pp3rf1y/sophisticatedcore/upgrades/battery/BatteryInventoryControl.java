@@ -3,14 +3,14 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.battery;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryPartBase;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.UpgradeInventoryControlBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgradeContainer> {
+public class BatteryInventoryControl extends UpgradeInventoryControlBase {
 	private static final TextureBlitData TANK_BACKGROUND_TOP = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 30), Dimension.SQUARE_18);
 	private static final TextureBlitData TANK_BACKGROUND_MIDDLE = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 48), Dimension.SQUARE_18);
 	private static final TextureBlitData TANK_BACKGROUND_BOTTOM = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 66), Dimension.SQUARE_18);
@@ -18,14 +18,15 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 	private static final TextureBlitData CHARGE_SEGMENT = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(47, 74), new Dimension(16, 6));
 	private static final TextureBlitData CONNECTION_TOP = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(47, 48), new Dimension(16, 4));
 	private static final TextureBlitData CONNECTION_BOTTOM = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(47, 52), new Dimension(16, 4));
+	private final BatteryUpgradeContainer container;
 	private final Position pos;
 	private final int height;
 	private final StorageScreenBase<?> screen;
 	private static final int TOP_BAR_COLOR = 0xff1a1a;
 	private static final int BOTTOM_BAR_COLOR = 0xffff40;
 
-	public BatteryInventoryPart(int upgradeSlot, BatteryUpgradeContainer container, Position pos, int height, StorageScreenBase<?> screen) {
-		super(upgradeSlot, container);
+	public BatteryInventoryControl(int upgradeSlot, BatteryUpgradeContainer container, Position pos, int height, StorageScreenBase<?> screen) {
+		this.container = container;
 		this.pos = pos;
 		this.height = height;
 		this.screen = screen;
@@ -55,11 +56,6 @@ public class BatteryInventoryPart extends UpgradeInventoryPartBase<BatteryUpgrad
 
 	private int getTankLeft() {
 		return pos.x() + 9;
-	}
-
-	@Override
-	public boolean handleMouseReleased(double mouseX, double mouseY, int button) {
-		return false;
 	}
 
 	@Override

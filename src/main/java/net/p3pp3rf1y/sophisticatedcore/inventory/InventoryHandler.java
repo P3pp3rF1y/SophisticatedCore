@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 
 public abstract class InventoryHandler extends ItemStackHandler implements ITrackedContentsItemHandler, IInsertBlockOverride {
 	public static final String INVENTORY_TAG = "inventory";
@@ -49,6 +50,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	};
 	private final SlotValueMap<Item> filterItemSlots = new SlotValueMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
+	private IntPredicate isSlotBlocked = slot -> false;
+	private IntPredicate shouldRenderBlockedSlotOverlay = slot -> false;
 	private boolean voidUpgradeInfoInitialized = false;
 	private boolean hasVoidUpgrade = false;
 
@@ -259,6 +262,9 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
+		if (isSlotBlocked.test(slot)) {
+			return ItemStack.EMPTY;
+		}
 		return inventoryPartitioner.getPartBySlot(slot).extractItem(slot, amount, simulate);
 	}
 
@@ -300,6 +306,9 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	private ItemStack insertItemInternal(int slot, ItemStack stack, boolean simulate) {
+		if (isSlotBlocked.test(slot)) {
+			return stack;
+		}
 		ItemStack ret = runOnBeforeInsert(slot, stack, simulate, this, storageWrapper);
 		if (ret.isEmpty()) {
 			return ret;
@@ -388,7 +397,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public boolean isItemValid(int slot, ItemStack stack, @Nullable Player player) {
-		return inventoryPartitioner.getPartBySlot(slot).isItemValid(slot, stack, player, super::isItemValid)
+		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isItemValid(slot, stack, player, super::isItemValid)
 				&& isAllowed(stack) && storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, stack);
 	}
 
@@ -493,7 +502,21 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public boolean isSlotAccessible(int slot) {
-		return inventoryPartitioner.getPartBySlot(slot).isSlotAccessible(slot);
+		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isSlotAccessible(slot);
+	}
+
+	public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+		if (isSlotBlocked.test(slot)) {
+			return shouldRenderBlockedSlotOverlay.test(slot);
+		}
+		return inventoryPartitioner.shouldRenderInaccessibleSlotOverlay(slot);
+	}
+
+	public void setSlotBlockedPredicate(IntPredicate isSlotBlocked, IntPredicate shouldRenderBlockedSlotOverlay) {
+		this.isSlotBlocked = isSlotBlocked;
+		this.shouldRenderBlockedSlotOverlay = shouldRenderBlockedSlotOverlay;
+		getSlotTracker().refreshSlotIndexesFrom(this);
+		onFilterItemsChanged();
 	}
 
 	public Set<Integer> getNoSortSlots() {
