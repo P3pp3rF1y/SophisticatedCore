@@ -64,7 +64,7 @@ public record TransferItemsPayload(boolean transferToInventory,
 
 	private static void mergeToPlayersInventory(IStorageWrapper storageWrapper, Player player) {
 		InventoryHelper.iterate(storageWrapper.getInventoryHandler(), (slot, stack) -> {
-			if (stack.isEmpty()) {
+			if (stack.isEmpty() || !storageWrapper.getInventoryHandler().isSlotAccessible(slot)) {
 				return;
 			}
 
@@ -78,7 +78,7 @@ public record TransferItemsPayload(boolean transferToInventory,
 	private static void mergeToPlayersInventoryFiltered(Player player, IStorageWrapper storageWrapper) {
 		Set<ItemStackKey> uniqueStacks = InventoryHelper.getUniqueStacks(PlayerInventoryWrapper.of(player).getMainSlots());
 		InventoryHelper.iterate(storageWrapper.getInventoryHandler(), (slot, stack) -> {
-			if (stack.isEmpty() || !uniqueStacks.contains(ItemStackKey.of(stack))) {
+			if (stack.isEmpty() || !storageWrapper.getInventoryHandler().isSlotAccessible(slot) || !uniqueStacks.contains(ItemStackKey.of(stack))) {
 				return;
 			}
 			int moved = InventoryHelper.mergeIntoPlayerInventory(player, stack, 0);

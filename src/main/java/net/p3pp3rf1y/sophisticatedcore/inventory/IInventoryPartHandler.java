@@ -34,6 +34,14 @@ public interface IInventoryPartHandler {
 		return 0;
 	}
 
+	default boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+		return !isSlotAccessible(slot);
+	}
+
+	default int getStackLimit(int slot, ItemStack stack) {
+		return 0;
+	}
+
 	default int extract(int slot, ItemResource resource, int amount, TransactionContext transaction, IResourceExtractor extractSuper) {
 		return 0;
 	}
@@ -166,6 +174,11 @@ public interface IInventoryPartHandler {
 		@Override
 		public int size() {
 			return slots;
+		}
+
+		@Override
+		public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+			return false;
 		}
 
 		@Override

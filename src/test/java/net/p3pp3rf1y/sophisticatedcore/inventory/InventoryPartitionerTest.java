@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -24,6 +23,37 @@ class InventoryPartitionerTest {
 		InventoryHandler inventoryHandler = Mockito.mock(InventoryHandler.class);
 		when(inventoryHandler.size()).thenReturn(slots);
 		return inventoryHandler;
+	}
+
+	@Test
+	void defaultPartDoesNotRenderInaccessibleOverlay() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
+
+		Assertions.assertFalse(partitioner.shouldRenderInaccessibleSlotOverlay(0));
+	}
+
+	@Test
+	void inaccessibleOverlayIsDelegatedToCurrentPart() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new ContainerContents.PartitionerData(), invHandler, () -> null);
+		IInventoryPartHandler partHandler = new IInventoryPartHandler() {
+			@Override
+			public String getName() {
+				return "dummy";
+			}
+
+			@Override
+			public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+				return slot == 3;
+			}
+		};
+
+		partitioner.addInventoryPart(0, 9, partHandler);
+
+		Assertions.assertTrue(partitioner.shouldRenderInaccessibleSlotOverlay(3));
+		Assertions.assertFalse(partitioner.shouldRenderInaccessibleSlotOverlay(9));
 	}
 
 	@Test

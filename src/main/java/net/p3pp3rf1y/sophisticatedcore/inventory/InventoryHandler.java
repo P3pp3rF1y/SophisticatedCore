@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
+import java.util.function.IntPredicate;
 
 public abstract class InventoryHandler extends ItemStacksResourceHandler implements ITrackedContentsItemResourceHandler, IndexModifier<ItemResource>, IInsertBlockOverride {
 	protected final IStorageWrapper storageWrapper;
@@ -45,6 +46,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	};
 	private final SlotValueMap<Item> filterItemSlots = new SlotValueMap<>();
 	private BooleanSupplier shouldInsertIntoEmpty = () -> true;
+	private IntPredicate isSlotBlocked = slot -> false;
+	private IntPredicate shouldRenderBlockedSlotOverlay = slot -> false;
 	private boolean voidUpgradeInfoInitialized = false;
 	private boolean hasVoidUpgrade = false;
 	private final SlotTrackerJournal slotTrackerJournal = new SlotTrackerJournal();
@@ -226,6 +229,9 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 
 	@Override
 	public int extract(int index, ItemResource resource, int amount, TransactionContext transaction) {
+		if (isSlotBlocked.test(index)) {
+			return 0;
+		}
 		int result = inventoryPartitioner.getPartBySlot(index).extract(index, resource, amount, transaction, super::extract);
 		if (result > 0) {
 			slotTrackerJournal.updateSnapshots(transaction);
@@ -407,6 +413,9 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	private ItemStack insertItem(int slot, ItemStack stack) {
+		if (isSlotBlocked.test(slot)) {
+			return stack;
+		}
 		ItemResource resource = ItemResource.of(stack);
 		int amount = stack.getCount();
 		int inserted;
@@ -515,8 +524,6 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	public void setPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
-
-
 	public boolean isItemValid(int slot, ItemStack stack) {
 		return isItemValid(slot, stack, null);
 	}
@@ -526,7 +533,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	public boolean isItemValid(int slot, ItemResource resource, @Nullable Player player) {
-		return inventoryPartitioner.getPartBySlot(slot).isValid(slot, resource, player, super::isValid)
+		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isValid(slot, resource, player, super::isValid)
 				&& isAllowed(resource) && storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, resource);
 	}
 
@@ -590,7 +597,21 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	public boolean isSlotAccessible(int slot) {
-		return inventoryPartitioner.getPartBySlot(slot).isSlotAccessible(slot);
+		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isSlotAccessible(slot);
+	}
+
+	public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+		if (isSlotBlocked.test(slot)) {
+			return shouldRenderBlockedSlotOverlay.test(slot);
+		}
+		return inventoryPartitioner.shouldRenderInaccessibleSlotOverlay(slot);
+	}
+
+	public void setSlotBlockedPredicate(IntPredicate isSlotBlocked, IntPredicate shouldRenderBlockedSlotOverlay) {
+		this.isSlotBlocked = isSlotBlocked;
+		this.shouldRenderBlockedSlotOverlay = shouldRenderBlockedSlotOverlay;
+		getSlotTracker().refreshSlotIndexesFrom(this);
+		onFilterItemsChanged();
 	}
 
 	public Set<Integer> getNoSortSlots() {

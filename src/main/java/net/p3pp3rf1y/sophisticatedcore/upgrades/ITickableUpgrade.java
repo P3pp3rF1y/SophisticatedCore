@@ -6,5 +6,7 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public interface ITickableUpgrade {
-	void tick(@Nullable Entity entity, Level level, BlockPos pos);
+	default void tick(@Nullable Entity entity, Level level, BlockPos pos) {}
+
+	default void clientTick(@Nullable Entity entity, Level level, BlockPos pos) {}
 }
