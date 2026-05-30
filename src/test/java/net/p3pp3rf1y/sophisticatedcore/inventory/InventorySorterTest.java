@@ -115,13 +115,41 @@ class InventorySorterTest {
 		assertStack(inventoryHandler, 6, Items.COBBLESTONE, 1);
 	}
 
+	@Test
+	void sortHandlerDoesNotMoveStacksIntoInaccessibleSlots() {
+		InventoryHandler inventoryHandler = initInventoryHandler(7, Map.of(
+				0, stack(Items.IRON_NUGGET, 100),
+				5, stack(Items.COBBLESTONE, 1),
+				6, stack(Items.IRON_INGOT, 10)
+		), Set.of(0, 1, 2, 3, 4));
+
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of());
+
+		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 100);
+		Assertions.assertTrue(inventoryHandler.getInternalStack(1).isEmpty());
+		Assertions.assertTrue(inventoryHandler.getInternalStack(2).isEmpty());
+		Assertions.assertTrue(inventoryHandler.getInternalStack(3).isEmpty());
+		Assertions.assertTrue(inventoryHandler.getInternalStack(4).isEmpty());
+		assertStack(inventoryHandler, 5, Items.IRON_INGOT, 10);
+		assertStack(inventoryHandler, 6, Items.COBBLESTONE, 1);
+	}
+
 	private static InventoryHandler initInventoryHandler(int slots, Map<Integer, ItemStack> initialState) {
+		return initInventoryHandler(slots, initialState, Set.of());
+	}
+
+	private static InventoryHandler initInventoryHandler(int slots, Map<Integer, ItemStack> initialState, Set<Integer> inaccessibleSlots) {
 		StackUpgradeConfig stackUpgradeConfigMock = Mockito.mock(StackUpgradeConfig.class);
 		when(stackUpgradeConfigMock.canStackItem(any(Item.class))).thenReturn(true);
 		return new InventoryHandler(slots, NoopStorageWrapper.INSTANCE, getContainerContents(slots, initialState), () -> {}, 256, stackUpgradeConfigMock) {
 			@Override
 			protected boolean isAllowed(ItemResource resource) {
 				return true;
+			}
+
+			@Override
+			public boolean isSlotAccessible(int slot) {
+				return !inaccessibleSlots.contains(slot);
 			}
 		};
 	}

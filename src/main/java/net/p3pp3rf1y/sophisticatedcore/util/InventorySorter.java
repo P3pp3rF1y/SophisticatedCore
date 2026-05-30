@@ -86,13 +86,20 @@ public class InventorySorter {
 	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots, Set<Integer> ignoredSlots) {
 		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
 		skippedSlots.addAll(ignoredSlots);
+		Set<Integer> accessibleNoSortSlots = new HashSet<>(noSortSlots);
+		for (int slot = 0; slot < handler.size(); slot++) {
+			if (!handler.isSlotAccessible(slot)) {
+				skippedSlots.add(slot);
+				accessibleNoSortSlots.remove(slot);
+			}
+		}
 		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, skippedSlots, false);
 		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(comparator);
 
 		int slots = handler.size();
 
-		sortIntoNoSortSlots(handler, noSortSlots, sortedList);
+		sortIntoNoSortSlots(handler, accessibleNoSortSlots, sortedList);
 
 		sortIntoOtherSlots(handler, skippedSlots, sortedList, slots);
 	}

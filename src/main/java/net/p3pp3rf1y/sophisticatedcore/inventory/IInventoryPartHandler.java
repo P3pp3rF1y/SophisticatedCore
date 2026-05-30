@@ -30,6 +30,10 @@ public interface IInventoryPartHandler {
 		return false;
 	}
 
+	default boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+		return !isSlotAccessible(slot);
+	}
+
 	default int getCapacity(int slot, ItemResource resource) {
 		return 0;
 	}
@@ -161,6 +165,11 @@ public interface IInventoryPartHandler {
 		@Override
 		public boolean isSlotAccessible(int slot) {
 			return true;
+		}
+
+		@Override
+		public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+			return false;
 		}
 
 		@Override
