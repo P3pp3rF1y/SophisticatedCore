@@ -26,6 +26,8 @@ import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayoutFitResult;
+import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayoutFitter;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.network.*;
@@ -84,6 +86,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private CompoundTag lastSettingsNbt = null;
 	private boolean inventorySlotStackChanged = false;
 	private final Set<Integer> inaccessibleSlots = new HashSet<>();
+	private final Set<Integer> inaccessibleSlotsWithoutOverlay = new HashSet<>();
 	private final Map<Integer, Integer> slotLimitOverrides = new HashMap<>();
 	private final Set<Integer> infiniteSlots = new HashSet<>();
 	private final Map<Integer, ItemStack> slotFilterItems = new HashMap<>();
@@ -186,6 +189,16 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return storageWrapper.getColumnsTaken();
 	}
 
+	public boolean isUpgradeColumnCountSynced() {
+		int columnsTaken = 0;
+		for (Slot upgradeSlot : upgradeSlots) {
+			if (upgradeSlot.getItem().getItem() instanceof IUpgradeItem<?> upgradeItem) {
+				columnsTaken += upgradeItem.getInventoryColumnsTaken();
+			}
+		}
+		return columnsTaken == getColumnsTaken();
+	}
+
 	public Optional<UpgradeSlotChangeResult> getErrorUpgradeSlotChangeResult() {
 		if (errorUpgradeSlotChangeResult != null && player.level().getGameTime() >= errorResultExpirationTime) {
 			clearErrorUpgradeSlotChangeResult();
@@ -263,7 +276,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				@Nullable
 				@Override
 				public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-					return inaccessibleSlots.contains(finalSlotIndex) ? INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(finalSlotIndex, null);
+					return inaccessibleSlots.contains(finalSlotIndex) && !inaccessibleSlotsWithoutOverlay.contains(finalSlotIndex) ? INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(finalSlotIndex, null);
 				}
 
 				@Override
@@ -527,9 +540,21 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 					columnsTaken.addAndGet(upgradeItem.getInventoryColumnsTaken());
 				}
 			});
-			storageWrapper.setColumnsTaken(columnsTaken.get(), true);
+			int targetColumnsTaken = columnsTaken.get();
+			InventoryLayoutFitResult fitResult = getInventoryLayoutFitResult(targetColumnsTaken);
+			if (fitResult.fits() && targetColumnsTaken > storageWrapper.getColumnsTaken()) {
+				storageWrapper.applyInventoryLayout(fitResult, getColumnsForColumnsTaken(targetColumnsTaken));
+			}
+			storageWrapper.setColumnsTaken(targetColumnsTaken, true);
+			storageWrapper.onContentsNbtUpdated();
+			if (fitResult.fits()) {
+				storageWrapper.applyInventoryLayout(fitResult, getColumnsForColumnsTaken(targetColumnsTaken));
+			}
 			storageWrapper.onContentsNbtUpdated();
 			refreshAllSlots();
+			onUpgradeChanged();
+			sendAllDataToRemote();
+			sendStorageSettingsToClient();
 		}
 	}
 
@@ -539,21 +564,44 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 
 		int slotsToCheck = (newColumnsTaken - currentColumnsTaken) * getNumberOfRows();
-
-		InventoryHandler invHandler = storageWrapper.getInventoryHandler();
-		Set<Integer> errorSlots = new HashSet<>();
-		int slots = getNumberOfStorageInventorySlots();
-		for (int slotIndex = slots - 1; slotIndex >= slots - slotsToCheck; slotIndex--) {
-			if (!invHandler.getStackInSlot(slotIndex).isEmpty()) {
-				errorSlots.add(slotIndex);
-			}
-		}
+		InventoryLayoutFitResult fitResult = getInventoryLayoutFitResult(getCurrentColumnsTakenAfterChange(currentColumnsTaken, newColumnsTaken));
+		Set<Integer> errorSlots = fitResult.errorSlots();
 
 		if (!errorSlots.isEmpty()) {
 			updateSlotChangeError(UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.needs_occupied_inventory_slots", slotsToCheck, cursorStack.getHoverName()), Collections.emptySet(), errorSlots, Collections.emptySet()));
 			return true;
 		}
 		return false;
+	}
+
+	private int getCurrentColumnsTakenAfterChange(int currentColumnsTaken, int newColumnsTaken) {
+		return storageWrapper.getColumnsTaken() - currentColumnsTaken + newColumnsTaken;
+	}
+
+	private InventoryLayoutFitResult getInventoryLayoutFitResult(int targetColumnsTaken) {
+		int currentColumns = getCurrentColumns();
+		int targetColumns = getColumnsForColumnsTaken(targetColumnsTaken);
+		return InventoryLayoutFitter.fit(storageWrapper.getInventoryLayoutParts(currentColumns, targetColumns), getTargetSlots(targetColumnsTaken), targetColumns, targetColumnsTaken < storageWrapper.getColumnsTaken());
+	}
+
+	private int getTargetSlots(int targetColumnsTaken) {
+		return getBaseStorageSlots() - targetColumnsTaken * getNumberOfRows();
+	}
+
+	private int getCurrentColumns() {
+		return getColumnsForColumnsTaken(storageWrapper.getColumnsTaken());
+	}
+
+	private int getColumnsForColumnsTaken(int columnsTaken) {
+		return getBaseColumns() - columnsTaken;
+	}
+
+	private int getBaseColumns() {
+		return getBaseStorageSlots() <= 81 ? 9 : 12;
+	}
+
+	private int getBaseStorageSlots() {
+		return getNumberOfStorageInventorySlots() + storageWrapper.getColumnsTaken() * getNumberOfRows();
 	}
 
 	public int getUpgradeSlotsSize() {
@@ -792,6 +840,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		tryingToMergeUpgrade = true;
 		boolean result = !upgradeSlots.isEmpty() && moveItemStackTo(sourceSlot, slotStack, getInventorySlotsSize(), getInventorySlotsSize() + getNumberOfUpgradeSlots(), false);
 		tryingToMergeUpgrade = false;
+		if (columnsChange != 0) {
+			if (player.level().isClientSide()) {
+				onUpgradesChanged();
+			} else {
+				actuallyUpdateColumnsTaken(columnsChange);
+			}
+			columnsChange = 0;
+		}
 		showUpgradeSlotChangeError();
 		return result;
 	}
@@ -935,6 +991,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return infiniteSlots.contains(slot);
 	}
 
+	public void refreshAdditionalSlotInfo() {
+		sendAdditionalSlotInfo();
+	}
+
 	private void sendEmptySlotIcons() {
 		if (!(player instanceof ServerPlayer serverPlayer)) {
 			return;
@@ -954,6 +1014,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return;
 		}
 		Set<Integer> inaccessibleSlots = new HashSet<>();
+		Set<Integer> inaccessibleSlotsWithoutOverlay = new HashSet<>();
 		Map<Integer, Integer> slotLimitOverrides = new HashMap<>();
 		Set<Integer> infiniteSlots = new HashSet<>();
 		InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
@@ -961,6 +1022,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
 			if (!inventoryHandler.isSlotAccessible(slot)) {
 				inaccessibleSlots.add(slot);
+				if (!inventoryHandler.shouldRenderInaccessibleSlotOverlay(slot)) {
+					inaccessibleSlotsWithoutOverlay.add(slot);
+				}
 			}
 			if (inventoryHandler.isInfinite(slot)) {
 				infiniteSlots.add(slot);
@@ -974,7 +1038,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot).builtInRegistryHolder());
 			}
 		}
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncAdditionalSlotInfoPayload(inaccessibleSlots, slotLimitOverrides, infiniteSlots, slotFilterItems));
+		PacketDistributor.sendToPlayer(serverPlayer, new SyncAdditionalSlotInfoPayload(inaccessibleSlots, inaccessibleSlotsWithoutOverlay, slotLimitOverrides, infiniteSlots, slotFilterItems));
 	}
 
 	@Override
@@ -989,6 +1053,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public void setRemoteSlotNoCopy(int slotIndex, ItemStack stack) {
 		if (slotIndex < getInventorySlotsSize()) {
+			if (slotIndex >= remoteRealSlots.size()) {
+				return;
+			}
 			ItemStack previous = remoteRealSlots.get(slotIndex);
 			remoteRealSlots.set(slotIndex, stack);
 
@@ -996,7 +1063,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				inventorySlotStackChanged = true;
 			}
 		} else {
-			remoteUpgradeSlots.set(slotIndex - inventorySlotsBeforeClickHandled, stack);
+			int upgradeSlotIndex = slotIndex - inventorySlotsBeforeClickHandled;
+			if (upgradeSlotIndex < 0 || upgradeSlotIndex >= remoteUpgradeSlots.size()) {
+				return;
+			}
+			remoteUpgradeSlots.set(upgradeSlotIndex, stack);
 		}
 	}
 
@@ -1011,7 +1082,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return OptionalInt.empty();
 	}
 
-	private void refreshAllSlots() {
+	protected void refreshAllSlots() {
 		slots.clear();
 		lastSlots.clear();
 		realInventorySlots.clear();
@@ -1548,9 +1619,21 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public void setItem(int slotId, int stateId, ItemStack stack) {
+		int columnsTaken = storageWrapper.getColumnsTaken();
 		if (getTotalSlotsNumber() > slotId) {
 			super.setItem(slotId, stateId, stack);
 		}
+		if (slotId == storageItemSlotNumber) {
+			onStorageItemStackChanged(stack);
+			if (columnsTaken != storageWrapper.getColumnsTaken()) {
+				storageWrapper.onContentsNbtUpdated();
+				refreshAllSlots();
+			}
+		}
+	}
+
+	protected void onStorageItemStackChanged(ItemStack stack) {
+		// noop by default
 	}
 
 	@Override
@@ -1699,16 +1782,19 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
-	private void onUpgradesChanged() {
+	protected void onUpgradesChanged() {
 		if (upgradeChangeListener != null) {
 			upgradeChangeListener.accept(StorageContainerMenuBase.this);
 		}
 	}
 
 	@Override
-	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) {
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) {
 		this.inaccessibleSlots.clear();
 		this.inaccessibleSlots.addAll(inaccessibleSlots);
+
+		this.inaccessibleSlotsWithoutOverlay.clear();
+		this.inaccessibleSlotsWithoutOverlay.addAll(inaccessibleSlotsWithoutOverlay);
 
 		this.slotLimitOverrides.clear();
 		this.slotLimitOverrides.putAll(slotLimitOverrides);
@@ -1743,15 +1829,22 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		emptySlotIcons.forEach((textureName, slots) -> slots.forEach(slot -> this.emptySlotIcons.put(slot, new Pair<>(InventoryMenu.BLOCK_ATLAS, textureName))));
 	}
 
+	public boolean isInaccessibleSlot(int slot) {
+		return inaccessibleSlots.contains(slot);
+	}
+
 	public ItemStack getSlotFilterItem(int slot) {
 		return slotFilterItems.getOrDefault(slot, ItemStack.EMPTY);
 	}
 
 	public void updateSlotChangeError(UpgradeSlotChangeResult result) {
 		errorUpgradeSlotChangeResult = result;
-		if (player.level().isClientSide() && errorUpgradeSlotChangeResult.successful() && columnsChange != 0) {
-			actuallyUpdateColumnsTaken(columnsChange);
-			onUpgradesChanged();
+		if (errorUpgradeSlotChangeResult.successful() && columnsChange != 0) {
+			if (player.level().isClientSide()) {
+				onUpgradesChanged();
+			} else {
+				actuallyUpdateColumnsTaken(columnsChange);
+			}
 		}
 		columnsChange = 0;
 		showUpgradeSlotChangeError();
@@ -1778,6 +1871,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public void transferItemsToStorage(boolean filterByContents) {
 		PacketDistributor.sendToServer(new TransferItemsPayload(false, filterByContents));
+	}
+
+	protected void onUpgradeChanged() {
+		//noop by default
 	}
 
 	public class StorageUpgradeSlot extends SlotItemHandler {
