@@ -18,6 +18,10 @@ public interface IControllableStorage extends IControllerBoundable {
 		return true;
 	}
 
+	default BlockPos getControlledStorageBlockPos() {
+		return getStorageBlockPos();
+	}
+
 	default void tryToAddToController() {
 		addToAdjacentController();
 	}
@@ -32,7 +36,7 @@ public interface IControllableStorage extends IControllerBoundable {
 
 	@Override
 	default void addToController(Level level, BlockPos pos, BlockPos controllerPos) {
-		WorldHelper.getBlockEntity(level, controllerPos, ControllerBlockEntityBase.class).ifPresent(c -> c.addStorage(pos));
+		WorldHelper.getBlockEntity(level, controllerPos, ControllerBlockEntityBase.class).ifPresent(c -> c.addStorage(getControlledStorageBlockPos()));
 	}
 
 	default void registerController(ControllerBlockEntityBase controllerBlockEntity) {
@@ -80,10 +84,13 @@ public interface IControllableStorage extends IControllerBoundable {
 		getControllerPos().ifPresentOrElse(controllerPos -> {
 			Level level = getStorageBlockLevel();
 			if (!level.isClientSide()) {
+				BlockPos controlledStorageBlockPos = getControlledStorageBlockPos();
 				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class)
 						.ifPresent(controller -> {
-									if (controller.isStorageConnected(getStorageBlockPos())) {
-										controller.addStorageStacksAndRegisterListeners(getStorageBlockPos());
+									if (controller.isStorageConnected(controlledStorageBlockPos)) {
+										if (hasStorageData()) {
+											controller.addStorageStacksAndRegisterListeners(controlledStorageBlockPos);
+										}
 									} else {
 										removeControllerPos();
 										tryToAddToController();
