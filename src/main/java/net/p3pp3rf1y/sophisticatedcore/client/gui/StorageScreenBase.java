@@ -679,7 +679,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		renderStorageTitle(guiGraphics);
-		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 4210752, false);
+		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ARGB.opaque(4210752), false);
 		renderUpgradeInventoryControls(guiGraphics, mouseX, mouseY);
 		renderUpgradeSlots(guiGraphics, mouseX, mouseY);
 		if (inventoryScrollPanel == null) {
@@ -691,9 +691,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private void renderStorageTitle(GuiGraphics guiGraphics) {
 		int titleMaxWidth = getTitleMaxWidth();
 		if (Label.isTextTruncated(font, title, titleMaxWidth)) {
-			guiGraphics.drawString(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, 4210752, false);
+			guiGraphics.drawString(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
 		} else {
-			guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 4210752, false);
+			guiGraphics.drawString(font, title, titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
 		}
 	}
 
