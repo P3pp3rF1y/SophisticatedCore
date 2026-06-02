@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
@@ -174,7 +175,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		renderSettingsTitle(guiGraphics);
-		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, 4210752, false);
+		guiGraphics.drawString(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, ARGB.opaque(4210752), false);
 		if (inventoryScrollPanel == null) {
 			renderStorageInventorySlots(guiGraphics, mouseX, mouseY, true);
 		}
@@ -183,9 +184,9 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	private void renderSettingsTitle(GuiGraphics guiGraphics) {
 		int titleMaxWidth = getTitleMaxWidth();
 		if (Label.isTextTruncated(font, title, titleMaxWidth)) {
-			guiGraphics.drawString(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, 4210752, false);
+			guiGraphics.drawString(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
 		} else {
-			guiGraphics.drawString(font, title, titleLabelX, titleLabelY, 4210752, false);
+			guiGraphics.drawString(font, title, titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
 		}
 	}
 
