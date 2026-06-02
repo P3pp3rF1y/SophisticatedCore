@@ -180,7 +180,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 				linkable.setNotLinked();
 				clearCachedHandlers();
 			} else if (boundable instanceof IControllableStorage storage && storage.hasStorageData()) {
-				addStorageData(posToCheck);
+				addStorageData(storage.getControlledStorageBlockPos());
 			} else {
 				if (boundable.canConnectStorages()) {
 					connectingBlocks.add(posToCheck);
@@ -243,6 +243,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	private void addStorageData(BlockPos storagePos) {
+		if (storagePositions.contains(storagePos)) {
+			return;
+		}
+
 		storagePositions.add(storagePos);
 		int index = storagePositions.size() - 1;
 		storagePositionIndexes.put(storagePos, index);
