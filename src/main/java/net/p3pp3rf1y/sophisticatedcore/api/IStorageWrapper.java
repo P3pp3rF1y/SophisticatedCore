@@ -172,7 +172,7 @@ public interface IStorageWrapper extends ITintable {
 
 	default void attachInventorySlotBlockers() {
 		UpgradeHandler upgradeHandler = getUpgradeHandler();
-		List<IInventorySlotBlocker> slotBlockers = upgradeHandler.getWrappersThatImplement(IInventorySlotBlocker.class);
+		List<IInventorySlotBlocker> slotBlockers = upgradeHandler.getWrappersThatImplementFromMainStorage(IInventorySlotBlocker.class);
 		getInventoryHandler().setSlotBlockedPredicate(
 				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot)),
 				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot) && slotBlocker.shouldRenderBlockedSlotOverlay(slot))
