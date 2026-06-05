@@ -219,6 +219,7 @@
   "gui.sophisticatedcore.buttons.confirm": "确认",
   "gui.sophisticatedcore.buttons.cancel": "取消",
   "gui.sophisticatedcore.buttons.transparent": "无颜色",
+  "gui.sophisticatedcore.buttons.browse_results": "打开带搜索功能的扩展输出列表",
   "gui.sophisticatedcore.buttons.upgrade_switch_enabled": "开",
   "gui.sophisticatedcore.buttons.upgrade_switch_disabled": "关",
   "gui.sophisticatedcore.buttons.upgrade_switch_inactive": "未激活",
