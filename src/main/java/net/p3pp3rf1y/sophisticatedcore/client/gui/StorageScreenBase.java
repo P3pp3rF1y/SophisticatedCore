@@ -960,7 +960,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
-		List<Component> ret = getTooltipFromItem(minecraft, itemStack);
+		List<Component> ret = new ArrayList<>(getTooltipFromItem(minecraft, itemStack));
 		if (hoveredSlot != null && hoveredSlot instanceof StorageInventorySlot && hoveredSlot.getMaxStackSize() != itemStack.getMaxStackSize()) {
 			ret.add(Component.translatable(TranslationHelper.INSTANCE.translGuiTooltip("stack_count"),
 							Component.literal(NumberFormat.getNumberInstance().format(itemStack.getCount())).withStyle(ChatFormatting.DARK_AQUA)
