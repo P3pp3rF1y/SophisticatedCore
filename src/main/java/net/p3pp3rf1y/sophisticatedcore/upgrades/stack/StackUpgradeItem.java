@@ -42,7 +42,11 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			multiplier *= stackWrapper.getStackSizeMultiplier();
 		}
 
-		return Integer.MAX_VALUE / 64D < multiplier ? Integer.MAX_VALUE : (int) (multiplier * 64);
+		return getInventorySlotLimit(multiplier);
+	}
+
+	private static int getInventorySlotLimit(double multiplier) {
+		return Integer.MAX_VALUE / 64D < multiplier ? Integer.MAX_VALUE : Math.max(1, (int) (multiplier * 64));
 	}
 
 	@Override
@@ -108,7 +112,9 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 		return isMultiplierHighEnough(storageWrapper, multiplierWhenRemoved * otherStackUpgradeItem.stackSizeMultiplier, -1);
 	}
 
-	private UpgradeSlotChangeResult isMultiplierHighEnough(IStorageWrapper storageWrapper, double multiplier, int ignoreUpgradeSlot) {
+	static UpgradeSlotChangeResult isMultiplierHighEnough(IStorageWrapper storageWrapper, double multiplier, int ignoreUpgradeSlot) {
+		int inventorySlotLimit = getInventorySlotLimit(multiplier);
+		double effectiveMultiplier = inventorySlotLimit / 64D;
 		Set<Integer> slotsOverMultiplier = new HashSet<>();
 
 		for (int slot = 0; slot < storageWrapper.getInventoryHandler().size(); slot++) {
@@ -117,7 +123,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 				continue;
 			}
 			double stackMultiplierNeeded = (double) stack.getCount() / stack.getMaxStackSize();
-			if (stackMultiplierNeeded > multiplier) {
+			if (stackMultiplierNeeded > effectiveMultiplier) {
 				slotsOverMultiplier.add(slot);
 			}
 		}
@@ -130,14 +136,14 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			if (slot == ignoreUpgradeSlot) {
 				continue;
 			}
-			if (wrapper instanceof IStackableContentsUpgrade stackableContentsUpgrade && stackableContentsUpgrade.getMinimumMultiplierRequired() > multiplier) {
+			if (wrapper instanceof IStackableContentsUpgrade stackableContentsUpgrade && stackableContentsUpgrade.getMinimumMultiplierRequired() > effectiveMultiplier) {
 				errorUpgradeSlots.add(slot);
 				errorInventoryParts.add(slot);
 			}
 		}
 
 		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty()) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", multiplier), errorUpgradeSlots, slotsOverMultiplier, errorInventoryParts);
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", inventorySlotLimit), errorUpgradeSlots, slotsOverMultiplier, errorInventoryParts);
 		}
 
 		return UpgradeSlotChangeResult.success();

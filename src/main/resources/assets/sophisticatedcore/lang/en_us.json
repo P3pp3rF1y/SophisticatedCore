@@ -266,7 +266,7 @@
   "gui.sophisticatedcore.settings.message.export_template": "Exported Settings to %s",
   "gui.sophisticatedcore.settings.message.export_template.empty_name": "File name can't be empty",
   "gui.sophisticatedcore.settings.message.export_template.invalid_characters": "File name contains invalid character(s): %s",
-  "gui.sophisticatedcore.error.remove.stack_low_multiplier": "There's at least one slot or upgrade that requires multiplier higher than %s",
+  "gui.sophisticatedcore.error.remove.stack_low_multiplier": "There's at least one slot or upgrade that requires stack limit higher than %s",
   "gui.sophisticatedcore.error.add.needs_occupied_inventory_slots": "There's an item in at least one of the last %s slots needed for %s",
   "gui.sophisticatedcore.error.add.two_tank_upgrades_present": "There are already two Tank Upgrades in other upgrade slots",
   "gui.sophisticatedcore.error.add.tank_capacity_high": "Backpack can't support this tank upgrade. Upgrade backpack or add stack multiplier to get at least %sx higher capacity",
