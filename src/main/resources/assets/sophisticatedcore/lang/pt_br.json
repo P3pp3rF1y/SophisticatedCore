@@ -219,6 +219,7 @@
   "gui.sophisticatedcore.buttons.confirm": "Confirmar",
   "gui.sophisticatedcore.buttons.cancel": "Cancelar",
   "gui.sophisticatedcore.buttons.transparent": "Sem Cor",
+  "gui.sophisticatedcore.buttons.browse_results": "Abrir lista de saída expandida com busca",
   "gui.sophisticatedcore.buttons.upgrade_switch_enabled": "LIGADO",
   "gui.sophisticatedcore.buttons.upgrade_switch_disabled": "DESLIGADO",
   "gui.sophisticatedcore.buttons.upgrade_switch_inactive": "INATIVO",
@@ -284,5 +285,18 @@
   "fluid_type.sophisticatedcore.experience": "Experiência",
   "gui.sophisticatedcore.tooltip.stack_count": "Qtd: %s",
   "key.category.sophisticatedcore.main": "Sophisticated Mods",
-  "key.sophisticatedcore.sort": "Organizar Armazenamento/Mochila"
+  "key.sophisticatedcore.sort": "Organizar Armazenamento/Mochila",
+  "key.sophisticatedcore.transfer_to_storage": "Transferir para o armazenamento",
+  "key.sophisticatedcore.transfer_to_inventory": "Transferir para o inventário",
+  "sophisticatedcore.configuration.client": "Cliente",
+  "sophisticatedcore.configuration.common": "Comum",
+  "sophisticatedcore.configuration.sortButtonsPosition": "Posição dos botões de organizar",
+  "sophisticatedcore.configuration.playButtonSound": "Botão de Tocar Som",
+  "sophisticatedcore.configuration.mouseTweaksScrollEnabled": "Controle de rolagem do Mouse Tweaks",
+  "sophisticatedcore.configuration.enabledItems": "Ativar Itens de Mod",
+  "sophisticatedcore.configuration.enabledItems.tooltip": "Preenchido com todos os itens compatíveis. Mude |true para |false para desativar um.\nFormato: id_do_item|true_or_false\nExemplo: sophisticatedbackpacks:smelting_upgrade|true",
+  "sophisticatedcore.configuration.sortButtonsPosition.title_line_right": "Linha de título à direita",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrades": "Abaixo do Módulo",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrade_tabs": "Abaixo das abas de Módulos",
+  "sophisticatedcore.configuration.sortButtonsPosition.hidden": "Oculto"
 }
