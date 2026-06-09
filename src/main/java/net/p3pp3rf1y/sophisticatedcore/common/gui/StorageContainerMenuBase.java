@@ -1465,7 +1465,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 		}
 
-		if (toTransfer > 0) {
+		if (toTransfer > 0 && endIndex <= getNumberOfStorageInventorySlots()) {
 			int firstIndex = reverseDirection ? endIndex - 1 : startIndex;
 			int increment = reverseDirection ? -1 : 1;
 
