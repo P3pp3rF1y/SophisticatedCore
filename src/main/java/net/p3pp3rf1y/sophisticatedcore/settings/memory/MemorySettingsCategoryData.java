@@ -21,8 +21,8 @@ import java.util.Objects;
 public class MemorySettingsCategoryData implements ContainerContents.ISettingsCategoryData<MemorySettingsCategoryData> {
 	public static final Codec<MemorySettingsCategoryData> CODEC = RecordCodecBuilder.create(
 			instance -> instance.group(
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Item.CODEC.orElse(Items.AIR.builtInRegistryHolder()).xmap(Holder::value, Item::builtInRegistryHolder)).fieldOf("slotFilterItems").forGetter(MemorySettingsCategoryData::slotFilterItems),
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ItemStack.CODEC.orElse(ItemStack.EMPTY).xmap(ItemStackKey::of, ItemStackKey::stack)).fieldOf("slotFilterStacks").forGetter(MemorySettingsCategoryData::slotFilterStacks),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Item.CODEC.orElse(Items.AIR.builtInRegistryHolder())).xmap(MemorySettingsCategoryData::toSlotFilterItems, MemorySettingsCategoryData::fromSlotFilterItems).fieldOf("slotFilterItems").forGetter(MemorySettingsCategoryData::slotFilterItems),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY)).xmap(MemorySettingsCategoryData::toSlotFilterStacks, MemorySettingsCategoryData::fromSlotFilterStacks).fieldOf("slotFilterStacks").forGetter(MemorySettingsCategoryData::slotFilterStacks),
 					Codec.BOOL.fieldOf("ignoreNbt").forGetter(MemorySettingsCategoryData::ignoreNbt)
 			).apply(instance, MemorySettingsCategoryData::new)
 	);
@@ -41,6 +41,48 @@ public class MemorySettingsCategoryData implements ContainerContents.ISettingsCa
 	private boolean ignoreNbt = true;
 
 	public MemorySettingsCategoryData() {}
+
+	private static Map<Integer, Item> toSlotFilterItems(Map<Integer, Holder<Item>> items) {
+		Map<Integer, Item> slotFilterItems = new LinkedHashMap<>();
+		items.forEach((slot, itemHolder) -> {
+			Item item = itemHolder.value();
+			if (item != Items.AIR) {
+				slotFilterItems.put(slot, item);
+			}
+		});
+		return slotFilterItems;
+	}
+
+	private static Map<Integer, Holder<Item>> fromSlotFilterItems(Map<Integer, Item> slotFilterItems) {
+		Map<Integer, Holder<Item>> items = new LinkedHashMap<>();
+		slotFilterItems.forEach((slot, item) -> {
+			if (item != Items.AIR) {
+				items.put(slot, item.builtInRegistryHolder());
+			}
+		});
+		return items;
+	}
+
+	private static Map<Integer, ItemStackKey> toSlotFilterStacks(Map<Integer, ItemStack> stacks) {
+		Map<Integer, ItemStackKey> slotFilterStacks = new LinkedHashMap<>();
+		stacks.forEach((slot, stack) -> {
+			if (!stack.isEmpty()) {
+				slotFilterStacks.put(slot, ItemStackKey.of(stack));
+			}
+		});
+		return slotFilterStacks;
+	}
+
+	private static Map<Integer, ItemStack> fromSlotFilterStacks(Map<Integer, ItemStackKey> slotFilterStacks) {
+		Map<Integer, ItemStack> stacks = new LinkedHashMap<>();
+		slotFilterStacks.forEach((slot, stackKey) -> {
+			ItemStack stack = stackKey.stack();
+			if (!stack.isEmpty()) {
+				stacks.put(slot, stack);
+			}
+		});
+		return stacks;
+	}
 
 	public MemorySettingsCategoryData(Map<Integer, Item> slotFilterItems, Map<Integer, ItemStackKey> slotFilterStacks, boolean ignoreNbt) {
 		this.slotFilterItems.putAll(slotFilterItems);
@@ -91,14 +133,6 @@ public class MemorySettingsCategoryData implements ContainerContents.ISettingsCa
 
 	public void setIgnoreNbt(boolean ignoreNbt) {
 		this.ignoreNbt = ignoreNbt;
-	}
-
-	public void removeFilterItemSlot(int slotIndex) {
-		slotFilterItems.entrySet().removeIf(e -> e.getKey() >= slotIndex);
-	}
-
-	public void removeFilterStackSlot(int slotIndex) {
-		slotFilterStacks.entrySet().removeIf(e -> e.getKey() >= slotIndex);
 	}
 
 	@Override

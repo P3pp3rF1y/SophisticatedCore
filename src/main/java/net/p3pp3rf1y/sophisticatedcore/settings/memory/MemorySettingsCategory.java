@@ -176,9 +176,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public void unselectSlot(int slotNumber) {
+		unselectSlotWithoutSave(slotNumber);
+		save();
+	}
+
+	private void unselectSlotWithoutSave(int slotNumber) {
 		unselectFilterItemSlot(slotNumber);
 		unselectFilterStackSlot(slotNumber);
-		save();
 	}
 
 	private void unselectFilterItemSlot(int slotNumber) {
@@ -376,25 +380,34 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	@Override
 	public void copyTo(MemorySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		data.slotFilterItems().forEach((slotIndex, item) -> {
+		new LinkedHashMap<>(data.slotFilterStacks()).forEach((slotIndex, isk) -> {
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.data.slotFilterItems().put(slotIndex + slotOffset, item);
+			otherCategory.setSlotStack(slotIndex + slotOffset, isk.stack());
 		});
-		data.slotFilterStacks().forEach((slotIndex, isk) -> {
+		new LinkedHashMap<>(data.slotFilterItems()).forEach((slotIndex, item) -> {
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.data.slotFilterStacks().put(slotIndex + slotOffset, isk);
+			otherCategory.setSlotItem(slotIndex + slotOffset, item);
 		});
 		otherCategory.save();
 	}
 
+	private void setSlotItem(int slot, Item item) {
+		unselectSlotWithoutSave(slot);
+		addSlotItem(slot, item);
+	}
+
+	private void setSlotStack(int slot, ItemStack stack) {
+		unselectSlotWithoutSave(slot);
+		addSlotStack(slot, stack);
+	}
+
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
-		data.removeFilterItemSlot(slotIndex);
-		data.removeFilterStackSlot(slotIndex);
+		getSlotIndexes().stream().filter(slot -> slot >= slotIndex).forEach(this::unselectSlotWithoutSave);
 		save();
 	}
 }
