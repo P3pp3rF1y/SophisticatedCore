@@ -32,15 +32,14 @@ public class PacketHandler {
 	private final Map<Class<?>, MessageType<?>> byType = new HashMap<>();
 	private final Map<Integer, MessageType<?>> byId = new HashMap<>();
 
-	public static final PacketHandler INSTANCE = new PacketHandler(SophisticatedCore.MOD_ID);
-	private static final String PROTOCOL = "1";
+	public static final PacketHandler INSTANCE = new PacketHandler(SophisticatedCore.MOD_ID, SophisticatedCore.getNetworkProtocolVersion());
 
 	private final SimpleChannel networkWrapper;
 	private int idx = 0;
 
-	protected PacketHandler(String modId) {
+	protected PacketHandler(String modId, String protocol) {
 		networkWrapper = NetworkRegistry.newSimpleChannel(new ResourceLocation(modId, "channel"),
-				() -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
+				() -> protocol, protocol::equals, protocol::equals);
 	}
 
 	public final void init() {
