@@ -29,6 +29,10 @@ public interface IInventoryPartHandler {
 		return false;
 	}
 
+	default boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+		return !isSlotAccessible(slot);
+	}
+
 	default int getStackLimit(int slot, ItemStack stack) {
 		return 0;
 	}
@@ -155,6 +159,11 @@ public interface IInventoryPartHandler {
 		@Override
 		public boolean isSlotAccessible(int slot) {
 			return true;
+		}
+
+		@Override
+		public boolean shouldRenderInaccessibleSlotOverlay(int slot) {
+			return false;
 		}
 
 		@Override

@@ -73,12 +73,36 @@ class InventorySorterTest {
 		Assertions.assertTrue(inventoryHandler.getSlotStack(2).isEmpty());
 	}
 
+	@Test
+	void sortHandlerDoesNotMoveStacksIntoInaccessibleSlots() {
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7, Map.of(
+				0, stack(Items.IRON_NUGGET, 100),
+				5, stack(Items.COBBLESTONE, 1),
+				6, stack(Items.IRON_INGOT, 10)
+		), new HashMap<>(), Set.of(), Set.of(0, 1, 2, 3, 4));
+
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of());
+
+		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 100);
+		Assertions.assertTrue(inventoryHandler.getSlotStack(1).isEmpty());
+		Assertions.assertTrue(inventoryHandler.getSlotStack(2).isEmpty());
+		Assertions.assertTrue(inventoryHandler.getSlotStack(3).isEmpty());
+		Assertions.assertTrue(inventoryHandler.getSlotStack(4).isEmpty());
+		assertStack(inventoryHandler, 5, Items.IRON_INGOT, 10);
+		assertStack(inventoryHandler, 6, Items.COBBLESTONE, 1);
+	}
+
 	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState, Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots) {
+		return initInventoryHandlerWithVisibleStacks(slots, initialState, visibleStacks, infiniteSlots, Set.of());
+	}
+
+	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState, Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots, Set<Integer> inaccessibleSlots) {
 		Map<Integer, ItemStack> internalStacks = new HashMap<>();
 		initialState.forEach((slot, stack) -> internalStacks.put(slot, stack.copy()));
 
 		InventoryHandler inventoryHandler = Mockito.mock(InventoryHandler.class);
 		when(inventoryHandler.getSlots()).thenReturn(slots);
+		when(inventoryHandler.isSlotAccessible(anyInt())).thenAnswer(invocation -> !inaccessibleSlots.contains((int) invocation.getArgument(0)));
 		when(inventoryHandler.getBaseStackLimit(any(ItemStack.class))).thenReturn(256);
 		when(inventoryHandler.getStackLimit(anyInt(), any(ItemStack.class))).thenReturn(256);
 		when(inventoryHandler.getSlotLimit(anyInt())).thenReturn(256);
