@@ -172,7 +172,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	private boolean fillFromBlock(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
 		FluidState fluidState = level.getFluidState(pos);
-		if (!fluidState.isEmpty()) {
+		if (!fluidState.isEmpty() && fluidState.isSource()) {
 			BlockState state = level.getBlockState(pos);
 			Block block = state.getBlock();
 			IFluidHandler targetFluidHandler;
