@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.block.BucketPickup;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.FluidUtil;
@@ -23,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.CoreFakePlayer;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
@@ -115,12 +118,18 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private Optional<Integer> interactWithWorld(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
+		Optional<Player> interactingPlayer = getInteractingPlayer(level, pos, entity);
+		if (interactingPlayer.isEmpty()) {
+			return Optional.empty();
+		}
+
+		Player player = interactingPlayer.get();
 		if (isInput()) {
-			return fillFromBlockInRange(level, pos, storageFluidHandler, entity);
+			return fillFromBlockInRange(level, pos, storageFluidHandler, player);
 		} else {
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getUnitVec3i());
-				if (placeFluidInWorld(level, storageFluidHandler, dir, offsetPos)) {
+				if (placeFluidInWorld(level, storageFluidHandler, dir, offsetPos, player)) {
 					return Optional.of(WORLD_INTERACTION_COOLDOWN_TIME);
 				}
 			}
@@ -128,12 +137,28 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return Optional.empty();
 	}
 
-	private boolean placeFluidInWorld(Level level, IFluidHandler storageFluidHandler, Direction dir, BlockPos offsetPos) {
+	private Optional<Player> getInteractingPlayer(Level level, BlockPos pos, @Nullable Entity entity) {
+		if (entity instanceof Player player) {
+			return Optional.of(player);
+		}
+
+		if (level instanceof ServerLevel serverLevel) {
+			CoreFakePlayer fakePlayer = CoreFakePlayer.get(serverLevel);
+			fakePlayer.setPosition(Vec3.atCenterOf(pos));
+			return Optional.of(fakePlayer);
+		}
+
+		return Optional.empty();
+	}
+
+	private boolean placeFluidInWorld(Level level, IFluidHandler storageFluidHandler, Direction dir, BlockPos offsetPos, Player player) {
 		if (dir != Direction.UP) {
 			for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 				FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
 				if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
-						&& isValidForFluidPlacement(level, offsetPos) && FluidUtil.tryPlaceFluid(null, level, InteractionHand.MAIN_HAND, offsetPos, storageFluidHandler, tankFluid)) {
+						&& WorldHelper.playerMayInteract(player, offsetPos)
+						&& isValidForFluidPlacement(level, offsetPos)
+						&& FluidUtil.tryPlaceFluid(null, level, InteractionHand.MAIN_HAND, offsetPos, storageFluidHandler, tankFluid)) {
 					return true;
 				}
 			}
@@ -146,14 +171,14 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return blockState.isAir() || (!blockState.getFluidState().isEmpty() && !blockState.getFluidState().isSource());
 	}
 
-	private Optional<Integer> fillFromBlockInRange(Level level, BlockPos basePos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
+	private Optional<Integer> fillFromBlockInRange(Level level, BlockPos basePos, IFluidHandler storageFluidHandler, Player player) {
 		LinkedList<BlockPos> nextPositions = new LinkedList<>();
 		Set<BlockPos> searchedPositions = new HashSet<>();
 		nextPositions.add(basePos);
 
 		while (!nextPositions.isEmpty()) {
 			BlockPos pos = nextPositions.poll();
-			if (fillFromBlock(level, pos, storageFluidHandler, entity)) {
+			if (fillFromBlock(level, pos, storageFluidHandler, player)) {
 				return Optional.of((int) (Math.max(1, Math.sqrt(basePos.distSqr(pos))) * WORLD_INTERACTION_COOLDOWN_TIME));
 			}
 
@@ -170,14 +195,18 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return Optional.empty();
 	}
 
-	private boolean fillFromBlock(Level level, BlockPos pos, IFluidHandler storageFluidHandler, @Nullable Entity entity) {
+	private boolean fillFromBlock(Level level, BlockPos pos, IFluidHandler storageFluidHandler, Player player) {
+		if (!WorldHelper.playerMayInteract(player, pos)) {
+			return false;
+		}
+
 		FluidState fluidState = level.getFluidState(pos);
 		if (!fluidState.isEmpty() && fluidState.isSource()) {
 			BlockState state = level.getBlockState(pos);
 			Block block = state.getBlock();
 			IFluidHandler targetFluidHandler;
 			if (block instanceof BucketPickup bucketPickup) {
-				targetFluidHandler = new BucketPickupHandlerWrapper(entity instanceof Player player ? player : null, bucketPickup, level, pos);
+				targetFluidHandler = new BucketPickupHandlerWrapper(player, bucketPickup, level, pos);
 			} else {
 				Optional<IFluidHandler> fluidHandler = FluidUtil.getFluidHandler(level, pos, null);
 				if (fluidHandler.isEmpty()) {
