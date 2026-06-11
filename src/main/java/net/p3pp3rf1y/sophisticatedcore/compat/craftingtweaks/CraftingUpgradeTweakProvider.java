@@ -372,7 +372,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			if (!(menu instanceof StorageContainerMenuBase<?> storageContainer)) {
 				return false;
 			}
-			return sourceSlot.mayPickup(player) && sourceSlot.index < storageContainer.realInventorySlots.size();
+			return sourceSlot.mayPickup(player) && sourceSlot.index < storageContainer.getInventorySlotsSize();
 		}
 	}
 }
