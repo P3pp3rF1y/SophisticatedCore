@@ -51,7 +51,7 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 			return getCraftingSlots(handler);
 		}
 
-		List<Slot> slots = new ArrayList<>(handler.realInventorySlots.stream().filter(s -> s.mayPickup(player)).toList());
+		List<Slot> slots = new ArrayList<>(handler.slots.stream().filter(s -> s.mayPickup(player)).toList());
 		slots.addAll(getCraftingSlots(handler));
         return slots;
     }
@@ -75,7 +75,7 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 			return List.of();
 		}
 
-		return handler.realInventorySlots.stream()
+		return handler.slots.stream()
 				.filter(slot -> slot.container instanceof Inventory)
 				.filter(slot -> slot.getContainerSlot() >= 0 && slot.getContainerSlot() < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS)
 				.filter(slot -> slot.mayPickup(player))
