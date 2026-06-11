@@ -164,9 +164,9 @@ public class ClientEventHandler {
 		AbstractContainerMenu menu = containerGui.getMenu();
 		ItemStack held = menu.getCarried();
 		if (!held.isEmpty()) {
-			List<Slot> slots = menu instanceof StorageContainerMenuBase<?> storageMenu ? storageMenu.realInventorySlots : menu.slots;
+			Slot under = containerGui.getSlotUnderMouse();
 
-			for (Slot s : slots) {
+			for (Slot s : menu.slots) {
 				ItemStack stack = s.getItem();
 				if (!s.mayPickup(mc.player) || stack.isEmpty()) {
 					continue;
