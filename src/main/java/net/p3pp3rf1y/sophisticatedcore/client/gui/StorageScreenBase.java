@@ -729,6 +729,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover) {
 		renderSlotsList(guiGraphics, mouseX, mouseY, menu.slots, slot -> true, canShowHover, 0, menu.getNumberOfStorageInventorySlots());
+		storageInventoryControls.values().forEach(control -> control.render(guiGraphics, mouseX, mouseY));
 	}
 
 	private void renderPlayerInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
