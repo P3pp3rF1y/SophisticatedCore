@@ -657,7 +657,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (inventoryScrollPanel != null) {
 			Optional<Slot> result = inventoryScrollPanel.getHoveredSlot(mouseX, mouseY);
 			if (result.isPresent()) {
-				return result.get();
+				Slot slot = result.get();
+				return menu.isStorageInventorySlot(slot.index) && menu.isInaccessibleSlot(slot.index) ? null : slot;
 			}
 			Slot slot = super.getHoveredSlot(mouseX, mouseY);
 
