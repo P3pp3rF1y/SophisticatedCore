@@ -54,7 +54,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 		UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = potentialCraftingContainer.get();
 
 		List<Slot> craftingSlots = Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
-		List<Slot> inventorySlots = container.realInventorySlots.stream().filter(s -> s.mayPickup(player)).toList();
+		List<Slot> inventorySlots = container.slots.stream().filter(s -> s.mayPickup(player)).toList();
 		if (!validateTransferInfo(container, craftingSlots, inventorySlots)) {
 			return handlerHelper.createInternalError();
 		}
@@ -132,7 +132,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 	) {
 		Collection<Integer> craftingSlotIndexes = slotIndexes(craftingSlots);
 		Collection<Integer> inventorySlotIndexes = slotIndexes(inventorySlots);
-		ArrayList<Slot> allSlots = new ArrayList<>(container.realInventorySlots);
+		ArrayList<Slot> allSlots = new ArrayList<>(container.slots);
 		allSlots.addAll(container.upgradeSlots);
 		Collection<Integer> containerSlotIndexes = slotIndexes(allSlots);
 

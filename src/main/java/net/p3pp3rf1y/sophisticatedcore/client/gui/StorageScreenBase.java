@@ -710,8 +710,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	private void renderStorageInventorySlots(GuiGraphics guiGraphics, int mouseX, int mouseY, boolean canShowHover) {
-		for (int slotId = 0; slotId < menu.realInventorySlots.size() && slotId < getMenu().getNumberOfStorageInventorySlots(); ++slotId) {
-			Slot slot = menu.realInventorySlots.get(slotId);
+		for (int slotId = 0; slotId < getMenu().getNumberOfStorageInventorySlots(); ++slotId) {
+			Slot slot = menu.getSlot(slotId);
 			if (!isStorageSlotRenderReplaced(slotId)) {
 				renderSlot(guiGraphics, slot);
 			}
@@ -723,7 +723,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 		storageInventoryControls.values().forEach(control -> control.render(guiGraphics, mouseX, mouseY));
 	}
-
 	private boolean isStorageSlotRenderReplaced(int slotId) {
 		return getAllInventoryControls().stream().anyMatch(control -> control.replacesSlotRender(slotId));
 	}
@@ -1012,13 +1011,15 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 			return slot == null || menu.isStorageInventorySlot(slot.index) ? null : slot; //if super finds inventory slot that's hidden inside the scroll panel just return null
 		} else {
-			for (int i = 0; i < menu.realInventorySlots.size(); ++i) {
-				Slot slot = menu.realInventorySlots.get(i);
-				if (!menu.isInaccessibleSlot(i) && isHovering(slot, mouseX, mouseY) && slot.isActive()) {
+			for (Slot slot : menu.slots) {
+				if (isHovering(slot, mouseX, mouseY) && slot.isActive()) {
+					if (menu.isStorageInventorySlot(slot.index) && menu.isInaccessibleSlot(slot.index)) {
+						return null;
+					}
 					return slot;
 				}
 			}
-			return super.findSlot(mouseX, mouseY);
+			return null;
 		}
 	}
 
@@ -1045,7 +1046,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private void handleQuickMoveAll(double mouseX, double mouseY, int button) {
 		Slot slot = findSlot(mouseX, mouseY);
 		if (doubleclick && !getMenu().getCarried().isEmpty() && slot != null && button == 0 && menu.canTakeItemForPickAll(ItemStack.EMPTY, slot) && hasShiftDown() && !lastQuickMoved.isEmpty()) {
-			for (Slot slot2 : menu.realInventorySlots) {
+			for (Slot slot2 : menu.slots) {
 				tryQuickMoveSlot(button, slot, slot2);
 			}
 		}
@@ -1076,8 +1077,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void handleInventoryMouseClick(int slotNumber, int mouseButton, ClickType type) {
 		StorageContainerMenuBase<?> menu = getMenu();
-		List<ItemStack> realInventoryItems = new ArrayList<>(menu.realInventorySlots.size());
-		menu.realInventorySlots.forEach(slot -> realInventoryItems.add(slot.getItem().copy()));
+		List<ItemStack> inventoryItems = new ArrayList<>(menu.slots.size());
+		menu.slots.forEach(slot -> inventoryItems.add(slot.getItem().copy()));
 		List<ItemStack> upgradeItems = new ArrayList<>(menu.upgradeSlots.size());
 		menu.upgradeSlots.forEach(slot -> upgradeItems.add(slot.getItem().copy()));
 
@@ -1085,19 +1086,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		menu.clicked(slotNumber, mouseButton, type, minecraft.player);
 		Int2ObjectMap<ItemStack> changedSlotIndexes = new Int2ObjectOpenHashMap<>();
 
-		int inventorySlotsToCheck = Math.min(realInventoryItems.size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS, menu.getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS);
-
-		for (int i = 0; i < inventorySlotsToCheck; i++) {
-			ItemStack itemstack = realInventoryItems.get(i);
-			ItemStack slotStack = menu.getSlot(i).getItem();
-			if (!ItemStack.matches(itemstack, slotStack)) {
-				changedSlotIndexes.put(i, slotStack.copy());
-			}
-		}
-
-		for (int i = 0; i < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS; i++) {
-			ItemStack itemstack = realInventoryItems.get(realInventoryItems.size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + i);
-			int slotIndex = menu.getInventorySlotsSize() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + i;
+		int inventorySlotsToCheck = Math.min(inventoryItems.size(), menu.getInventorySlotsSize());
+		for (int slotIndex = 0; slotIndex < inventorySlotsToCheck; slotIndex++) {
+			ItemStack itemstack = inventoryItems.get(slotIndex);
 			ItemStack slotStack = menu.getSlot(slotIndex).getItem();
 			if (!ItemStack.matches(itemstack, slotStack)) {
 				changedSlotIndexes.put(slotIndex, slotStack.copy());
