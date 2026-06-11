@@ -77,7 +77,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 			return List.of();
 		}
 
-		return storageContainerMenuBase.realInventorySlots.stream().map(ReiSlotAccessor::fromSlot).toList();
+		return storageContainerMenuBase.slots.stream().map(ReiSlotAccessor::fromSlot).toList();
 	}
 
 	@Override
