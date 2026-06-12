@@ -191,6 +191,10 @@ public class RecipeHelper {
 		return safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory.asCraftInput(), w).stream().map(r -> r.value().assemble(craftingInventory.asCraftInput(), w.registryAccess())).toList();
 	}
 
+	public static List<ItemStack> getUncompactResultItems(ItemStack itemToUncompact) {
+		return getLevel().map(w -> getUncompactResultItems(w, itemToUncompact)).orElse(Collections.emptyList());
+	}
+
 	public static CompactingResult getCompactingResult(ItemStack stack, CompactingShape shape) {
 		if (shape == TWO_BY_TWO_UNCRAFTABLE || shape == TWO_BY_TWO) {
 			return RecipeHelper.getCompactingResult(stack, 2, 2);
@@ -204,17 +208,29 @@ public class RecipeHelper {
 		return getLevel().map(w -> getCompactingResult(stack, w, width, height)).orElse(CompactingResult.EMPTY);
 	}
 
-	private static CompactingResult getCompactingResult(ItemStack stack, Level level, int width, int height) {
-		return getFromCache(cache -> getCompactingResult(stack, level, width, height, cache.getCompactingResults()), CompactingResult.EMPTY);
+	public static CompactingResult getCompactingResult(ItemStack stack, CompactingRecipeShape shape) {
+		return getLevel().map(w -> getCompactingResult(stack, w, shape)).orElse(CompactingResult.EMPTY);
 	}
 
-	private static CompactingResult getCompactingResult(ItemStack stack, Level level, int width, int height, Map<CompactedItem, CompactingResult> cachedCompactingResults) {
-		CompactedItem compactedItem = new CompactedItem(stack, width, height);
+	public static boolean doesUncompactMatch(ItemStack itemToUncompact, ItemStack itemToMatch, int count) {
+		return getLevel().map(w -> uncompactMatchesItem(itemToUncompact, w, itemToMatch, count)).orElse(false);
+	}
+
+	private static CompactingResult getCompactingResult(ItemStack stack, Level level, int width, int height) {
+		return getCompactingResult(stack, level, CompactingRecipeShape.full(width, height));
+	}
+
+	private static CompactingResult getCompactingResult(ItemStack stack, Level level, CompactingRecipeShape shape) {
+		return getFromCache(cache -> getCompactingResult(stack, level, shape, cache.getCompactingResults()), CompactingResult.EMPTY);
+	}
+
+	private static CompactingResult getCompactingResult(ItemStack stack, Level level, CompactingRecipeShape shape, Map<CompactedItem, CompactingResult> cachedCompactingResults) {
+		CompactedItem compactedItem = new CompactedItem(stack, shape);
 		if (cachedCompactingResults.containsKey(compactedItem)) {
 			return cachedCompactingResults.get(compactedItem);
 		}
 
-		CraftingContainer craftingInventory = getFilledCraftingInventory(stack, width, height);
+		CraftingContainer craftingInventory = getFilledCraftingInventory(stack, shape);
 		List<RecipeHolder<CraftingRecipe>> compactingRecipes = safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory.asCraftInput(), level);
 
 		if (compactingRecipes.isEmpty()) {
@@ -229,7 +245,7 @@ public class RecipeHelper {
 		for (RecipeHolder<CraftingRecipe> recipeHolder : compactingRecipes) {
 			CraftingRecipe recipe = recipeHolder.value();
 			ItemStack result = recipe.assemble(craftingInventory.asCraftInput(), level.registryAccess());
-			if (uncompactMatchesItem(result, level, stack, width * height)) {
+			if (uncompactMatchesItem(result, level, stack, shape.ingredientCount())) {
 				return cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, result);
 			}
 		}
@@ -261,6 +277,10 @@ public class RecipeHelper {
 	}
 
 	private static CraftingContainer getFilledCraftingInventory(ItemStack stack, int width, int height) {
+		return getFilledCraftingInventory(stack, CompactingRecipeShape.full(width, height));
+	}
+
+	private static CraftingContainer getFilledCraftingInventory(ItemStack stack, CompactingRecipeShape shape) {
 		CraftingContainer craftinginventory = new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
 			@Override
 			public ItemStack quickMoveStack(Player player, int index) {
@@ -270,10 +290,12 @@ public class RecipeHelper {
 			public boolean stillValid(Player playerIn) {
 				return false;
 			}
-		}, width, height);
+		}, shape.width(), shape.height());
 
 		for (int i = 0; i < craftinginventory.getContainerSize(); i++) {
-			craftinginventory.setItem(i, stack.copyWithCount(1));
+			if (shape.isSlotFilled(i)) {
+				craftinginventory.setItem(i, stack.copyWithCount(1));
+			}
 		}
 		return craftinginventory;
 	}
@@ -378,16 +400,104 @@ public class RecipeHelper {
 		}
 	}
 
+	public static class CompactingRecipeShape {
+		private final int width;
+		private final int height;
+		private final long filledSlots;
+		private final int ingredientCount;
+
+		private CompactingRecipeShape(int width, int height, long filledSlots, int ingredientCount) {
+			this.width = width;
+			this.height = height;
+			this.filledSlots = filledSlots;
+			this.ingredientCount = ingredientCount;
+		}
+
+		public static CompactingRecipeShape full(int width, int height) {
+			return new CompactingRecipeShape(width, height, (1L << (width * height)) - 1, width * height);
+		}
+
+		public static Optional<CompactingRecipeShape> parse(String shape) {
+			String[] rows = shape.split("/");
+			if (rows.length == 0 || rows.length > 3) {
+				return Optional.empty();
+			}
+
+			int width = rows[0].length();
+			if (width == 0 || width > 3) {
+				return Optional.empty();
+			}
+
+			long filledSlots = 0;
+			int ingredientCount = 0;
+			for (int row = 0; row < rows.length; row++) {
+				if (rows[row].length() != width) {
+					return Optional.empty();
+				}
+				for (int column = 0; column < width; column++) {
+					char slot = rows[row].charAt(column);
+					if (slot == '1') {
+						filledSlots |= 1L << (row * width + column);
+						ingredientCount++;
+					} else if (slot != '0') {
+						return Optional.empty();
+					}
+				}
+			}
+
+			return ingredientCount > 1 ? Optional.of(new CompactingRecipeShape(width, rows.length, filledSlots, ingredientCount)) : Optional.empty();
+		}
+
+		public int width() {
+			return width;
+		}
+
+		public int height() {
+			return height;
+		}
+
+		public int ingredientCount() {
+			return ingredientCount;
+		}
+
+		public boolean isSlotFilled(int slot) {
+			return slot >= 0 && slot < width * height && (filledSlots & (1L << slot)) != 0;
+		}
+
+		public boolean fitsWithin(int maxWidth, int maxHeight) {
+			return width <= maxWidth && height <= maxHeight;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			CompactingRecipeShape that = (CompactingRecipeShape) o;
+			return width == that.width && height == that.height && filledSlots == that.filledSlots && ingredientCount == that.ingredientCount;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(width, height, filledSlots, ingredientCount);
+		}
+	}
+
 	private static class CompactedItem {
 		private final ItemStack item;
 		private final int itemHash;
-		private final int width;
-		private final int height;
+		private final CompactingRecipeShape shape;
 
 		private CompactedItem(ItemStack item, int width, int height) {
+			this(item, CompactingRecipeShape.full(width, height));
+		}
+
+		private CompactedItem(ItemStack item, CompactingRecipeShape shape) {
 			this.item = item.copyWithCount(1);
-			this.width = width;
-			this.height = height;
+			this.shape = shape;
 			this.itemHash = ItemStack.hashItemAndComponents(item);
 		}
 
@@ -400,14 +510,13 @@ public class RecipeHelper {
 				return false;
 			}
 			CompactedItem that = (CompactedItem) o;
-			return width == that.width &&
-					height == that.height &&
+			return Objects.equals(shape, that.shape) &&
 					ItemStack.isSameItemSameComponents(item, that.item);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(itemHash, width, height);
+			return Objects.hash(itemHash, shape);
 		}
 	}
 
