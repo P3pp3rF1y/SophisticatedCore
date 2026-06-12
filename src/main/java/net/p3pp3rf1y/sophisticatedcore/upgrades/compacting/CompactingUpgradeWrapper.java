@@ -33,7 +33,7 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(),
-				stack -> RecipeHelper.getItemCompactingShapes(stack).stream().anyMatch(shape -> shape != CompactingShape.NONE),
+				this::canCompact,
 				ModCoreDataComponents.FILTER_ATTRIBUTES);
 
 		FilterLogic.ObservableFilterItemStackHandler filterHandler = filterLogic.getFilterHandler();
@@ -60,18 +60,12 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 			return;
 		}
 
-		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(stack);
-
-		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
-			tryCompacting(inventoryHandler, slot, stack, 3, 3, tx);
-		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
-			tryCompacting(inventoryHandler, slot, stack, 2, 2, tx);
-		}
+		getCompactingDefinition(stack).ifPresent(compactingDefinition -> tryCompacting(inventoryHandler, slot, stack, compactingDefinition, tx));
 	}
 
-	private void tryCompacting(ITrackedContentsItemResourceHandler inventoryHandler, int slotBeingCompacted, ItemStack stack, int width, int height, TransactionContext tx) {
-		int totalCount = width * height;
-		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(stack, width, height);
+	private void tryCompacting(ITrackedContentsItemResourceHandler inventoryHandler, int slotBeingCompacted, ItemStack stack, CompactingDefinition compactingDefinition, TransactionContext tx) {
+		int totalCount = compactingDefinition.count();
+		RecipeHelper.CompactingResult compactingResult = compactingDefinition.result();
 		if (!compactingResult.getResult().isEmpty()) {
 			try (Transaction childTx = Transaction.open(tx)) {
 				ItemResource resource = ItemResource.of(stack);
@@ -121,6 +115,33 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 	public boolean shouldCompactNonUncraftable() {
 		return upgrade.getOrDefault(ModCoreDataComponents.COMPACT_NON_UNCRAFTABLE, false);
+	}
+
+	private boolean canCompact(ItemStack stack) {
+		return getCompactingDefinition(stack).isPresent();
+	}
+
+	private Optional<CompactingDefinition> getCompactingDefinition(ItemStack stack) {
+		return getCompactingDefinition(stack, upgradeItem, shouldCompactNonUncraftable());
+	}
+
+	static Optional<CompactingDefinition> getCompactingDefinition(ItemStack stack, CompactingUpgradeItem upgradeItem, boolean shouldCompactNonUncraftable) {
+		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(stack);
+
+		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
+			return getVanillaCompactingDefinition(stack, 3, 3);
+		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable && shapes.contains(CompactingShape.TWO_BY_TWO))) {
+			return getVanillaCompactingDefinition(stack, 2, 2);
+		}
+
+		int maxShapeSize = upgradeItem.shouldCompactThreeByThree() ? 3 : 2;
+		return upgradeItem.getConfiguredCompactingResult(stack, maxShapeSize, maxShapeSize)
+				.map(compactingDefinition -> new CompactingDefinition(compactingDefinition.result(), compactingDefinition.count()));
+	}
+
+	private static Optional<CompactingDefinition> getVanillaCompactingDefinition(ItemStack stack, int width, int height) {
+		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(stack, width, height);
+		return compactingResult.getResult().isEmpty() ? Optional.empty() : Optional.of(new CompactingDefinition(compactingResult, width * height));
 	}
 
 	public void setCompactNonUncraftable(boolean shouldCompactNonUncraftable) {
@@ -180,22 +201,10 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 			return;
 		}
 
-		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(slotStack);
-
-		boolean canCompact = false;
-		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
-			canCompact = true;
-		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.TWO_BY_TWO))) {
-			canCompact = true;
-		}
-
-		if (canCompact && slotStack.getCount() >= slotStack.getMaxStackSize()) {
+		Optional<CompactingDefinition> compactingDefinition = getCompactingDefinition(slotStack);
+		if (compactingDefinition.isPresent() && slotStack.getCount() >= slotStack.getMaxStackSize()) {
 			//try compacting with simulation to see if it would work
-			CompactingShape shape = shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable() && shapes.contains(CompactingShape.THREE_BY_THREE)) ? CompactingShape.THREE_BY_THREE : CompactingShape.TWO_BY_TWO;
-			int width = shape == CompactingShape.THREE_BY_THREE ? 3 : 2;
-			int height = shape == CompactingShape.THREE_BY_THREE ? 3 : 2;
-
-			RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(slotStack, width, height);
+			RecipeHelper.CompactingResult compactingResult = compactingDefinition.get().result();
 			if (!compactingResult.getResult().isEmpty()) {
 				ItemStack resultCopy = compactingResult.getResult().copy();
 				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
@@ -212,5 +221,8 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	public void resetFullSlotInfo() {
 		fullSlotsCalculated = false;
 		fullSlotsToCompactLater.clear();
+	}
+
+	record CompactingDefinition(RecipeHelper.CompactingResult result, int count) {
 	}
 }

@@ -17,6 +17,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,6 +26,9 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -35,7 +39,7 @@ public class RecipeHelperTest {
 		SharedConstants.tryDetectVersion();
 		Bootstrap.bootStrap();
 		Bootstrap.validate();
-		bindTestComponents(Items.GOLD_BLOCK, Items.GOLD_INGOT, Items.GOLD_NUGGET, Items.DIORITE, Items.GRANITE, Items.STONE, Items.DIAMOND, Items.IRON_NUGGET, Items.TORCH);
+		bindTestComponents(Items.GOLD_BLOCK, Items.GOLD_INGOT, Items.GOLD_NUGGET, Items.DIORITE, Items.GRANITE, Items.STONE, Items.DIAMOND, Items.IRON_NUGGET, Items.TORCH, Items.COAL, Items.CHARCOAL);
 	}
 
 	private static Level regularOrderRecipesLevel;
@@ -55,6 +59,10 @@ public class RecipeHelperTest {
 		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_ingot_from_gold_block")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_INGOT, 9)), List.of(Ingredient.of(Items.GOLD_BLOCK)))));
 		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_to_gold_ingot")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_NUGGET), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_INGOT)))));
 		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_from_gold_ingot")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_NUGGET, 9)), List.of(Ingredient.of(Items.GOLD_INGOT)))));
+
+		//hollow 3x3 reversible compression
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("charcoal_to_coal_hollow")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, hollowIngredients(Items.CHARCOAL), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.COAL)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("charcoal_from_coal")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.CHARCOAL, 8)), List.of(Ingredient.of(Items.COAL)))));
 
 
 		//confusion recipes
@@ -144,6 +152,14 @@ public class RecipeHelperTest {
 		}
 	}
 
+	private static NonNullList<Optional<Ingredient>> hollowIngredients(Item item) {
+		return NonNullList.of(Optional.empty(),
+				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
+				Optional.of(Ingredient.of(item)), Optional.empty(), Optional.of(Ingredient.of(item)),
+				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item))
+		);
+	}
+
 	@AfterEach
 	void clearCache() {
 		RecipeHelper.onRecipesUpdated(null);
@@ -151,7 +167,7 @@ public class RecipeHelperTest {
 
 	@ParameterizedTest
 	@MethodSource
-	void testGetCompatingResult(Level level, Item item, RecipeHelper.CompactingResult expectedResult) {
+	void getCompactingResultReturnsResultForFullThreeByThreeShape(Level level, Item item, RecipeHelper.CompactingResult expectedResult) {
 		RecipeHelper.setLevel(level);
 
 		RecipeHelper.CompactingResult actualResult = RecipeHelper.getCompactingResult(stack(item), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE);
@@ -159,7 +175,7 @@ public class RecipeHelperTest {
 		assertCompactingResultEquals(expectedResult, actualResult, "getCompactingResult returned wrong result");
 	}
 
-	static Stream<Arguments> testGetCompatingResult() {
+	static Stream<Arguments> getCompactingResultReturnsResultForFullThreeByThreeShape() {
 		return withClassParams(
 				List.of(
 						Arguments.of(Items.GOLD_INGOT, new RecipeHelper.CompactingResult(stack(Items.GOLD_BLOCK), Collections.emptyList())),
@@ -170,10 +186,62 @@ public class RecipeHelperTest {
 		);
 	}
 
+	@ParameterizedTest
+	@MethodSource
+	void getCompactingResultReturnsResultForDonutShape(Level level) {
+		RecipeHelper.setLevel(level);
+
+		RecipeHelper.CompactingResult actualResult = RecipeHelper.getCompactingResult(new ItemStack(Items.CHARCOAL), getHollowThreeByThreeShape());
+
+		assertCompactingResultEquals(new RecipeHelper.CompactingResult(new ItemStack(Items.COAL), Collections.emptyList()), actualResult, "getCompactingResult returned wrong result for masked shape");
+	}
+
+	static Stream<Arguments> getCompactingResultReturnsResultForDonutShape() {
+		return classParams().map(Arguments::of);
+	}
 
 	@ParameterizedTest
 	@MethodSource
-	void testGetUncompactingResult(Level level, Item item, RecipeHelper.UncompactingResult expectedResult) {
+	void doesUncompactMatchReturnsTrueForReversibleDonutShape(Level level) {
+		RecipeHelper.setLevel(level);
+
+		if (!RecipeHelper.doesUncompactMatch(new ItemStack(Items.COAL), new ItemStack(Items.CHARCOAL), 8)) {
+			assertionFailure().message("doesUncompactMatch returned false for reversible hollow 3x3 recipe").buildAndThrow();
+		}
+	}
+
+	static Stream<Arguments> doesUncompactMatchReturnsTrueForReversibleDonutShape() {
+		return classParams().map(Arguments::of);
+	}
+
+	@Test
+	void compactingRecipeShapeParseReturnsDonutShapeWithExpectedFilledSlots() {
+		String shapeDefinition = "111/101/111";
+
+		RecipeHelper.CompactingRecipeShape shape = RecipeHelper.CompactingRecipeShape.parse(shapeDefinition).orElseThrow();
+
+		assertEquals(3, shape.width());
+		assertEquals(3, shape.height());
+		assertEquals(8, shape.ingredientCount());
+		assertTrue(shape.isSlotFilled(0));
+		assertTrue(shape.isSlotFilled(1));
+		assertTrue(shape.isSlotFilled(2));
+		assertTrue(shape.isSlotFilled(3));
+		assertFalse(shape.isSlotFilled(4));
+		assertTrue(shape.isSlotFilled(5));
+		assertTrue(shape.isSlotFilled(6));
+		assertTrue(shape.isSlotFilled(7));
+		assertTrue(shape.isSlotFilled(8));
+	}
+
+	private static RecipeHelper.CompactingRecipeShape getHollowThreeByThreeShape() {
+		return RecipeHelper.CompactingRecipeShape.parse("111/101/111").orElseThrow();
+	}
+
+
+	@ParameterizedTest
+	@MethodSource
+	void getUncompactingResultReturnsExpectedResult(Level level, Item item, RecipeHelper.UncompactingResult expectedResult) {
 		RecipeHelper.setLevel(level);
 
 		RecipeHelper.UncompactingResult actualResult = RecipeHelper.getUncompactingResult(stack(item));
@@ -181,7 +249,7 @@ public class RecipeHelperTest {
 		assertUncompactingResultEquals(expectedResult, actualResult, "getUncompactingResult returned wrong result");
 	}
 
-	static Stream<Arguments> testGetUncompactingResult() {
+	static Stream<Arguments> getUncompactingResultReturnsExpectedResult() {
 		return withClassParams(
 				List.of(
 						Arguments.of(Items.GOLD_BLOCK, new RecipeHelper.UncompactingResult(stack(Items.GOLD_INGOT), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
@@ -194,7 +262,7 @@ public class RecipeHelperTest {
 
 	@ParameterizedTest
 	@MethodSource
-	void testGetItemCompactingShapes(Level level, Item item, Set<RecipeHelper.CompactingShape> shapes) {
+	void getItemCompactingShapesReturnsExpectedShapes(Level level, Item item, Set<RecipeHelper.CompactingShape> shapes) {
 		RecipeHelper.setLevel(level);
 
 		Set<RecipeHelper.CompactingShape> actualShapes = RecipeHelper.getItemCompactingShapes(stack(item));
@@ -207,7 +275,7 @@ public class RecipeHelperTest {
 		}
 	}
 
-	static Stream<Arguments> testGetItemCompactingShapes() {
+	static Stream<Arguments> getItemCompactingShapesReturnsExpectedShapes() {
 		return withClassParams(
 				List.of(
 						Arguments.of(Items.GOLD_INGOT, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
