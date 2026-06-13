@@ -4,11 +4,13 @@
   "package": "net.p3pp3rf1y.sophisticatedcore.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "MixinAllay",
     "MixinResourceHandlerUtil"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
+    "MixinParrot"
   ]
 }
