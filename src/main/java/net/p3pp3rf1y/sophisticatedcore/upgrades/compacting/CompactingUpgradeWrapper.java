@@ -24,7 +24,9 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IExtractResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToCompact = new HashSet<>();
+	private final Set<Integer> slotsToCompactAfterCurrent = new HashSet<>();
 	private boolean fullSlotsCalculated = false;
+	private boolean compacting = false;
 	private final Map<Item, Integer> fullSlotsToCompactLater = new HashMap<>();
 
 	public CompactingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
@@ -40,7 +42,12 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 	@Override
 	public void onAfterInsert(IItemHandlerSimpleInserter inventoryHandler, int slot) {
-		compactSlot(inventoryHandler, slot);
+		if (compacting) {
+			slotsToCompactAfterCurrent.add(slot);
+			return;
+		}
+
+		compactSlotAndQueued(inventoryHandler, slot);
 	}
 
 	@Override
@@ -59,6 +66,18 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		}
 
 		getCompactingDefinition(slotStack).ifPresent(compactingDefinition -> tryCompacting(handler, slot, slotStack, compactingDefinition));
+	}
+
+	private void compactSlotAndQueued(IItemHandlerSimpleInserter handler, int slot) {
+		compacting = true;
+		compactSlot(handler, slot);
+		while (!slotsToCompactAfterCurrent.isEmpty()) {
+			Set<Integer> slotsToCompactNext = new HashSet<>(slotsToCompactAfterCurrent);
+			slotsToCompactAfterCurrent.clear();
+			slotsToCompactNext.forEach(s -> compactSlot(handler, s));
+		}
+		slotsToCompactAfterCurrent.clear();
+		compacting = false;
 	}
 
 	private void tryCompacting(IItemHandlerSimpleInserter handler, int slot, ItemStack stack, CompactingDefinition compactingDefinition) {
@@ -168,7 +187,7 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		}
 
 		for (int slot : slotsToCompact) {
-			compactSlot(storageWrapper.getInventoryHandler(), slot);
+			compactSlotAndQueued(storageWrapper.getInventoryHandler(), slot);
 		}
 
 		slotsToCompact.clear();
