@@ -73,6 +73,16 @@ public class ServerStorageSoundHandler {
 		}
 	}
 
+	public static boolean isStorageSoundPlayingNear(Level level, Vec3 position, double radius) {
+		Map<UUID, SoundInfo> soundInfos = worldStorageSoundInfos.get(level.dimension());
+		if (soundInfos == null) {
+			return false;
+		}
+
+		double radiusSqr = radius * radius;
+		return soundInfos.values().stream().anyMatch(soundInfo -> soundInfo.getLastPosition().distanceToSqr(position) <= radiusSqr);
+	}
+
 	private static class SoundInfo {
 		private final WeakReference<Runnable> onFinishedHandler;
 		private long lastKeepAliveTime;

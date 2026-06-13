@@ -5,11 +5,13 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "sophisticatedcore.refmap.json",
   "mixins": [
+    "MixinAllay",
     "MixinVanillaInventoryCodeHooks"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
+    "MixinParrot"
   ]
 }

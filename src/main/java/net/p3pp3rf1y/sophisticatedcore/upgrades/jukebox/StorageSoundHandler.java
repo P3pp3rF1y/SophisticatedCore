@@ -38,15 +38,22 @@ public class StorageSoundHandler {
 		}
 	}
 
+	public static boolean isStorageSoundPlayingNear(Vec3 position, double radius) {
+		double radiusSqr = radius * radius;
+		return storageSounds.values().stream().anyMatch(sound -> {
+			double xDiff = sound.getX() - position.x;
+			double yDiff = sound.getY() - position.y;
+			double zDiff = sound.getZ() - position.z;
+			return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff <= radiusSqr;
+		});
+	}
+
 	public static void tick(TickEvent.LevelTickEvent event) {
 		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.level.getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
 			lastPlaybackChecked = event.level.getGameTime();
-			storageSounds.entrySet().removeIf(entry -> {
-				if (!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())) {
-					return true;
-				}
-				return false;
-			});
+			storageSounds.entrySet().removeIf(entry ->
+					!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())
+			);
 		}
 	}
 
