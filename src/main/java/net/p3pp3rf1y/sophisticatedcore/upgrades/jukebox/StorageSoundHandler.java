@@ -2,12 +2,14 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.EntityBoundSoundInstance;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -41,9 +43,10 @@ public class StorageSoundHandler {
 	public static boolean isStorageSoundPlayingNear(Vec3 position, double radius) {
 		double radiusSqr = radius * radius;
 		return storageSounds.values().stream().anyMatch(sound -> {
-			double xDiff = sound.getX() - position.x;
-			double yDiff = sound.getY() - position.y;
-			double zDiff = sound.getZ() - position.z;
+			Vec3 soundPosition = sound instanceof StorageSoundPosition storageSoundPosition ? storageSoundPosition.getStorageSoundPosition() : new Vec3(sound.getX(), sound.getY(), sound.getZ());
+			double xDiff = soundPosition.x - position.x;
+			double yDiff = soundPosition.y - position.y;
+			double zDiff = soundPosition.z - position.z;
 			return xDiff * xDiff + yDiff * yDiff + zDiff * zDiff <= radiusSqr;
 		});
 	}
@@ -66,13 +69,20 @@ public class StorageSoundHandler {
 		if (level == null) {
 			return;
 		}
+		float volume = 2;
+		float pitch = 1;
 
 		Entity entity = level.getEntity(entityId);
-		if (!(entity instanceof Entity)) {
+		if (entity == null) {
 			stopStorageSound(storageUuid);
 			return;
 		}
-		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, 2, 1, entity, level.random.nextLong()){
+		Player player = Minecraft.getInstance().player;
+		if (player != null && player.getId() == entityId) {
+			playStorageSound(storageUuid, new PlayerDirectStorageSoundInstance(soundEvent, player, level.random, volume, pitch));
+			return;
+		}
+		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, volume, pitch, entity, level.random.nextLong()){
 			@Override
 			public void tick() {
 				super.tick();
@@ -84,6 +94,35 @@ public class StorageSoundHandler {
 				}
 			}
 		});
+	}
+
+	private interface StorageSoundPosition {
+		Vec3 getStorageSoundPosition();
+	}
+
+	private static class PlayerDirectStorageSoundInstance extends AbstractTickableSoundInstance implements StorageSoundPosition {
+		private final Player player;
+
+		private PlayerDirectStorageSoundInstance(SoundEvent soundEvent, Player player, RandomSource random, float volume, float pitch) {
+			super(soundEvent, SoundSource.RECORDS, random);
+			this.player = player;
+			this.volume = volume;
+			this.pitch = pitch;
+			attenuation = SoundInstance.Attenuation.NONE;
+			relative = true;
+		}
+
+		@Override
+		public void tick() {
+			if (!player.isAlive()) {
+				stop();
+			}
+		}
+
+		@Override
+		public Vec3 getStorageSoundPosition() {
+			return player.position();
+		}
 	}
 
 	@SuppressWarnings({"unused", "java:S1172"}) // needs to be here for addListener to recognize which event this method should be subscribed to
