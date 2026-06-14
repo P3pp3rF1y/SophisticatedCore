@@ -16,8 +16,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.EmptyResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.api.IIOFilterUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IInsertBlockOverride;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
@@ -46,6 +48,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	protected final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
 	private final Comparator<BlockPos> distanceComparator = Comparator.<BlockPos>comparingDouble(p -> p.distSqr(getBlockPos())).thenComparing(Comparator.naturalOrder());
 	protected final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
+	protected final Set<BlockPos> filteredInputStorages = new TreeSet<>(distanceComparator);
 
 	protected final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
@@ -100,6 +103,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			storageStacks.clear();
 			itemStackKeys.clear();
 			emptySlotsStorages.clear();
+			filteredInputStorages.clear();
 			storagePositions.forEach(this::addStorageStacksAndRegisterListeners);
 		}
 	}
@@ -206,6 +210,28 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		}
 	}
 
+	public void updateStorageInputFilter(BlockPos storagePos) {
+		if (!storagePositions.contains(storagePos)) {
+			filteredInputStorages.remove(storagePos);
+			return;
+		}
+
+		getWrapperValueFromHolder(storagePos, this::hasInputFilter)
+				.ifPresentOrElse(hasInputFilter -> setStorageInputFilter(storagePos, hasInputFilter), () -> filteredInputStorages.remove(storagePos));
+	}
+
+	private boolean hasInputFilter(IStorageWrapper storageWrapper) {
+		return storageWrapper.getUpgradeHandler().getWrappersThatImplement(IIOFilterUpgrade.class).stream().anyMatch(wrapper -> wrapper.getInputFilter().isPresent());
+	}
+
+	private void setStorageInputFilter(BlockPos storagePos, boolean hasInputFilter) {
+		if (hasInputFilter) {
+			filteredInputStorages.add(storagePos);
+		} else {
+			filteredInputStorages.remove(storagePos);
+		}
+	}
+
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
 		for (Direction dir : Direction.values()) {
 			BlockPos pos = currentPos.offset(dir.getUnitVec3i());
@@ -270,6 +296,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			memorySettings.getFilterStackSlots().keySet().forEach(stackHash -> addStorageMemorizedStack(storagePos, stackHash));
 
 			setStorageFilterItems(storagePos, storage.getStorageWrapper().getInventoryHandler().getFilterItems());
+			setStorageInputFilter(storagePos, hasInputFilter(storage.getStorageWrapper()));
 
 			storage.registerController(this);
 		});
@@ -426,6 +453,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		removeStorageMemorizedStacks(storagePos);
 		removeStorageWithEmptySlots(storagePos);
 		removeStorageFilterItems(storagePos);
+		filteredInputStorages.remove(storagePos);
 		storagePositions.remove(idx);
 		removeStoragePositionIndex(storagePos);
 		removeBaseIndexAt(idx);
@@ -710,6 +738,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		storageMemorizedStacks.clear();
 		filterItemStorages.clear();
 		storageFilterItems.clear();
+		filteredInputStorages.clear();
 		connectingBlocks.clear();
 		nonConnectingBlocks.clear();
 		cachedHandlers = new WeakReference[0];
@@ -788,7 +817,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			}
 		}
 
-		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, resource, amount - inserted, tx, false) : inserted;
+		inserted += insertIntoStorages(filteredInputStorages, resource, amount - inserted, tx, true);
+		if (inserted >= amount || !insertIntoAnyEmpty) {
+			return inserted;
+		}
+
+		return inserted + insertIntoStorages(emptySlotsStorages, filteredInputStorages, resource, amount - inserted, tx, false);
 	}
 
 	private int insertIntoStoragesThatMatchStack(ItemResource resource, int amount, ItemStackKey stackKey, TransactionContext tx) {
@@ -821,9 +855,16 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	private int insertIntoStorages(Set<BlockPos> positions, ItemResource resource, int amount, TransactionContext tx, boolean checkHasEmptySlotFirst) {
+		return insertIntoStorages(positions, Collections.emptySet(), resource, amount, tx, checkHasEmptySlotFirst);
+	}
+
+	private int insertIntoStorages(Set<BlockPos> positions, Set<BlockPos> positionsToSkip, ItemResource resource, int amount, TransactionContext tx, boolean checkHasEmptySlotFirst) {
 		int inserted = 0;
 		Set<BlockPos> positionsCopy = new LinkedHashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
 		for (BlockPos storagePos : positionsCopy) {
+			if (positionsToSkip.contains(storagePos)) {
+				continue;
+			}
 			if (checkHasEmptySlotFirst && !emptySlotsStorages.contains(storagePos)) {
 				continue;
 			}
@@ -1024,6 +1065,22 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 
 	public boolean hasMatchingItem(Item item) {
 		return itemStackKeys.containsKey(item) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	}
+
+	public boolean hasMatchingFilter(ItemStack stack) {
+		ItemResource resource = ItemResource.of(stack);
+		Set<BlockPos> positionsCopy = new LinkedHashSet<>(filteredInputStorages);
+		for (BlockPos storagePos : positionsCopy) {
+			if (!emptySlotsStorages.contains(storagePos)) {
+				continue;
+			}
+			try (Transaction tx = Transaction.openRoot()) {
+				if (insertIntoStorage(storagePos, resource, 1, tx) == 1) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
