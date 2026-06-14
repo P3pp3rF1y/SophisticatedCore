@@ -19,6 +19,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.wrapper.EmptyHandler;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.api.IIOFilterUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.*;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
@@ -44,6 +45,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	protected final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
 	private final Comparator<BlockPos> distanceComparator = Comparator.<BlockPos>comparingDouble(p -> p.distSqr(getBlockPos())).thenComparing(Comparator.naturalOrder());
 	protected final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
+	protected final Set<BlockPos> filteredInputStorages = new TreeSet<>(distanceComparator);
 
 	protected final Map<Item, Set<BlockPos>> memorizedItemStorages = new HashMap<>();
 	private final Map<BlockPos, Set<Item>> storageMemorizedItems = new HashMap<>();
@@ -103,6 +105,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			storageStacks.clear();
 			itemStackKeys.clear();
 			emptySlotsStorages.clear();
+			filteredInputStorages.clear();
 			storagePositions.forEach(this::addStorageStacksAndRegisterListeners);
 		}
 	}
@@ -209,6 +212,28 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 	}
 
+	public void updateStorageInputFilter(BlockPos storagePos) {
+		if (!storagePositions.contains(storagePos)) {
+			filteredInputStorages.remove(storagePos);
+			return;
+		}
+
+		getWrapperValueFromHolder(storagePos, this::hasInputFilter)
+				.ifPresentOrElse(hasInputFilter -> setStorageInputFilter(storagePos, hasInputFilter), () -> filteredInputStorages.remove(storagePos));
+	}
+
+	private boolean hasInputFilter(IStorageWrapper storageWrapper) {
+		return storageWrapper.getUpgradeHandler().getWrappersThatImplement(IIOFilterUpgrade.class).stream().anyMatch(wrapper -> wrapper.getInputFilter().isPresent());
+	}
+
+	private void setStorageInputFilter(BlockPos storagePos, boolean hasInputFilter) {
+		if (hasInputFilter) {
+			filteredInputStorages.add(storagePos);
+		} else {
+			filteredInputStorages.remove(storagePos);
+		}
+	}
+
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
 		for (Direction dir : Direction.values()) {
 			BlockPos pos = currentPos.offset(dir.getNormal());
@@ -273,6 +298,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			memorySettings.getFilterStackSlots().keySet().forEach(stackHash -> addStorageMemorizedStack(storagePos, stackHash));
 
 			setStorageFilterItems(storagePos, storage.getStorageWrapper().getInventoryHandler().getFilterItems());
+			setStorageInputFilter(storagePos, hasInputFilter(storage.getStorageWrapper()));
 
 			storage.registerController(this);
 		});
@@ -425,6 +451,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		removeStorageMemorizedStacks(storagePos);
 		removeStorageWithEmptySlots(storagePos);
 		removeStorageFilterItems(storagePos);
+		filteredInputStorages.remove(storagePos);
 		storagePositions.remove(idx);
 		removeStoragePositionIndex(storagePos);
 		removeBaseIndexAt(idx);
@@ -726,6 +753,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		storageMemorizedStacks.clear();
 		filterItemStorages.clear();
 		storageFilterItems.clear();
+		filteredInputStorages.clear();
 		connectingBlocks.clear();
 		nonConnectingBlocks.clear();
 		cachedHandlers = new WeakReference[0];
@@ -804,7 +832,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			}
 		}
 
-		return insertIntoAnyEmpty ? insertIntoStorages(emptySlotsStorages, remaining, simulate, false) : remaining;
+		remaining = insertIntoStorages(filteredInputStorages, remaining, simulate, true);
+		if (remaining.isEmpty() || !insertIntoAnyEmpty) {
+			return remaining;
+		}
+
+		return insertIntoStorages(emptySlotsStorages, filteredInputStorages, remaining, simulate, false);
 	}
 
 	private ItemStack insertIntoStoragesThatMatchStack(ItemStack remaining, ItemStackKey stackKey, boolean simulate) {
@@ -836,9 +869,16 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private ItemStack insertIntoStorages(Set<BlockPos> positions, ItemStack stack, boolean simulate, boolean checkHasEmptySlotFirst) {
+		return insertIntoStorages(positions, Collections.emptySet(), stack, simulate, checkHasEmptySlotFirst);
+	}
+
+	private ItemStack insertIntoStorages(Set<BlockPos> positions, Set<BlockPos> positionsToSkip, ItemStack stack, boolean simulate, boolean checkHasEmptySlotFirst) {
 		ItemStack remaining = stack;
 		Set<BlockPos> positionsCopy = new LinkedHashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
 		for (BlockPos storagePos : positionsCopy) {
+			if (positionsToSkip.contains(storagePos)) {
+				continue;
+			}
 			if (checkHasEmptySlotFirst && !emptySlotsStorages.contains(storagePos)) {
 				continue;
 			}
@@ -1049,6 +1089,20 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 	public boolean hasMatchingItem(Item item) {
 		return itemStackKeys.containsKey(item) || memorizedItemStorages.containsKey(item) || filterItemStorages.containsKey(item);
+	}
+
+	public boolean hasMatchingFilter(ItemStack stack) {
+		ItemStack singleItemStack = stack.copyWithCount(1);
+		Set<BlockPos> positionsCopy = new LinkedHashSet<>(filteredInputStorages);
+		for (BlockPos storagePos : positionsCopy) {
+			if (!emptySlotsStorages.contains(storagePos)) {
+				continue;
+			}
+			if (insertIntoStorage(storagePos, singleItemStack, true).isEmpty()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
