@@ -1300,8 +1300,11 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			modalOverlay.keyPressed(event);
 			return true;
 		}
-		if (event.key() == GLFW.GLFW_KEY_ESCAPE && clearFocusedWidget()) {
+		if (event.key() == GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof TextBox && clearFocusedWidget()) {
 			return true;
+		}
+		if (event.key() == GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof WidgetBase) {
+			clearFocusedWidget();
 		}
 		return super.keyPressed(event);
 	}
