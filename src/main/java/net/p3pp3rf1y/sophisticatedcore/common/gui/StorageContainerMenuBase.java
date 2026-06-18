@@ -1407,31 +1407,30 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 
 				Slot slot = getSlot(i);
-				if (slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
-					ItemStack destStack = slot.getItem();
-					if (!destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack)) {
-						int maxSize = slot.getMaxStackSize(result);
-						if (destStack.getCount() <= maxSize - toTransfer) {
-							result.shrink(toTransfer);
-							ItemStack copy = destStack.copy();
-							copy.setCount(destStack.getCount() + toTransfer);
-							slot.set(copy);
-							toTransfer = 0;
-							slot.setChanged();
-						} else if (destStack.getCount() < maxSize) {
-							result.shrink(maxSize - destStack.getCount());
-							toTransfer -= maxSize - destStack.getCount();
-							ItemStack copy = destStack.copy();
-							copy.setCount(maxSize);
-							slot.set(copy);
-							slot.setChanged();
-						}
+				ItemStack destStack = slot.getItem();
+				if (!isUpgradeSlot(i) && !destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack)
+						&& slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
+					int maxSize = slot.getMaxStackSize(result);
+					if (destStack.getCount() <= maxSize - toTransfer) {
+						result.shrink(toTransfer);
+						ItemStack copy = destStack.copy();
+						copy.setCount(destStack.getCount() + toTransfer);
+						slot.set(copy);
+						toTransfer = 0;
+						slot.setChanged();
+					} else if (destStack.getCount() < maxSize) {
+						result.shrink(maxSize - destStack.getCount());
+						toTransfer -= maxSize - destStack.getCount();
+						ItemStack copy = destStack.copy();
+						copy.setCount(maxSize);
+						slot.set(copy);
+						slot.setChanged();
+					}
 
-						if (runOverflowLogic && !result.isEmpty()) {
-							ItemStack overflowResult = processOverflowLogic(result);
-							if (overflowResult != result) {
-								result.setCount(overflowResult.getCount());
-							}
+					if (runOverflowLogic && !result.isEmpty()) {
+						ItemStack overflowResult = processOverflowLogic(result);
+						if (overflowResult != result) {
+							result.setCount(overflowResult.getCount());
 						}
 					}
 				}
