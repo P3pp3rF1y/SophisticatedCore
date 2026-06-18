@@ -50,7 +50,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	private IntPredicate shouldRenderBlockedSlotOverlay = slot -> false;
 	private boolean voidUpgradeInfoInitialized = false;
 	private boolean hasVoidUpgrade = false;
-	private final SlotTrackerJournal slotTrackerJournal = new SlotTrackerJournal();
+	private final List<SlotTrackerJournal> slotTrackerJournals = new ArrayList<>();
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
@@ -61,6 +61,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		this.saveHandler = saveHandler;
 		setBaseSlotLimit(baseSlotLimit);
 		loadStacksFromData();
+		ensureSlotTrackerJournals();
 		inventoryPartitioner = new InventoryPartitioner(containerContents.partitioner(), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		getSlotTracker().refreshSlotIndexesFrom(this);
 
@@ -126,6 +127,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		if (inventoryData.stacks().size() < stacks.size()) {
 			inventoryData.resize(stacks.size());
 		}
+		ensureSlotTrackerJournals();
 
 		for (int slot = 0; slot < stacks.size() && slot < inventoryData.stacks().size(); slot++) {
 			ItemStack stack = inventoryData.stacks().get(slot);
@@ -232,9 +234,9 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		if (isSlotBlocked.test(index)) {
 			return 0;
 		}
+		getSlotTrackerJournal(index).updateSnapshots(transaction);
 		int result = inventoryPartitioner.getPartBySlot(index).extract(index, resource, amount, transaction, super::extract);
 		if (result > 0) {
-			slotTrackerJournal.updateSnapshots(transaction);
 			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
 
 			runOnAfterExtract(index, resource);
@@ -382,9 +384,9 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 
 		inserted += handleOverflow(resource, amount - inserted);
 
+		getSlotTrackerJournal(index).updateSnapshots(tx);
 		int result = inventoryPartitioner.getPartBySlot(index).insert(index, resource, amount - inserted, tx, super::insert);
 		if (result > 0) {
-			slotTrackerJournal.updateSnapshots(tx);
 			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
 		}
 
@@ -700,15 +702,35 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		return true;
 	}
 
-	private class SlotTrackerJournal extends SnapshotJournal<Void> {
-		@Override
-		protected Void createSnapshot() {
-			return null;
+	private SlotTrackerJournal getSlotTrackerJournal(int slot) {
+		ensureSlotTrackerJournals();
+		return slotTrackerJournals.get(slot);
+	}
+
+	private void ensureSlotTrackerJournals() {
+		while (slotTrackerJournals.size() < size()) {
+			slotTrackerJournals.add(new SlotTrackerJournal(slotTrackerJournals.size()));
+		}
+		while (slotTrackerJournals.size() > size()) {
+			slotTrackerJournals.remove(slotTrackerJournals.size() - 1);
+		}
+	}
+
+	private class SlotTrackerJournal extends SnapshotJournal<ISlotTracker.Snapshot> {
+		private final int slot;
+
+		private SlotTrackerJournal(int slot) {
+			this.slot = slot;
 		}
 
 		@Override
-		protected void revertToSnapshot(Void unused) {
-			getSlotTracker().refreshSlotIndexesFrom(InventoryHandler.this);
+		protected ISlotTracker.Snapshot createSnapshot() {
+			return getSlotTracker().createSlotSnapshot(slot);
+		}
+
+		@Override
+		protected void revertToSnapshot(ISlotTracker.Snapshot snapshot) {
+			getSlotTracker().restoreSlotFromSnapshot(snapshot);
 		}
 	}
 }

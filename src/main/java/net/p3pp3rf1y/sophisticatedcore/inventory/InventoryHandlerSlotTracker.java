@@ -14,6 +14,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class InventoryHandlerSlotTracker implements ISlotTracker {
+	private record SlotTrackerSlotSnapshot(int slot, @Nullable ItemStackKey fullSlotStack, @Nullable ItemStackKey partiallyFilledSlotStack, boolean emptySlot) implements Snapshot {
+	}
+
 	private final Map<ItemStackKey, Set<Integer>> fullStackSlots = new HashMap<>();
 	private final Map<Integer, ItemStackKey> fullSlotStacks = new HashMap<>();
 	private final Map<ItemStackKey, Set<Integer>> partiallyFilledStackSlots = new HashMap<>();
@@ -264,6 +267,98 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		for (int slot = 0; slot < itemHandler.size(); slot++) {
 			ItemStack stack = itemHandler.getStackInSlot(slot);
 			set(itemHandler, slot, stack);
+		}
+	}
+
+	@Override
+	public Snapshot createSlotSnapshot(int slot) {
+		return new SlotTrackerSlotSnapshot(slot, fullSlotStacks.get(slot), partiallyFilledSlotStacks.get(slot), emptySlots.contains(slot));
+	}
+
+	@Override
+	public void restoreSlotFromSnapshot(Snapshot snapshot) {
+		if (!(snapshot instanceof SlotTrackerSlotSnapshot slotTrackerSlotSnapshot)) {
+			return;
+		}
+
+		int slot = slotTrackerSlotSnapshot.slot();
+		ItemStackKey currentStackKey = getSlotStackKey(slot);
+		ItemStackKey snapshotStackKey = getSnapshotStackKey(slotTrackerSlotSnapshot);
+		boolean currentStackKeyWasTracked = currentStackKey != null && isTracked(currentStackKey);
+		boolean snapshotStackKeyWasTracked = snapshotStackKey != null && isTracked(snapshotStackKey);
+		boolean hadEmptySlots = !emptySlots.isEmpty();
+
+		restoreSlotStateWithoutListeners(slotTrackerSlotSnapshot);
+
+		if (currentStackKey != null && currentStackKeyWasTracked && !isTracked(currentStackKey)) {
+			onRemoveStackKey.accept(currentStackKey);
+		}
+		if (snapshotStackKey != null && !snapshotStackKeyWasTracked && isTracked(snapshotStackKey)) {
+			onAddStackKey.accept(snapshotStackKey);
+		}
+
+		boolean hasEmptySlots = !emptySlots.isEmpty();
+		if (hadEmptySlots != hasEmptySlots) {
+			if (hasEmptySlots) {
+				onAddFirstEmptySlot.run();
+			} else {
+				onRemoveLastEmptySlot.run();
+			}
+		}
+	}
+
+	private @Nullable ItemStackKey getSlotStackKey(int slot) {
+		ItemStackKey fullSlotStack = fullSlotStacks.get(slot);
+		return fullSlotStack == null ? partiallyFilledSlotStacks.get(slot) : fullSlotStack;
+	}
+
+	private @Nullable ItemStackKey getSnapshotStackKey(SlotTrackerSlotSnapshot snapshot) {
+		return snapshot.fullSlotStack() == null ? snapshot.partiallyFilledSlotStack() : snapshot.fullSlotStack();
+	}
+
+	private boolean isTracked(ItemStackKey stackKey) {
+		return fullStackSlots.containsKey(stackKey) || partiallyFilledStackSlots.containsKey(stackKey);
+	}
+
+	private void restoreSlotStateWithoutListeners(SlotTrackerSlotSnapshot snapshot) {
+		runWithListenersDisabled(() -> {
+			int slot = snapshot.slot();
+			removePartiallyFilled(slot);
+			removeFull(slot);
+			if (emptySlots.contains(slot)) {
+				removeEmpty(slot);
+			}
+
+			if (snapshot.fullSlotStack() != null) {
+				addFull(slot, snapshot.fullSlotStack().stack());
+			} else if (snapshot.partiallyFilledSlotStack() != null) {
+				addPartiallyFilled(slot, snapshot.partiallyFilledSlotStack().stack());
+			} else if (snapshot.emptySlot()) {
+				addEmptySlot(slot);
+			}
+		});
+	}
+
+	private void runWithListenersDisabled(Runnable runnable) {
+		Consumer<ItemStackKey> originalOnAddStackKey = onAddStackKey;
+		Consumer<ItemStackKey> originalOnRemoveStackKey = onRemoveStackKey;
+		Runnable originalOnAddFirstEmptySlot = onAddFirstEmptySlot;
+		Runnable originalOnRemoveLastEmptySlot = onRemoveLastEmptySlot;
+		onAddStackKey = sk -> {
+		};
+		onRemoveStackKey = sk -> {
+		};
+		onAddFirstEmptySlot = () -> {
+		};
+		onRemoveLastEmptySlot = () -> {
+		};
+		try {
+			runnable.run();
+		} finally {
+			onAddStackKey = originalOnAddStackKey;
+			onRemoveStackKey = originalOnRemoveStackKey;
+			onAddFirstEmptySlot = originalOnAddFirstEmptySlot;
+			onRemoveLastEmptySlot = originalOnRemoveLastEmptySlot;
 		}
 	}
 

@@ -29,6 +29,10 @@ public interface ISlotTracker {
 
 	void refreshSlotIndexesFrom(InventoryHandler itemHandler);
 
+	Snapshot createSlotSnapshot(int slot);
+
+	void restoreSlotFromSnapshot(Snapshot snapshot);
+
 	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
 
 	void unregisterStackKeyListeners();
@@ -45,11 +49,18 @@ public interface ISlotTracker {
 
 	Set<Integer> getEmptySlots();
 
+	interface Snapshot {
+	}
+
 	interface IItemHandlerInserter {
 		ItemStack insertItem(int slot, ItemStack stack, boolean simulate);
 	}
 
 	class Noop implements ISlotTracker {
+		private enum NoopSnapshot implements Snapshot {
+			INSTANCE
+		}
+
 		@Override
 		public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
 			//noop
@@ -87,6 +98,16 @@ public interface ISlotTracker {
 
 		@Override
 		public void refreshSlotIndexesFrom(InventoryHandler itemHandler) {
+			//noop
+		}
+
+		@Override
+		public Snapshot createSlotSnapshot(int slot) {
+			return NoopSnapshot.INSTANCE;
+		}
+
+		@Override
+		public void restoreSlotFromSnapshot(Snapshot snapshot) {
 			//noop
 		}
 
