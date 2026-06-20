@@ -33,22 +33,22 @@ public class StackUpgradeConfig {
 
 		ret.add(RegistryHelper.getItemKey(Items.BUNDLE).toString());
 		ret.add(RegistryHelper.getItemKey(Items.SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.WHITE_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.ORANGE_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.MAGENTA_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.LIGHT_BLUE_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.YELLOW_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.LIME_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.PINK_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.GRAY_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.LIGHT_GRAY_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.CYAN_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.PURPLE_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.BLUE_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.BROWN_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.GREEN_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.RED_SHULKER_BOX).toString());
-		ret.add(RegistryHelper.getItemKey(Items.BLACK_SHULKER_BOX).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.white()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.orange()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.magenta()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.lightBlue()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.yellow()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.lime()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.pink()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.gray()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.lightGray()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.cyan()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.purple()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.blue()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.brown()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.green()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.red()).toString());
+		ret.add(RegistryHelper.getItemKey(Items.DYED_SHULKER_BOX.black()).toString());
 
 		return ret;
 	}

@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
@@ -10,6 +9,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -160,7 +160,7 @@ public class ClientEventHandler {
 
 	private static void onDrawScreen(ScreenEvent.Render.Post event) {
 		Minecraft mc = Minecraft.getInstance();
-		Screen gui = mc.screen;
+		Screen gui = mc.gui.screen();
 		if (!(gui instanceof AbstractContainerScreen<?> containerGui) || gui instanceof CreativeModeInventoryScreen || mc.player == null) {
 			return;
 		}
@@ -203,7 +203,7 @@ public class ClientEventHandler {
 		int x = containerGui.getGuiLeft() + s.x;
 		int y = containerGui.getGuiTop() + s.y;
 
-		int color = ARGB.opaque(stashResult == IStashStorageItem.StashResult.MATCH_AND_SPACE ? ChatFormatting.GREEN.getColor() : 0xFFFF00);
+		int color = ARGB.opaque(stashResult == IStashStorageItem.StashResult.MATCH_AND_SPACE ? TextColor.GREEN.getValue() : 0xFFFF00);
 		if (stack.getItem() instanceof IStashStorageItem) {
 			guiGraphics.text(mc.font, "+", x + 10, y + 8, color);
 		} else {
@@ -272,7 +272,7 @@ public class ClientEventHandler {
 
 		@Override
 		public boolean isActive() {
-			return GUI.isActive() && Minecraft.getInstance().screen instanceof StorageScreenBase<?>;
+			return GUI.isActive() && Minecraft.getInstance().gui.screen() instanceof StorageScreenBase<?>;
 		}
 
 		@Override
@@ -286,7 +286,7 @@ public class ClientEventHandler {
 
 		@Override
 		public boolean isActive() {
-			return GUI.isActive() && Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>;
+			return GUI.isActive() && Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen<?>;
 		}
 
 		@Override

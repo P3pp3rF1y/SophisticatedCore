@@ -3,13 +3,14 @@ package net.p3pp3rf1y.sophisticatedcore.client.render;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
+import com.mojang.blaze3d.PrimitiveTopology;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -25,17 +26,17 @@ public class BlockHighlightRenderHelper {
 	public static final RenderPipeline THICK_HIGHLIGHT_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
 			.withVertexShader("core/position_color")
 			.withFragmentShader("core/position_color")
-			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
+			.withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+			.withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
+			.withPrimitiveTopology(PrimitiveTopology.QUADS)
 			.withCull(false)
-			.withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
+			.withDepthStencilState(new DepthStencilState(CompareOp.GREATER_THAN_OR_EQUAL, false))
 			.withLocation(SophisticatedCore.getIdentifier("pipeline/outline_quads"))
 			.build();
 
 	public static final RenderType THICK_HIGHLIGHT_QUADS = RenderType
 			.create("storage_outline_quads",
 					RenderSetup.builder(THICK_HIGHLIGHT_PIPELINE)
-							.bufferSize(1536)
-							.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
 							.setOutputTarget(OutputTarget.MAIN_TARGET)
 							.createRenderSetup()
 			);
@@ -102,6 +103,8 @@ public class BlockHighlightRenderHelper {
 		emitQuad(vc, pose, aVmWp, aVmWm, bVmWm, bVmWp, r, g, bl, alpha, originX, originY, originZ);
 		emitQuad(vc, pose, aVmWp, aVpWp, bVpWp, bVmWp, r, g, bl, alpha, originX, originY, originZ);
 		emitQuad(vc, pose, aVpWm, aVmWm, bVmWm, bVpWm, r, g, bl, alpha, originX, originY, originZ);
+		emitQuad(vc, pose, aVmWm, aVmWp, aVpWp, aVpWm, r, g, bl, alpha, originX, originY, originZ);
+		emitQuad(vc, pose, bVpWm, bVpWp, bVmWp, bVmWm, r, g, bl, alpha, originX, originY, originZ);
 	}
 
 	private static void emitQuad(

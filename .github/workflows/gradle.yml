@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    uses: P3pp3rF1y/MultiWorkspace/.github/workflows/mod-build-template.yml@26.1
+    uses: P3pp3rF1y/MultiWorkspace/.github/workflows/mod-build-template.yml@26.2
     with:
       changelog_range: ${{ inputs.changelog_range || '' }}
     secrets: inherit

@@ -1,6 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.crafting;
 
-import net.minecraft.util.Tuple;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -45,7 +45,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 	@Override
 	public ItemStack assemble(CraftingInput inv) {
 		Map<Integer, List<DyeColor>> columnDyes = new HashMap<>();
-		Tuple<Integer, ItemStack> columnStorage = null;
+		Pair<Integer, ItemStack> columnStorage = null;
 
 		for (int slot = 0; slot < inv.size(); slot++) {
 			ItemStack slotStack = inv.getItem(slot);
@@ -58,7 +58,7 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 					return ItemStack.EMPTY;
 				}
 
-				columnStorage = new Tuple<>(column, slotStack);
+				columnStorage = Pair.of(column, slotStack);
 			} else if (slotStack.is(Tags.Items.DYES)) {
 				DyeColor dyeColor = DyeColor.getColor(slotStack);
 				if (dyeColor == null) {
@@ -73,9 +73,9 @@ public abstract class StorageDyeRecipeBase extends CustomRecipe {
 			return ItemStack.EMPTY;
 		}
 
-		ItemStack coloredStorage = columnStorage.getB().copy();
+		ItemStack coloredStorage = columnStorage.getSecond().copy();
 		coloredStorage.setCount(1);
-		int storageColumn = columnStorage.getA();
+		int storageColumn = columnStorage.getFirst();
 
 		applyTintColors(columnDyes, coloredStorage, storageColumn);
 

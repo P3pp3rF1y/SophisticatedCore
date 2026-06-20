@@ -37,7 +37,7 @@ public class ModCompat {
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.FTB_CHUNKS), () -> mobBus -> new FTBChunksCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.OPEN_PARTIES_AND_CLAIMS_CHUNKS), () -> mobBus -> new OpenPACCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.IRIS), () -> mobBus -> new IrisCompat());
-		// Disabled during 26.1 port until upstream API stabilizes.
+		// Disabled until upstream API stabilizes.
 		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.ACCESSORIES), () -> mobBus -> new AccessoriesCompat());
 		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
 	}

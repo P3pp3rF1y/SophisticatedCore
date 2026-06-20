@@ -116,7 +116,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 		});
 
 		AbstractContainerScreen<?> containerScreen = context.getContainerScreen();
-		context.getMinecraft().setScreen(containerScreen);
+		context.getMinecraft().gui.setScreen(containerScreen);
 
 		Identifier recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipeType);
 		if (recipeTypeId != null) {

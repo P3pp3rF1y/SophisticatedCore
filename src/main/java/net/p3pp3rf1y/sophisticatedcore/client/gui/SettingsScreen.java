@@ -413,21 +413,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 					k = -999;
 				}
 
-				if ((Boolean) this.minecraft.options.touchscreen().get() && flag1 && this.menu.getCarried().isEmpty()) {
-					this.onClose();
-					return true;
-				}
-
-				if (k != -1) {
-					if ((Boolean) this.minecraft.options.touchscreen().get()) {
-						if (slot != null && slot.hasItem()) {
-							this.clickedSlot = slot;
-							this.draggingItem = ItemStack.EMPTY;
-							this.isSplittingStack = event.button() == 1;
-						} else {
-							this.clickedSlot = null;
-						}
-					} else if (!this.isQuickCrafting) {
+				if (k != -1 && !this.isQuickCrafting) {
 						if (this.menu.getCarried().isEmpty()) {
 							if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
 								this.slotClicked(slot, k, event.button(), ContainerInput.CLONE);
@@ -457,7 +443,6 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 								this.quickCraftingType = 2;
 							}
 						}
-					}
 				}
 			}
 

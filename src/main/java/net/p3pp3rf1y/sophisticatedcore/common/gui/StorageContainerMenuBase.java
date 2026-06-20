@@ -1405,9 +1405,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 
 				Slot slot = getSlot(i);
-				if (slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
-					ItemStack destStack = slot.getItem();
-					if (!destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack)) {
+				ItemStack destStack = slot.getItem();
+				if (!isUpgradeSlot(i) && !destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack)
+						&& slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
 						int maxSize = slot.getMaxStackSize(result);
 						if (destStack.getCount() <= maxSize - toTransfer) {
 							result.shrink(toTransfer);
@@ -1431,7 +1431,6 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								result.setCount(overflowResult.getCount());
 							}
 						}
-					}
 				}
 
 				if (reverseDirection) {

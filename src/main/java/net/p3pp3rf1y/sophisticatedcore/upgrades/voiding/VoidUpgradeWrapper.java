@@ -37,7 +37,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		setVoidOverflowDefaultOrLoadFromNbt(VoidType.ALWAYS);
 	}
 
-	//TODO remove in or after 26.1
+	//TODO remove after the legacy component migration window closes
 	private void setFromLegacyComponent() {
 		if (upgrade.has(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW)) {
 			VoidType migratedVoidType = upgrade.get(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW) ? VoidType.SLOT_OVERFLOW : VoidType.ALWAYS;

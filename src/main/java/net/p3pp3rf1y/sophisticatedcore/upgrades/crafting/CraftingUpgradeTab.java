@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,7 +10,6 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.ClientHooks;
@@ -72,7 +72,7 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 	private final Button nextResultButton;
 	private final Button selectResultButton;
 	private boolean resultSelectionShown = false;
-	private Tuple<Position, Dimension> resultListPositionDimensions;
+	private Pair<Position, Dimension> resultListPositionDimensions;
 	private final List<Position> resultChoicePositions = new ArrayList<>();
 
 	public CraftingUpgradeTab(CraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillCraftingGridButton) {
@@ -146,12 +146,12 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 				for (int i = 0; i < matchedCraftingResults.size(); i++) {
 					int xOffset = (i % 3) * 18;
 					int yOffset = (i / 3) * 18;
-					resultChoicePositions.add(new Position(resultListPositionDimensions.getA().x() + RESULT_SELECTION_BORDER_WIDTH + xOffset, resultListPositionDimensions.getA().y() + RESULT_SELECTION_BORDER_WIDTH + yOffset));
+					resultChoicePositions.add(new Position(resultListPositionDimensions.getFirst().x() + RESULT_SELECTION_BORDER_WIDTH + xOffset, resultListPositionDimensions.getFirst().y() + RESULT_SELECTION_BORDER_WIDTH + yOffset));
 				}
 			}
 
-			renderResultSelectionBackground(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getB().width(), resultListPositionDimensions.getB().height(), resultListPositionDimensions.getA().x(), resultListPositionDimensions.getA().y());
-			renderResultChoices(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getA().x(), resultListPositionDimensions.getA().y());
+			renderResultSelectionBackground(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getSecond().width(), resultListPositionDimensions.getSecond().height(), resultListPositionDimensions.getFirst().x(), resultListPositionDimensions.getFirst().y());
+			renderResultChoices(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getFirst().x(), resultListPositionDimensions.getFirst().y());
 			renderSelectionSlotHover(guiGraphics, mouseX, mouseY);
 		}
 	}
@@ -167,8 +167,8 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 		if (!resultSelectionShown || resultListPositionDimensions == null) {
 			return Optional.empty();
 		}
-		Position pos = resultListPositionDimensions.getA();
-		Dimension dim = resultListPositionDimensions.getB();
+		Position pos = resultListPositionDimensions.getFirst();
+		Dimension dim = resultListPositionDimensions.getSecond();
 		int slotsLeftX = pos.x() + RESULT_SELECTION_BORDER_WIDTH;
 		int slotsTopY = pos.y() + RESULT_SELECTION_BORDER_WIDTH;
 
@@ -203,7 +203,7 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 
 		int resultListLeftX = selectResultButton.getX() + 8 - RESULT_SELECTION_BORDER_WIDTH - (int) (Math.min(matchedCraftingResults.size(), 3) / 2f * 18);
 		int resultListTopY = selectResultButton.getY() - height;
-		resultListPositionDimensions = new Tuple<>(new Position(resultListLeftX, resultListTopY), new Dimension(width, height));
+		resultListPositionDimensions = Pair.of(new Position(resultListLeftX, resultListTopY), new Dimension(width, height));
 
 	}
 
@@ -267,8 +267,8 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 			return true;
 		}
 
-		Position pos = resultListPositionDimensions.getA();
-		Dimension dim = resultListPositionDimensions.getB();
+		Position pos = resultListPositionDimensions.getFirst();
+		Dimension dim = resultListPositionDimensions.getSecond();
 
 		return mouseX < pos.x() || mouseX > pos.x() + dim.width() || mouseY < pos.y() || mouseY > pos.y() + dim.height();
 	}
