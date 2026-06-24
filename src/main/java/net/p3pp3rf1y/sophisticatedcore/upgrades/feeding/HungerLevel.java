@@ -10,9 +10,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum HungerLevel implements StringRepresentable {
-	ANY("any"),
-	HALF("half"),
-	FULL("full");
+	ANY("any"), HALF("half"), FULL("full");
 
 	public static final Codec<HungerLevel> CODEC = StringRepresentable.fromEnum(HungerLevel::values);
 	public static final StreamCodec<FriendlyByteBuf, HungerLevel> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(HungerLevel.class);
@@ -37,7 +35,7 @@ public enum HungerLevel implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, HungerLevel> builder = new ImmutableMap.Builder<>();
-		for (HungerLevel value : HungerLevel.values()) {
+		for (HungerLevel value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

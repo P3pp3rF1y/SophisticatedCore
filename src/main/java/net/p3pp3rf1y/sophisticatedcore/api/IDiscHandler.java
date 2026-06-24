@@ -12,18 +12,18 @@ import java.util.UUID;
 
 public interface IDiscHandler<I> {
 
-    Optional<I> getSongInfo(ItemStack itemStack, Level level);
+	Optional<I> getSongInfo(ItemStack itemStack, Level level);
 
-    void playDisc(ServerLevel serverLevel, BlockPos position, UUID storageUuid, ItemStack discItemStack, Runnable onFinished);
+	void playDisc(ServerLevel serverLevel, BlockPos position, UUID storageUuid, ItemStack discItemStack, Runnable onFinished);
 
-    void playDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, ItemStack discItemStack, int entityId, Runnable onFinished);
+	void playDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, ItemStack discItemStack, int entityId, Runnable onFinished);
 
-    Optional<Integer> getMusicLengthInTicks(ItemStack itemStack, Level level);
+	Optional<Integer> getMusicLengthInTicks(ItemStack itemStack, Level level);
 
-    boolean supports(ItemStack itemStack);
+	boolean supports(ItemStack itemStack);
 
-    Optional<ItemStack> getRandomDisc(RandomSource randomSource);
+	Optional<ItemStack> getRandomDisc(RandomSource randomSource);
 
-    int getMusicDiscSize();
+	int getMusicDiscSize();
 
 }

@@ -37,15 +37,13 @@ public class RecentCraftedResultStorage extends SavedData {
 
 	public static RecentCraftedResultStorage get(ServerLevel level) {
 		ServerLevel overworld = level.getServer().getLevel(Level.OVERWORLD);
-		//noinspection ConstantConditions - overworld is loaded while server levels are available
+		// noinspection ConstantConditions - overworld is loaded while server levels are available
 		DimensionDataStorage storage = overworld.getDataStorage();
 		return storage.computeIfAbsent(new Factory<>(RecentCraftedResultStorage::new, RecentCraftedResultStorage::load), SAVED_DATA_NAME);
 	}
 
 	public List<ResourceLocation> getRecentResults(Player player, ResourceLocation scope, ResourceLocation ingredient) {
-		return playerRecentResults.getOrDefault(player.getUUID(), Map.of())
-				.getOrDefault(scope, Map.of())
-				.getOrDefault(ingredient, List.of());
+		return playerRecentResults.getOrDefault(player.getUUID(), Map.of()).getOrDefault(scope, Map.of()).getOrDefault(ingredient, List.of());
 	}
 
 	public static List<ResourceLocation> getClientRecentResults(ResourceLocation scope, ResourceLocation ingredient) {
@@ -67,8 +65,7 @@ public class RecentCraftedResultStorage extends SavedData {
 
 	public boolean recordCraftedResult(Player player, ResourceLocation scope, ResourceLocation ingredient, ResourceLocation result) {
 		List<ResourceLocation> recentResults = playerRecentResults.computeIfAbsent(player.getUUID(), uuid -> new HashMap<>())
-				.computeIfAbsent(scope, key -> new HashMap<>())
-				.computeIfAbsent(ingredient, key -> new ArrayList<>());
+				.computeIfAbsent(scope, key -> new HashMap<>()).computeIfAbsent(ingredient, key -> new ArrayList<>());
 		if (!recentResults.isEmpty() && recentResults.get(0).equals(result)) {
 			return false;
 		}

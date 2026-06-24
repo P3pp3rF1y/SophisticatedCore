@@ -21,7 +21,6 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 	private final List<Ingredient> ingredients = new ArrayList<>();
 	private final ItemStack result;
 
-
 	public JeiShapelessRecipeDisplayBuilder(HolderGetter<Item> items, JeiRecipeDisplayGenerator generator, ItemStack result) {
 		this.items = items;
 		this.generator = generator;

@@ -30,19 +30,18 @@ public class GroupedCraftingRecipeCategoryExtension implements ICraftingCategory
 	public List<SlotDisplay> getIngredients(RecipeHolder<GroupedCraftingRecipe> recipeHolder) {
 		return recipeHolder.value().getInputSlots().stream()
 				.map(slot -> new SlotDisplay.Composite(slot.stream().map(SlotDisplay.ItemStackSlotDisplay::new).map(display -> (SlotDisplay) display).toList()))
-				.map(slot -> (SlotDisplay) slot)
-				.toList();
+				.map(slot -> (SlotDisplay) slot).toList();
 	}
 
-	public void setRecipe(RecipeHolder<GroupedCraftingRecipe> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
+	public void setRecipe(RecipeHolder<GroupedCraftingRecipe> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper,
+			IFocusGroup focuses) {
 		GroupedCraftingRecipe recipe = narrowToFocus(recipeHolder.value(), focuses);
 		craftingGridHelper.createAndSetInputs(builder, recipe.getInputSlots(), recipe.getDisplayWidth(), recipe.getDisplayHeight());
 		craftingGridHelper.createAndSetOutputs(builder, recipe.getResultStacks());
 	}
 
 	private static GroupedCraftingRecipe narrowToFocus(GroupedCraftingRecipe recipe, IFocusGroup focuses) {
-		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
+		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).map(focus -> focus.getTypedValue().getIngredient())
 				.findFirst();
 		return outputFocus.map(itemStack -> recipe.narrowForResult(itemStack).orElse(recipe)).orElse(recipe);
 	}
@@ -52,14 +51,9 @@ public class GroupedCraftingRecipeCategoryExtension implements ICraftingCategory
 		recipeSlots.forEach(IRecipeSlotDrawable::clearDisplayOverrides);
 
 		GroupedCraftingRecipe recipe = recipeHolder.value();
-		recipeSlots.stream()
-				.filter(slot -> slot.getRole() == RecipeIngredientRole.INPUT)
-				.flatMap(slot -> slot.getDisplayedItemStack().stream())
-				.flatMap(displayedInput -> recipe.findResultForDisplayedInput(displayedInput).stream())
-				.findFirst()
-				.ifPresent(result -> recipeSlots.stream()
-						.filter(slot -> slot.getRole() == RecipeIngredientRole.OUTPUT)
-						.findFirst()
+		recipeSlots.stream().filter(slot -> slot.getRole() == RecipeIngredientRole.INPUT).flatMap(slot -> slot.getDisplayedItemStack().stream())
+				.flatMap(displayedInput -> recipe.findResultForDisplayedInput(displayedInput).stream()).findFirst()
+				.ifPresent(result -> recipeSlots.stream().filter(slot -> slot.getRole() == RecipeIngredientRole.OUTPUT).findFirst()
 						.ifPresent(outputSlot -> outputSlot.createDisplayOverrides().addItemStack(result)));
 	}
 

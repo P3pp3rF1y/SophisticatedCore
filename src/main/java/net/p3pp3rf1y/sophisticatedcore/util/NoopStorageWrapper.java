@@ -17,13 +17,14 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 
 import javax.annotation.Nullable;
+
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("java:S4144")
-//this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
+// this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
 public class NoopStorageWrapper implements IStorageWrapper {
 	public static final NoopStorageWrapper INSTANCE = new NoopStorageWrapper();
 
@@ -41,7 +42,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void setContentsChangeHandler(Runnable contentsChangeHandler) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -79,8 +80,9 @@ public class NoopStorageWrapper implements IStorageWrapper {
 				}
 
 				@Override
-				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
-					//noop
+				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier,
+						CompoundTag settingsNbt) {
+					// noop
 				}
 
 				@Override
@@ -95,7 +97,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 				@Override
 				protected void saveCategoryNbt(CompoundTag settingsNbt, String categoryName, CompoundTag tag) {
-					//noop
+					// noop
 				}
 			};
 		}
@@ -135,22 +137,22 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void setOpenTabId(int openTabId) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void removeOpenTabId() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setColors(int mainColor, int accentColor) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setSortBy(SortBy sortBy) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -160,32 +162,32 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void sort() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void onContentsNbtUpdated() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void refreshInventoryForUpgradeProcessing() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void refreshInventoryForInputOutput() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setPersistent(boolean persistent) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void fillWithLoot(Player playerEntity) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -196,7 +198,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 				@Override
 				protected void serializeRenderInfo(CompoundTag renderInfo) {
-					//noop
+					// noop
 				}
 
 				@Override
@@ -210,7 +212,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void setColumnsTaken(int columnsTaken, boolean hasChanged) {
-		//noop
+		// noop
 	}
 
 	@Override

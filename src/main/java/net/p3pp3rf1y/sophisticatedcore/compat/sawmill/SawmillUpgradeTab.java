@@ -9,12 +9,15 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterRec
 import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterUpgradeTab;
 
 public class SawmillUpgradeTab extends BlockConverterUpgradeTab<WoodcuttingRecipe, SawmillRecipeContainer, SawmillUpgradeContainer> {
-	public SawmillUpgradeTab(SawmillUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillInputButton) {
-		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("sawmill"), TranslationHelper.INSTANCE.translUpgradeTooltip("sawmill"), shiftClickTargetButton, refillInputButton);
+	public SawmillUpgradeTab(SawmillUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen,
+			ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillInputButton) {
+		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("sawmill"),
+				TranslationHelper.INSTANCE.translUpgradeTooltip("sawmill"), shiftClickTargetButton, refillInputButton);
 	}
 
 	@Override
-	protected BlockConverterRecipeControl<WoodcuttingRecipe, SawmillRecipeContainer> createRecipeControl(StorageScreenBase<?> screen, SawmillRecipeContainer recipeContainer, Position position) {
+	protected BlockConverterRecipeControl<WoodcuttingRecipe, SawmillRecipeContainer> createRecipeControl(StorageScreenBase<?> screen,
+			SawmillRecipeContainer recipeContainer, Position position) {
 		return new SawmillRecipeControl(screen, recipeContainer, position);
 	}
 }

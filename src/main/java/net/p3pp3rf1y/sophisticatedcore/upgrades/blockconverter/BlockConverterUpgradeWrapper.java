@@ -12,15 +12,17 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import javax.annotation.Nullable;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgradeItem<U, W>, W extends BlockConverterUpgradeWrapper<U, W>> extends UpgradeWrapperBase<W, U> {
+public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgradeItem<U, W>, W extends BlockConverterUpgradeWrapper<U, W>>
+		extends
+			UpgradeWrapperBase<W, U> {
 	private final IItemHandlerModifiable inputInventory;
 
 	public BlockConverterUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-
 
 		inputInventory = new ItemStackHandler(1) {
 			@Override
@@ -34,7 +36,6 @@ public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgra
 		};
 		inputInventory.setStackInSlot(0, upgrade.getOrDefault(ModCoreDataComponents.INPUT_ITEM, SimpleItemContent.EMPTY).copy());
 	}
-
 
 	public IItemHandlerModifiable getInputInventory() {
 		return inputInventory;

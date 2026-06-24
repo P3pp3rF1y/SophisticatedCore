@@ -34,7 +34,7 @@ public class MountedStorageData extends SavedData implements IStorageSavedData {
 			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
-				//noinspection ConstantConditions - by this time overworld is loaded
+				// noinspection ConstantConditions - by this time overworld is loaded
 				DimensionDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(new Factory<>(MountedStorageData::new, MountedStorageData::load), SAVED_DATA_NAME);
 			}
@@ -90,7 +90,7 @@ public class MountedStorageData extends SavedData implements IStorageSavedData {
 
 	public void setContentsClient(UUID storageId, CompoundTag contents) {
 		for (String key : contents.getAllKeys()) {
-			//noinspection ConstantConditions - the key is one of the tag keys so there's no reason it wouldn't exist here
+			// noinspection ConstantConditions - the key is one of the tag keys so there's no reason it wouldn't exist here
 			getContents(storageId).put(key, contents.get(key));
 
 			if (key.equals(IStorageWrapper.SETTINGS_TAG)) {

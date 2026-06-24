@@ -123,13 +123,15 @@ public class ServerStorageSoundHandler {
 		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, pos, serverLevel.getGameTime() + song.value().lengthInTicks());
 	}
 
-	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, Holder<JukeboxSong> song, Runnable onStopHandler) {
+	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, Holder<JukeboxSong> song,
+			Runnable onStopHandler) {
 		PacketDistributor.sendToPlayersNear(serverLevel, null, position.x(), position.y(), position.z(), 128, new PlayDiscPayload(storageUuid, song, entityId));
 		putSoundInfo(serverLevel, storageUuid, onStopHandler, position, serverLevel.getGameTime() + song.value().lengthInTicks());
 	}
 
 	public static void putSoundInfo(ServerLevel serverLevel, UUID storageUuid, Runnable onFinishedHandler, Vec3 pos, long finishTime) {
-		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid, new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
+		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid,
+				new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
 	}
 
 	public static void stopPlayingDisc(Level level, Vec3 position, UUID storageUuid) {

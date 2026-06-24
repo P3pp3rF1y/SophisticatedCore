@@ -47,6 +47,7 @@ public class ShapeBasedRecipeBuilder extends ShapedRecipeBuilder {
 			return;
 		}
 
-		recipeOutput.withConditions(new ItemEnabledCondition(getResult())).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(), holdingRecipeOutput.getConditions());
+		recipeOutput.withConditions(new ItemEnabledCondition(getResult())).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(),
+				holdingRecipeOutput.getConditions());
 	}
 }

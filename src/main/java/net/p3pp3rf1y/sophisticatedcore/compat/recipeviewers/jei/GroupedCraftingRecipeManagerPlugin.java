@@ -18,11 +18,13 @@ public class GroupedCraftingRecipeManagerPlugin implements ISimpleRecipeManagerP
 	private final Predicate<ItemStack> focusedStackPredicate;
 	private final Predicate<ItemStack> focusedOutputPredicate;
 
-	public GroupedCraftingRecipeManagerPlugin(Supplier<List<? extends IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>>>> specsSupplier, Predicate<ItemStack> focusedStackPredicate) {
+	public GroupedCraftingRecipeManagerPlugin(Supplier<List<? extends IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>>>> specsSupplier,
+			Predicate<ItemStack> focusedStackPredicate) {
 		this(specsSupplier, focusedStackPredicate, focusedStackPredicate);
 	}
 
-	public GroupedCraftingRecipeManagerPlugin(Supplier<List<? extends IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>>>> specsSupplier, Predicate<ItemStack> focusedStackPredicate, Predicate<ItemStack> focusedOutputPredicate) {
+	public GroupedCraftingRecipeManagerPlugin(Supplier<List<? extends IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>>>> specsSupplier,
+			Predicate<ItemStack> focusedStackPredicate, Predicate<ItemStack> focusedOutputPredicate) {
 		this.specsSupplier = specsSupplier;
 		this.focusedStackPredicate = focusedStackPredicate;
 		this.focusedOutputPredicate = focusedOutputPredicate;
@@ -43,9 +45,7 @@ public class GroupedCraftingRecipeManagerPlugin implements ISimpleRecipeManagerP
 	@Override
 	public List<RecipeHolder<CraftingRecipe>> getRecipesForInput(ITypedIngredient<?> input) {
 		ItemStack stack = input.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-		return specsSupplier.get().stream()
-				.flatMap(spec -> spec.getUsagesFor(stack).stream())
-				.map(GroupedCraftingRecipeManagerPlugin::toCraftingRecipeHolder)
+		return specsSupplier.get().stream().flatMap(spec -> spec.getUsagesFor(stack).stream()).map(GroupedCraftingRecipeManagerPlugin::toCraftingRecipeHolder)
 				.toList();
 	}
 
@@ -55,9 +55,7 @@ public class GroupedCraftingRecipeManagerPlugin implements ISimpleRecipeManagerP
 		if (!focusedOutputPredicate.test(stack)) {
 			return List.of();
 		}
-		return specsSupplier.get().stream()
-				.flatMap(spec -> spec.getRecipesFor(stack).stream())
-				.map(GroupedCraftingRecipeManagerPlugin::toCraftingRecipeHolder)
+		return specsSupplier.get().stream().flatMap(spec -> spec.getRecipesFor(stack).stream()).map(GroupedCraftingRecipeManagerPlugin::toCraftingRecipeHolder)
 				.toList();
 	}
 

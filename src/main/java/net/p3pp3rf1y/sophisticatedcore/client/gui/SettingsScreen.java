@@ -16,8 +16,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Label;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Label;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
 import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
 
 import javax.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -55,12 +56,16 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	private void updateDimensionsAndSlotPositions(int height) {
 		int displayableNumberOfRows = Math.min((height - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
 		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(displayableNumberOfRows);
-		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81 ? StorageBackgroundProperties.REGULAR_9_SLOT : StorageBackgroundProperties.REGULAR_12_SLOT;
+		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81
+				? StorageBackgroundProperties.REGULAR_9_SLOT
+				: StorageBackgroundProperties.REGULAR_12_SLOT;
 
 		imageWidth = storageBackgroundProperties.getSlotsOnLine() * 18 + 14;
 		updateStorageSlotsPositions();
 		if (displayableNumberOfRows < getMenu().getNumberOfRows()) {
-			storageBackgroundProperties = storageBackgroundProperties == StorageBackgroundProperties.REGULAR_9_SLOT ? StorageBackgroundProperties.WIDER_9_SLOT : StorageBackgroundProperties.WIDER_12_SLOT;
+			storageBackgroundProperties = storageBackgroundProperties == StorageBackgroundProperties.REGULAR_9_SLOT
+					? StorageBackgroundProperties.WIDER_9_SLOT
+					: StorageBackgroundProperties.WIDER_12_SLOT;
 			imageWidth += 6;
 		}
 		imageHeight = newImageHeight;
@@ -79,7 +84,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 		int numberOfVisibleRows = getNumberOfVisibleRows();
 		if (numberOfVisibleRows < getMenu().getNumberOfRows()) {
-			inventoryScrollPanel = new InventoryScrollPanel(Minecraft.getInstance(), this, 0, getMenu().getNumberOfStorageInventorySlots(), getSlotsOnLine(), numberOfVisibleRows * 18, getGuiTop() + 17, getGuiLeft() + 7);
+			inventoryScrollPanel = new InventoryScrollPanel(Minecraft.getInstance(), this, 0, getMenu().getNumberOfStorageInventorySlots(), getSlotsOnLine(),
+					numberOfVisibleRows * 18, getGuiTop() + 17, getGuiLeft() + 7);
 			addRenderableWidget(inventoryScrollPanel);
 			inventoryScrollPanel.updateSlotsPosition();
 		} else {
@@ -133,7 +139,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	private TemplatePersistanceControl initializeTemplatePersistanceControl() {
-		return new TemplatePersistanceControl(new Position(leftPos + inventoryLabelX - 29, topPos + inventoryLabelY + 29), getMenu().getTemplatePersistanceContainer());
+		return new TemplatePersistanceControl(new Position(leftPos + inventoryLabelX - 29, topPos + inventoryLabelY + 29),
+				getMenu().getTemplatePersistanceContainer());
 	}
 
 	protected abstract StorageSettingsTabControlBase initializeTabControl();
@@ -142,7 +149,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		int x = (width - imageWidth) / 2;
 		int y = (height - imageHeight) / 2;
-		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, storageBackgroundProperties.getTextureName(), imageWidth, getStorageInventoryHeight(getNumberOfVisibleRows()));
+		StorageGuiHelper.renderStorageBackground(new Position(x, y), guiGraphics, storageBackgroundProperties.getTextureName(), imageWidth,
+				getStorageInventoryHeight(getNumberOfVisibleRows()));
 		if (inventoryScrollPanel == null) {
 			drawSlotBg(guiGraphics, x, y, getMenu().getStorageInventorySlots().size());
 		} else {
@@ -154,7 +162,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		int slotsOnLine = getSlotsOnLine();
 		int slotRows = visibleSlotsCount / slotsOnLine;
 		int remainingSlots = visibleSlotsCount % slotsOnLine;
-		GuiHelper.renderSlotsBackground(guiGraphics, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows, remainingSlots);
+		GuiHelper.renderSlotsBackground(guiGraphics, x + StorageScreenBase.SLOTS_X_OFFSET, y + StorageScreenBase.SLOTS_Y_OFFSET, slotsOnLine, slotRows,
+				remainingSlots);
 	}
 
 	@Override
@@ -241,7 +250,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		if (menu.ghostSlots.isEmpty()) {
 			return null;
 		}
-		for(Slot slot : menu.ghostSlots) {
+		for (Slot slot : menu.ghostSlots) {
 			if (slot.isActive() && isHovering(slot, p_372985_, p_372965_)) {
 				return slot;
 			}
@@ -251,7 +260,9 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	protected void renderSlot(GuiGraphics guiGraphics, Slot slot) {
-		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY ? slot.getItem() : settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex(), isTemplateLoadHovered());
+		ItemStack itemstack = slot.getItem() != ItemStack.EMPTY
+				? slot.getItem()
+				: settingsTabControl.getSlotStackDisplayOverride(slot.getSlotIndex(), isTemplateLoadHovered());
 
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
@@ -278,7 +289,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	@SuppressWarnings("java:S2589") // slot can actually be null despite being marked non null
 	@Override
 	protected void slotClicked(Slot slot, int slotId, int mouseButton, ClickType type) {
-		//noinspection ConstantConditions
+		// noinspection ConstantConditions
 		if (slot != null) {
 			settingsTabControl.handleSlotClick(slot, mouseButton);
 		}
@@ -347,7 +358,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	private Rect2i getTemplatePersistanceControlRectangle() {
-		return new Rect2i(templatePersistanceControl.getX(), templatePersistanceControl.getY(), templatePersistanceControl.getWidth(), templatePersistanceControl.getHeight());
+		return new Rect2i(templatePersistanceControl.getX(), templatePersistanceControl.getY(), templatePersistanceControl.getWidth(),
+				templatePersistanceControl.getHeight());
 	}
 
 	public List<Rect2i> getExtendedControlsRectangles() {
@@ -452,7 +464,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 							if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
 								this.slotClicked(slot, l, button, ClickType.CLONE);
 							} else {
-								boolean flag2 = l != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340) || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
+								boolean flag2 = l != -999 && (InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 340)
+										|| InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), 344));
 								ClickType clicktype = ClickType.PICKUP;
 								if (flag2) {
 									this.lastQuickMoved = slot != null && slot.hasItem() ? slot.getItem().copy() : ItemStack.EMPTY;
@@ -488,7 +501,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		}
 	}
 
-	//Modified to actually return false if child didn't handle the click
+	// Modified to actually return false if child didn't handle the click
 	private boolean containerEventHandlerMouseClicked(double mouseX, double mouseY, int button) {
 		return getChildAt(mouseX, mouseY).map(child -> {
 			if (child.mouseClicked(mouseX, mouseY, button)) {

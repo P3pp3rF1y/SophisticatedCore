@@ -10,10 +10,8 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 
 public record SyncSlotChangeErrorPayload(UpgradeSlotChangeResult slotChangeError) implements CustomPacketPayload {
 	public static final Type<SyncSlotChangeErrorPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_slot_change_error"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SyncSlotChangeErrorPayload> STREAM_CODEC = StreamCodec.composite(
-			UpgradeSlotChangeResult.STREAM_CODEC,
-			SyncSlotChangeErrorPayload::slotChangeError,
-			SyncSlotChangeErrorPayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SyncSlotChangeErrorPayload> STREAM_CODEC = StreamCodec
+			.composite(UpgradeSlotChangeResult.STREAM_CODEC, SyncSlotChangeErrorPayload::slotChangeError, SyncSlotChangeErrorPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

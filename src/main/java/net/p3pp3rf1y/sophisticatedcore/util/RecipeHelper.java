@@ -24,6 +24,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.crafting.CustomShapelessRecipe;
 
 import javax.annotation.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -87,7 +88,7 @@ public class RecipeHelper {
 		runOnCache(cache -> cache.addRecipeChangeListener(runnable));
 	}
 
-	@SuppressWarnings("unused") //event parameter used to identify which event this listener is for
+	@SuppressWarnings("unused") // event parameter used to identify which event this listener is for
 	public static void onRecipesUpdated(RecipesReceivedEvent event) {
 		runOnCache(cache -> {
 			cache.clearCache();
@@ -95,7 +96,7 @@ public class RecipeHelper {
 		});
 	}
 
-	@SuppressWarnings("unused") //event parameter used to identify which event this listener is for
+	@SuppressWarnings("unused") // event parameter used to identify which event this listener is for
 	public static void onDataPackSync(OnDatapackSyncEvent event) {
 		runOnCache(cache -> {
 			cache.clearCache();
@@ -119,7 +120,8 @@ public class RecipeHelper {
 		}).orElse(Collections.emptySet());
 	}
 
-	private static Optional<CompactingShape> getCompactingShape(ItemStack stack, Level w, int width, int height, CompactingShape uncraftableShape, CompactingShape shape) {
+	private static Optional<CompactingShape> getCompactingShape(ItemStack stack, Level w, int width, int height, CompactingShape uncraftableShape,
+			CompactingShape shape) {
 		CompactingResult compactingResult = getCompactingResult(stack, w, width, height);
 		if (!compactingResult.getResult().isEmpty()) {
 			if (ItemStack.isSameItemSameComponents(stack, compactingResult.getResult())) {
@@ -152,7 +154,8 @@ public class RecipeHelper {
 				if (ItemStack.isSameItemSameComponents(compactingResultStack, firstCompacted)) {
 					return true;
 				} else if (compactedItemHashes.contains(ItemStack.hashItemAndComponents(compactingResultStack))) {
-					return false; //loop exists but the first compacted item isn't part of it so we will let it be compacted, but no follow up compacting will happen
+					return false; // loop exists but the first compacted item isn't part of it so we will let it be compacted, but no follow up compacting will
+									// happen
 				}
 				itemsToCompact.add(compactingResultStack);
 			}
@@ -162,14 +165,16 @@ public class RecipeHelper {
 				if (ItemStack.isSameItemSameComponents(compactingResultStack, firstCompacted)) {
 					return true;
 				} else if (compactedItemHashes.contains(ItemStack.hashItemAndComponents(compactingResultStack))) {
-					return false; //loop exists but the first compacted item isn't part of it so we will let it be compacted, but no follow up compacting will happen
+					return false; // loop exists but the first compacted item isn't part of it so we will let it be compacted, but no follow up compacting will
+									// happen
 				}
 				itemsToCompact.add(compactingResultStack);
 			}
 			compactedItemHashes.add(ItemStack.hashItemAndComponents(itemToCompact));
 			iterations++;
 			if (iterations > MAX_FOLLOW_UP_COMPACTING_RECIPES) {
-				return true; //we were unable to figure out if the loop exists because of way too many follow up compacting recipe thus not allowing to compact anyway
+				return true; // we were unable to figure out if the loop exists because of way too many follow up compacting recipe thus not allowing to compact
+								// anyway
 			}
 		}
 		return false;
@@ -191,7 +196,8 @@ public class RecipeHelper {
 					if (ItemStack.isSameItemSameComponents(getCompactingResult(uncompactResultItem, 3, 3).getResult(), uncompactedItem)) {
 						return new UncompactingResult(uncompactResultItem, THREE_BY_THREE_UNCRAFTABLE);
 					}
-				} else if (uncompactResultItem.getCount() == 4 && ItemStack.isSameItemSameComponents(getCompactingResult(uncompactResultItem, 2, 2).getResult(), uncompactedItem)) {
+				} else if (uncompactResultItem.getCount() == 4
+						&& ItemStack.isSameItemSameComponents(getCompactingResult(uncompactResultItem, 2, 2).getResult(), uncompactedItem)) {
 					return new UncompactingResult(uncompactResultItem, TWO_BY_TWO_UNCRAFTABLE);
 				}
 			}
@@ -201,7 +207,8 @@ public class RecipeHelper {
 
 	private static List<ItemStack> getUncompactResultItems(Level w, ItemStack itemToUncompact) {
 		CraftingContainer craftingInventory = getFilledCraftingInventory(itemToUncompact, 1, 1);
-		return safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory.asCraftInput(), w).stream().map(r -> r.value().assemble(craftingInventory.asCraftInput(), w.registryAccess())).toList();
+		return safeGetRecipesFor(RecipeType.CRAFTING, craftingInventory.asCraftInput(), w).stream()
+				.map(r -> r.value().assemble(craftingInventory.asCraftInput(), w.registryAccess())).toList();
 	}
 
 	public static List<ItemStack> getUncompactResultItems(ItemStack itemToUncompact) {
@@ -210,9 +217,9 @@ public class RecipeHelper {
 
 	public static CompactingResult getCompactingResult(ItemStack stack, CompactingShape shape) {
 		if (shape == TWO_BY_TWO_UNCRAFTABLE || shape == TWO_BY_TWO) {
-			return RecipeHelper.getCompactingResult(stack, 2, 2);
+			return getCompactingResult(stack, 2, 2);
 		} else if (shape == THREE_BY_THREE_UNCRAFTABLE || shape == THREE_BY_THREE) {
-			return RecipeHelper.getCompactingResult(stack, 3, 3);
+			return getCompactingResult(stack, 3, 3);
 		}
 		return CompactingResult.EMPTY;
 	}
@@ -237,7 +244,8 @@ public class RecipeHelper {
 		return getFromCache(cache -> getCompactingResult(stack, level, shape, cache.getCompactingResults()), CompactingResult.EMPTY);
 	}
 
-	private static CompactingResult getCompactingResult(ItemStack stack, Level level, CompactingRecipeShape shape, Map<CompactedItem, CompactingResult> cachedCompactingResults) {
+	private static CompactingResult getCompactingResult(ItemStack stack, Level level, CompactingRecipeShape shape,
+			Map<CompactedItem, CompactingResult> cachedCompactingResults) {
 		CompactedItem compactedItem = new CompactedItem(stack, shape);
 		if (cachedCompactingResults.containsKey(compactedItem)) {
 			return cachedCompactingResults.get(compactedItem);
@@ -267,12 +275,12 @@ public class RecipeHelper {
 	}
 
 	private static CompactingResult cacheAndGetCompactingResult(CompactedItem compactedItem, CraftingRecipe recipe, CraftingContainer craftingInventory) {
-		return getLevel().map(level ->
-				cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory, recipe.assemble(craftingInventory.asCraftInput(), level.registryAccess()))
-		).orElse(CompactingResult.EMPTY);
+		return getLevel().map(level -> cacheAndGetCompactingResult(compactedItem, recipe, craftingInventory,
+				recipe.assemble(craftingInventory.asCraftInput(), level.registryAccess()))).orElse(CompactingResult.EMPTY);
 	}
 
-	private static CompactingResult cacheAndGetCompactingResult(CompactedItem compactedItem, CraftingRecipe recipe, CraftingContainer craftingInventory, ItemStack result) {
+	private static CompactingResult cacheAndGetCompactingResult(CompactedItem compactedItem, CraftingRecipe recipe, CraftingContainer craftingInventory,
+			ItemStack result) {
 		List<ItemStack> remainingItems = new ArrayList<>();
 		recipe.getRemainingItems(craftingInventory.asCraftInput()).forEach(stack -> {
 			if (!stack.isEmpty()) {
@@ -333,7 +341,8 @@ public class RecipeHelper {
 		return getLevel().map(level -> safeGetRecipesFor(recipeType, inventory, level)).orElse(Collections.emptyList());
 	}
 
-	public static <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> safeGetRecipeFor(RecipeType<T> recipeType, I inventory, Level level, @Nullable ResourceKey<Recipe<?>> recipeId) {
+	public static <I extends RecipeInput, T extends Recipe<I>> Optional<RecipeHolder<T>> safeGetRecipeFor(RecipeType<T> recipeType, I inventory, Level level,
+			@Nullable ResourceKey<Recipe<?>> recipeId) {
 		try {
 			if (!(level instanceof ServerLevel serverLevel)) {
 				SophisticatedCore.LOGGER.error("safeGetRecipeFor called on client side, returning empty optional");
@@ -383,11 +392,7 @@ public class RecipeHelper {
 	}
 
 	public enum CompactingShape {
-		NONE(false, 0),
-		THREE_BY_THREE(false, 9),
-		TWO_BY_TWO(false, 4),
-		THREE_BY_THREE_UNCRAFTABLE(true, 9),
-		TWO_BY_TWO_UNCRAFTABLE(true, 4);
+		NONE(false, 0), THREE_BY_THREE(false, 9), TWO_BY_TWO(false, 4), THREE_BY_THREE_UNCRAFTABLE(true, 9), TWO_BY_TWO_UNCRAFTABLE(true, 4);
 
 		private final int numberOfIngredients;
 
@@ -558,8 +563,7 @@ public class RecipeHelper {
 				return false;
 			}
 			CompactedItem that = (CompactedItem) o;
-			return Objects.equals(shape, that.shape) &&
-					ItemStack.isSameItemSameComponents(item, that.item);
+			return Objects.equals(shape, that.shape) && ItemStack.isSameItemSameComponents(item, that.item);
 		}
 
 		@Override
@@ -618,7 +622,8 @@ public class RecipeHelper {
 			int hash = ItemStack.hashItemAndComponents(stack);
 			Set<CompactingShape> compactingShapes = itemCompactingShapes.getIfPresent(hash);
 			if (compactingShapes == null) {
-				SophisticatedCore.LOGGER.debug("Compacting shapes not found in cache for \"{}\" - querying recipes to get these", BuiltInRegistries.ITEM.getKey(stack.getItem()));
+				SophisticatedCore.LOGGER.debug("Compacting shapes not found in cache for \"{}\" - querying recipes to get these",
+						BuiltInRegistries.ITEM.getKey(stack.getItem()));
 				compactingShapes = getCompactingShapes(stack);
 				itemCompactingShapes.put(hash, compactingShapes);
 			}

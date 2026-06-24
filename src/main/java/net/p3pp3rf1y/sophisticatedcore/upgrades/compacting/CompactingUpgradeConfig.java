@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.FilteredUpgradeConfigBase;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,13 +33,17 @@ public class CompactingUpgradeConfig extends FilteredUpgradeConfigBase {
 
 	public CompactingUpgradeConfig(ModConfigSpec.Builder builder, String name, String path, int defaultFilterSlots, int defaultSlotsInRow) {
 		super(builder, name, path, defaultFilterSlots, defaultSlotsInRow);
-		additionalCompactingShapes = builder.comment("List of additional crafting shapes compacting and compression upgrades will try when checking if items can be compacted. "
-				+ "Shapes are expected as rows of 1s and 0s separated by / where 1 means the tested item is present and 0 means the slot is empty. "
-				+ "Example: \"111/101/111\" checks a hollow 3x3 shape with 8 items.")
-				.defineList("additionalCompactingShapes", () -> List.of("111/101/111"), () -> "111/101/111", shape -> shape instanceof String str && RecipeHelper.CompactingRecipeShape.parse(str).isPresent());
-		additionalCompactingShapeOverrides = builder.comment("List of item-specific additional crafting shapes compacting and compression upgrades will try when checking if items can be compacted. "
-				+ "Entries are expected in format of \"mod:item=shape\", for example \"some_mod:tiny_coal=111/101/111\".")
-				.defineList("additionalCompactingShapeOverrides", () -> List.of(), () -> "some_mod:tiny_coal=111/101/111", shapeOverride -> shapeOverride instanceof String str && isCompactingShapeOverrideValid(str));
+		additionalCompactingShapes = builder
+				.comment("List of additional crafting shapes compacting and compression upgrades will try when checking if items can be compacted. "
+						+ "Shapes are expected as rows of 1s and 0s separated by / where 1 means the tested item is present and 0 means the slot is empty. "
+						+ "Example: \"111/101/111\" checks a hollow 3x3 shape with 8 items.")
+				.defineList("additionalCompactingShapes", () -> List.of("111/101/111"), () -> "111/101/111",
+						shape -> shape instanceof String str && RecipeHelper.CompactingRecipeShape.parse(str).isPresent());
+		additionalCompactingShapeOverrides = builder.comment(
+				"List of item-specific additional crafting shapes compacting and compression upgrades will try when checking if items can be compacted. "
+						+ "Entries are expected in format of \"mod:item=shape\", for example \"some_mod:tiny_coal=111/101/111\".")
+				.defineList("additionalCompactingShapeOverrides", List::of,
+						shapeOverride -> shapeOverride instanceof String str && isCompactingShapeOverrideValid(str));
 		builder.pop();
 	}
 
@@ -46,7 +51,8 @@ public class CompactingUpgradeConfig extends FilteredUpgradeConfigBase {
 		return getCompactingResult(stack, maxWidth, maxHeight, (result, count) -> false);
 	}
 
-	public Optional<CompactingDefinition> getCompactingResult(ItemStack stack, int maxWidth, int maxHeight, BiPredicate<ItemStack, Integer> additionalResultValidator) {
+	public Optional<CompactingDefinition> getCompactingResult(ItemStack stack, int maxWidth, int maxHeight,
+			BiPredicate<ItemStack, Integer> additionalResultValidator) {
 		Item item = stack.getItem();
 		for (RecipeHelper.CompactingRecipeShape shape : getAdditionalCompactingShapeOverrides().getOrDefault(item, List.of())) {
 			Optional<CompactingDefinition> compactingResult = getCompactingResult(stack, shape, maxWidth, maxHeight, additionalResultValidator);
@@ -99,16 +105,20 @@ public class CompactingUpgradeConfig extends FilteredUpgradeConfigBase {
 		return Optional.empty();
 	}
 
-	private Optional<UncompactingDefinition> getUncompactingResult(ItemStack stack, ItemStack result, int count, RecipeHelper.CompactingRecipeShape shape, int maxWidth, int maxHeight) {
+	private Optional<UncompactingDefinition> getUncompactingResult(ItemStack stack, ItemStack result, int count, RecipeHelper.CompactingRecipeShape shape,
+			int maxWidth, int maxHeight) {
 		if (!shape.fitsWithin(maxWidth, maxHeight) || shape.ingredientCount() != count) {
 			return Optional.empty();
 		}
 
 		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(result, shape);
-		return ItemStack.isSameItemSameComponents(compactingResult.getResult(), stack) ? Optional.of(new UncompactingDefinition(result, count)) : Optional.empty();
+		return ItemStack.isSameItemSameComponents(compactingResult.getResult(), stack)
+				? Optional.of(new UncompactingDefinition(result, count))
+				: Optional.empty();
 	}
 
-	private Optional<CompactingDefinition> getCompactingResult(ItemStack stack, RecipeHelper.CompactingRecipeShape shape, int maxWidth, int maxHeight, BiPredicate<ItemStack, Integer> additionalResultValidator) {
+	private Optional<CompactingDefinition> getCompactingResult(ItemStack stack, RecipeHelper.CompactingRecipeShape shape, int maxWidth, int maxHeight,
+			BiPredicate<ItemStack, Integer> additionalResultValidator) {
 		if (!shape.fitsWithin(maxWidth, maxHeight)) {
 			return Optional.empty();
 		}
@@ -127,9 +137,7 @@ public class CompactingUpgradeConfig extends FilteredUpgradeConfigBase {
 
 	private List<RecipeHelper.CompactingRecipeShape> getAdditionalCompactingShapes() {
 		if (additionalCompactingShapesList == null) {
-			additionalCompactingShapesList = additionalCompactingShapes.get().stream()
-					.map(RecipeHelper.CompactingRecipeShape::parse)
-					.flatMap(Optional::stream)
+			additionalCompactingShapesList = additionalCompactingShapes.get().stream().map(RecipeHelper.CompactingRecipeShape::parse).flatMap(Optional::stream)
 					.toList();
 		}
 		return additionalCompactingShapesList;
@@ -144,7 +152,8 @@ public class CompactingUpgradeConfig extends FilteredUpgradeConfigBase {
 				if (matcher.matches()) {
 					Item item = BuiltInRegistries.ITEM.getValue(ResourceLocation.parse(matcher.group(1)));
 					if (item != Items.AIR) {
-						RecipeHelper.CompactingRecipeShape.parse(matcher.group(2)).ifPresent(shape -> additionalCompactingShapeOverridesMap.computeIfAbsent(item, k -> new ArrayList<>()).add(shape));
+						RecipeHelper.CompactingRecipeShape.parse(matcher.group(2))
+								.ifPresent(shape -> additionalCompactingShapeOverridesMap.computeIfAbsent(item, k -> new ArrayList<>()).add(shape));
 					}
 				}
 			});

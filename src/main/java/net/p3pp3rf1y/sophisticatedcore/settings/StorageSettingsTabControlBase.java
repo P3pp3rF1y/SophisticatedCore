@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -31,12 +30,13 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 			if (isSettingsCategoryDisabled(categoryName)) {
 				return;
 			}
-			settingsTabs.add(addSettingsTab(() -> {}, () -> {},
-					instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen)));
+			settingsTabs.add(addSettingsTab(() -> {
+			}, () -> {
+			}, instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen)));
 		});
 	}
 
-	@SuppressWarnings("unused") //categoryName used in the overrides
+	@SuppressWarnings("unused") // categoryName used in the overrides
 	protected boolean isSettingsCategoryDisabled(String categoryName) {
 		return false;
 	}
@@ -107,8 +107,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		T create(C container, Position position, SettingsScreen screen);
 	}
 
-	private <C extends SettingsContainerBase<?>> SettingsTab<C> instantiateContainer(String categoryName, C container, Position position, SettingsScreen screen) {
-		//noinspection unchecked
+	private <C extends SettingsContainerBase<?>> SettingsTab<C> instantiateContainer(String categoryName, C container, Position position,
+			SettingsScreen screen) {
+		// noinspection unchecked
 		return (SettingsTab<C>) getSettingsTabFactory(categoryName).create(container, position, screen);
 	}
 

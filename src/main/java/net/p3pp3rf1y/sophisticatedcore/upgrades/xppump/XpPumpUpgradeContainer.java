@@ -18,7 +18,8 @@ public class XpPumpUpgradeContainer extends UpgradeContainerBase<XpPumpUpgradeWr
 	private static final String DATA_LEVELS_TO_TAKE = "levelsToTake";
 	private static final String DATA_MEND_ITEMS = "mendItems";
 
-	public XpPumpUpgradeContainer(Player player, int upgradeContainerId, XpPumpUpgradeWrapper upgradeWrapper, UpgradeContainerType<XpPumpUpgradeWrapper, XpPumpUpgradeContainer> type) {
+	public XpPumpUpgradeContainer(Player player, int upgradeContainerId, XpPumpUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<XpPumpUpgradeWrapper, XpPumpUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 	}
 
@@ -117,7 +118,7 @@ public class XpPumpUpgradeContainer extends UpgradeContainerBase<XpPumpUpgradeWr
 				case ACTION_TAKE_ALL_LEVELS -> upgradeWrapper.giveAllExperienceToPlayer(player);
 				case ACTION_STORE_ALL_PLAYERS_EXPERIENCE -> upgradeWrapper.takeAllExperienceFromPlayer(player);
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		}

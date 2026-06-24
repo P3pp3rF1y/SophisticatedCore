@@ -6,7 +6,8 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeClientDataType;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class CookingUpgradeClientData implements IUpgradeClientData {
-	public static final UpgradeClientDataType<CookingUpgradeClientData> TYPE = new UpgradeClientDataType<>("smelting", CookingUpgradeClientData.class, CookingUpgradeClientData::deserializeNBT);
+	public static final UpgradeClientDataType<CookingUpgradeClientData> TYPE = new UpgradeClientDataType<>("smelting", CookingUpgradeClientData.class,
+			CookingUpgradeClientData::deserializeNBT);
 
 	private final boolean burning;
 

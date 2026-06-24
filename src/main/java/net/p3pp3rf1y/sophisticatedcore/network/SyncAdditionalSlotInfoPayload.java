@@ -19,20 +19,15 @@ import java.util.Map;
 import java.util.Set;
 
 public record SyncAdditionalSlotInfoPayload(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay,
-											Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) implements CustomPacketPayload {
+		Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) implements CustomPacketPayload {
 	public static final Type<SyncAdditionalSlotInfoPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_additional_slot_info"));
 	private static final StreamCodec<RegistryFriendlyByteBuf, Holder<Item>> ITEM_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.ITEM);
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncAdditionalSlotInfoPayload> STREAM_CODEC = StreamCodec.composite(
-			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new),
-			SyncAdditionalSlotInfoPayload::inaccessibleSlots,
-			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new),
-			SyncAdditionalSlotInfoPayload::inaccessibleSlotsWithoutOverlay,
-			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new),
-			SyncAdditionalSlotInfoPayload::slotLimitOverrides,
-			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new),
-			SyncAdditionalSlotInfoPayload::infiniteSlots,
-			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ITEM_STREAM_CODEC, HashMap::new),
-			SyncAdditionalSlotInfoPayload::slotFilterItems,
+			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new), SyncAdditionalSlotInfoPayload::inaccessibleSlots,
+			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new), SyncAdditionalSlotInfoPayload::inaccessibleSlotsWithoutOverlay,
+			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new), SyncAdditionalSlotInfoPayload::slotLimitOverrides,
+			StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new), SyncAdditionalSlotInfoPayload::infiniteSlots,
+			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ITEM_STREAM_CODEC, HashMap::new), SyncAdditionalSlotInfoPayload::slotFilterItems,
 			SyncAdditionalSlotInfoPayload::new);
 
 	@Override
@@ -44,6 +39,7 @@ public record SyncAdditionalSlotInfoPayload(Set<Integer> inaccessibleSlots, Set<
 		if (!(context.player().containerMenu instanceof IAdditionalSlotInfoMenu menu)) {
 			return;
 		}
-		menu.updateAdditionalSlotInfo(payload.inaccessibleSlots, payload.inaccessibleSlotsWithoutOverlay, payload.slotLimitOverrides, payload.infiniteSlots, payload.slotFilterItems);
+		menu.updateAdditionalSlotInfo(payload.inaccessibleSlots, payload.inaccessibleSlotsWithoutOverlay, payload.slotLimitOverrides, payload.infiniteSlots,
+				payload.slotFilterItems);
 	}
 }

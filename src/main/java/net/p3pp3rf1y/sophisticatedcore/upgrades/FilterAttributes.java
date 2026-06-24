@@ -15,53 +15,36 @@ import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 
 import javax.annotation.concurrent.Immutable;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 @Immutable
-public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, boolean matchDurability,
-							   boolean matchComponents, PrimaryMatch primaryMatch, boolean matchAnyTag,
-							   ItemContainerContents filterItems, boolean filterByStorage, boolean filterByInventory) {
-	public static final Codec<FilterAttributes> CODEC = RecordCodecBuilder.create(
-			builder -> builder
-					.group(
-							CodecHelper.setOf(TagKey.codec(Registries.ITEM)).optionalFieldOf("tag_keys", Collections.emptySet()).forGetter(FilterAttributes::tagKeys),
-							Codec.BOOL.optionalFieldOf("is_allow_list", false).forGetter(FilterAttributes::isAllowList),
-							Codec.BOOL.optionalFieldOf("match_durability", false).forGetter(FilterAttributes::matchDurability),
-							Codec.BOOL.optionalFieldOf("match_components", false).forGetter(FilterAttributes::matchComponents),
-							PrimaryMatch.CODEC.optionalFieldOf("primary_match", PrimaryMatch.ITEM).forGetter(FilterAttributes::primaryMatch),
-							Codec.BOOL.optionalFieldOf("match_any_tag", false).forGetter(FilterAttributes::matchAnyTag),
-							CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC.optionalFieldOf("filter_items", ItemContainerContents.EMPTY).forGetter(FilterAttributes::filterItems),
-							Codec.BOOL.optionalFieldOf("filter_by_storage", false).forGetter(FilterAttributes::filterByStorage),
-							Codec.BOOL.optionalFieldOf("filter_by_inventory", false).forGetter(FilterAttributes::filterByInventory)
-					)
-					.apply(builder, FilterAttributes::new));
+public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, boolean matchDurability, boolean matchComponents, PrimaryMatch primaryMatch,
+		boolean matchAnyTag, ItemContainerContents filterItems, boolean filterByStorage, boolean filterByInventory) {
+	public static final Codec<FilterAttributes> CODEC = RecordCodecBuilder.create(builder -> builder
+			.group(CodecHelper.setOf(TagKey.codec(Registries.ITEM)).optionalFieldOf("tag_keys", Collections.emptySet()).forGetter(FilterAttributes::tagKeys),
+					Codec.BOOL.optionalFieldOf("is_allow_list", false).forGetter(FilterAttributes::isAllowList),
+					Codec.BOOL.optionalFieldOf("match_durability", false).forGetter(FilterAttributes::matchDurability),
+					Codec.BOOL.optionalFieldOf("match_components", false).forGetter(FilterAttributes::matchComponents),
+					PrimaryMatch.CODEC.optionalFieldOf("primary_match", PrimaryMatch.ITEM).forGetter(FilterAttributes::primaryMatch),
+					Codec.BOOL.optionalFieldOf("match_any_tag", false).forGetter(FilterAttributes::matchAnyTag),
+					CodecHelper.LENIENT_ITEM_CONTAINER_CONTENTS_CODEC.optionalFieldOf("filter_items", ItemContainerContents.EMPTY).forGetter(
+							FilterAttributes::filterItems),
+					Codec.BOOL.optionalFieldOf("filter_by_storage", false).forGetter(FilterAttributes::filterByStorage),
+					Codec.BOOL.optionalFieldOf("filter_by_inventory", false).forGetter(FilterAttributes::filterByInventory))
+			.apply(builder, FilterAttributes::new));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, FilterAttributes> STREAM_CODEC = StreamCodecHelper.composite(
-			StreamCodecHelper.ofCollection(StreamCodecHelper.ofTagkey(Registries.ITEM), HashSet::new),
-			FilterAttributes::tagKeys,
-			ByteBufCodecs.BOOL,
-			FilterAttributes::isAllowList,
-			ByteBufCodecs.BOOL,
-			FilterAttributes::matchDurability,
-			ByteBufCodecs.BOOL,
-			FilterAttributes::matchComponents,
-			PrimaryMatch.STREAM_CODEC,
-			FilterAttributes::primaryMatch,
-			ByteBufCodecs.BOOL,
-			FilterAttributes::matchAnyTag,
-			ItemContainerContents.STREAM_CODEC,
-			FilterAttributes::filterItems,
-			ByteBufCodecs.BOOL,
-			FilterAttributes::filterByStorage,
-			ByteBufCodecs.BOOL,
-			FilterAttributes::filterByInventory,
+			StreamCodecHelper.ofCollection(StreamCodecHelper.ofTagkey(Registries.ITEM), HashSet::new), FilterAttributes::tagKeys, ByteBufCodecs.BOOL,
+			FilterAttributes::isAllowList, ByteBufCodecs.BOOL, FilterAttributes::matchDurability, ByteBufCodecs.BOOL, FilterAttributes::matchComponents,
+			PrimaryMatch.STREAM_CODEC, FilterAttributes::primaryMatch, ByteBufCodecs.BOOL, FilterAttributes::matchAnyTag, ItemContainerContents.STREAM_CODEC,
+			FilterAttributes::filterItems, ByteBufCodecs.BOOL, FilterAttributes::filterByStorage, ByteBufCodecs.BOOL, FilterAttributes::filterByInventory,
 			FilterAttributes::new);
 
-	public FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, boolean matchDurability,
-							   boolean matchComponents, PrimaryMatch primaryMatch, boolean matchAnyTag,
-							ItemContainerContents filterItems, boolean filterByStorage, boolean filterByInventory) {
+	public FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, boolean matchDurability, boolean matchComponents, PrimaryMatch primaryMatch,
+			boolean matchAnyTag, ItemContainerContents filterItems, boolean filterByStorage, boolean filterByInventory) {
 		this.tagKeys = Collections.unmodifiableSet(tagKeys);
 		this.isAllowList = isAllowList;
 		this.matchDurability = matchDurability;
@@ -138,7 +121,8 @@ public record FilterAttributes(Set<TagKey<Item>> tagKeys, boolean isAllowList, b
 		}
 
 		public FilterAttributes build() {
-			return new FilterAttributes(tagKeys, isAllowList, matchDurability, matchComponents, primaryMatch, matchAnyTag, filterItems, filterByStorage, filterByInventory);
+			return new FilterAttributes(tagKeys, isAllowList, matchDurability, matchComponents, primaryMatch, matchAnyTag, filterItems, filterByStorage,
+					filterByInventory);
 		}
 
 		public CopyBuilder setAllowList(boolean isAllowList) {

@@ -20,15 +20,18 @@ public class BatteryUpgradeContainer extends UpgradeContainerBase<BatteryUpgrade
 	public static final ResourceLocation EMPTY_BATTERY_INPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/battery_input");
 	public static final ResourceLocation EMPTY_BATTERY_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/battery_output");
 
-	public BatteryUpgradeContainer(Player player, int upgradeContainerId, BatteryUpgradeWrapper upgradeWrapper, UpgradeContainerType<BatteryUpgradeWrapper, BatteryUpgradeContainer> type) {
+	public BatteryUpgradeContainer(Player player, int upgradeContainerId, BatteryUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<BatteryUpgradeWrapper, BatteryUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		slots.add(new BatteryIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.INPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("battery_input")) {
+		slots.add(new BatteryIOSlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.INPUT_SLOT, -100, -100,
+				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("battery_input")) {
 			@Override
 			public int getMaxStackSize(ItemStack stack) {
 				return 1;
 			}
 		}.setBackground(EMPTY_BATTERY_INPUT_SLOT_BACKGROUND));
-		slots.add(new BatteryIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("battery_output")){
+		slots.add(new BatteryIOSlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.OUTPUT_SLOT, -100, -100,
+				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("battery_output")) {
 			@Override
 			public int getMaxStackSize(ItemStack stack) {
 				return 1;
@@ -38,7 +41,7 @@ public class BatteryUpgradeContainer extends UpgradeContainerBase<BatteryUpgrade
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		//noop
+		// noop
 	}
 
 	public int getEnergyStored() {

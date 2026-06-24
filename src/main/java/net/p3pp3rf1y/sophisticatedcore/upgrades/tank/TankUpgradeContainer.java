@@ -19,19 +19,20 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	public static final ResourceLocation EMPTY_TANK_INPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/tank_input");
 	public static final ResourceLocation EMPTY_TANK_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("container/slot/tank_output");
 
-	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper, UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
+	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		slots.add(new TankIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.INPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input"))
-				.setBackground(EMPTY_TANK_INPUT_SLOT_BACKGROUND));
-		slots.add(new TankIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output"))
-				.setBackground(EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
-		slots.add(new TakeOnlySlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100));
-		slots.add(new TakeOnlySlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
+		slots.add(new TankIOSlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.INPUT_SLOT, -100, -100,
+				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input")).setBackground(EMPTY_TANK_INPUT_SLOT_BACKGROUND));
+		slots.add(new TankIOSlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.OUTPUT_SLOT, -100, -100,
+				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output")).setBackground(EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
+		slots.add(new TakeOnlySlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100));
+		slots.add(new TakeOnlySlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
 	}
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		//noop
+		// noop
 	}
 
 	public FluidStack getContents() {
@@ -46,7 +47,8 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 		private final Supplier<TankUpgradeWrapper.TankComponentItemHandler> itemHandlerSupplier;
 		private final Component emptyTooltip;
 
-		public TankIOSlot(Supplier<TankUpgradeWrapper.TankComponentItemHandler> itemHandlerSupplier, int slot, int xPosition, int yPosition, Component emptyTooltip) {
+		public TankIOSlot(Supplier<TankUpgradeWrapper.TankComponentItemHandler> itemHandlerSupplier, int slot, int xPosition, int yPosition,
+				Component emptyTooltip) {
 			super(itemHandlerSupplier::get, slot, xPosition, yPosition);
 			this.itemHandlerSupplier = itemHandlerSupplier;
 			this.emptyTooltip = emptyTooltip;

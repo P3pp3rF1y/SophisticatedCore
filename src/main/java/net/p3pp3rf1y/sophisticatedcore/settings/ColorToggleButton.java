@@ -26,15 +26,16 @@ import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.DEFAULT
 public class ColorToggleButton extends ButtonBase {
 	private static final DyeColor[] DYE_VALUES = DyeColor.values();
 	private static final List<Component> TOOLTIP = new ImmutableList.Builder<Component>()
-			.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("toggle_color")))
-			.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("toggle_color_detail"), null, ChatFormatting.GRAY))
+			.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("toggle_color"))).addAll(TranslationHelper.INSTANCE
+					.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("toggle_color_detail"), null, ChatFormatting.GRAY))
 			.build();
 
 	private final Supplier<DyeColor> getColor;
 	private final Consumer<DyeColor> setColor;
 
 	public ColorToggleButton(Position position, Supplier<DyeColor> getColor, Consumer<DyeColor> setColor) {
-		super(position, Dimension.SQUARE_18, b -> {});
+		super(position, Dimension.SQUARE_18, b -> {
+		});
 		this.getColor = getColor;
 		this.setColor = setColor;
 		setOnClick(this::onClick);
@@ -89,6 +90,6 @@ public class ColorToggleButton extends ButtonBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 }

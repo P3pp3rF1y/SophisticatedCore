@@ -47,11 +47,16 @@ public class LargeResultSelector extends CompositeWidgetBase<WidgetBase> {
 	private static final int SCROLLBAR_BACKGROUND_V = 146;
 	private static final int SCROLLBAR_BACKGROUND_HEIGHT = 56;
 	private static final TextureBlitData SLIDER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 131), Dimension.RECTANGLE_12_15);
-	private static final TextureBlitData DISABLED_SLIDER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 131), Dimension.RECTANGLE_12_15);
-	private static final TextureBlitData RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 148), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData SELECTED_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 166), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData RECIPE_BACKGROUND_HOVERED = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 184), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData RECENT_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(63, 60), Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData DISABLED_SLIDER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 131),
+			Dimension.RECTANGLE_12_15);
+	private static final TextureBlitData RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 148),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData SELECTED_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 166),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData RECIPE_BACKGROUND_HOVERED = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 184),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData RECENT_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(63, 60),
+			Dimension.RECTANGLE_16_18);
 	private static final TextureBlitData SEARCH_ICON = new TextureBlitData(GuiHelper.ICONS, Dimension.SQUARE_256, new UV(208, 32), Dimension.SQUARE_16);
 
 	private final StorageScreenBase<?> screen;
@@ -66,7 +71,8 @@ public class LargeResultSelector extends CompositeWidgetBase<WidgetBase> {
 	private boolean clickedOnScroll;
 
 	public LargeResultSelector(StorageScreenBase<?> screen, List<ResultEntry> results, int selectedResultIndex, IntConsumer onSelect, SoundEvent selectSound) {
-		super(new Position((Minecraft.getInstance().getWindow().getGuiScaledWidth() - WIDTH) / 2, (Minecraft.getInstance().getWindow().getGuiScaledHeight() - HEIGHT) / 2), new Dimension(WIDTH, HEIGHT));
+		super(new Position((Minecraft.getInstance().getWindow().getGuiScaledWidth() - WIDTH) / 2,
+				(Minecraft.getInstance().getWindow().getGuiScaledHeight() - HEIGHT) / 2), new Dimension(WIDTH, HEIGHT));
 		this.screen = screen;
 		this.allResults = results;
 		this.selectedResultIndex = selectedResultIndex;
@@ -88,8 +94,10 @@ public class LargeResultSelector extends CompositeWidgetBase<WidgetBase> {
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		GuiHelper.renderTabBackground(guiGraphics, x, y, getWidth(), getHeight());
-		GuiHelper.renderTiledControlBackground(guiGraphics, getResultsX() - 1, getResultsY() - 1, RESULTS_WIDTH + 2, RESULTS_HEIGHT + 2, RESULT_BACKGROUND_U, RESULT_BACKGROUND_V, RESULT_BACKGROUND_WIDTH, RESULT_BACKGROUND_HEIGHT);
-		GuiHelper.renderTiledControlBackground(guiGraphics, getScrollbarX() - 1, getResultsY() - 1, SCROLLBAR_WIDTH, RESULTS_HEIGHT + 2, SCROLLBAR_BACKGROUND_U, SCROLLBAR_BACKGROUND_V, SCROLLBAR_WIDTH, SCROLLBAR_BACKGROUND_HEIGHT);
+		GuiHelper.renderTiledControlBackground(guiGraphics, getResultsX() - 1, getResultsY() - 1, RESULTS_WIDTH + 2, RESULTS_HEIGHT + 2, RESULT_BACKGROUND_U,
+				RESULT_BACKGROUND_V, RESULT_BACKGROUND_WIDTH, RESULT_BACKGROUND_HEIGHT);
+		GuiHelper.renderTiledControlBackground(guiGraphics, getScrollbarX() - 1, getResultsY() - 1, SCROLLBAR_WIDTH, RESULTS_HEIGHT + 2, SCROLLBAR_BACKGROUND_U,
+				SCROLLBAR_BACKGROUND_V, SCROLLBAR_WIDTH, SCROLLBAR_BACKGROUND_HEIGHT);
 		renderResultBackgrounds(guiGraphics, mouseX, mouseY);
 		renderResultItems(guiGraphics);
 		renderScrollBar(guiGraphics);
@@ -285,10 +293,11 @@ public class LargeResultSelector extends CompositeWidgetBase<WidgetBase> {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//no narration
+		// no narration
 	}
 
-	public record ResultEntry(int resultIndex, ItemStack stack, boolean recent) {}
+	public record ResultEntry(int resultIndex, ItemStack stack, boolean recent) {
+	}
 
 	private class ResultSearchBox extends TextBox {
 		private static final int UNFOCUSED_COLOR = 0xBBBBBB;
@@ -331,7 +340,8 @@ public class LargeResultSelector extends CompositeWidgetBase<WidgetBase> {
 		public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 			super.renderTooltip(screen, guiGraphics, mouseX, mouseY);
 			if (!isFocused() && isMouseOver(mouseX, mouseY)) {
-				guiGraphics.renderTooltip(screen.getFont(), List.of(Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box"))), Optional.empty(), mouseX, mouseY);
+				guiGraphics.renderTooltip(screen.getFont(), List.of(Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box"))),
+						Optional.empty(), mouseX, mouseY);
 			}
 		}
 	}

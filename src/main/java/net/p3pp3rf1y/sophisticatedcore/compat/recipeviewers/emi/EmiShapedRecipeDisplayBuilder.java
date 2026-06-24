@@ -68,7 +68,7 @@ public class EmiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Em
 
 	@Override
 	public ShapedRecipeDisplayBuilder<EmiCraftingRecipe> setDimensions(int width, int height) {
-		//noop - not required for EMI
+		// noop - not required for EMI
 		return this;
 	}
 

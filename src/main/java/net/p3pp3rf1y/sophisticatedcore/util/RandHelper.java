@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class RandHelper {
-	private RandHelper() {}
+	private RandHelper() {
+	}
 
 	@SuppressWarnings("squid:S1764") // this actually isn't a case of identical values being used as both side are random float value thus -1 to 1 as a result
 	public static float getRandomMinusOneToOne(RandomSource rand) {

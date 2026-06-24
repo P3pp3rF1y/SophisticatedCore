@@ -20,12 +20,12 @@ public interface ICraftingUIPart {
 	ICraftingUIPart NOOP = new ICraftingUIPart() {
 		@Override
 		public void onCraftingSlotsDisplayed(List<Slot> slots) {
-			//noop
+			// noop
 		}
 
 		@Override
 		public void onCraftingSlotsHidden() {
-			//noop
+			// noop
 		}
 
 		@Override
@@ -35,7 +35,7 @@ public interface ICraftingUIPart {
 
 		@Override
 		public void setStorageScreen(StorageScreenBase<?> screen) {
-			//noop
+			// noop
 		}
 	};
 }

@@ -11,8 +11,8 @@ public abstract class UpgradeSettingsTab<C extends UpgradeContainerBase<?, ?>> e
 	private final C upgradeContainer;
 
 	protected UpgradeSettingsTab(C upgradeContainer, Position position, StorageScreenBase<?> screen, Component tabLabel, Component closedTooltip) {
-		super(position, screen, tabLabel, closedTooltip,
-				onTabIconClicked -> new ItemButton(new Position(position.x() + 1, position.y() + 4), onTabIconClicked, upgradeContainer.getUpgradeStack(), Component.translatable("gui.sophisticatedcore.narrate.tab_button")));
+		super(position, screen, tabLabel, closedTooltip, onTabIconClicked -> new ItemButton(new Position(position.x() + 1, position.y() + 4), onTabIconClicked,
+				upgradeContainer.getUpgradeStack(), Component.translatable("gui.sophisticatedcore.narrate.tab_button")));
 		this.upgradeContainer = upgradeContainer;
 		moveSlotsOutOfView();
 	}
@@ -51,7 +51,7 @@ public abstract class UpgradeSettingsTab<C extends UpgradeContainerBase<?, ?>> e
 		}
 	}
 
-	@SuppressWarnings("unused") //parameters used in overrides
+	@SuppressWarnings("unused") // parameters used in overrides
 	public boolean slotIsNotCoveredAt(Slot slot, double mouseX, double mouseY) {
 		return true;
 	}

@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei;
 
-import com.mojang.serialization.DynamicOps;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import me.shedaniel.rei.api.client.registry.transfer.TransferHandler;
@@ -42,7 +41,8 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 	private final CategoryIdentifier<D> categoryIdentifier;
 	private final RecipeType<? extends Recipe<?>> recipeType;
 
-	public ReiCraftingContainerTransferHandler(Class<? extends C> containerClass, CategoryIdentifier<D> categoryIdentifier, RecipeType<? extends Recipe<?>> recipeType) {
+	public ReiCraftingContainerTransferHandler(Class<? extends C> containerClass, CategoryIdentifier<D> categoryIdentifier,
+			RecipeType<? extends Recipe<?>> recipeType) {
 		this.containerClass = containerClass;
 		this.categoryIdentifier = categoryIdentifier;
 		this.recipeType = recipeType;
@@ -52,8 +52,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 	public ApplicabilityResult checkApplicable(Context context) {
 		if (!containerClass.isInstance(context.getMenu())
 				|| ((StorageContainerMenuBase<?>) context.getMenu()).getOpenOrFirstCraftingContainer(recipeType).isEmpty()
-				|| !categoryIdentifier.equals(context.getDisplay().getCategoryIdentifier())
-				|| context.getContainerScreen() == null) {
+				|| !categoryIdentifier.equals(context.getDisplay().getCategoryIdentifier()) || context.getContainerScreen() == null) {
 			return ApplicabilityResult.createNotApplicable();
 		}
 
@@ -67,8 +66,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 		}
 
 		return storageContainerMenuBase.getOpenOrFirstCraftingContainer(recipeType)
-				.map(c -> c.getRecipeSlots().stream().map(ReiSlotAccessor::fromSlot).toList())
-				.orElse(List.of());
+				.map(c -> c.getRecipeSlots().stream().map(ReiSlotAccessor::fromSlot).toList()).orElse(List.of());
 	}
 
 	@Override
@@ -93,8 +91,8 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 				missingIndices.add(ingredient.getDisplayIndex());
 			}
 			return Result.createFailed(Component.translatable("error.rei.not.enough.materials"))
-					.renderer((matrices, mouseX, mouseY, delta, widgets, bounds, d) ->
-							getMissingInputRenderer().renderMissingInput(context, inputs, missing, missingIndices, matrices, mouseX, mouseY, delta, widgets, bounds))
+					.renderer((matrices, mouseX, mouseY, delta, widgets, bounds, d) -> getMissingInputRenderer().renderMissingInput(context, inputs, missing,
+							missingIndices, matrices, mouseX, mouseY, delta, widgets, bounds))
 					.tooltipMissing(CollectionUtils.map(missing, ingredient -> EntryIngredients.ofItemStacks(ingredient.get())));
 		}
 
@@ -103,8 +101,7 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 		}
 
 		StorageContainerMenuBase<?> storageContainerMenuBase = (StorageContainerMenuBase<?>) context.getMenu();
-		storageContainerMenuBase.getOpenOrFirstCraftingContainer(recipeType)
-				.ifPresent(openOrFirstCraftingContainer -> {
+		storageContainerMenuBase.getOpenOrFirstCraftingContainer(recipeType).ifPresent(openOrFirstCraftingContainer -> {
 			if (!openOrFirstCraftingContainer.isOpen()) {
 				storageContainerMenuBase.getOpenContainer().ifPresent(c -> {
 					c.setIsOpen(false);
@@ -120,26 +117,12 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 
 		ResourceLocation recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipeType);
 		if (recipeTypeId != null) {
-			List<Integer> inputSlotIds = inputSlots.stream()
-					.map(ReiSlotAccessor.class::cast)
-					.map(ReiSlotAccessor::getIndex)
-					.toList();
+			List<Integer> inputSlotIds = inputSlots.stream().map(ReiSlotAccessor.class::cast).map(ReiSlotAccessor::getIndex).toList();
 
-			List<Integer> inventorySlotIds = inventorySlots.stream()
-					.map(ReiSlotAccessor.class::cast)
-					.map(ReiSlotAccessor::getIndex)
-					.toList();
+			List<Integer> inventorySlotIds = inventorySlots.stream().map(ReiSlotAccessor.class::cast).map(ReiSlotAccessor::getIndex).toList();
 
-			PacketDistributor.sendToServer(
-					new ReiTransferRecipePayload(
-							context.getDisplay().getDisplayLocation().get(),
-							recipeTypeId,
-							save(inputs),
-							inputSlotIds,
-							inventorySlotIds,
-							context.isStackedCrafting()
-					)
-			);
+			PacketDistributor.sendToServer(new ReiTransferRecipePayload(context.getDisplay().getDisplayLocation().get(), recipeTypeId, save(inputs),
+					inputSlotIds, inventorySlotIds, context.isStackedCrafting()));
 		}
 		return Result.createSuccessful();
 	}

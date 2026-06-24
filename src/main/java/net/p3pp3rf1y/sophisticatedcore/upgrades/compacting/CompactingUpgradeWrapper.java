@@ -17,11 +17,17 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper.CompactingShape;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.Consumer;
 
 public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgradeWrapper, CompactingUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IExtractResponseUpgrade {
+		implements
+			IInsertResponseUpgrade,
+			IFilteredUpgrade,
+			ISlotChangeResponseUpgrade,
+			ITickableUpgrade,
+			IExtractResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToCompact = new HashSet<>();
 	private final Set<Integer> slotsToCompactAfterCurrent = new HashSet<>();
@@ -32,9 +38,7 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	public CompactingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 
-		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(),
-				this::canCompact,
-				ModCoreDataComponents.FILTER_ATTRIBUTES);
+		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), this::canCompact, ModCoreDataComponents.FILTER_ATTRIBUTES);
 
 		FilterLogic.ObservableFilterItemStackHandler filterHandler = filterLogic.getFilterHandler();
 		filterHandler.setOnSlotChange(s -> resetFullSlotInfo());
@@ -91,10 +95,13 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 			while (extractedStack.getCount() == totalCount) {
 				ItemStack resultCopy = compactingResult.getResult().copy();
-				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
+				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty()
+						? Collections.emptyList()
+						: compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
 
 				if (!fitsResultAndRemainingItems(handler, remainingItemsCopy, resultCopy)) {
-					if (handler instanceof InventoryHandler inventoryHandler && inventoryHandler.getStackInSlot(slot).getCount() >= inventoryHandler.getStackLimit(slot, stack)) {
+					if (handler instanceof InventoryHandler inventoryHandler
+							&& inventoryHandler.getStackInSlot(slot).getCount() >= inventoryHandler.getStackLimit(slot, stack)) {
 						fullSlotsToCompactLater.put(resultCopy.getItem(), slot);
 					}
 					return;
@@ -137,7 +144,8 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	static Optional<CompactingDefinition> getCompactingDefinition(ItemStack stack, CompactingUpgradeItem upgradeItem, boolean shouldCompactNonUncraftable) {
 		Set<CompactingShape> shapes = RecipeHelper.getItemCompactingShapes(stack);
 
-		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE) || (shouldCompactNonUncraftable && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
+		if (upgradeItem.shouldCompactThreeByThree() && (shapes.contains(CompactingShape.THREE_BY_THREE_UNCRAFTABLE)
+				|| (shouldCompactNonUncraftable && shapes.contains(CompactingShape.THREE_BY_THREE)))) {
 			return getVanillaCompactingDefinition(stack, 3, 3);
 		} else if (shapes.contains(CompactingShape.TWO_BY_TWO_UNCRAFTABLE) || (shouldCompactNonUncraftable && shapes.contains(CompactingShape.TWO_BY_TWO))) {
 			return getVanillaCompactingDefinition(stack, 2, 2);
@@ -209,11 +217,13 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 
 		Optional<CompactingDefinition> compactingDefinition = getCompactingDefinition(slotStack);
 		if (compactingDefinition.isPresent() && slotStack.getCount() >= slotStack.getMaxStackSize()) {
-			//try compacting with simulation to see if it would work
+			// try compacting with simulation to see if it would work
 			RecipeHelper.CompactingResult compactingResult = compactingDefinition.get().result();
 			if (!compactingResult.getResult().isEmpty()) {
 				ItemStack resultCopy = compactingResult.getResult().copy();
-				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty() ? Collections.emptyList() : compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
+				List<ItemStack> remainingItemsCopy = compactingResult.getRemainingItems().isEmpty()
+						? Collections.emptyList()
+						: compactingResult.getRemainingItems().stream().map(ItemStack::copy).toList();
 
 				if (!fitsResultAndRemainingItems(inventoryHandler, remainingItemsCopy, resultCopy)) {
 					fullSlotsToCompactLater.put(resultCopy.getItem(), slot);

@@ -4,7 +4,8 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeNoteParticle;
 
 public class ModParticles {
-	private ModParticles() {}
+	private ModParticles() {
+	}
 
 	@SuppressWarnings("unused") // need this to register the event correctly
 	public static void registerFactories(RegisterParticleProvidersEvent event) {

@@ -233,7 +233,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 					return true;
 				}
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		}
@@ -241,7 +241,8 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	}
 
 	protected boolean isDifferentFilterLogicsData(CompoundTag data) {
-		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getString(DATA_COMPONENT_KEY));
+		return data.contains(DATA_COMPONENT_KEY)
+				&& !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getString(DATA_COMPONENT_KEY));
 	}
 
 	public class TagSelectionSlot extends Slot implements IFilterSlot {
@@ -300,7 +301,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 
 		@Override
 		public void setChanged() {
-			//noop
+			// noop
 		}
 	}
 }
