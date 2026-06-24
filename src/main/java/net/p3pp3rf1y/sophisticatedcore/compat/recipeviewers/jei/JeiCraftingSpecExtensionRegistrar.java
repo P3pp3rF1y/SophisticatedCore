@@ -16,12 +16,15 @@ public class JeiCraftingSpecExtensionRegistrar {
 	private JeiCraftingSpecExtensionRegistrar() {
 	}
 
-	public static void registerCraftingSpecExtensions(IVanillaCategoryExtensionRegistration registration, Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedStackPredicate) {
+	public static void registerCraftingSpecExtensions(IVanillaCategoryExtensionRegistration registration, Supplier<IRecipeViewerDisplayCatalog> catalogSupplier,
+			Predicate<ItemStack> focusedStackPredicate) {
 		registerSpecRecipeExtensions(registration, catalogSupplier);
-		catalogSupplier.get().getCraftingSpecExtensionRecipeClasses().forEach(recipeClass -> registerCraftingSpecExtension(registration, recipeClass, catalogSupplier, focusedStackPredicate));
+		catalogSupplier.get().getCraftingSpecExtensionRecipeClasses()
+				.forEach(recipeClass -> registerCraftingSpecExtension(registration, recipeClass, catalogSupplier, focusedStackPredicate));
 	}
 
-	private static synchronized void registerSpecRecipeExtensions(IVanillaCategoryExtensionRegistration registration, Supplier<IRecipeViewerDisplayCatalog> catalogSupplier) {
+	private static synchronized void registerSpecRecipeExtensions(IVanillaCategoryExtensionRegistration registration,
+			Supplier<IRecipeViewerDisplayCatalog> catalogSupplier) {
 		if (specRecipeExtensionsRegistered) {
 			return;
 		}
@@ -31,8 +34,8 @@ public class JeiCraftingSpecExtensionRegistrar {
 		specRecipeExtensionsRegistered = true;
 	}
 
-	private static <R extends CraftingRecipe> void registerCraftingSpecExtension(IVanillaCategoryExtensionRegistration registration, Class<R> recipeClass, Supplier<IRecipeViewerDisplayCatalog> catalogSupplier,
-			Predicate<ItemStack> focusedStackPredicate) {
+	private static <R extends CraftingRecipe> void registerCraftingSpecExtension(IVanillaCategoryExtensionRegistration registration, Class<R> recipeClass,
+			Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedStackPredicate) {
 		registration.getCraftingCategory().addCategoryExtension(recipeClass,
 				recipe -> new CraftingSpecCategoryExtension<>(recipe, rawRecipe -> getCraftingSpec(catalogSupplier.get(), rawRecipe), focusedStackPredicate));
 	}

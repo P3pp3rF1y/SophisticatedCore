@@ -36,8 +36,7 @@ public class CraftingUpgradeTweakUIPart implements ICraftingUIPart {
 		buttons.add(button);
 		try {
 			ADD_RENDERABLE_WIDGET.invoke(storageScreen, button);
-		}
-		catch (IllegalAccessException | InvocationTargetException e) {
+		} catch (IllegalAccessException | InvocationTargetException e) {
 			SophisticatedCore.LOGGER.error("Error calling addButton in Screen class", e);
 		}
 	}

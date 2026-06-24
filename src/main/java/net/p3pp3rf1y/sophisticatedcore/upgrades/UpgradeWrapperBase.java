@@ -18,7 +18,7 @@ public abstract class UpgradeWrapperBase<W extends IUpgradeWrapper, T extends Up
 	protected UpgradeWrapperBase(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		this.storageWrapper = storageWrapper;
 		this.upgrade = upgrade;
-		//noinspection unchecked
+		// noinspection unchecked
 		upgradeItem = (T) upgrade.getItem();
 		this.upgradeSaveHandler = upgradeSaveHandler;
 	}

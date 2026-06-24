@@ -17,9 +17,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class ClientRecipeHelper {
-	private ClientRecipeHelper() {}
+	private ClientRecipeHelper() {
+	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfType(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, V> transformRecipe) {
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfType(RecipeType<T> recipeType,
+			Class<U> filterRecipeClass, Function<U, V> transformRecipe) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {
@@ -29,16 +31,14 @@ public class ClientRecipeHelper {
 		return transformAllRecipesOfType(level.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
 	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfType(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, V> transformRecipe) {
-		return recipeManager
-				.getAllRecipesFor(recipeType)
-				.stream()
-				.filter(filterRecipeClass::isInstance)
-				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r)))
-				.toList();
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfType(RecipeManager recipeManager,
+			RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, V> transformRecipe) {
+		return recipeManager.getAllRecipesFor(recipeType).stream().filter(filterRecipeClass::isInstance)
+				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r))).toList();
 	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeWithIds(RecipeType<T> recipeType, Class<U> filterRecipeClass, BiFunction<ResourceLocation, U, V> transformRecipe) {
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeWithIds(RecipeType<T> recipeType,
+			Class<U> filterRecipeClass, BiFunction<ResourceLocation, U, V> transformRecipe) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {
@@ -48,17 +48,14 @@ public class ClientRecipeHelper {
 		return transformAllRecipesOfTypeWithIds(level.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
 	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeWithIds(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass, BiFunction<ResourceLocation, U, V> transformRecipe) {
-		return recipeManager
-				.getAllRecipesFor(recipeType)
-				.stream()
-				.filter(filterRecipeClass::isInstance)
-				.map(r -> filterRecipeClass.cast(r))
-				.map(r -> transformRecipe.apply(r.getId(), r))
-				.toList();
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeWithIds(RecipeManager recipeManager,
+			RecipeType<T> recipeType, Class<U> filterRecipeClass, BiFunction<ResourceLocation, U, V> transformRecipe) {
+		return recipeManager.getAllRecipesFor(recipeType).stream().filter(filterRecipeClass::isInstance).map(r -> filterRecipeClass.cast(r))
+				.map(r -> transformRecipe.apply(r.getId(), r)).toList();
 	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeIntoMultiple(RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<V>> transformRecipe) {
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeIntoMultiple(RecipeType<T> recipeType,
+			Class<U> filterRecipeClass, Function<U, List<V>> transformRecipe) {
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null) {
@@ -68,13 +65,10 @@ public class ClientRecipeHelper {
 		return transformAllRecipesOfTypeIntoMultiple(level.getRecipeManager(), recipeType, filterRecipeClass, transformRecipe);
 	}
 
-	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeIntoMultiple(RecipeManager recipeManager, RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<V>> transformRecipe) {
-		return recipeManager
-				.getAllRecipesFor(recipeType)
-				.stream()
-				.filter(filterRecipeClass::isInstance)
-				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r)))
-				.collect(ArrayList::new, List::addAll, List::addAll);
+	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfTypeIntoMultiple(RecipeManager recipeManager,
+			RecipeType<T> recipeType, Class<U> filterRecipeClass, Function<U, List<V>> transformRecipe) {
+		return recipeManager.getAllRecipesFor(recipeType).stream().filter(filterRecipeClass::isInstance)
+				.map(r -> transformRecipe.apply(filterRecipeClass.cast(r))).collect(ArrayList::new, List::addAll, List::addAll);
 	}
 
 	public static <C extends Container> ItemStack assemble(Recipe<C> recipe, C container) {

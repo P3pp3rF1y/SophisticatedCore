@@ -17,33 +17,26 @@ import java.util.List;
 public class BlockHighlightRenderHelper {
 
 	private static class QuadRenderType extends RenderType {
-		public QuadRenderType(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload, Runnable pSetupState, Runnable pClearState) {
+		public QuadRenderType(String pName, VertexFormat pFormat, VertexFormat.Mode pMode, int pBufferSize, boolean pAffectsCrumbling, boolean pSortOnUpload,
+				Runnable pSetupState, Runnable pClearState) {
 			super(pName, pFormat, pMode, pBufferSize, pAffectsCrumbling, pSortOnUpload, pSetupState, pClearState);
 		}
 
-		private static final RenderType OUTLINE_QUADS = RenderType.create(
-				"storage_outline_quads",
-				DefaultVertexFormat.POSITION_COLOR,
-				VertexFormat.Mode.QUADS,
-				256,
-				false,  // no affect crumbling
-				false,  // no sorting needed for opaque
-				RenderType.CompositeState.builder()
-						.setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
-						.setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
-						.setCullState(RenderStateShard.NO_CULL)
-						.setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
-						.setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
-						.setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
-						.setOutputState(RenderStateShard.MAIN_TARGET)
-						.createCompositeState(true));
+		private static final RenderType OUTLINE_QUADS = RenderType.create("storage_outline_quads", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS,
+				256, false, // no affect crumbling
+				false, // no sorting needed for opaque
+				RenderType.CompositeState.builder().setShaderState(RenderStateShard.POSITION_COLOR_SHADER).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+						.setCullState(RenderStateShard.NO_CULL).setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
+						.setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE).setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
+						.setOutputState(RenderStateShard.MAIN_TARGET).createCompositeState(true));
 	}
 
 	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, BlockPos originPos) {
 		renderThickEdges(poseStack, bufferSource, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());
 	}
 
-	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, double originX, double originY, double originZ) {
+	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, double originX,
+			double originY, double originZ) {
 		VertexConsumer vertexConsumer = bufferSource.getBuffer(QuadRenderType.OUTLINE_QUADS);
 		int red = color >> 16 & 255;
 		int green = color >> 8 & 255;
@@ -55,11 +48,8 @@ public class BlockHighlightRenderHelper {
 		});
 	}
 
-	public static void emitThickLineOrtho(
-			VertexConsumer vc, Matrix4f pose,
-			Vec3 a, Vec3 b, float thickness,
-			int r, int g, int bl, int alpha, double originX, double originY, double originZ
-	) {
+	public static void emitThickLineOrtho(VertexConsumer vc, Matrix4f pose, Vec3 a, Vec3 b, float thickness, int r, int g, int bl, int alpha, double originX,
+			double originY, double originZ) {
 		final float rh = thickness * 0.5f;
 
 		// Axis-aligned unit along the segment (handles +/- direction)
@@ -103,23 +93,15 @@ public class BlockHighlightRenderHelper {
 		emitQuad(vc, pose, aVpWm, aVmWm, bVmWm, bVpWm, r, g, bl, alpha, originX, originY, originZ);
 	}
 
-	private static void emitQuad(
-			VertexConsumer vc, Matrix4f pose,
-			Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3,
-			int r, int g, int b, int a, double originX, double originY, double originZ
-	) {
+	private static void emitQuad(VertexConsumer vc, Matrix4f pose, Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3, int r, int g, int b, int a, double originX,
+			double originY, double originZ) {
 		add(vc, pose, p0, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p1, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p2, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p3, r, g, b, a, originX, originY, originZ);
 	}
 
-	private static void add(VertexConsumer vc, Matrix4f pose,
-							Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
-		vc.vertex(pose,
-						(float) (p.x - originX),
-						(float) (p.y - originY),
-						(float) (p.z - originZ))
-				.color(r, g, b, a).endVertex();
+	private static void add(VertexConsumer vc, Matrix4f pose, Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
+		vc.vertex(pose, (float) (p.x - originX), (float) (p.y - originY), (float) (p.z - originZ)).color(r, g, b, a).endVertex();
 	}
 }

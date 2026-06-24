@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Supplier;
 
 public class SyncDatapackSettingsTemplateMessage implements ISplittableMessage {

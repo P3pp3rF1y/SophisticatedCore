@@ -27,23 +27,21 @@ public class JeiSettingsGhostIngredientHandler<S extends SettingsScreen> impleme
 
 		gui.getSettingsTabControl().getOpenTab().ifPresent(tab -> {
 			if (tab instanceof MemorySettingsTab) {
-				ingredient.getItemStack().ifPresent(ghostStack ->
-						gui.getMenu().getStorageInventorySlots().forEach(s -> {
-							if (s.getItem().isEmpty()) {
-								targets.add(new Target<>() {
-									@Override
-									public Rect2i getArea() {
-										return new Rect2i(gui.getGuiLeft() + s.x, gui.getGuiTop() + s.y, 17, 17);
-									}
-
-									@Override
-									public void accept(I i) {
-										PacketHandler.INSTANCE.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
-									}
-								});
+				ingredient.getItemStack().ifPresent(ghostStack -> gui.getMenu().getStorageInventorySlots().forEach(s -> {
+					if (s.getItem().isEmpty()) {
+						targets.add(new Target<>() {
+							@Override
+							public Rect2i getArea() {
+								return new Rect2i(gui.getGuiLeft() + s.x, gui.getGuiTop() + s.y, 17, 17);
 							}
-						})
-				);
+
+							@Override
+							public void accept(I i) {
+								PacketHandler.INSTANCE.sendToServer(new SetMemorySlotMessage(ghostStack, s.index));
+							}
+						});
+					}
+				}));
 			}
 		});
 		return targets;

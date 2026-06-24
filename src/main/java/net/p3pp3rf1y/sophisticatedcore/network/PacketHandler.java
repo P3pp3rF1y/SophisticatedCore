@@ -38,8 +38,7 @@ public class PacketHandler {
 	private int idx = 0;
 
 	protected PacketHandler(String modId, String protocol) {
-		networkWrapper = NetworkRegistry.newSimpleChannel(new ResourceLocation(modId, "channel"),
-				() -> protocol, protocol::equals, protocol::equals);
+		networkWrapper = NetworkRegistry.newSimpleChannel(new ResourceLocation(modId, "channel"), () -> protocol, protocol::equals, protocol::equals);
 	}
 
 	public final void init() {
@@ -52,28 +51,36 @@ public class PacketHandler {
 	}
 
 	public void registerMessages() {
-		registerMessage(SyncContainerClientDataMessage.class, SyncContainerClientDataMessage::encode, SyncContainerClientDataMessage::decode, SyncContainerClientDataMessage::onMessage);
+		registerMessage(SyncContainerClientDataMessage.class, SyncContainerClientDataMessage::encode, SyncContainerClientDataMessage::decode,
+				SyncContainerClientDataMessage::onMessage);
 		registerMessage(TransferFullSlotMessage.class, TransferFullSlotMessage::encode, TransferFullSlotMessage::decode, TransferFullSlotMessage::onMessage);
-		registerMessage(SyncContainerStacksMessage.class, SyncContainerStacksMessage::encode, SyncContainerStacksMessage::decode, SyncContainerStacksMessage::onMessage);
+		registerMessage(SyncContainerStacksMessage.class, SyncContainerStacksMessage::encode, SyncContainerStacksMessage::decode,
+				SyncContainerStacksMessage::onMessage);
 		registerMessage(SyncSlotStackMessage.class, SyncSlotStackMessage::encode, SyncSlotStackMessage::decode, SyncSlotStackMessage::onMessage);
-		registerMessage(SyncRecentCraftedResultsMessage.class, SyncRecentCraftedResultsMessage::encode, SyncRecentCraftedResultsMessage::decode, SyncRecentCraftedResultsMessage::onMessage);
-		registerMessage(SyncPlayerSettingsMessage.class, SyncPlayerSettingsMessage::encode, SyncPlayerSettingsMessage::decode, SyncPlayerSettingsMessage::onMessage);
+		registerMessage(SyncRecentCraftedResultsMessage.class, SyncRecentCraftedResultsMessage::encode, SyncRecentCraftedResultsMessage::decode,
+				SyncRecentCraftedResultsMessage::onMessage);
+		registerMessage(SyncPlayerSettingsMessage.class, SyncPlayerSettingsMessage::encode, SyncPlayerSettingsMessage::decode,
+				SyncPlayerSettingsMessage::onMessage);
 		registerMessage(PlayDiscMessage.class, PlayDiscMessage::encode, PlayDiscMessage::decode, PlayDiscMessage::onMessage);
 		registerMessage(StopDiscPlaybackMessage.class, StopDiscPlaybackMessage::encode, StopDiscPlaybackMessage::decode, StopDiscPlaybackMessage::onMessage);
 		registerMessage(TankClickMessage.class, TankClickMessage::encode, TankClickMessage::decode, TankClickMessage::onMessage);
-		registerMessage(SyncTemplateSettingsMessage.class, SyncTemplateSettingsMessage::encode, SyncTemplateSettingsMessage::decode, SyncTemplateSettingsMessage::onMessage);
-		registerMessage(SyncAdditionalSlotInfoMessage.class, SyncAdditionalSlotInfoMessage::encode, SyncAdditionalSlotInfoMessage::decode, SyncAdditionalSlotInfoMessage::onMessage);
-		registerMessage(SyncEmptySlotIconsMessage.class, SyncEmptySlotIconsMessage::encode, SyncEmptySlotIconsMessage::decode, SyncEmptySlotIconsMessage::onMessage);
-		registerMessage(SyncSlotChangeErrorMessage.class, SyncSlotChangeErrorMessage::encode, SyncSlotChangeErrorMessage::decode, SyncSlotChangeErrorMessage::onMessage);
-		registerMessage(SyncDatapackSettingsTemplateMessage.class, SyncDatapackSettingsTemplateMessage::encode, SyncDatapackSettingsTemplateMessage::decode, SyncDatapackSettingsTemplateMessage::onMessage);
+		registerMessage(SyncTemplateSettingsMessage.class, SyncTemplateSettingsMessage::encode, SyncTemplateSettingsMessage::decode,
+				SyncTemplateSettingsMessage::onMessage);
+		registerMessage(SyncAdditionalSlotInfoMessage.class, SyncAdditionalSlotInfoMessage::encode, SyncAdditionalSlotInfoMessage::decode,
+				SyncAdditionalSlotInfoMessage::onMessage);
+		registerMessage(SyncEmptySlotIconsMessage.class, SyncEmptySlotIconsMessage::encode, SyncEmptySlotIconsMessage::decode,
+				SyncEmptySlotIconsMessage::onMessage);
+		registerMessage(SyncSlotChangeErrorMessage.class, SyncSlotChangeErrorMessage::encode, SyncSlotChangeErrorMessage::decode,
+				SyncSlotChangeErrorMessage::onMessage);
+		registerMessage(SyncDatapackSettingsTemplateMessage.class, SyncDatapackSettingsTemplateMessage::encode, SyncDatapackSettingsTemplateMessage::decode,
+				SyncDatapackSettingsTemplateMessage::onMessage);
 		registerMessage(TransferItemsMessage.class, TransferItemsMessage::encode, TransferItemsMessage::decode, TransferItemsMessage::onMessage);
-		registerMessage(SyncBlockHighlightsMessage.class, SyncBlockHighlightsMessage::encode, SyncBlockHighlightsMessage::decode, SyncBlockHighlightsMessage::onMessage);
+		registerMessage(SyncBlockHighlightsMessage.class, SyncBlockHighlightsMessage::encode, SyncBlockHighlightsMessage::decode,
+				SyncBlockHighlightsMessage::onMessage);
 	}
 
-	public <M> void registerMessage(Class<M> messageType,
-									BiConsumer<M, FriendlyByteBuf> encoder,
-									Function<FriendlyByteBuf, M> decoder,
-									BiConsumer<M, Supplier<NetworkEvent.Context>> handler) {
+	public <M> void registerMessage(Class<M> messageType, BiConsumer<M, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, M> decoder,
+			BiConsumer<M, Supplier<NetworkEvent.Context>> handler) {
 
 		int id = idx++;
 
@@ -119,9 +126,7 @@ public class PacketHandler {
 			return;
 		}
 
-		splitter.splitAndSend(fullStream, payloadSlice ->
-				networkWrapper.send(target, new SplitPacket(payloadSlice))
-		);
+		splitter.splitAndSend(fullStream, payloadSlice -> networkWrapper.send(target, new SplitPacket(payloadSlice)));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -175,9 +180,8 @@ public class PacketHandler {
 		context.setPacketHandled(true);
 	}
 
-	private record MessageType<M>(int id, Class<M> type, BiConsumer<M, FriendlyByteBuf> encoder,
-								  Function<FriendlyByteBuf, M> decoder,
-								  BiConsumer<M, Supplier<NetworkEvent.Context>> handler) {
+	private record MessageType<M>(int id, Class<M> type, BiConsumer<M, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, M> decoder,
+			BiConsumer<M, Supplier<NetworkEvent.Context>> handler) {
 		public void decodeAndHandle(FriendlyByteBuf buf, Supplier<NetworkEvent.Context> ctx) {
 			M msg = decoder.apply(buf);
 			handler.accept(msg, ctx);

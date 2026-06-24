@@ -10,8 +10,6 @@ public interface IStashStorageItem {
 	StashResult getItemStashable(ItemStack storageStack, ItemStack stack);
 
 	enum StashResult {
-		MATCH_AND_SPACE,
-		SPACE,
-		NO_SPACE
+		MATCH_AND_SPACE, SPACE, NO_SPACE
 	}
 }

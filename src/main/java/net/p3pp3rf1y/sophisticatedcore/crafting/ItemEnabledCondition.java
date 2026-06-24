@@ -15,7 +15,7 @@ public class ItemEnabledCondition implements ICondition {
 	private final ResourceLocation itemRegistryName;
 
 	public ItemEnabledCondition(Item item) {
-		//noinspection ConstantConditions - only called after actually registered
+		// noinspection ConstantConditions - only called after actually registered
 		this(ForgeRegistries.ITEMS.getKey(item));
 	}
 

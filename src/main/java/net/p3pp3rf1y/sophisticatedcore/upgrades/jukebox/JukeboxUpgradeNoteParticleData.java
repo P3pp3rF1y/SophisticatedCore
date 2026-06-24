@@ -20,12 +20,12 @@ public class JukeboxUpgradeNoteParticleData extends ParticleType<JukeboxUpgradeN
 
 	@Override
 	public void writeToNetwork(FriendlyByteBuf pBuffer) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public String writeToString() {
-		//noinspection ConstantConditions
+		// noinspection ConstantConditions
 		return ForgeRegistries.PARTICLE_TYPES.getKey(ModParticles.JUKEBOX_NOTE.get()).toString();
 	}
 

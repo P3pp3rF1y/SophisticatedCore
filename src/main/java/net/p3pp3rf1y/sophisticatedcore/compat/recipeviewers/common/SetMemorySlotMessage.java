@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsC
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Supplier;
 
 public class SetMemorySlotMessage {

@@ -6,14 +6,13 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum AutomationDirection implements StringRepresentable {
-	INPUT("input"),
-	OUTPUT("output"),
-	KEEP("keep"),
-	OFF("off");
+	INPUT("input"), OUTPUT("output"), KEEP("keep"), OFF("off");
 
 	private final String name;
 
-	AutomationDirection(String name) {this.name = name;}
+	AutomationDirection(String name) {
+		this.name = name;
+	}
 
 	@Override
 	public String getSerializedName() {

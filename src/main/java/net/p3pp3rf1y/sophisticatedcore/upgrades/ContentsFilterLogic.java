@@ -14,13 +14,15 @@ public class ContentsFilterLogic extends FilterLogic {
 	private final Supplier<InventoryHandler> getInventoryHandler;
 	private final MemorySettingsCategory memorySettings;
 
-	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler, MemorySettingsCategory memorySettings, String parentTagKey) {
+	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler,
+			MemorySettingsCategory memorySettings, String parentTagKey) {
 		super(upgrade, saveHandler, filterSlotCount, parentTagKey);
 		this.getInventoryHandler = getInventoryHandler;
 		this.memorySettings = memorySettings;
 	}
 
-	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler, MemorySettingsCategory memorySettings) {
+	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler,
+			MemorySettingsCategory memorySettings) {
 		super(upgrade, saveHandler, filterSlotCount);
 		this.getInventoryHandler = getInventoryHandler;
 		this.memorySettings = memorySettings;

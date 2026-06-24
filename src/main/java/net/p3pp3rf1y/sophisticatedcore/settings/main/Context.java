@@ -1,8 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.main;
 
 public enum Context {
-	PLAYER(0),
-	STORAGE(1);
+	PLAYER(0), STORAGE(1);
 
 	private final int id;
 

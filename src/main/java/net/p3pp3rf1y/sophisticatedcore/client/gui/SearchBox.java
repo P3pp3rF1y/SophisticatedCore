@@ -15,10 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 class SearchBox extends TextBox {
-	private static final List<Component> TOOLTIP = List.of(
-					Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box")),
-					Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box_detail")).withStyle(ChatFormatting.GRAY)
-	);
+	private static final List<Component> TOOLTIP = List.of(Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box")),
+			Component.translatable(TranslationHelper.INSTANCE.translGui("text_box.search_box_detail")).withStyle(ChatFormatting.GRAY));
 	public static final String MAGNIFYING_GLASS = "\uD83D\uDD0D";
 	public static final int MIN_WIDTH = 10;
 	public static final int UNFOCUSED_COLOR = 0xBBBBBB;
@@ -75,7 +73,9 @@ class SearchBox extends TextBox {
 		int minWidth = MIN_WIDTH;
 		if ((isFocused() && maximizedWidth > getWidth()) || (!isFocused() && getValue().isEmpty() && getWidth() > minWidth)) {
 			float ratio = Easing.EASE_IN_OUT_CUBIC.ease(Math.min((System.currentTimeMillis() - lastFocusChangeTime) / 200f, 1));
-			int currentWidth = isFocused() ? (int) (minWidth + (maximizedWidth - minWidth) * ratio) : (int) (maximizedWidth - (maximizedWidth - minWidth) * ratio);
+			int currentWidth = isFocused()
+					? (int) (minWidth + (maximizedWidth - minWidth) * ratio)
+					: (int) (maximizedWidth - (maximizedWidth - minWidth) * ratio);
 			this.setPosition(new Position(maximizedX + maximizedWidth - currentWidth, this.y));
 			this.updateDimensions(currentWidth, this.getHeight());
 		}

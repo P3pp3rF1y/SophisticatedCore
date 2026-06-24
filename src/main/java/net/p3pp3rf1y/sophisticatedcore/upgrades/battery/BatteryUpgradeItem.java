@@ -11,13 +11,15 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeItem;
 
 import javax.annotation.Nullable;
+
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
 public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 	public static final UpgradeType<BatteryUpgradeWrapper> TYPE = new UpgradeType<>(BatteryUpgradeWrapper::new);
-	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List.of(new UpgradeConflictDefinition(BatteryUpgradeItem.class::isInstance, 0, TranslationHelper.INSTANCE.translError("add.battery_exists")));
+	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List
+			.of(new UpgradeConflictDefinition(BatteryUpgradeItem.class::isInstance, 0, TranslationHelper.INSTANCE.translError("add.battery_exists")));
 
 	private final BatteryUpgradeConfig batteryUpgradeConfig;
 
@@ -46,13 +48,16 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 	}
 
 	@Override
-	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, @Nullable IUpgradeItem<?> upgradeInSlot) {
-		int maxEnergyAfter = (int) (getMaxEnergyStored(storageWrapper) / (upgradeInSlot instanceof StackUpgradeItem stackUpgrade ? stackUpgrade.getStackSizeMultiplier() : 1));
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide,
+			@Nullable IUpgradeItem<?> upgradeInSlot) {
+		int maxEnergyAfter = (int) (getMaxEnergyStored(storageWrapper)
+				/ (upgradeInSlot instanceof StackUpgradeItem stackUpgrade ? stackUpgrade.getStackSizeMultiplier() : 1));
 		double multiplierRequired = (double) BatteryUpgradeWrapper.getEnergyStored(upgradeStack) / maxEnergyAfter;
 		if (multiplierRequired > 1) {
 			DecimalFormat multiplierFormat = new DecimalFormat("0.#");
 			String formattedMultiplierRequired = multiplierFormat.format(Math.ceil(10 * multiplierRequired) / 10);
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.battery_energy_high", formattedMultiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.battery_energy_high", formattedMultiplierRequired),
+					Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 		}
 
 		return new UpgradeSlotChangeResult.Success();

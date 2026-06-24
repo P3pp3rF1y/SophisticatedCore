@@ -8,19 +8,25 @@ import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
-import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
+		implements
+			IInsertResponseUpgrade,
+			IFilteredUpgrade,
+			ISlotChangeResponseUpgrade,
+			ITickableUpgrade,
+			IOverflowResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
 	private VoidType voidType;
@@ -35,7 +41,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		setVoidOverflowDefaultOrLoadFromNbt(VoidType.ALWAYS);
 	}
 
-	//TODO remove in or after 26.1
+	// TODO remove in or after 26.1
 	private void setFromLegacyComponent() {
 		if (NBTHelper.hasTag(upgrade, "shouldVoidOverflow")) {
 			VoidType migratedVoidType = NBTHelper.getBoolean(upgrade, "shouldVoidOverflow").orElse(false) ? VoidType.ALWAYS : VoidType.SLOT_OVERFLOW;
@@ -155,7 +161,8 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, stack);
 		}
 
-		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(), stackKey -> stacksMatchForOverflow(stack, stackKey.getStack()));
+		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(),
+				stackKey -> stacksMatchForOverflow(stack, stackKey.getStack()));
 	}
 
 	static <T> boolean hasOverflowMatch(Set<T> fullStacks, Set<T> partialStacks, Predicate<T> stackMatcher) {

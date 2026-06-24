@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;
@@ -48,8 +49,12 @@ public final class ItemStackKey {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {return true;}
-		if (o == null || getClass() != o.getClass()) {return false;}
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		ItemStackKey that = (ItemStackKey) o;
 		return canItemStacksStack(stack, that.stack);
 	}
@@ -59,7 +64,7 @@ public final class ItemStackKey {
 			return false;
 		}
 
-		//noinspection DataFlowIssue
+		// noinspection DataFlowIssue
 		return (!a.hasTag() || a.getTag().equals(b.getTag())) && Objects.equals(normalizeCapNbt(getCapNbt(a)), normalizeCapNbt(getCapNbt(b)));
 	}
 
@@ -79,7 +84,7 @@ public final class ItemStackKey {
 	public static int getHashCode(ItemStack stack) {
 		int hash = stack.getItem().hashCode();
 		if (stack.hasTag()) {
-			//noinspection ConstantConditions - hasTag call makes sure getTag doesn't return null
+			// noinspection ConstantConditions - hasTag call makes sure getTag doesn't return null
 			hash = hash * 31 + stack.getTag().hashCode();
 		}
 		CompoundTag capNbt = getCapNbt(stack);
@@ -93,8 +98,7 @@ public final class ItemStackKey {
 	private static CompoundTag getCapNbt(ItemStack stack) {
 		try {
 			return (CompoundTag) CAP_NBT.get(stack);
-		}
-		catch (IllegalAccessException e) {
+		} catch (IllegalAccessException e) {
 			SophisticatedCore.LOGGER.error("Error getting capNBT of stack ", e);
 			return null;
 		}
@@ -109,7 +113,9 @@ public final class ItemStackKey {
 		return hashCode() == getHashCode(stack);
 	}
 
-	public ItemStack stack() {return stack;}
+	public ItemStack stack() {
+		return stack;
+	}
 
 	@Override
 	public String toString() {

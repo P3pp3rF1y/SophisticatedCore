@@ -23,6 +23,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	private List<ItemStack> matchedCraftingResults = new ArrayList<>();
 	private int selectedCraftingResultIndex = 0;
 
-	public CraftingUpgradeContainer(Player player, int upgradeContainerId, CraftingUpgradeWrapper upgradeWrapper, UpgradeContainerType<CraftingUpgradeWrapper, CraftingUpgradeContainer> type) {
+	public CraftingUpgradeContainer(Player player, int upgradeContainerId, CraftingUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<CraftingUpgradeWrapper, CraftingUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 
 		int slot;
@@ -112,7 +114,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						player.drop(remaining, false);
 					}
 				}
-				SophisticatedCore.LOGGER.error("Recipe " + (lastRecipe != null ? lastRecipe.getId() : "[unknown]") + " returned more than 9 remaining items, dropping the rest!");
+				SophisticatedCore.LOGGER.error(
+						"Recipe " + (lastRecipe != null ? lastRecipe.getId() : "[unknown]") + " returned more than 9 remaining items, dropping the rest!");
 			}
 
 			@Override
@@ -159,7 +162,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				if (lastRecipe != null && lastRecipe.matches(inventory, level)) {
 					itemstack = lastRecipe.assemble(inventory, level.registryAccess());
 				} else {
-					//noinspection ConstantConditions - we're on server and for sure in the world so getServer can't return null here
+					// noinspection ConstantConditions - we're on server and for sure in the world so getServer can't return null here
 					List<CraftingRecipe> recipes = RecipeHelper.safeGetRecipesFor(RecipeType.CRAFTING, inventory, level);
 					if (!recipes.isEmpty()) {
 						matchedCraftingRecipes = recipes;
@@ -209,7 +212,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (player instanceof ServerPlayer serverPlayer) {
 			ItemStack result = matchedCraftingResults.get(resultIndex).copy();
 			craftingResultSlot.set(result);
-			//noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
+			// noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
 			craftResult.setRecipeUsed(player.level(), serverPlayer, lastRecipe);
 		} else {
 			sendDataToServer(() -> NBTHelper.putInt(new CompoundTag(), DATA_SELECT_RESULT, resultIndex));
@@ -253,16 +256,15 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (lastRecipe != null && lastRecipe.getId().equals(recipeId)) {
 			return;
 		}
-		player.level().getRecipeManager().byKey(recipeId).filter(r -> r.getType() == RecipeType.CRAFTING).map(r -> (CraftingRecipe) r)
-				.ifPresent(recipe -> {
-					lastRecipe = recipe;
-					for (int i = 0; i < matchedCraftingRecipes.size(); i++) {
-						if (matchedCraftingRecipes.get(i).getId().equals(recipeId)) {
-							selectCraftingResult(i);
-							return;
-						}
-					}
-				});
+		player.level().getRecipeManager().byKey(recipeId).filter(r -> r.getType() == RecipeType.CRAFTING).map(r -> (CraftingRecipe) r).ifPresent(recipe -> {
+			lastRecipe = recipe;
+			for (int i = 0; i < matchedCraftingRecipes.size(); i++) {
+				if (matchedCraftingRecipes.get(i).getId().equals(recipeId)) {
+					selectCraftingResult(i);
+					return;
+				}
+			}
+		});
 	}
 
 	@Override

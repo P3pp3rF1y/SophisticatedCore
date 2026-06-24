@@ -10,7 +10,8 @@ import java.util.Optional;
 
 public class GroupedCraftingReiDisplay extends DefaultCraftingDisplay<Recipe<?>> {
 	public GroupedCraftingReiDisplay(GroupedCraftingRecipe recipe) {
-		super(recipe.getInputSlots().stream().map(EntryIngredients::ofItemStacks).toList(), List.of(EntryIngredients.ofItemStacks(recipe.getResultStacks())), Optional.of((Recipe<?>) recipe));
+		super(recipe.getInputSlots().stream().map(EntryIngredients::ofItemStacks).toList(), List.of(EntryIngredients.ofItemStacks(recipe.getResultStacks())),
+				Optional.of((Recipe<?>) recipe));
 	}
 
 	@Override

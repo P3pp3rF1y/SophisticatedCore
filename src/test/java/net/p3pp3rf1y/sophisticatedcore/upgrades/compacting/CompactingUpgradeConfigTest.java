@@ -5,8 +5,8 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -51,7 +51,8 @@ class CompactingUpgradeConfigTest {
 		}
 	}
 
-	private static CompactingUpgradeConfig getConfigWithCachedShape(RecipeHelper.CompactingRecipeShape shape) throws NoSuchFieldException, IllegalAccessException {
+	private static CompactingUpgradeConfig getConfigWithCachedShape(RecipeHelper.CompactingRecipeShape shape)
+			throws NoSuchFieldException, IllegalAccessException {
 		ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 		CompactingUpgradeConfig config = new CompactingUpgradeConfig(builder, "Compacting Upgrade", "compactingUpgrade", 9, 3);
 		builder.build();
@@ -63,7 +64,8 @@ class CompactingUpgradeConfigTest {
 		return argThat(stack -> stack != null && stack.getItem() == item);
 	}
 
-	private static void setCachedShapes(CompactingUpgradeConfig config, RecipeHelper.CompactingRecipeShape shape) throws NoSuchFieldException, IllegalAccessException {
+	private static void setCachedShapes(CompactingUpgradeConfig config, RecipeHelper.CompactingRecipeShape shape)
+			throws NoSuchFieldException, IllegalAccessException {
 		java.lang.reflect.Field additionalCompactingShapesList = CompactingUpgradeConfig.class.getDeclaredField("additionalCompactingShapesList");
 		additionalCompactingShapesList.setAccessible(true);
 		additionalCompactingShapesList.set(config, List.of(shape));

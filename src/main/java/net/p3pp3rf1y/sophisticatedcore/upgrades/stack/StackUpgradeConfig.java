@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,10 +24,12 @@ public class StackUpgradeConfig {
 
 	public StackUpgradeConfig(ForgeConfigSpec.Builder builder) {
 		builder.comment("Stack Upgrade Settings").push("stackUpgrade");
-		nonStackableItemsList = builder.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.").define("nonStackableItems", this::getDefaultNonStackableList, itemNames -> {
-			List<String> registryNames = (List<String>) itemNames;
-			return registryNames != null && registryNames.stream().allMatch(itemName -> itemName.matches(REGISTRY_NAME_MATCHER));
-		});
+		nonStackableItemsList = builder
+				.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.")
+				.define("nonStackableItems", this::getDefaultNonStackableList, itemNames -> {
+					List<String> registryNames = (List<String>) itemNames;
+					return registryNames != null && registryNames.stream().allMatch(itemName -> itemName.matches(REGISTRY_NAME_MATCHER));
+				});
 		builder.pop();
 	}
 
@@ -66,7 +69,8 @@ public class StackUpgradeConfig {
 				if (ForgeRegistries.ITEMS.containsKey(registryName)) {
 					nonStackableItems.add(ForgeRegistries.ITEMS.getValue(registryName));
 				} else {
-					SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry", name);
+					SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry",
+							name);
 				}
 			});
 		}

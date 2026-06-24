@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class ReiSettingsGhostIngredientHandler<S extends SettingsScreen> implements DraggableStackVisitor<S> {
 	private final Class<S> handingScreenClass;
 
@@ -25,12 +26,10 @@ public class ReiSettingsGhostIngredientHandler<S extends SettingsScreen> impleme
 
 	@Override
 	public DraggedAcceptorResult acceptDraggedStack(DraggingContext<S> context, DraggableStack stack) {
-        Point cursor = context.getCurrentPosition();
+		Point cursor = context.getCurrentPosition();
 		if (cursor != null) {
-            Optional<ReiGhostTarget> target = getDraggableAcceptingBounds(context, stack)
-					.map(ReiGhostTarget.class::cast)
-					.filter(b -> b.contains(cursor.getX(), cursor.getY()))
-					.findFirst();
+			Optional<ReiGhostTarget> target = getDraggableAcceptingBounds(context, stack).map(ReiGhostTarget.class::cast)
+					.filter(b -> b.contains(cursor.getX(), cursor.getY())).findFirst();
 			if (target.isPresent()) {
 				target.get().accept();
 				return DraggedAcceptorResult.CONSUMED;

@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 import org.apache.commons.lang3.function.TriFunction;
 
 import javax.annotation.Nullable;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -46,11 +47,11 @@ public interface IInventoryPartHandler {
 	}
 
 	default void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
-		//noop
+		// noop
 	}
 
 	default void onContentsChanged(int slot, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
-		//noop
+		// noop
 	}
 
 	default boolean isItemValid(int slot, ItemStack stack, @Nullable Player player, BiPredicate<Integer, ItemStack> isItemValidSuper) {
@@ -65,7 +66,9 @@ public interface IInventoryPartHandler {
 		return false;
 	}
 
-	default int getSlots() { return 0;}
+	default int getSlots() {
+		return 0;
+	}
 
 	String getName();
 
@@ -79,7 +82,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void onSlotLimitChange() {
-		//noop
+		// noop
 	}
 
 	default Set<Integer> getNoSortSlots() {
@@ -87,7 +90,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void onSlotFilterChanged(int slot) {
-		//noop
+		// noop
 	}
 
 	default boolean isFilterItem(Item item) {
@@ -99,7 +102,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void onInit() {
-		//noop
+		// noop
 	}
 
 	default boolean isInfinite(int slot) {

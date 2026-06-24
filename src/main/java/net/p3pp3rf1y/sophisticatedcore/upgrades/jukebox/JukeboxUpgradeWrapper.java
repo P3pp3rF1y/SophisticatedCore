@@ -15,6 +15,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -139,19 +140,17 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 			return;
 		}
 
-		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-				DiscHandlerRegistry.findHandler(disc).ifPresent(handler -> {
-					if (entityPlaying != null) {
-						handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
-					} else {
-						handler.playDisc(serverLevel, posPlaying, storageUuid, disc, onFinishedCallback);
-					}
-            		handler.getMusicLengthInTicks(disc, level).ifPresent(lengthInTicks -> {
-						NBTHelper.setLong(upgrade, "discFinishTime", level.getGameTime() + lengthInTicks);
-						NBTHelper.setLong(upgrade, "discLength", lengthInTicks);
-					});
-				})
-		);
+		storageWrapper.getContentsUuid().ifPresent(storageUuid -> DiscHandlerRegistry.findHandler(disc).ifPresent(handler -> {
+			if (entityPlaying != null) {
+				handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
+			} else {
+				handler.playDisc(serverLevel, posPlaying, storageUuid, disc, onFinishedCallback);
+			}
+			handler.getMusicLengthInTicks(disc, level).ifPresent(lengthInTicks -> {
+				NBTHelper.setLong(upgrade, "discFinishTime", level.getGameTime() + lengthInTicks);
+				NBTHelper.setLong(upgrade, "discLength", lengthInTicks);
+			});
+		}));
 		setIsPlaying(true);
 	}
 
@@ -185,9 +184,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (!(entity.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
-		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-				ServerStorageSoundHandler.stopPlayingDisc(serverLevel, entity.position(), storageUuid)
-		);
+		storageWrapper.getContentsUuid().ifPresent(storageUuid -> ServerStorageSoundHandler.stopPlayingDisc(serverLevel, entity.position(), storageUuid));
 		setIsPlaying(false);
 		NBTHelper.removeTag(upgrade, "discFinishTime");
 		NBTHelper.removeTag(upgrade, "discLength");
@@ -218,9 +215,8 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 		if (isPlaying && lastKeepAliveSendTime < level.getGameTime() - KEEP_ALIVE_SEND_INTERVAL) {
 			Vec3 soundPosition = entity != null ? entity.position() : Vec3.atCenterOf(pos);
-			storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-					ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, soundPosition, () -> setIsPlaying(false))
-			);
+			storageWrapper.getContentsUuid()
+					.ifPresent(storageUuid -> ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, soundPosition, () -> setIsPlaying(false)));
 			lastKeepAliveSendTime = level.getGameTime();
 		}
 	}

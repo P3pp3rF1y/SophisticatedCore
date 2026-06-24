@@ -24,9 +24,11 @@ public class ReliquaryCompat implements ICompat {
 	public void setup() {
 		AlchemyUpgradeWrapper.addItemDefinition(new AlchemyUpgradeWrapper.AlchemyItemDefinition(stack -> stack.getItem() == ModItems.POTION.get(),
 				potionStack -> AlchemyUpgradeWrapper.getDefaultConditionForPotionEffects(getPotionEffects(potionStack)),
-				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> AlchemyUpgradeWrapper.shouldApplyPotionEffectsTo(le, getPotionEffects(potionStack), matchAllEffects, matchEffectAmplifier),
-				(stack, filter, matchAllEffects1, matchEffectDuration1, matchEffectAmplifier1) -> AlchemyUpgradeWrapper.potionEffectsMatch(getPotionEffects(stack), getPotionEffects(filter), matchAllEffects1, matchEffectDuration1, matchEffectAmplifier1), (stack, livingEntity) -> stack.getUseDuration(),
-				(stack, livingEntity) -> {
+				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> AlchemyUpgradeWrapper.shouldApplyPotionEffectsTo(le, getPotionEffects(potionStack),
+						matchAllEffects, matchEffectAmplifier),
+				(stack, filter, matchAllEffects1, matchEffectDuration1, matchEffectAmplifier1) -> AlchemyUpgradeWrapper
+						.potionEffectsMatch(getPotionEffects(stack), getPotionEffects(filter), matchAllEffects1, matchEffectDuration1, matchEffectAmplifier1),
+				(stack, livingEntity) -> stack.getUseDuration(), (stack, livingEntity) -> {
 					ItemStack remainingItem = stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity);
 					if (livingEntity instanceof Player) {
 						return remainingItem;
@@ -35,16 +37,22 @@ public class ReliquaryCompat implements ICompat {
 				}));
 		AlchemyUpgradeWrapper.addItemDefinition(new AlchemyUpgradeWrapper.AlchemyItemDefinition(stack -> stack.getItem() == ModItems.SPLASH_POTION.get(),
 				potionStack -> AlchemyUpgradeWrapper.getDefaultConditionForPotionEffects(getPotionEffects(potionStack)),
-				(le, potionStack, matchAllEffects1, matchEffectAmplifier1) -> AlchemyUpgradeWrapper.shouldApplyPotionEffectsTo(le, getPotionEffects(potionStack), matchAllEffects1, matchEffectAmplifier1), (stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> AlchemyUpgradeWrapper.potionEffectsMatch(getPotionEffects(stack), getPotionEffects(filter), matchAllEffects, matchEffectDuration, matchEffectAmplifier),
+				(le, potionStack, matchAllEffects1, matchEffectAmplifier1) -> AlchemyUpgradeWrapper.shouldApplyPotionEffectsTo(le,
+						getPotionEffects(potionStack), matchAllEffects1, matchEffectAmplifier1),
+				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> AlchemyUpgradeWrapper.potionEffectsMatch(getPotionEffects(stack),
+						getPotionEffects(filter), matchAllEffects, matchEffectDuration, matchEffectAmplifier),
 				(stack, livingEntity) -> {
 					Level level = livingEntity.level();
-					level.playSound(null, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
-					ThrownXRPotionEntity thrownPotion = new ThrownXRPotionEntity(level, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack.copy());
+					level.playSound(null, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY(),
+							livingEntity.getZ() + livingEntity.getBbWidth() / 2, SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS, 0.5F,
+							0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
+					ThrownXRPotionEntity thrownPotion = new ThrownXRPotionEntity(level, livingEntity.getX() + livingEntity.getBbWidth() / 2,
+							livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack.copy());
 					level.addFreshEntity(thrownPotion);
-					onHit(thrownPotion, new EntityHitResult(livingEntity, new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
+					onHit(thrownPotion, new EntityHitResult(livingEntity,
+							new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
 					return 1;
-				}, (stack, livingEntity) -> ItemStack.EMPTY, false)
-		);
+				}, (stack, livingEntity) -> ItemStack.EMPTY, false));
 	}
 
 	private static final Method ON_HIT = ObfuscationReflectionHelper.findMethod(ThrownXRPotionEntity.class, "m_6532_", HitResult.class);

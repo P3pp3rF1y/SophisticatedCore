@@ -18,7 +18,8 @@ public class UpgradeNextTierRecipe extends ShapedRecipe implements IWrapperRecip
 	private final ShapedRecipe compose;
 
 	public UpgradeNextTierRecipe(ShapedRecipe compose) {
-		super(compose.getId(), compose.getGroup(), compose.category(), compose.getRecipeWidth(), compose.getRecipeHeight(), compose.getIngredients(), compose.result);
+		super(compose.getId(), compose.getGroup(), compose.category(), compose.getRecipeWidth(), compose.getRecipeHeight(), compose.getIngredients(),
+				compose.result);
 		this.compose = compose;
 		REGISTERED_RECIPES.add(compose.getId());
 	}

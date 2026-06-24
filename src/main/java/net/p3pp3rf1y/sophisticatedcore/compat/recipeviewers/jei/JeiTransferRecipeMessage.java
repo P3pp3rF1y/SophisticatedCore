@@ -9,15 +9,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 
 import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public record JeiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId,
-									   Map<Integer, Integer> matchingItems,
-									   List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes,
-									   boolean maxTransfer) {
+public record JeiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, Map<Integer, Integer> matchingItems,
+		List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes, boolean maxTransfer) {
 
 	public static void encode(JeiTransferRecipeMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeResourceLocation(msg.recipeId);
@@ -29,7 +28,9 @@ public record JeiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static JeiTransferRecipeMessage decode(FriendlyByteBuf packetBuffer) {
-		return new JeiTransferRecipeMessage(packetBuffer.readResourceLocation(), packetBuffer.readResourceLocation(), packetBuffer.readMap(HashMap::new, FriendlyByteBuf::readInt, FriendlyByteBuf::readInt), packetBuffer.readList(FriendlyByteBuf::readInt), packetBuffer.readList(FriendlyByteBuf::readInt), packetBuffer.readBoolean());
+		return new JeiTransferRecipeMessage(packetBuffer.readResourceLocation(), packetBuffer.readResourceLocation(),
+				packetBuffer.readMap(HashMap::new, FriendlyByteBuf::readInt, FriendlyByteBuf::readInt), packetBuffer.readList(FriendlyByteBuf::readInt),
+				packetBuffer.readList(FriendlyByteBuf::readInt), packetBuffer.readBoolean());
 	}
 
 	static void onMessage(JeiTransferRecipeMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -47,6 +48,7 @@ public record JeiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 		if (recipeType == null) {
 			return;
 		}
-		CraftingContainerRecipeTransferHandlerServer.setItemsWithSlotIDMap(sender, msg.recipeId, recipeType, msg.matchingItems, msg.craftingSlotIndexes, msg.inventorySlotIndexes, msg.maxTransfer);
+		CraftingContainerRecipeTransferHandlerServer.setItemsWithSlotIDMap(sender, msg.recipeId, recipeType, msg.matchingItems, msg.craftingSlotIndexes,
+				msg.inventorySlotIndexes, msg.maxTransfer);
 	}
 }

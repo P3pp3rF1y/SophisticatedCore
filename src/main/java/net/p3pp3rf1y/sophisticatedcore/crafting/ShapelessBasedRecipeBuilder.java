@@ -24,6 +24,7 @@ import net.minecraftforge.common.crafting.conditions.ICondition;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -119,8 +120,11 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 	}
 
 	public void save(Consumer<FinishedRecipe> finishedRecipeConsumer, ResourceLocation recipeId) {
-		advancement.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId)).rewards(AdvancementRewards.Builder.recipe(recipeId)).requirements(RequirementsStrategy.OR);
-		finishedRecipeConsumer.accept(new ShapelessBasedRecipeBuilder.Result(recipeId, result, conditions, nbt, count, group == null ? "" : group, ingredients, advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + RecipeCategory.MISC.getFolderName() + "/" + recipeId.getPath()), serializer));
+		advancement.parent(new ResourceLocation("recipes/root")).addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
+				.rewards(AdvancementRewards.Builder.recipe(recipeId)).requirements(RequirementsStrategy.OR);
+		finishedRecipeConsumer.accept(new ShapelessBasedRecipeBuilder.Result(recipeId, result, conditions, nbt, count, group == null ? "" : group, ingredients,
+				advancement, new ResourceLocation(recipeId.getNamespace(), "recipes/" + RecipeCategory.MISC.getFolderName() + "/" + recipeId.getPath()),
+				serializer));
 	}
 
 	public static class Result implements FinishedRecipe {
@@ -136,9 +140,9 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 		private final ResourceLocation advancementId;
 		private RecipeSerializer<?> serializer;
 
-		@SuppressWarnings("java:S107") //the only way of reducing number of parameters here means adding pretty much unnecessary object parameter
-		public Result(ResourceLocation id, Item itemResult, List<ICondition> conditions, @Nullable CompoundTag nbt,
-				int count, String group, List<Ingredient> ingredients, Advancement.Builder advancement, ResourceLocation advancementId, RecipeSerializer<?> serializer) {
+		@SuppressWarnings("java:S107") // the only way of reducing number of parameters here means adding pretty much unnecessary object parameter
+		public Result(ResourceLocation id, Item itemResult, List<ICondition> conditions, @Nullable CompoundTag nbt, int count, String group,
+				List<Ingredient> ingredients, Advancement.Builder advancement, ResourceLocation advancementId, RecipeSerializer<?> serializer) {
 			this.id = id;
 			this.itemResult = itemResult;
 			this.conditions = conditions;

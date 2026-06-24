@@ -26,8 +26,7 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<CraftingSpecReiDisplay> displays = catalogSupplier.get().getCraftingRecipesFor(stack).stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
+		List<CraftingSpecReiDisplay> displays = catalogSupplier.get().getCraftingRecipesFor(stack).stream().map(CraftingSpecReiDisplayGenerator::toDisplay)
 				.toList();
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
@@ -38,8 +37,7 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<CraftingSpecReiDisplay> displays = catalogSupplier.get().getCraftingUsagesFor(stack).stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
+		List<CraftingSpecReiDisplay> displays = catalogSupplier.get().getCraftingUsagesFor(stack).stream().map(CraftingSpecReiDisplayGenerator::toDisplay)
 				.toList();
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}

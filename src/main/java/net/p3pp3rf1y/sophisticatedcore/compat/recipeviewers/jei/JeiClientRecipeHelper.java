@@ -7,7 +7,8 @@ import net.minecraft.world.item.crafting.ShapelessRecipe;
 
 public class JeiClientRecipeHelper {
 	public static CraftingRecipe copyShapedRecipe(ShapedRecipe recipe) {
-		return new ShapedRecipe(recipe.getId(), "", recipe.category(), recipe.getRecipeWidth(), recipe.getRecipeHeight(), recipe.getIngredients(), RecipeUtil.getResultItem(recipe));
+		return new ShapedRecipe(recipe.getId(), "", recipe.category(), recipe.getRecipeWidth(), recipe.getRecipeHeight(), recipe.getIngredients(),
+				RecipeUtil.getResultItem(recipe));
 	}
 
 	public static CraftingRecipe copyShapelessRecipe(ShapelessRecipe recipe) {

@@ -11,9 +11,11 @@ import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.network.ISplittableMessage;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Supplier;
 
-public record MountedStorageUpdateMessage(int contraptionEntityId, BlockPos localPos, ItemStack storageStack, boolean refreshBlockRender) implements ISplittableMessage {
+public record MountedStorageUpdateMessage(int contraptionEntityId, BlockPos localPos, ItemStack storageStack,
+		boolean refreshBlockRender) implements ISplittableMessage {
 	public static void encode(MountedStorageUpdateMessage msg, FriendlyByteBuf buffer) {
 		buffer.writeInt(msg.contraptionEntityId);
 		buffer.writeBlockPos(msg.localPos);
@@ -38,7 +40,8 @@ public record MountedStorageUpdateMessage(int contraptionEntityId, BlockPos loca
 		}
 		Entity entity = player.level().getEntity(msg.contraptionEntityId());
 		if (entity instanceof AbstractContraptionEntity contraptionEntity) {
-			@Nullable MountedStorageBase mountedStorage = ContraptionHelper.getMountedStorage(contraptionEntity, msg.localPos());
+			@Nullable
+			MountedStorageBase mountedStorage = ContraptionHelper.getMountedStorage(contraptionEntity, msg.localPos());
 			if (mountedStorage == null) {
 				return;
 			}

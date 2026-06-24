@@ -33,8 +33,10 @@ public class CookingLogicControl<T extends AbstractCookingRecipe> extends Compos
 	}
 
 	private float getBurnProgress() {
-		//noinspection ConstantConditions - world is not null by this point
-		return cookingLogicContainer.isBurning(Minecraft.getInstance().level) ? getProgress(cookingLogicContainer.getBurnTimeFinish(), cookingLogicContainer.getBurnTimeTotal()) : 0;
+		// noinspection ConstantConditions - world is not null by this point
+		return cookingLogicContainer.isBurning(Minecraft.getInstance().level)
+				? getProgress(cookingLogicContainer.getBurnTimeFinish(), cookingLogicContainer.getBurnTimeTotal())
+				: 0;
 	}
 
 	private float getCookProgress() {
@@ -68,6 +70,6 @@ public class CookingLogicControl<T extends AbstractCookingRecipe> extends Compos
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 }

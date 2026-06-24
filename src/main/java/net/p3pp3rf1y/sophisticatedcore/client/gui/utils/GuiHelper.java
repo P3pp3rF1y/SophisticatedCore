@@ -39,11 +39,13 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import org.joml.Matrix4f;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class GuiHelper {
 	public static final ResourceLocation GUI_CONTROLS = SophisticatedCore.getRL("textures/gui/gui_controls.png");
 	public static final int GUI_CONTROLS_TEXTURE_WIDTH = 256;
@@ -55,25 +57,28 @@ public class GuiHelper {
 	public static final TextureBlitData CRAFTING_RESULT_SLOT = new TextureBlitData(GUI_CONTROLS, new UV(71, 216), new Dimension(26, 26));
 	public static final TextureBlitData DEFAULT_BUTTON_HOVERED_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(47, 0), Dimension.SQUARE_18);
 	public static final TextureBlitData DEFAULT_BUTTON_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(29, 0), Dimension.SQUARE_18);
-	public static final TextureBlitData SMALL_BUTTON_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 18), Dimension.SQUARE_12);
-	public static final TextureBlitData SMALL_BUTTON_HOVERED_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 18), Dimension.SQUARE_12);
+	public static final TextureBlitData SMALL_BUTTON_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 18),
+			Dimension.SQUARE_12);
+	public static final TextureBlitData SMALL_BUTTON_HOVERED_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 18),
+			Dimension.SQUARE_12);
 	public static final ResourceLocation SLOTS_BACKGROUND = SophisticatedCore.getRL("textures/gui/slots_background.png");
 
 	private static final Map<Integer, TextureBlitData> SLOTS_BACKGROUNDS = new HashMap<>();
 
-	private GuiHelper() {}
+	private GuiHelper() {
+	}
 
 	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition) {
 		renderItemInGUI(guiGraphics, minecraft, stack, xPosition, yPosition, false);
 	}
 
 	public static void renderSlotsBackground(GuiGraphics guiGraphics, int x, int y, int slotWidth, int slotHeight) {
-		for (int currentY = y, remainingSlotHeight = slotHeight; remainingSlotHeight > 0; currentY += 12 * 18, remainingSlotHeight -= Math.min(slotHeight, 12)) {
+		for (int currentY = y,
+				remainingSlotHeight = slotHeight; remainingSlotHeight > 0; currentY += 12 * 18, remainingSlotHeight -= Math.min(slotHeight, 12)) {
 			int finalRemainingSlotHeight = remainingSlotHeight;
 			int key = getSlotsBackgroundKey(slotWidth, remainingSlotHeight);
-			blit(guiGraphics, x, currentY, SLOTS_BACKGROUNDS.computeIfAbsent(key, k ->
-					new TextureBlitData(SLOTS_BACKGROUND, Dimension.SQUARE_256, new UV(0, 0), new Dimension(slotWidth * 18, finalRemainingSlotHeight * 18))
-			));
+			blit(guiGraphics, x, currentY, SLOTS_BACKGROUNDS.computeIfAbsent(key, k -> new TextureBlitData(SLOTS_BACKGROUND, Dimension.SQUARE_256, new UV(0, 0),
+					new Dimension(slotWidth * 18, finalRemainingSlotHeight * 18))));
 		}
 	}
 
@@ -86,7 +91,7 @@ public class GuiHelper {
 	}
 
 	public static void renderItemInGUI(GuiGraphics guiGraphics, Minecraft minecraft, ItemStack stack, int xPosition, int yPosition, boolean renderOverlay,
-									   @Nullable String countText) {
+			@Nullable String countText) {
 		RenderSystem.enableDepthTest();
 		guiGraphics.renderItem(stack, xPosition, yPosition);
 		if (renderOverlay) {
@@ -95,7 +100,8 @@ public class GuiHelper {
 	}
 
 	public static void blit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData) {
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), texData.getWidth(), texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), texData.getWidth(),
+				texData.getHeight(), texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
 	public static void blit(GuiGraphics guiGraphics, int x, int y, TextureBlitData texData, int width, int height) {
@@ -104,10 +110,17 @@ public class GuiHelper {
 		int halfHeight = height / 2;
 		int secondHalfHeight = height - halfHeight;
 
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), halfWidth, halfHeight, texData.getTextureWidth(), texData.getTextureHeight());
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset(), (float) texData.getU() + texData.getWidth() - secondHalfWidth, texData.getV(), secondHalfWidth, halfHeight, texData.getTextureWidth(), texData.getTextureHeight());
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset() + halfHeight, texData.getU(), (float) texData.getV() + texData.getHeight() - secondHalfHeight, halfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
-		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset() + halfHeight, (float) texData.getU() + texData.getWidth() - secondHalfWidth, (float) texData.getV() + texData.getHeight() - secondHalfHeight, secondHalfWidth, secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset(), texData.getU(), texData.getV(), halfWidth, halfHeight,
+				texData.getTextureWidth(), texData.getTextureHeight());
+		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset(),
+				(float) texData.getU() + texData.getWidth() - secondHalfWidth, texData.getV(), secondHalfWidth, halfHeight, texData.getTextureWidth(),
+				texData.getTextureHeight());
+		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset(), y + texData.getYOffset() + halfHeight, texData.getU(),
+				(float) texData.getV() + texData.getHeight() - secondHalfHeight, halfWidth, secondHalfHeight, texData.getTextureWidth(),
+				texData.getTextureHeight());
+		guiGraphics.blit(texData.getTextureName(), x + texData.getXOffset() + halfWidth, y + texData.getYOffset() + halfHeight,
+				(float) texData.getU() + texData.getWidth() - secondHalfWidth, (float) texData.getV() + texData.getHeight() - secondHalfHeight, secondHalfWidth,
+				secondHalfHeight, texData.getTextureWidth(), texData.getTextureHeight());
 	}
 
 	public static void coloredBlit(Matrix4f matrix, int x, int y, TextureBlitData texData, int color) {
@@ -136,21 +149,26 @@ public class GuiHelper {
 		BufferUploader.drawWithShader(bufferbuilder.end());
 	}
 
-	public static void renderTooltipBackground(Matrix4f matrix4f, int tooltipWidth, int leftX, int topY, int tooltipHeight, int backgroundColor, int borderColorStart, int borderColorEnd) {
+	public static void renderTooltipBackground(Matrix4f matrix4f, int tooltipWidth, int leftX, int topY, int tooltipHeight, int backgroundColor,
+			int borderColorStart, int borderColorEnd) {
 		Tesselator tessellator = Tesselator.getInstance();
 		BufferBuilder bufferbuilder = tessellator.getBuilder();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		bufferbuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
 		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 4, leftX + tooltipWidth + 3, topY - 3, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY + tooltipHeight + 3, leftX + tooltipWidth + 3, topY + tooltipHeight + 4, backgroundColor, backgroundColor);
+		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY + tooltipHeight + 3, leftX + tooltipWidth + 3, topY + tooltipHeight + 4, backgroundColor,
+				backgroundColor);
 		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 3, leftX + tooltipWidth + 3, topY + tooltipHeight + 3, backgroundColor, backgroundColor);
 		fillGradient(matrix4f, bufferbuilder, leftX - 4, topY - 3, leftX - 3, topY + tooltipHeight + 3, backgroundColor, backgroundColor);
-		fillGradient(matrix4f, bufferbuilder, leftX + tooltipWidth + 3, topY - 3, leftX + tooltipWidth + 4, topY + tooltipHeight + 3, backgroundColor, backgroundColor);
+		fillGradient(matrix4f, bufferbuilder, leftX + tooltipWidth + 3, topY - 3, leftX + tooltipWidth + 4, topY + tooltipHeight + 3, backgroundColor,
+				backgroundColor);
 		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 3 + 1, leftX - 3 + 1, topY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
-		fillGradient(matrix4f, bufferbuilder, leftX + tooltipWidth + 2, topY - 3 + 1, leftX + tooltipWidth + 3, topY + tooltipHeight + 3 - 1, borderColorStart, borderColorEnd);
+		fillGradient(matrix4f, bufferbuilder, leftX + tooltipWidth + 2, topY - 3 + 1, leftX + tooltipWidth + 3, topY + tooltipHeight + 3 - 1, borderColorStart,
+				borderColorEnd);
 		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY - 3, leftX + tooltipWidth + 3, topY - 3 + 1, borderColorStart, borderColorStart);
-		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY + tooltipHeight + 2, leftX + tooltipWidth + 3, topY + tooltipHeight + 3, borderColorEnd, borderColorEnd);
+		fillGradient(matrix4f, bufferbuilder, leftX - 3, topY + tooltipHeight + 2, leftX + tooltipWidth + 3, topY + tooltipHeight + 3, borderColorEnd,
+				borderColorEnd);
 		RenderSystem.enableDepthTest();
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
@@ -158,11 +176,13 @@ public class GuiHelper {
 		RenderSystem.disableBlend();
 	}
 
-	public static void writeTooltipLines(List<? extends FormattedText> textLines, Font font, float leftX, int topY, Matrix4f matrix4f, MultiBufferSource.BufferSource renderTypeBuffer, int color) {
+	public static void writeTooltipLines(List<? extends FormattedText> textLines, Font font, float leftX, int topY, Matrix4f matrix4f,
+			MultiBufferSource.BufferSource renderTypeBuffer, int color) {
 		for (int i = 0; i < textLines.size(); ++i) {
 			FormattedText line = textLines.get(i);
 			if (line != null) {
-				font.drawInBatch(Language.getInstance().getVisualOrder(line), leftX, topY, color, true, matrix4f, renderTypeBuffer, Font.DisplayMode.NORMAL, 0, 15728880);
+				font.drawInBatch(Language.getInstance().getVisualOrder(line), leftX, topY, color, true, matrix4f, renderTypeBuffer, Font.DisplayMode.NORMAL, 0,
+						15728880);
 			}
 
 			if (i == 0) {
@@ -224,9 +244,7 @@ public class GuiHelper {
 	}
 
 	public static ToggleButton.StateData getButtonStateData(UV uv, String tooltip, Dimension dimension, Position offset) {
-		return new ToggleButton.StateData(new TextureBlitData(ICONS, offset, Dimension.SQUARE_256, uv, dimension),
-				Component.translatable(tooltip)
-		);
+		return new ToggleButton.StateData(new TextureBlitData(ICONS, offset, Dimension.SQUARE_256, uv, dimension), Component.translatable(tooltip));
 	}
 
 	public static ToggleButton.StateData getButtonStateData(UV uv, Dimension dimension, Position offset, List<Component> tooltip) {
@@ -288,24 +306,30 @@ public class GuiHelper {
 		int halfHeight = height / 2;
 		int secondHalfHeight = halfHeight + height % 2;
 		if (width <= GUI_CONTROLS_TEXTURE_WIDTH / 2) {
-			guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, (float) GUI_CONTROLS_TEXTURE_WIDTH - width, 0, width, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-			guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) GUI_CONTROLS_TEXTURE_WIDTH - width, (float) GUI_CONTROLS_TEXTURE_HEIGHT - secondHalfHeight, width, secondHalfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+			guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, (float) GUI_CONTROLS_TEXTURE_WIDTH - width, 0, width, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH,
+					GUI_CONTROLS_TEXTURE_HEIGHT);
+			guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, (float) GUI_CONTROLS_TEXTURE_WIDTH - width,
+					(float) GUI_CONTROLS_TEXTURE_HEIGHT - secondHalfHeight, width, secondHalfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 			guiGraphics.blit(GuiHelper.GUI_CONTROLS, x - 3, y, GUI_CONTROLS_TEXTURE_WIDTH / 2, GUI_CONTROLS_TEXTURE_HEIGHT - height, 3, height);
 			return;
 		}
 
-		renderTiledControlBackground(guiGraphics, x, y, width, height, GUI_CONTROLS_TEXTURE_WIDTH / 2, 0, GUI_CONTROLS_TEXTURE_WIDTH / 2, GUI_CONTROLS_TEXTURE_HEIGHT, 6, 6, halfHeight, secondHalfHeight);
+		renderTiledControlBackground(guiGraphics, x, y, width, height, GUI_CONTROLS_TEXTURE_WIDTH / 2, 0, GUI_CONTROLS_TEXTURE_WIDTH / 2,
+				GUI_CONTROLS_TEXTURE_HEIGHT, 6, 6, halfHeight, secondHalfHeight);
 	}
 
-	public static void renderTiledControlBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight) {
+	public static void renderTiledControlBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth,
+			int textureHeight) {
 		renderTiledControlBackground(guiGraphics, x, y, width, height, u, v, textureWidth, textureHeight, 1);
 	}
 
-	public static void renderTiledControlBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight, int borderWidth) {
+	public static void renderTiledControlBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth,
+			int textureHeight, int borderWidth) {
 		renderTiledControlBackground(guiGraphics, x, y, width, height, u, v, textureWidth, textureHeight, borderWidth, borderWidth, borderWidth, borderWidth);
 	}
 
-	public static void renderTiledControlBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight, int leftWidth, int rightWidth, int topHeight, int bottomHeight) {
+	public static void renderTiledControlBackground(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth,
+			int textureHeight, int leftWidth, int rightWidth, int topHeight, int bottomHeight) {
 		rightWidth = Math.min(rightWidth, width - leftWidth);
 		bottomHeight = Math.min(bottomHeight, height - topHeight);
 		int sourceRightU = u + textureWidth - rightWidth;
@@ -316,15 +340,21 @@ public class GuiHelper {
 		int sourceCenterHeight = textureHeight - topHeight - bottomHeight;
 
 		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, (float) u, (float) v, leftWidth, topHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + leftWidth + centerWidth, y, (float) sourceRightU, (float) v, rightWidth, topHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + topHeight + centerHeight, (float) u, (float) sourceBottomV, leftWidth, bottomHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + leftWidth + centerWidth, y + topHeight + centerHeight, (float) sourceRightU, (float) sourceBottomV, rightWidth, bottomHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + leftWidth + centerWidth, y, (float) sourceRightU, (float) v, rightWidth, topHeight,
+				GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + topHeight + centerHeight, (float) u, (float) sourceBottomV, leftWidth, bottomHeight,
+				GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + leftWidth + centerWidth, y + topHeight + centerHeight, (float) sourceRightU, (float) sourceBottomV,
+				rightWidth, bottomHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 
 		renderTiledTexture(guiGraphics, x + leftWidth, y, centerWidth, topHeight, u + leftWidth, v, sourceCenterWidth, topHeight);
-		renderTiledTexture(guiGraphics, x + leftWidth, y + topHeight + centerHeight, centerWidth, bottomHeight, u + leftWidth, sourceBottomV, sourceCenterWidth, bottomHeight);
+		renderTiledTexture(guiGraphics, x + leftWidth, y + topHeight + centerHeight, centerWidth, bottomHeight, u + leftWidth, sourceBottomV, sourceCenterWidth,
+				bottomHeight);
 		renderTiledTexture(guiGraphics, x, y + topHeight, leftWidth, centerHeight, u, v + topHeight, leftWidth, sourceCenterHeight);
-		renderTiledTexture(guiGraphics, x + leftWidth + centerWidth, y + topHeight, rightWidth, centerHeight, sourceRightU, v + topHeight, rightWidth, sourceCenterHeight);
-		renderTiledTexture(guiGraphics, x + leftWidth, y + topHeight, centerWidth, centerHeight, u + leftWidth, v + topHeight, sourceCenterWidth, sourceCenterHeight);
+		renderTiledTexture(guiGraphics, x + leftWidth + centerWidth, y + topHeight, rightWidth, centerHeight, sourceRightU, v + topHeight, rightWidth,
+				sourceCenterHeight);
+		renderTiledTexture(guiGraphics, x + leftWidth, y + topHeight, centerWidth, centerHeight, u + leftWidth, v + topHeight, sourceCenterWidth,
+				sourceCenterHeight);
 	}
 
 	private static void renderTiledTexture(GuiGraphics guiGraphics, int x, int y, int width, int height, int u, int v, int textureWidth, int textureHeight) {
@@ -337,20 +367,25 @@ public class GuiHelper {
 			int renderedX = 0;
 			while (renderedX < width) {
 				int chunkWidth = Math.min(textureWidth, width - renderedX);
-				guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + renderedX, y + renderedY, (float) u, (float) v, chunkWidth, chunkHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+				guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + renderedX, y + renderedY, (float) u, (float) v, chunkWidth, chunkHeight,
+						GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 				renderedX += chunkWidth;
 			}
 			renderedY += chunkHeight;
 		}
 	}
 
-	public static void renderControlBackground(GuiGraphics guiGraphics, int x, int y, int renderWidth, int renderHeight, int u, int v, int textureBgWidth, int textureBgHeight) {
+	public static void renderControlBackground(GuiGraphics guiGraphics, int x, int y, int renderWidth, int renderHeight, int u, int v, int textureBgWidth,
+			int textureBgHeight) {
 		int halfWidth = renderWidth / 2;
 		int halfHeight = renderHeight / 2;
 		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y, u, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, u, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + halfWidth, y, (float) u + textureBgWidth - halfWidth, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
-		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + halfWidth, y + halfHeight, (float) u + textureBgWidth - halfWidth, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x, y + halfHeight, u, (float) v + textureBgHeight - halfHeight, halfWidth, halfHeight,
+				GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + halfWidth, y, (float) u + textureBgWidth - halfWidth, v, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH,
+				GUI_CONTROLS_TEXTURE_HEIGHT);
+		guiGraphics.blit(GuiHelper.GUI_CONTROLS, x + halfWidth, y + halfHeight, (float) u + textureBgWidth - halfWidth,
+				(float) v + textureBgHeight - halfHeight, halfWidth, halfHeight, GUI_CONTROLS_TEXTURE_WIDTH, GUI_CONTROLS_TEXTURE_HEIGHT);
 	}
 
 	public static void tryRenderGuiItem(ItemRenderer itemRenderer, @Nullable LivingEntity livingEntity, ItemStack stack, int x, int y, int rotation) {
@@ -358,8 +393,7 @@ public class GuiHelper {
 			BakedModel bakedmodel = itemRenderer.getModel(stack, null, livingEntity, 0);
 			try {
 				renderGuiItem(itemRenderer, stack, x, y, bakedmodel, rotation);
-			}
-			catch (Throwable throwable) {
+			} catch (Throwable throwable) {
 				CrashReport crashreport = CrashReport.forThrowable(throwable, "Rendering item");
 				CrashReportCategory crashreportcategory = crashreport.addCategory("Item being rendered");
 				crashreportcategory.setDetail("Item Type", () -> String.valueOf(stack.getItem()));
@@ -408,12 +442,12 @@ public class GuiHelper {
 		guiGraphics.renderTooltipInternal(screen.font, list, x, y, DefaultTooltipPositioner.INSTANCE);
 	}
 
-	//copy of ForgeHooksClient.gatherTooltipComponents with splitting always called so that new lines in translation are properly wrapped
-	public static List<ClientTooltipComponent> gatherTooltipComponents(List<? extends FormattedText> textElements, int mouseX, int screenWidth, int screenHeight, Font fallbackFont) {
+	// copy of ForgeHooksClient.gatherTooltipComponents with splitting always called so that new lines in translation are properly wrapped
+	public static List<ClientTooltipComponent> gatherTooltipComponents(List<? extends FormattedText> textElements, int mouseX, int screenWidth,
+			int screenHeight, Font fallbackFont) {
 		Font font = ForgeHooksClient.getTooltipFont(ItemStack.EMPTY, fallbackFont);
 		List<Either<FormattedText, TooltipComponent>> elements = textElements.stream()
-				.map((Function<FormattedText, Either<FormattedText, TooltipComponent>>) Either::left)
-				.collect(Collectors.toCollection(ArrayList::new));
+				.map((Function<FormattedText, Either<FormattedText, TooltipComponent>>) Either::left).collect(Collectors.toCollection(ArrayList::new));
 
 		var event = new RenderTooltipEvent.GatherComponents(ItemStack.EMPTY, screenWidth, screenHeight, elements, -1);
 		MinecraftForge.EVENT_BUS.post(event);
@@ -422,10 +456,7 @@ public class GuiHelper {
 		}
 
 		// text wrapping
-		int tooltipTextWidth = event.getTooltipElements().stream()
-				.mapToInt(either -> either.map(font::width, component -> 0))
-				.max()
-				.orElse(0);
+		int tooltipTextWidth = event.getTooltipElements().stream().mapToInt(either -> either.map(font::width, component -> 0)).max().orElse(0);
 
 		int tooltipX = mouseX + 12;
 		if (tooltipX + tooltipTextWidth + 4 > screenWidth) {
@@ -446,10 +477,8 @@ public class GuiHelper {
 
 		int tooltipTextWidthF = tooltipTextWidth;
 		return event.getTooltipElements().stream()
-				.flatMap(either -> either.map(
-						text -> font.split(text, tooltipTextWidthF).stream().map(ClientTooltipComponent::create),
-						component -> Stream.of(ClientTooltipComponent.create(component))
-				))
+				.flatMap(either -> either.map(text -> font.split(text, tooltipTextWidthF).stream().map(ClientTooltipComponent::create),
+						component -> Stream.of(ClientTooltipComponent.create(component))))
 				.toList();
 	}
 

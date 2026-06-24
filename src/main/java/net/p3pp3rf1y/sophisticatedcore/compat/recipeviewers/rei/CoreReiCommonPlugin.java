@@ -15,8 +15,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 public class CoreReiCommonPlugin implements REIServerPlugin {
 	@Override
 	public void registerSlotAccessors(SlotAccessorRegistry registry) {
-		registry.register(new ResourceLocation(SophisticatedCore.MOD_ID, "storage"),
-				slotAccessor -> slotAccessor instanceof ReiSlotAccessor,
+		registry.register(new ResourceLocation(SophisticatedCore.MOD_ID, "storage"), slotAccessor -> slotAccessor instanceof ReiSlotAccessor,
 				new SlotAccessorRegistry.Serializer() {
 					@Override
 					public SlotAccessor read(AbstractContainerMenu menu, Player player, CompoundTag tag) {

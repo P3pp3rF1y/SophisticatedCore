@@ -14,7 +14,8 @@ public class FeedingUpgradeContainer extends UpgradeContainerBase<FeedingUpgrade
 
 	private final FilterLogicContainer<FilterLogic> filterLogicContainer;
 
-	public FeedingUpgradeContainer(Player player, int containerId, FeedingUpgradeWrapper wrapper, UpgradeContainerType<FeedingUpgradeWrapper, FeedingUpgradeContainer> type) {
+	public FeedingUpgradeContainer(Player player, int containerId, FeedingUpgradeWrapper wrapper,
+			UpgradeContainerType<FeedingUpgradeWrapper, FeedingUpgradeContainer> type) {
 		super(player, containerId, wrapper, type);
 		filterLogicContainer = new FilterLogicContainer<>(() -> upgradeWrapper.getFilterLogic(), this, slots::add);
 	}

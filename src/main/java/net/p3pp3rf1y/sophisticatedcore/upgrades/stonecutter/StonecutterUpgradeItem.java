@@ -10,8 +10,8 @@ public class StonecutterUpgradeItem extends UpgradeItemBase<StonecutterUpgradeWr
 	private static final UpgradeType<StonecutterUpgradeWrapper> TYPE = new UpgradeType<>(StonecutterUpgradeWrapper::new);
 
 	public StonecutterUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
-    }
+		super(upgradeTypeLimitConfig);
+	}
 
 	@Override
 	public UpgradeType<StonecutterUpgradeWrapper> getType() {

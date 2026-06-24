@@ -69,7 +69,8 @@ public class CraftingUpgradeWrapper extends UpgradeWrapperBase<CraftingUpgradeWr
 	}
 
 	private boolean extractFromStorage(ItemStack stack) {
-		return !InventoryHelper.extractFromInventory(s -> ItemHandlerHelper.canItemStacksStack(s, stack), 1, storageWrapper.getInventoryHandler(), false).isEmpty();
+		return !InventoryHelper.extractFromInventory(s -> ItemHandlerHelper.canItemStacksStack(s, stack), 1, storageWrapper.getInventoryHandler(), false)
+				.isEmpty();
 	}
 
 	public boolean insertIntoStorageOrPlayer(Player player, ItemStack stack) {

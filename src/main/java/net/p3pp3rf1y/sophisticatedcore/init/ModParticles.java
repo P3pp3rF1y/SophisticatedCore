@@ -9,7 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.JukeboxUpgradeNoteParticleData;
 
 public class ModParticles {
-	private ModParticles() {}
+	private ModParticles() {
+	}
 
 	private static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, SophisticatedCore.MOD_ID);
 

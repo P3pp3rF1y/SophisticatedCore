@@ -21,11 +21,13 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	public static final ResourceLocation EMPTY_TANK_INPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("item/empty_tank_input_slot");
 	public static final ResourceLocation EMPTY_TANK_OUTPUT_SLOT_BACKGROUND = SophisticatedCore.getRL("item/empty_tank_output_slot");
 
-	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper, UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
+	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		slots.add(new TankIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.INPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input"))
-				.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_INPUT_SLOT_BACKGROUND));
-		slots.add(new TankIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output"))
+		slots.add(new TankIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.INPUT_SLOT, -100, -100,
+				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input")).setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_INPUT_SLOT_BACKGROUND));
+		slots.add(new TankIOSlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100,
+				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output"))
 				.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
 		slots.add(new TakeOnlySlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100));
 		slots.add(new TakeOnlySlot(() -> this.upgradeWrapper.getInventory(), TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
@@ -33,7 +35,7 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 
 	@Override
 	public void handleMessage(CompoundTag data) {
-		//noop
+		// noop
 	}
 
 	public FluidStack getContents() {

@@ -10,7 +10,8 @@ import org.apache.commons.lang3.Validate;
 import java.util.Optional;
 
 public class RegistryHelper {
-	private RegistryHelper() {}
+	private RegistryHelper() {
+	}
 
 	public static ResourceLocation getItemKey(Item item) {
 		ResourceLocation itemKey = ForgeRegistries.ITEMS.getKey(item);
@@ -25,7 +26,7 @@ public class RegistryHelper {
 	public static Optional<Item> getItemFromName(String itemName) {
 		ResourceLocation key = new ResourceLocation(itemName);
 		if (ForgeRegistries.ITEMS.containsKey(key)) {
-			//noinspection ConstantConditions - checked above with containsKey
+			// noinspection ConstantConditions - checked above with containsKey
 			return Optional.of(ForgeRegistries.ITEMS.getValue(key));
 		}
 		return Optional.empty();

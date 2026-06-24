@@ -31,7 +31,7 @@ public interface IStorageWrapper extends ITintable {
 	void setContentsChangeHandler(Runnable saveHandler);
 
 	default void setInventorySlotChangeHandler(Runnable slotChangeHandler) {
-		//noop
+		// noop
 	}
 
 	ITrackedContentsItemHandler getInventoryForUpgradeProcessing();
@@ -41,7 +41,7 @@ public interface IStorageWrapper extends ITintable {
 	ITrackedContentsItemHandler getInventoryForInputOutput();
 
 	default void setUpgradeCachesInvalidatedHandler(Runnable handler) {
-		//noop
+		// noop
 	}
 
 	SettingsHandler getSettingsHandler();
@@ -159,7 +159,8 @@ public interface IStorageWrapper extends ITintable {
 
 		if (!stackMoves.isEmpty()) {
 			boolean alreadyApplied = stackMoves.stream().allMatch(move -> !inventoryHandler.getStackInSlot(move.targetSlot()).isEmpty())
-					&& sourceSlots.stream().filter(sourceSlot -> !fittedTargetSlots.contains(sourceSlot)).allMatch(sourceSlot -> inventoryHandler.getStackInSlot(sourceSlot).isEmpty());
+					&& sourceSlots.stream().filter(sourceSlot -> !fittedTargetSlots.contains(sourceSlot))
+							.allMatch(sourceSlot -> inventoryHandler.getStackInSlot(sourceSlot).isEmpty());
 			if (!alreadyApplied) {
 				stackMoves.forEach(move -> inventoryHandler.setStackInSlot(move.sourceSlot(), ItemStack.EMPTY));
 				stackMoves.forEach(move -> inventoryHandler.setStackInSlot(move.targetSlot(), move.stack()));
@@ -173,19 +174,20 @@ public interface IStorageWrapper extends ITintable {
 	default void attachInventorySlotBlockers() {
 		UpgradeHandler upgradeHandler = getUpgradeHandler();
 		List<IInventorySlotBlocker> slotBlockers = upgradeHandler.getWrappersThatImplementFromMainStorage(IInventorySlotBlocker.class);
-		getInventoryHandler().setSlotBlockedPredicate(
-				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot)),
-				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot) && slotBlocker.shouldRenderBlockedSlotOverlay(slot))
-		);
+		getInventoryHandler().setSlotBlockedPredicate(slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot)),
+				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot) && slotBlocker.shouldRenderBlockedSlotOverlay(slot)));
 	}
 
-	record StackMove(int sourceSlot, int targetSlot, ItemStack stack) {}
+	record StackMove(int sourceSlot, int targetSlot, ItemStack stack) {
+	}
 
 	default Optional<IStorageFluidHandler> getFluidHandler() {
 		return Optional.empty();
 	}
 
-	default Optional<IEnergyStorage> getEnergyStorage() {return Optional.empty();}
+	default Optional<IEnergyStorage> getEnergyStorage() {
+		return Optional.empty();
+	}
 
 	default ItemStack getWrappedStorageStack() {
 		return ItemStack.EMPTY;
@@ -208,6 +210,6 @@ public interface IStorageWrapper extends ITintable {
 	}
 
 	default void registerOnInventoryInputOutputHandlerRefreshListener(Runnable onInventoryForInputOutputHandlerRefresh) {
-		//noop
+		// noop
 	}
 }

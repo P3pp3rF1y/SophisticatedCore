@@ -13,12 +13,12 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.function.Supplier;
 
-public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, int action,
-									   List<Integer> slots, List<Integer> crafting, int output, List<ItemStack> stacks,
-									   boolean maxTransfer) {
+public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting,
+		int output, List<ItemStack> stacks, boolean maxTransfer) {
 	public static void encode(EmiTransferRecipeMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeResourceLocation(msg.recipeId);
 		packetBuffer.writeResourceLocation(msg.recipeTypeId);
@@ -31,16 +31,9 @@ public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static EmiTransferRecipeMessage decode(FriendlyByteBuf packetBuffer) {
-		return new EmiTransferRecipeMessage(
-				packetBuffer.readResourceLocation(),
-				packetBuffer.readResourceLocation(),
-				packetBuffer.readInt(),
-				packetBuffer.readList(FriendlyByteBuf::readVarInt),
-				packetBuffer.readList(FriendlyByteBuf::readVarInt),
-				packetBuffer.readInt(),
-				packetBuffer.readList(FriendlyByteBuf::readItem),
-				packetBuffer.readBoolean()
-		);
+		return new EmiTransferRecipeMessage(packetBuffer.readResourceLocation(), packetBuffer.readResourceLocation(), packetBuffer.readInt(),
+				packetBuffer.readList(FriendlyByteBuf::readVarInt), packetBuffer.readList(FriendlyByteBuf::readVarInt), packetBuffer.readInt(),
+				packetBuffer.readList(FriendlyByteBuf::readItem), packetBuffer.readBoolean());
 	}
 
 	static void onMessage(EmiTransferRecipeMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -55,8 +48,8 @@ public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 			return;
 		}
 
-		CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(player, payload.recipeId, recipeType, payload.stacks,
-				payload.crafting, payload.slots, payload.maxTransfer);
+		CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(player, payload.recipeId, recipeType, payload.stacks, payload.crafting, payload.slots,
+				payload.maxTransfer);
 
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
 			return;

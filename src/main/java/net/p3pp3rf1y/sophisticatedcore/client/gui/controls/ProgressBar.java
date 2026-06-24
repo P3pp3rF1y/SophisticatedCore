@@ -23,7 +23,7 @@ public class ProgressBar extends WidgetBase {
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -41,16 +41,16 @@ public class ProgressBar extends WidgetBase {
 		} else if (dir == ProgressDirection.LEFT_RIGHT) {
 			width = (int) (width * progress);
 		}
-		guiGraphics.blit(progressTexture.getTextureName(), x, y + yOffset, progressTexture.getU(), (float) progressTexture.getV() + yOffset, width, height, progressTexture.getTextureWidth(), progressTexture.getTextureHeight());
+		guiGraphics.blit(progressTexture.getTextureName(), x, y + yOffset, progressTexture.getU(), (float) progressTexture.getV() + yOffset, width, height,
+				progressTexture.getTextureWidth(), progressTexture.getTextureHeight());
 	}
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 
 	public enum ProgressDirection {
-		LEFT_RIGHT,
-		BOTTOM_UP
+		LEFT_RIGHT, BOTTOM_UP
 	}
 }

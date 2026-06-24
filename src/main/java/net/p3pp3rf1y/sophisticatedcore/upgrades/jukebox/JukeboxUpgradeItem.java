@@ -16,10 +16,10 @@ public class JukeboxUpgradeItem extends UpgradeItemBase<JukeboxUpgradeWrapper> {
 	private final IntSupplier slotsInRow;
 
 	public JukeboxUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig, IntSupplier numberOfSlots, IntSupplier slotsInRow) {
-        super(upgradeTypeLimitConfig);
+		super(upgradeTypeLimitConfig);
 		this.numberOfSlots = numberOfSlots;
 		this.slotsInRow = slotsInRow;
-    }
+	}
 
 	@Override
 	public UpgradeType<JukeboxUpgradeWrapper> getType() {

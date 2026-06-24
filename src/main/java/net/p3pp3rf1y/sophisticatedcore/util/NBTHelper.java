@@ -19,7 +19,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class NBTHelper {
-	private NBTHelper() {}
+	private NBTHelper() {
+	}
 
 	public static Optional<Integer> getInt(ItemStack stack, String key) {
 		return getTagValue(stack, key, CompoundTag::getInt);
@@ -75,7 +76,8 @@ public class NBTHelper {
 		return stack.getTag() != null && stack.getTag().contains(key);
 	}
 
-	public static <E, C extends Collection<E>> Optional<C> getCollection(ItemStack stack, String parentKey, String tagName, byte listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+	public static <E, C extends Collection<E>> Optional<C> getCollection(ItemStack stack, String parentKey, String tagName, byte listType,
+			Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
 		return getTagValue(stack, parentKey, tagName, (c, n) -> c.getList(n, listType)).map(listNbt -> {
 			C ret = initCollection.get();
 			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
@@ -83,7 +85,8 @@ public class NBTHelper {
 		});
 	}
 
-	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, byte listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, byte listType, Function<Tag, Optional<E>> getElement,
+			Supplier<C> initCollection) {
 		return getTagValue(tag, key, (c, n) -> c.getList(n, listType)).map(listNbt -> {
 			C ret = initCollection.get();
 			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
@@ -128,7 +131,7 @@ public class NBTHelper {
 	}
 
 	public static Optional<UUID> getUniqueId(ItemStack stack, String key) {
-		//noinspection ConstantConditions - contains check is run before this get so it won't be null
+		// noinspection ConstantConditions - contains check is run before this get so it won't be null
 		return getTagValue(stack, key, (compound, k) -> NbtUtils.loadUUID(compound.get(k)));
 	}
 
@@ -237,7 +240,8 @@ public class NBTHelper {
 		return getMap(tag, key, getKey, getValue, HashMap::new);
 	}
 
-	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue, Supplier<Map<K, V>> initMap) {
+	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue,
+			Supplier<Map<K, V>> initMap) {
 		CompoundTag mapNbt = tag.getCompound(key);
 
 		Map<K, V> map = initMap.get();

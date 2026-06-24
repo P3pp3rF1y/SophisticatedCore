@@ -94,7 +94,7 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 	}
 
 	public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -109,6 +109,6 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//noop by default
+		// noop by default
 	}
 }

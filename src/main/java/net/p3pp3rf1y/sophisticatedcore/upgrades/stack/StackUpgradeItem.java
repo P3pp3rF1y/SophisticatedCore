@@ -7,12 +7,14 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
 
 import javax.annotation.Nullable;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> {
 	public static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 	public static final UpgradeGroup UPGRADE_GROUP = new UpgradeGroup("stack_upgrades", TranslationHelper.INSTANCE.translUpgradeGroup("stack_upgrades"));
@@ -74,7 +76,8 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	}
 
 	@Override
-	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot, @Nullable IUpgradeItem<?> upgradeInSlot) {
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot,
+			@Nullable IUpgradeItem<?> upgradeInSlot) {
 		if (isClientSide) {
 			return new UpgradeSlotChangeResult.Success();
 		}
@@ -140,14 +143,16 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			if (slot == ignoreUpgradeSlot) {
 				continue;
 			}
-			if (wrapper instanceof IStackableContentsUpgrade stackableContentsUpgrade && stackableContentsUpgrade.getMinimumMultiplierRequired() > effectiveMultiplier) {
+			if (wrapper instanceof IStackableContentsUpgrade stackableContentsUpgrade
+					&& stackableContentsUpgrade.getMinimumMultiplierRequired() > effectiveMultiplier) {
 				errorUpgradeSlots.add(slot);
 				errorInventoryParts.add(slot);
 			}
 		}
 
 		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty()) {
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", inventorySlotLimit), errorUpgradeSlots, slotsOverMultiplier, errorInventoryParts);
+			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", inventorySlotLimit),
+					errorUpgradeSlots, slotsOverMultiplier, errorInventoryParts);
 		}
 
 		return new UpgradeSlotChangeResult.Success();

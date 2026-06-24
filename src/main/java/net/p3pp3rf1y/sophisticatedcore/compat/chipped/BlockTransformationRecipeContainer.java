@@ -1,8 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.chipped;
 
+import com.google.common.base.Suppliers;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.common.base.Suppliers;
 import earth.terrarium.chipped.common.recipes.ChippedRecipe;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -20,9 +20,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
@@ -32,6 +32,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -50,13 +51,15 @@ public class BlockTransformationRecipeContainer {
 	private final DataSlot selectedRecipe = DataSlot.standalone();
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
-	private Runnable inventoryUpdateListener = () -> {};
+	private Runnable inventoryUpdateListener = () -> {
+	};
 	private final Supplier<Optional<ItemStack>> getLastSelectedResult;
 	private final Consumer<ItemStack> setLastSelectedResult;
 	private final List<ResourceLocation> recentResultItems = new ArrayList<>();
 	private long lastOnTake = -1;
 
-	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
+	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType,
+			Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
 		this.upgradeContainer = upgradeContainer;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
@@ -200,14 +203,12 @@ public class BlockTransformationRecipeContainer {
 
 	private List<ResourceLocation> getClientRecentResults(ItemStack ingredient) {
 		List<ResourceLocation> recentResults = getMatchingIngredientKey(ingredient)
-				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
-				.orElse(List.of());
+				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key)).orElse(List.of());
 		if (!recentResults.isEmpty()) {
 			return recentResults;
 		}
 
-		recentResults = getRecipeNamespaceIngredientKey(ingredient)
-				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
+		recentResults = getRecipeNamespaceIngredientKey(ingredient).map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
 				.orElse(List.of());
 		if (!recentResults.isEmpty()) {
 			return recentResults;
@@ -218,9 +219,7 @@ public class BlockTransformationRecipeContainer {
 			return recentResults;
 		}
 
-		return getResultGroupKey()
-				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
-				.orElse(List.of());
+		return getResultGroupKey().map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key)).orElse(List.of());
 	}
 
 	private void updateRecentResultItems(List<ResourceLocation> recentResults) {
@@ -322,7 +321,8 @@ public class BlockTransformationRecipeContainer {
 
 		@Override
 		public void onTake(Player thePlayer, ItemStack stack) {
-			if (upgradeContainer.getPlayer().level() instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(thePlayer, getRecipeScope(), getRecentResultsKey(inputSlot.getItem()), getItemRegistryName(stack))) {
+			if (upgradeContainer.getPlayer().level() instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel)
+					.recordCraftedResult(thePlayer, getRecipeScope(), getRecentResultsKey(inputSlot.getItem()), getItemRegistryName(stack))) {
 				if (thePlayer instanceof ServerPlayer serverPlayer) {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}

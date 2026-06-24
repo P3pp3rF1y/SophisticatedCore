@@ -6,9 +6,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum VoidType implements StringRepresentable {
-	ALWAYS("always"),
-	SLOT_OVERFLOW("slot_overflow"),
-	STORAGE_OVERFLOW("storage_overflow");
+	ALWAYS("always"), SLOT_OVERFLOW("slot_overflow"), STORAGE_OVERFLOW("storage_overflow");
 
 	private final String name;
 

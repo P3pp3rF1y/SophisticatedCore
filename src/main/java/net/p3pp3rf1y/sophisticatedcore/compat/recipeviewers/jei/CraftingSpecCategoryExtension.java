@@ -38,10 +38,13 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 			craftingGridHelper.createAndSetOutputs(builder, List.of(recipe.getResultItem(null)));
 			return;
 		}
-		List<CraftingDisplayVariant> variants = recipe instanceof IRecipeViewerCraftingSpecRecipe specRecipe ? specRecipe.variants() : vanillaRecipeVariants(spec, focuses);
+		List<CraftingDisplayVariant> variants = recipe instanceof IRecipeViewerCraftingSpecRecipe specRecipe
+				? specRecipe.variants()
+				: vanillaRecipeVariants(spec, focuses);
 		List<IRecipeSlotBuilder> inputSlots = craftingGridHelper.createAndSetInputs(builder, spec.getInputSlots(variants), spec.width(), spec.height());
 		IRecipeSlotBuilder outputSlot = craftingGridHelper.createAndSetOutputs(builder, spec.getOutputStacks(variants));
-		if (spec.focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior && sourceResultFocusBehavior.sourceInputIndex() < inputSlots.size()) {
+		if (spec.focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior
+				&& sourceResultFocusBehavior.sourceInputIndex() < inputSlots.size()) {
 			try {
 				builder.createFocusLink(inputSlots.get(sourceResultFocusBehavior.sourceInputIndex()), outputSlot);
 			} catch (IllegalArgumentException e) {
@@ -71,19 +74,15 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 	}
 
 	private List<CraftingDisplayVariant> narrowToFocus(CraftingDisplaySpec spec, IFocusGroup focuses) {
-		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
-				.filter(focusedStackPredicate)
-				.findFirst();
+		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).map(focus -> focus.getTypedValue().getIngredient())
+				.filter(focusedStackPredicate).findFirst();
 		if (outputFocus.isPresent()) {
 			List<CraftingDisplayVariant> variants = spec.getRecipesFor(outputFocus.get());
 			return variants.isEmpty() ? spec.getGlobalDisplays() : variants;
 		}
 
-		Optional<ItemStack> inputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.INPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
-				.filter(focusedStackPredicate)
-				.findFirst();
+		Optional<ItemStack> inputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.INPUT).map(focus -> focus.getTypedValue().getIngredient())
+				.filter(focusedStackPredicate).findFirst();
 		if (inputFocus.isPresent()) {
 			List<CraftingDisplayVariant> variants = spec.getUsagesFor(inputFocus.get());
 			return variants.isEmpty() ? spec.getGlobalDisplays() : variants;

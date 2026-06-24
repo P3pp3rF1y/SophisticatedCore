@@ -11,10 +11,6 @@ class VoidUpgradeWrapperTest {
 	void overflowMatchIncludesPartialStackWhenNbtIsIgnored() {
 		Object partiallyFilledStack = new Object();
 
-		Assertions.assertTrue(VoidUpgradeWrapper.hasOverflowMatch(
-				Set.of(),
-				Set.of(partiallyFilledStack),
-				stackKey -> stackKey == partiallyFilledStack
-		));
+		Assertions.assertTrue(VoidUpgradeWrapper.hasOverflowMatch(Set.of(), Set.of(partiallyFilledStack), stackKey -> stackKey == partiallyFilledStack));
 	}
 }

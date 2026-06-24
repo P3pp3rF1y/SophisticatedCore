@@ -26,43 +26,34 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 		if (ingredient.getType() == VanillaTypes.ITEM_STACK) {
 			StorageContainerMenuBase<?> container = gui.getMenu();
 			ingredient.getItemStack().ifPresent(ghostStack -> {
-						FluidStack fluidStack = ghostStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
-								.filter(fluidHandler -> fluidHandler.getTanks() > 0)
-								.map(fluidHandler -> fluidHandler.getFluidInTank(0)).orElse(FluidStack.EMPTY);
+				FluidStack fluidStack = ghostStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).filter(fluidHandler -> fluidHandler.getTanks() > 0)
+						.map(fluidHandler -> fluidHandler.getFluidInTank(0)).orElse(FluidStack.EMPTY);
 
-						if (!fluidStack.isEmpty()) {
-							gui.getUpgradeSettingsControl()
-									.getOpenTab()
-									.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
-									.map(PumpUpgradeTab.Advanced.class::cast)
-									.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, targets));
-							return;
-						}
-						container.getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
-							if (s instanceof IFilterSlot && s.mayPlace(ghostStack)) {
-								targets.add(new Target<>() {
-									@Override
-									public Rect2i getArea() {
-										return new Rect2i(gui.getGuiLeft() + s.x, gui.getGuiTop() + s.y, 17, 17);
-									}
-
-									@Override
-									public void accept(I i) {
-										PacketHandler.INSTANCE.sendToServer(new SetGhostSlotMessage(ghostStack, s.index));
-									}
-								});
+				if (!fluidStack.isEmpty()) {
+					gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast)
+							.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, targets));
+					return;
+				}
+				container.getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
+					if (s instanceof IFilterSlot && s.mayPlace(ghostStack)) {
+						targets.add(new Target<>() {
+							@Override
+							public Rect2i getArea() {
+								return new Rect2i(gui.getGuiLeft() + s.x, gui.getGuiTop() + s.y, 17, 17);
 							}
-						}));
+
+							@Override
+							public void accept(I i) {
+								PacketHandler.INSTANCE.sendToServer(new SetGhostSlotMessage(ghostStack, s.index));
+							}
+						});
 					}
-			);
+				}));
+			});
 		} else if (ingredient.getType() == ForgeTypes.FLUID_STACK) {
-			gui.getUpgradeSettingsControl()
-					.getOpenTab()
-					.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
-					.map(PumpUpgradeTab.Advanced.class::cast)
+			gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast)
 					.ifPresent(pumpUpgradeTab -> ForgeTypes.FLUID_STACK.castIngredient(ingredient.getIngredient())
-							.ifPresent(ghostFluid -> addFluidTargets(pumpUpgradeTab, ghostFluid, targets))
-					);
+							.ifPresent(ghostFluid -> addFluidTargets(pumpUpgradeTab, ghostFluid, targets)));
 		}
 		return targets;
 	}
@@ -90,6 +81,6 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 
 	@Override
 	public void onComplete() {
-		//noop
+		// noop
 	}
 }

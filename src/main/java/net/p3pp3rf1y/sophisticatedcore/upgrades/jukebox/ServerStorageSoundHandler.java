@@ -38,7 +38,8 @@ public class ServerStorageSoundHandler {
 
 		removeFinished(serverLevel, dim);
 
-		if (lastWorldCheck.computeIfAbsent(dim, key -> serverLevel.getGameTime()) > serverLevel.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL || !worldStorageSoundInfos.containsKey(dim)) {
+		if (lastWorldCheck.computeIfAbsent(dim, key -> serverLevel.getGameTime()) > serverLevel.getGameTime() - KEEP_ALIVE_CHECK_INTERVAL
+				|| !worldStorageSoundInfos.containsKey(dim)) {
 			return;
 		}
 		lastWorldCheck.put(dim, serverLevel.getGameTime());
@@ -124,16 +125,19 @@ public class ServerStorageSoundHandler {
 	public static void startPlayingDisc(ServerLevel serverLevel, BlockPos position, UUID storageUuid, Item item, Runnable onFinishedHandler) {
 		Vec3 pos = Vec3.atCenterOf(position);
 		PacketHandler.INSTANCE.sendToAllNear(serverLevel.dimension(), pos, 128, new PlayDiscMessage(storageUuid, Item.getId(item), position));
-		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, pos, serverLevel.getGameTime() + (item instanceof RecordItem recordItem ? recordItem.getLengthInTicks() : 0));
+		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, pos,
+				serverLevel.getGameTime() + (item instanceof RecordItem recordItem ? recordItem.getLengthInTicks() : 0));
 	}
 
 	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, Item item, Runnable onFinishedHandler) {
 		PacketHandler.INSTANCE.sendToAllNear(serverLevel.dimension(), position, 128, new PlayDiscMessage(storageUuid, Item.getId(item), entityId));
-		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, position, serverLevel.getGameTime() + (item instanceof RecordItem recordItem ? recordItem.getLengthInTicks() : 0));
+		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, position,
+				serverLevel.getGameTime() + (item instanceof RecordItem recordItem ? recordItem.getLengthInTicks() : 0));
 	}
 
 	public static void putSoundInfo(ServerLevel serverLevel, UUID storageUuid, Runnable onFinishedHandler, Vec3 pos, long finishTime) {
-		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid, new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
+		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid,
+				new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
 	}
 
 	public static void stopPlayingDisc(ServerLevel serverWorld, Vec3 position, UUID storageUuid) {

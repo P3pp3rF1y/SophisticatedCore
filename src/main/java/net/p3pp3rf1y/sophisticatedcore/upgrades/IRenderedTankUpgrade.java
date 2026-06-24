@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fluids.FluidStack;
 
 import javax.annotation.Nullable;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 

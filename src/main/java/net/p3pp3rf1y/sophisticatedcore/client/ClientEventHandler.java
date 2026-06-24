@@ -35,13 +35,13 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static net.minecraftforge.client.settings.KeyConflictContext.GUI;
 
 public class ClientEventHandler {
-	private ClientEventHandler() {}
+	private ClientEventHandler() {
+	}
 
 	private static final int MIDDLE_BUTTON = 2;
 	private static final String KEYBIND_SOPHISTICATEDCORE_CATEGORY = "key.category.sophisticatedcore.main";
@@ -50,7 +50,8 @@ public class ClientEventHandler {
 	public static final KeyMapping TRANSFER_TO_STORAGE_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_storage"),
 			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_LEFT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping TRANSFER_TO_INVENTORY_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_inventory"),
-			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET),
+			KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers() {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -63,7 +64,7 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
-		 eventBus.addListener(ClientEventHandler::onTickEnd);
+		eventBus.addListener(ClientEventHandler::onTickEnd);
 	}
 
 	private static void onTickEnd(TickEvent.ClientTickEvent event) {
@@ -176,7 +177,8 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
+	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack,
+			IStashStorageItem.StashResult stashResult) {
 		int x = containerGui.getGuiLeft() + s.x;
 		int y = containerGui.getGuiTop() + s.y;
 
@@ -193,13 +195,16 @@ public class ClientEventHandler {
 		poseStack.popPose();
 	}
 
-	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, StashResultAndTooltip stashResultAndTooltip) {
+	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics,
+			StashResultAndTooltip stashResultAndTooltip) {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(0, 0, 100);
-		guiGraphics.renderTooltip(containerGui.font, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), stashResultAndTooltip.tooltip(), x, y);
+		guiGraphics.renderTooltip(containerGui.font,
+				Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")),
+				stashResultAndTooltip.tooltip(), x, y);
 		poseStack.popPose();
 	}
 
@@ -214,7 +219,8 @@ public class ClientEventHandler {
 		return Optional.empty();
 	}
 
-	private static Optional<StashResultAndTooltip> getStashResultAndTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable, IStashStorageItem stashStorageItem) {
+	private static Optional<StashResultAndTooltip> getStashResultAndTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable,
+			IStashStorageItem stashStorageItem) {
 		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(potentialStashStorage, potentiallyStashable);
 		if (stashResult == IStashStorageItem.StashResult.NO_SPACE) {
 			return Optional.empty();
@@ -222,7 +228,8 @@ public class ClientEventHandler {
 		return Optional.of(new StashResultAndTooltip(stashResult, stashStorageItem.getInventoryTooltip(potentialStashStorage)));
 	}
 
-	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult, Optional<TooltipComponent> tooltip) {}
+	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult, Optional<TooltipComponent> tooltip) {
+	}
 
 	private static class SophisticatedScreenKeyConflictContext implements IKeyConflictContext {
 		public static final SophisticatedScreenKeyConflictContext INSTANCE = new SophisticatedScreenKeyConflictContext();

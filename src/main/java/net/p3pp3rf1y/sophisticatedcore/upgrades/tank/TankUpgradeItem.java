@@ -11,13 +11,15 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeItem;
 
 import javax.annotation.Nullable;
+
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
 public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	public static final UpgradeType<TankUpgradeWrapper> TYPE = new UpgradeType<>(TankUpgradeWrapper::new);
-	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List.of(new UpgradeConflictDefinition(TankUpgradeItem.class::isInstance, 1, TranslationHelper.INSTANCE.translError("add.two_tank_upgrades_present")));
+	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List
+			.of(new UpgradeConflictDefinition(TankUpgradeItem.class::isInstance, 1, TranslationHelper.INSTANCE.translError("add.two_tank_upgrades_present")));
 
 	private final TankUpgradeConfig tankUpgradeConfig;
 
@@ -50,13 +52,16 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	}
 
 	@Override
-	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, @Nullable IUpgradeItem<?> upgradeInSlot) {
-		int capacityAfter = (int) (getTankCapacity(storageWrapper) / (upgradeInSlot instanceof StackUpgradeItem stackUpgrade ? stackUpgrade.getStackSizeMultiplier() : 1));
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide,
+			@Nullable IUpgradeItem<?> upgradeInSlot) {
+		int capacityAfter = (int) (getTankCapacity(storageWrapper)
+				/ (upgradeInSlot instanceof StackUpgradeItem stackUpgrade ? stackUpgrade.getStackSizeMultiplier() : 1));
 		double multiplierRequired = (double) TankUpgradeWrapper.getContents(upgradeStack).getAmount() / capacityAfter;
 		if (multiplierRequired > 1) {
 			DecimalFormat multiplierFormat = new DecimalFormat("0.#");
 			String formattedMultiplierRequired = multiplierFormat.format(Math.ceil(10 * multiplierRequired) / 10);
-			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", formattedMultiplierRequired), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("add.tank_capacity_high", formattedMultiplierRequired),
+					Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
 		}
 
 		return new UpgradeSlotChangeResult.Success();

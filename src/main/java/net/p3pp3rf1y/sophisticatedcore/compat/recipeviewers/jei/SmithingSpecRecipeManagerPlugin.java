@@ -20,7 +20,8 @@ public class SmithingSpecRecipeManagerPlugin implements ISimpleRecipeManagerPlug
 		this(catalogSupplier, focusedStackPredicate, focusedStackPredicate);
 	}
 
-	public SmithingSpecRecipeManagerPlugin(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate, Predicate<ItemStack> focusedOutputPredicate) {
+	public SmithingSpecRecipeManagerPlugin(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate,
+			Predicate<ItemStack> focusedOutputPredicate) {
 		this.catalogSupplier = catalogSupplier;
 		this.focusedInputPredicate = focusedInputPredicate;
 		this.focusedOutputPredicate = focusedOutputPredicate;
@@ -44,9 +45,7 @@ public class SmithingSpecRecipeManagerPlugin implements ISimpleRecipeManagerPlug
 		if (!focusedInputPredicate.test(stack)) {
 			return List.of();
 		}
-		return catalogSupplier.get().getSmithingUsagesFor(stack).stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
-				.toList();
+		return catalogSupplier.get().getSmithingUsagesFor(stack).stream().flatMap(view -> view.variants().stream().map(view.spec()::recipe)).toList();
 	}
 
 	@Override
@@ -55,9 +54,7 @@ public class SmithingSpecRecipeManagerPlugin implements ISimpleRecipeManagerPlug
 		if (!focusedOutputPredicate.test(stack)) {
 			return List.of();
 		}
-		return catalogSupplier.get().getSmithingRecipesFor(stack).stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipe))
-				.toList();
+		return catalogSupplier.get().getSmithingRecipesFor(stack).stream().flatMap(view -> view.variants().stream().map(view.spec()::recipe)).toList();
 	}
 
 	@Override

@@ -60,15 +60,15 @@ public class FilterLogic extends FilterLogicBase {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
 				return isTagMatch(stack);
 			} else {
-				return (getFilterHandler().hasOnlyEmptyFilters() && emptyAllowListMatchesEverything)
-						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> stackMatchesFilter(stack, filter), () -> false, returnValue -> returnValue);
+				return (getFilterHandler().hasOnlyEmptyFilters() && emptyAllowListMatchesEverything) || InventoryHelper.iterate(getFilterHandler(),
+						(slot, filter) -> stackMatchesFilter(stack, filter), () -> false, returnValue -> returnValue);
 			}
 		} else {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
 				return !isTagMatch(stack);
 			} else {
-				return getFilterHandler().hasOnlyEmptyFilters()
-						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> !stackMatchesFilter(stack, filter), () -> true, returnValue -> !returnValue);
+				return getFilterHandler().hasOnlyEmptyFilters() || InventoryHelper.iterate(getFilterHandler(),
+						(slot, filter) -> !stackMatchesFilter(stack, filter), () -> true, returnValue -> !returnValue);
 			}
 		}
 	}
@@ -101,7 +101,8 @@ public class FilterLogic extends FilterLogicBase {
 	}
 
 	public class ObservableFilterItemStackHandler extends FilterItemStackHandler {
-		private IntConsumer onSlotChange = s -> {};
+		private IntConsumer onSlotChange = s -> {
+		};
 		public ObservableFilterItemStackHandler() {
 			super(filterSlotCount);
 		}

@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
@@ -53,7 +54,7 @@ public class FilterLogicBase {
 
 		PrimaryMatch primaryMatch = getPrimaryMatch();
 		if (primaryMatch == PrimaryMatch.MOD) {
-			//noinspection ConstantConditions
+			// noinspection ConstantConditions
 			if (!ForgeRegistries.ITEMS.getKey(stack.getItem()).getNamespace().equals(ForgeRegistries.ITEMS.getKey(filter.getItem()).getNamespace())) {
 				return false;
 			}
@@ -102,8 +103,8 @@ public class FilterLogicBase {
 
 	protected void initTags() {
 		tagKeys = NBTHelper.getCollection(upgrade, parentTagKey, "tags", Tag.TAG_STRING,
-						elementNbt -> Optional.of(TagKey.create(Registries.ITEM, new ResourceLocation(elementNbt.getAsString()))), () -> new TreeSet<>(Comparator.comparing(TagKey::location)))
-				.orElse(new TreeSet<>(Comparator.comparing(TagKey::location)));
+				elementNbt -> Optional.of(TagKey.create(Registries.ITEM, new ResourceLocation(elementNbt.getAsString()))),
+				() -> new TreeSet<>(Comparator.comparing(TagKey::location))).orElse(new TreeSet<>(Comparator.comparing(TagKey::location)));
 	}
 
 	public void setAllowList(boolean isAllowList) {

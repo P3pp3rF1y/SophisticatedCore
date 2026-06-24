@@ -13,15 +13,10 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public enum AlchemyCondition implements StringRepresentable {
-	NEVER(le -> false),
-	ALWAYS(le -> true),
-	UNDER_WATER(Entity::isUnderWater),
-	ON_FIRE(Entity::isOnFire),
-	FALLING(le -> le.fallDistance > 2),
-	MINING(le -> le instanceof ServerPlayer serverPlayer && serverPlayer.gameMode.isDestroyingBlock),
-	SPRINTING(Entity::isSprinting),
-	HURT((le, v) -> le.getHealth() > 0 && le.getHealth() < le.getMaxHealth() && le.getHealth() / le.getMaxHealth() < v, 0.75f),
-	NEGATIVE_EFFECT((le, v) -> le.getActiveEffects().stream().anyMatch(effect -> effect.getEffect().getCategory() == MobEffectCategory.HARMFUL));
+	NEVER(le -> false), ALWAYS(le -> true), UNDER_WATER(Entity::isUnderWater), ON_FIRE(Entity::isOnFire), FALLING(le -> le.fallDistance > 2), MINING(
+			le -> le instanceof ServerPlayer serverPlayer && serverPlayer.gameMode.isDestroyingBlock), SPRINTING(Entity::isSprinting), HURT(
+					(le, v) -> le.getHealth() > 0 && le.getHealth() < le.getMaxHealth() && le.getHealth() / le.getMaxHealth() < v, 0.75f), NEGATIVE_EFFECT(
+							(le, v) -> le.getActiveEffects().stream().anyMatch(effect -> effect.getEffect().getCategory() == MobEffectCategory.HARMFUL));
 
 	private final BiPredicate<LivingEntity, Float> predicate;
 	private final float defaultValue;

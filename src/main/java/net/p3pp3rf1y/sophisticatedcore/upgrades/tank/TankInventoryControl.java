@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class TankInventoryControl extends UpgradeInventoryControlBase {
 	private static final TextureBlitData OVERLAY = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(47, 30), new Dimension(16, 18));
 	private final int upgradeSlot;
@@ -46,7 +47,8 @@ public class TankInventoryControl extends UpgradeInventoryControlBase {
 			GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + yOffset, GuiHelper.BAR_BACKGROUND_MIDDLE);
 			yOffset += 18;
 		}
-		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + (height < 36 ? height / 2 : yOffset), GuiHelper.BAR_BACKGROUND_BOTTOM, 18, height < 36 ? height / 2 : 18);
+		GuiHelper.blit(guiGraphics, getTankLeft(), pos.y() + (height < 36 ? height / 2 : yOffset), GuiHelper.BAR_BACKGROUND_BOTTOM, 18,
+				height < 36 ? height / 2 : 18);
 
 		renderFluid(guiGraphics);
 
@@ -66,8 +68,8 @@ public class TankInventoryControl extends UpgradeInventoryControlBase {
 
 	@Override
 	public boolean handleMouseReleased(double mouseX, double mouseY, int button) {
-		if (mouseX < screen.getGuiLeft() + getTankLeft() || mouseX >= screen.getGuiLeft() + getTankLeft() + 18 ||
-				mouseY < screen.getGuiTop() + pos.y() || mouseY >= screen.getGuiTop() + pos.y() + height) {
+		if (mouseX < screen.getGuiLeft() + getTankLeft() || mouseX >= screen.getGuiLeft() + getTankLeft() + 18 || mouseY < screen.getGuiTop() + pos.y()
+				|| mouseY >= screen.getGuiTop() + pos.y() + height) {
 			return false;
 		}
 
@@ -107,14 +109,16 @@ public class TankInventoryControl extends UpgradeInventoryControlBase {
 	}
 
 	private MutableComponent getContentsTooltip(FluidStack contents, int capacity) {
-		//noinspection deprecation
+		// noinspection deprecation
 		if (contents.getFluid().is(ModFluids.EXPERIENCE_TAG)) {
 			double contentsLevels = XpHelper.getLevelsForExperience((int) XpHelper.liquidToExperience(contents.getAmount()));
 			double tankCapacityLevels = XpHelper.getLevelsForExperience((int) XpHelper.liquidToExperience(capacity));
 
-			return Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tank.xp_contents_tooltip"), String.format("%.1f", contentsLevels), String.format("%.1f", tankCapacityLevels));
+			return Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tank.xp_contents_tooltip"), String.format("%.1f", contentsLevels),
+					String.format("%.1f", tankCapacityLevels));
 		}
-		return Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tank.contents_tooltip"), String.format("%,d", contents.getAmount()), String.format("%,d", capacity));
+		return Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tank.contents_tooltip"), String.format("%,d", contents.getAmount()),
+				String.format("%,d", capacity));
 	}
 
 	private void renderFluid(GuiGraphics guiGraphics) {
@@ -130,6 +134,7 @@ public class TankInventoryControl extends UpgradeInventoryControlBase {
 		IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
 		ResourceLocation texture = renderProperties.getStillTexture(contents);
 		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-		GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10,
+				pos.y() + 1 + height - 2 - displayLevel, displayLevel);
 	}
 }

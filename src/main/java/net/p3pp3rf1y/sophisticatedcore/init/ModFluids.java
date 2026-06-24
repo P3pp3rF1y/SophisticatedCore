@@ -22,7 +22,8 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import java.util.function.Consumer;
 
 public class ModFluids {
-	private ModFluids() {}
+	private ModFluids() {
+	}
 
 	private static ForgeFlowingFluid.Properties fluidProperties() {
 		return new ForgeFlowingFluid.Properties(XP_FLUID_TYPE, XP_STILL, XP_FLOWING).bucket(XP_BUCKET);
@@ -37,36 +38,35 @@ public class ModFluids {
 	public static final RegistryObject<FlowingFluid> XP_STILL = FLUIDS.register("xp_still", () -> new ForgeFlowingFluid.Source(fluidProperties()));
 
 	public static final RegistryObject<FlowingFluid> XP_FLOWING = FLUIDS.register("xp_flowing", () -> new ForgeFlowingFluid.Flowing(fluidProperties()));
-	public static final RegistryObject<FluidType> XP_FLUID_TYPE = FLUID_TYPES.register("experience", () -> new FluidType(FluidType.Properties.create().lightLevel(10).density(800).viscosity(1500)) {
-		@Override
-		public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
-			consumer.accept(new IClientFluidTypeExtensions() {
-				private static final ResourceLocation XP_STILL_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_still");
-				private static final ResourceLocation XP_FLOWING_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_flowing");
-
+	public static final RegistryObject<FluidType> XP_FLUID_TYPE = FLUID_TYPES.register("experience",
+			() -> new FluidType(FluidType.Properties.create().lightLevel(10).density(800).viscosity(1500)) {
 				@Override
-				public ResourceLocation getStillTexture() {
-					return XP_STILL_TEXTURE;
-				}
+				public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
+					consumer.accept(new IClientFluidTypeExtensions() {
+						private static final ResourceLocation XP_STILL_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_still");
+						private static final ResourceLocation XP_FLOWING_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
-				@Override
-				public ResourceLocation getFlowingTexture() {
-					return XP_FLOWING_TEXTURE;
+						@Override
+						public ResourceLocation getStillTexture() {
+							return XP_STILL_TEXTURE;
+						}
+
+						@Override
+						public ResourceLocation getFlowingTexture() {
+							return XP_FLOWING_TEXTURE;
+						}
+					});
 				}
 			});
-		}
-	});
 
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, SophisticatedCore.MOD_ID);
 	public static final RegistryObject<Item> XP_BUCKET = ITEMS.register("xp_bucket", () -> new BucketItem(XP_STILL, new Item.Properties().stacksTo(1)));
 
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, SophisticatedCore.MOD_ID);
-	public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () -> CreativeModeTab.builder()
-			.icon(() -> new ItemStack(XP_BUCKET.get()))
-			.title(Component.translatable("itemGroup.sophisticatedcore"))
-			.displayItems((featureFlags, output) -> output.accept(new ItemStack(XP_BUCKET.get())))
-			.build());
-	
+	public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main",
+			() -> CreativeModeTab.builder().icon(() -> new ItemStack(XP_BUCKET.get())).title(Component.translatable("itemGroup.sophisticatedcore"))
+					.displayItems((featureFlags, output) -> output.accept(new ItemStack(XP_BUCKET.get()))).build());
+
 	public static void registerHandlers(IEventBus modBus) {
 		FLUIDS.register(modBus);
 		FLUID_TYPES.register(modBus);

@@ -37,8 +37,7 @@ public class GroupedCraftingRecipeCategoryExtension implements ICraftingCategory
 	}
 
 	private static GroupedCraftingRecipe narrowToFocus(GroupedCraftingRecipe recipe, IFocusGroup focuses) {
-		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
+		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).map(focus -> focus.getTypedValue().getIngredient())
 				.findFirst();
 		return outputFocus.map(itemStack -> recipe.narrowForResult(itemStack).orElse(recipe)).orElse(recipe);
 	}
@@ -47,10 +46,8 @@ public class GroupedCraftingRecipeCategoryExtension implements ICraftingCategory
 	public void onDisplayedIngredientsUpdate(List<IRecipeSlotDrawable> recipeSlots, IFocusGroup focuses) {
 		recipeSlots.forEach(IRecipeSlotDrawable::clearDisplayOverrides);
 
-		recipeSlots.stream()
-				.flatMap(slot -> slot.getDisplayedItemStack().stream())
-				.flatMap(displayedInput -> recipe.findResultForDisplayedInput(displayedInput).stream())
-				.findFirst()
+		recipeSlots.stream().flatMap(slot -> slot.getDisplayedItemStack().stream())
+				.flatMap(displayedInput -> recipe.findResultForDisplayedInput(displayedInput).stream()).findFirst()
 				.ifPresent(result -> recipeSlots.get(recipeSlots.size() - 1).createDisplayOverrides().addItemStack(result));
 	}
 

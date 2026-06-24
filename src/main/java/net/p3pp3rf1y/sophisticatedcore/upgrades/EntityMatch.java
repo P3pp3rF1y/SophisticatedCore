@@ -7,9 +7,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public enum EntityMatch implements StringRepresentable {
-	PLAYERS,
-	PLAYERS_AND_ENTITIES,
-	ENTITIES;
+	PLAYERS, PLAYERS_AND_ENTITIES, ENTITIES;
 
 	@Override
 	public String getSerializedName() {

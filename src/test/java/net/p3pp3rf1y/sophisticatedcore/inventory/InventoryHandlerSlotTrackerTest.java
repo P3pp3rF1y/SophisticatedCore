@@ -65,7 +65,8 @@ public class InventoryHandlerSlotTrackerTest {
 		return initSlotTracker(inventoryHandler, Map.of(), false, new SlotValueMap<>(), true);
 	}
 
-	private InventoryHandlerSlotTracker initSlotTracker(InventoryHandler inventoryHandler, Map<Integer, ItemStack> memoryFilterStacks, boolean memoryIgnoresNbt, SlotValueMap<Item> filterItemSlots, boolean shouldInsertIntoEmpty) {
+	private InventoryHandlerSlotTracker initSlotTracker(InventoryHandler inventoryHandler, Map<Integer, ItemStack> memoryFilterStacks, boolean memoryIgnoresNbt,
+			SlotValueMap<Item> filterItemSlots, boolean shouldInsertIntoEmpty) {
 		MemorySettingsCategory memorySettings = new MemorySettingsCategory(() -> inventoryHandler, new CompoundTag(), tag -> {
 		});
 		memorySettings.setIgnoreNbt(memoryIgnoresNbt);
@@ -101,56 +102,28 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> stack, stack -> stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> stack, stack -> stack,
+				params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
 
-	private record SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(int slotLimit,
-																				  Map<Integer, ItemStack> initialState,
-																				  int slotInsertedInto,
-																				  ItemStack stackBeingInserted,
-																				  ItemStack expectedResult) {
+	private record SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotInsertedInto,
+			ItemStack stackBeingInserted, ItemStack expectedResult) {
 	}
 
 	private static List<SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams> simulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlot() {
 		return List.of(
-				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						0,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1)
-				),
-				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY
-				),
-				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						0,
-						new ItemStack(Items.DIAMOND, 1),
-						ItemStack.EMPTY
-				),
-				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.DIAMOND, 1)),
-						1,
-						new ItemStack(Items.STICK, 1),
-						new ItemStack(Items.STICK, 1)
-				),
-				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						0,
-						new ItemStack(Items.DIAMOND, 64),
-						new ItemStack(Items.DIAMOND, 1)
-				)
-		);
+				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 0,
+						new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1)),
+				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY),
+				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 0,
+						new ItemStack(Items.DIAMOND, 1), ItemStack.EMPTY),
+				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(64, Map.of(0, ItemStack.EMPTY, 1, new ItemStack(Items.DIAMOND, 1)), 1,
+						new ItemStack(Items.STICK, 1), new ItemStack(Items.STICK, 1)),
+				new SimulatedInsertItemIntoHandlerOnlyConsidersSpecifiedSlotParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 0,
+						new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 1)));
 	}
 
 	@ParameterizedTest
@@ -160,54 +133,29 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter,
+				stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack,
+				params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
 
-	private record SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(int slotLimit,
-																							Map<Integer, ItemStack> initialState,
-																							int slotInsertedInto,
-																							ItemStack stackBeingInserted,
-																							ItemStack expectedResult,
-																							Predicate<ItemStack> stackVoided) {
+	private record SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(int slotLimit, Map<Integer, ItemStack> initialState,
+			int slotInsertedInto, ItemStack stackBeingInserted, ItemStack expectedResult, Predicate<ItemStack> stackVoided) {
 	}
 
 	private static List<SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams> simulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlot() {
 		return List.of(
-				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						0,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						stack -> stack.getItem() == Items.DIAMOND
-				),
-				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						0,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, new ItemStack(Items.GOLD_INGOT, 64)),
-						0,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 60), 1, ItemStack.EMPTY),
-						0,
-						new ItemStack(Items.DIAMOND, 64),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.DIAMOND
-				)
-		);
+				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						0, new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1), stack -> stack.getItem() == Items.DIAMOND),
+				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						0, new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1), stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(64,
+						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, new ItemStack(Items.GOLD_INGOT, 64)), 0, new ItemStack(Items.GOLD_INGOT, 1),
+						ItemStack.EMPTY, stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedInsertItemIntoHandlerConsidersOverflowEvenForSpecificSlotParams(64,
+						Map.of(0, new ItemStack(Items.DIAMOND, 60), 1, ItemStack.EMPTY), 0, new ItemStack(Items.DIAMOND, 64), ItemStack.EMPTY,
+						stack -> stack.getItem() == Items.DIAMOND));
 	}
 
 	@ParameterizedTest
@@ -218,64 +166,30 @@ public class InventoryHandlerSlotTrackerTest {
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
 		ItemStack result = insertItemStackedEquivalent(inventoryHandler, params.stackBeingInserted(), true,
-				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, (s, sim) -> s, inserter, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate)
-		);
+				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, (s, sim) -> s, inserter,
+						s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate));
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
 
-	private record SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(int slotLimit,
-																						 Map<Integer, ItemStack> initialState,
-																						 ItemStack stackBeingInserted,
-																						 ItemStack expectedResult,
-																						 Predicate<ItemStack> stackVoided) {
+	private record SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(int slotLimit, Map<Integer, ItemStack> initialState,
+			ItemStack stackBeingInserted, ItemStack expectedResult, Predicate<ItemStack> stackVoided) {
 	}
 
 	private static List<SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams> simulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlots() {
 		return List.of(
-				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.DIAMOND
-				),
-				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						new ItemStack(Items.GOLD_INGOT, 64),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.DIAMOND
-				),
-				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						new ItemStack(Items.DIAMOND, 127),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						new ItemStack(Items.DIAMOND, 128),
-						new ItemStack(Items.DIAMOND, 1),
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						new ItemStack(Items.DIAMOND, 128),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.DIAMOND
-				),
-				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						new ItemStack(Items.GOLD_INGOT, 128),
-						new ItemStack(Items.GOLD_INGOT, 64),
-						stack -> stack.getItem() == Items.DIAMOND
-				)
-		);
+				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> stack.getItem() == Items.DIAMOND),
+				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						new ItemStack(Items.GOLD_INGOT, 64), ItemStack.EMPTY, stack -> stack.getItem() == Items.DIAMOND),
+				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						new ItemStack(Items.DIAMOND, 127), ItemStack.EMPTY, stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						new ItemStack(Items.DIAMOND, 128), new ItemStack(Items.DIAMOND, 1), stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						new ItemStack(Items.DIAMOND, 128), ItemStack.EMPTY, stack -> stack.getItem() == Items.DIAMOND),
+				new SimulatedInsertItemStackedEquivalentConsidersOnlySpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
+						new ItemStack(Items.GOLD_INGOT, 128), new ItemStack(Items.GOLD_INGOT, 64), stack -> stack.getItem() == Items.DIAMOND));
 	}
 
 	@ParameterizedTest
@@ -286,69 +200,44 @@ public class InventoryHandlerSlotTrackerTest {
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
 		List<ItemStack> result = insertItemsBulk(inventoryHandler, List.of(params.stacks().toArray(new ItemStack[0])), true,
-				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, (s, sim) -> s, inserter, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate),
-				params.stackVoided()
-		);
-
+				(slot, stack, simulate) -> slotTracker.insertItemIntoHandler(inventoryHandler, (s, sim) -> s, inserter,
+						s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, s -> params.stackVoided.test(s) ? ItemStack.EMPTY : s, slot, stack, simulate),
+				params.stackVoided());
 
 		Assertions.assertEquals(params.expectedResult().size(), result.size(), "Resulting stacks size does not match expected stacks size");
 		for (int i = 0; i < params.expectedResult().size(); i++) {
-			HelperAssertions.assertStackEquals(params.expectedResult().get(i), result.get(i), "Resulting stack in slot " + i + " does not match expected stack");
+			HelperAssertions.assertStackEquals(params.expectedResult().get(i), result.get(i),
+					"Resulting stack in slot " + i + " does not match expected stack");
 		}
 	}
 
-	private record SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(int slotLimit,
-																		Map<Integer, ItemStack> initialState,
-																		List<ItemStack> stacks,
-																		List<ItemStack> expectedResult,
-																		Predicate<ItemStack> stackVoided) {
+	private record SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(int slotLimit, Map<Integer, ItemStack> initialState, List<ItemStack> stacks,
+			List<ItemStack> expectedResult, Predicate<ItemStack> stackVoided) {
 	}
 
 	private static List<SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams> simulatedBulkInsertOnlyWorksWithSpecifiedSlots() {
 		return List.of(
-				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY, 2, ItemStack.EMPTY),
-						List.of(new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.DIAMOND, 64)),
-						List.of(),
-						stack -> false
-				),
-				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(
-						64,
+				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY, 2, ItemStack.EMPTY),
+						List.of(new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.DIAMOND, 64)), List.of(), stack -> false),
+				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(64,
 						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, new ItemStack(Items.DIAMOND, 64), 2, new ItemStack(Items.DIAMOND, 1)),
-						List.of(new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.DIAMOND, 64)),
-						List.of(new ItemStack(Items.GOLD_INGOT, 1)),
-						stack -> false
-				),
-				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(
-						64,
+						List.of(new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.DIAMOND, 64)), List.of(new ItemStack(Items.GOLD_INGOT, 1)),
+						stack -> false),
+				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(64,
 						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, new ItemStack(Items.DIAMOND, 1), 2, new ItemStack(Items.GOLD_INGOT, 64)),
-						List.of(new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.DIAMOND, 64)),
-						List.of(),
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(
-						64,
+						List.of(new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.DIAMOND, 64)), List.of(), stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(64,
 						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, new ItemStack(Items.DIAMOND, 1), 2, ItemStack.EMPTY),
-						List.of(new ItemStack(Items.IRON_INGOT, 32), new ItemStack(Items.IRON_INGOT, 17), new ItemStack(Items.IRON_INGOT, 15)),
-						List.of(),
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(
-						64,
+						List.of(new ItemStack(Items.IRON_INGOT, 32), new ItemStack(Items.IRON_INGOT, 17), new ItemStack(Items.IRON_INGOT, 15)), List.of(),
+						stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(64,
 						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, new ItemStack(Items.DIAMOND, 32), 2, ItemStack.EMPTY),
 						List.of(new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 64)),
-						List.of(new ItemStack(Items.DIAMOND, 33)),
-						stack -> stack.getItem() == Items.GOLD_INGOT
-				),
-				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(
-						64,
+						List.of(new ItemStack(Items.DIAMOND, 33)), stack -> stack.getItem() == Items.GOLD_INGOT),
+				new SimulatedBulkInsertOnlyWorksWithSpecifiedSlotsParams(64,
 						Map.of(0, new ItemStack(Items.DIAMOND, 35), 1, new ItemStack(Items.DIAMOND, 32), 2, ItemStack.EMPTY),
-						List.of(new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 64)),
-						List.of(),
-						stack -> stack.getItem() == Items.DIAMOND
-				)
-		);
+						List.of(new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 64), new ItemStack(Items.DIAMOND, 64)), List.of(),
+						stack -> stack.getItem() == Items.DIAMOND));
 	}
 
 	@ParameterizedTest
@@ -356,136 +245,48 @@ public class InventoryHandlerSlotTrackerTest {
 	void simulatedInsertRespectsMemorizedAndFilterItems(SimulatedInsertRespectsMemorizedAndFilterItemsParams params) {
 		InventoryHandler inventoryHandler = initInventoryHandler(params.initialState(), params.slotLimit());
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
-		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler, params.memorizedItems(), params.memoryIgnoresNbt(), params.filterItems(), params.shouldInsertIntoEmpty());
+		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler, params.memorizedItems(), params.memoryIgnoresNbt(), params.filterItems(),
+				params.shouldInsertIntoEmpty());
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter,
+				stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack,
+				params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
 
-	private record SimulatedInsertRespectsMemorizedAndFilterItemsParams(int slotLimit,
-																		Map<Integer, ItemStack> initialState,
-																		int slotInsertedInto,
-																		ItemStack stackBeingInserted,
-																		ItemStack expectedResult,
-																		Predicate<ItemStack> stackVoided,
-																		Map<Integer, ItemStack> memorizedItems,
-																		boolean memoryIgnoresNbt,
-																		SlotValueMap<Item> filterItems,
-																		boolean shouldInsertIntoEmpty) {
+	private record SimulatedInsertRespectsMemorizedAndFilterItemsParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotInsertedInto,
+			ItemStack stackBeingInserted, ItemStack expectedResult, Predicate<ItemStack> stackVoided, Map<Integer, ItemStack> memorizedItems,
+			boolean memoryIgnoresNbt, SlotValueMap<Item> filterItems, boolean shouldInsertIntoEmpty) {
 	}
 
 	private static List<SimulatedInsertRespectsMemorizedAndFilterItemsParams> simulatedInsertRespectsMemorizedAndFilterItems() {
 		return List.of(
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						stack -> false,
-						Map.of(),
-						true,
-						SlotValueMap.of(1, Items.IRON_INGOT),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.GOLD_INGOT, 64), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.GOLD_INGOT,
-						Map.of(),
-						true,
-						SlotValueMap.of(1, Items.IRON_INGOT),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> false,
-						Map.of(),
-						true,
-						SlotValueMap.of(1, Items.GOLD_INGOT),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> false,
-						Map.of(1, new ItemStack(Items.GOLD_INGOT, 1)),
-						true,
-						SlotValueMap.of(),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						stack -> false,
-						Map.of(1, new ItemStack(Items.IRON_INGOT, 1)),
-						true,
-						SlotValueMap.of(),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						stack -> false,
-						Map.of(1, customizeName(new ItemStack(Items.GOLD_INGOT, 1), "test")),
-						false,
-						SlotValueMap.of(),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.GOLD_INGOT, 64), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> stack.getItem() == Items.GOLD_INGOT,
-						Map.of(1, customizeName(new ItemStack(Items.GOLD_INGOT, 1), "test")),
-						false,
-						SlotValueMap.of(),
-						true
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> false,
-						Map.of(1, new ItemStack(Items.GOLD_INGOT, 1)),
-						true,
-						SlotValueMap.of(),
-						false
-				),
-				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> false,
-						Map.of(),
-						true,
-						SlotValueMap.of(1, Items.GOLD_INGOT),
-						false
-				)
-		);
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1), stack -> false, Map.of(), true,
+						SlotValueMap.of(1, Items.IRON_INGOT), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.GOLD_INGOT, 64), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> stack.getItem() == Items.GOLD_INGOT, Map.of(), true,
+						SlotValueMap.of(1, Items.IRON_INGOT), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> false, Map.of(), true, SlotValueMap.of(1, Items.GOLD_INGOT), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> false, Map.of(1, new ItemStack(Items.GOLD_INGOT, 1)), true,
+						SlotValueMap.of(), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1), stack -> false, Map.of(1, new ItemStack(Items.IRON_INGOT, 1)),
+						true, SlotValueMap.of(), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1), stack -> false,
+						Map.of(1, customizeName(new ItemStack(Items.GOLD_INGOT, 1), "test")), false, SlotValueMap.of(), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.GOLD_INGOT, 64), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> stack.getItem() == Items.GOLD_INGOT,
+						Map.of(1, customizeName(new ItemStack(Items.GOLD_INGOT, 1), "test")), false, SlotValueMap.of(), true),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> false, Map.of(1, new ItemStack(Items.GOLD_INGOT, 1)), true,
+						SlotValueMap.of(), false),
+				new SimulatedInsertRespectsMemorizedAndFilterItemsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> false, Map.of(), true, SlotValueMap.of(1, Items.GOLD_INGOT), false));
 	}
 
 	@ParameterizedTest
@@ -495,41 +296,23 @@ public class InventoryHandlerSlotTrackerTest {
 		ISlotTracker.IItemHandlerInserter inserter = initInserter(params.initialState(), params.slotLimit());
 		InventoryHandlerSlotTracker slotTracker = initSlotTracker(inventoryHandler);
 
-		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, params.slotInsertedInto(), params.stackBeingInserted(), true);
+		ItemStack result = slotTracker.insertItemIntoHandler(inventoryHandler, (stack, simulate) -> stack, inserter,
+				stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack, stack -> params.stackVoided.test(stack) ? ItemStack.EMPTY : stack,
+				params.slotInsertedInto(), params.stackBeingInserted(), true);
 
 		HelperAssertions.assertStackEquals(params.expectedResult(), result, "Resulting stack does not match expected stack");
 	}
 
-	private record SimulatedInsertConsidersInaccessibleSlotsParams(int slotLimit,
-																   Map<Integer, ItemStack> initialState,
-																   int slotInsertedInto,
-																   ItemStack stackBeingInserted,
-																   ItemStack expectedResult,
-																   Predicate<ItemStack> stackVoided,
-																   Set<Integer> inaccessibleSlots) {
+	private record SimulatedInsertConsidersInaccessibleSlotsParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotInsertedInto,
+			ItemStack stackBeingInserted, ItemStack expectedResult, Predicate<ItemStack> stackVoided, Set<Integer> inaccessibleSlots) {
 	}
 
 	private static List<SimulatedInsertConsidersInaccessibleSlotsParams> simulatedInsertConsidersInaccessibleSlots() {
 		return List.of(
-				new SimulatedInsertConsidersInaccessibleSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						new ItemStack(Items.GOLD_INGOT, 1),
-						stack -> false,
-						Set.of(1)
-				),
-				new SimulatedInsertConsidersInaccessibleSlotsParams(
-						64,
-						Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY),
-						1,
-						new ItemStack(Items.GOLD_INGOT, 1),
-						ItemStack.EMPTY,
-						stack -> false,
-						Set.of()
-				)
-		);
+				new SimulatedInsertConsidersInaccessibleSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), new ItemStack(Items.GOLD_INGOT, 1), stack -> false, Set.of(1)),
+				new SimulatedInsertConsidersInaccessibleSlotsParams(64, Map.of(0, new ItemStack(Items.DIAMOND, 1), 1, ItemStack.EMPTY), 1,
+						new ItemStack(Items.GOLD_INGOT, 1), ItemStack.EMPTY, stack -> false, Set.of()));
 	}
 
 	private static ItemStack customizeName(ItemStack stack, String customName) {
@@ -538,8 +321,8 @@ public class InventoryHandlerSlotTrackerTest {
 		return result;
 	}
 
-
-	public static List<ItemStack> insertItemsBulk(InventoryHandler inventoryHandler, List<ItemStack> stacks, boolean simulate, IItemHandlerSlottedInserter slottedInserter, Predicate<ItemStack> stackVoided) {
+	public static List<ItemStack> insertItemsBulk(InventoryHandler inventoryHandler, List<ItemStack> stacks, boolean simulate,
+			IItemHandlerSlottedInserter slottedInserter, Predicate<ItemStack> stackVoided) {
 		List<ItemStack> remainingStacks = new ArrayList<>(stacks);
 
 		for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
@@ -549,7 +332,7 @@ public class InventoryHandlerSlotTrackerTest {
 			}
 
 			ItemStack inProgressStack = slotStack.isEmpty() ? ItemStack.EMPTY : slotStack.copy();
-			for (Iterator<ItemStack> iterator = remainingStacks.iterator(); iterator.hasNext(); ) {
+			for (Iterator<ItemStack> iterator = remainingStacks.iterator(); iterator.hasNext();) {
 				ItemStack stack = iterator.next();
 				if (inProgressStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(inProgressStack, stack) || stackVoided.test(stack)) {
 					int stackLimit = inventoryHandler.getStackLimit(slot, stack);
@@ -583,7 +366,8 @@ public class InventoryHandlerSlotTrackerTest {
 		return remainingStacks;
 	}
 
-	public static ItemStack insertItemStackedEquivalent(InventoryHandler inventoryHandler, ItemStack stack, boolean simulate, IItemHandlerSlottedInserter slottedInserter) {
+	public static ItemStack insertItemStackedEquivalent(InventoryHandler inventoryHandler, ItemStack stack, boolean simulate,
+			IItemHandlerSlottedInserter slottedInserter) {
 		if (!stack.isEmpty()) {
 			if (!stack.isStackable()) {
 				return insertItem(inventoryHandler, stack, simulate, slottedInserter);

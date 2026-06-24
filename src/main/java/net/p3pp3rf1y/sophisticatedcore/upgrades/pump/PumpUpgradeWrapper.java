@@ -31,6 +31,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -61,7 +62,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		if (isInCooldown(world)) {
 			return;
 		}
-		setCooldown(world, storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, world, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
+		setCooldown(world,
+				storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, world, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
 	}
 
 	private int tick(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
@@ -77,7 +79,9 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 			}
 		}
 		return handleInWorldInteractions(storageFluidHandler, entity, level, pos)
-				.orElseGet(() -> lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME);
+				.orElseGet(() -> lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime()
+						? HAND_INTERACTION_COOLDOWN_TIME
+						: DID_NOTHING_COOLDOWN_TIME);
 	}
 
 	private Optional<Integer> handleInWorldInteractions(IFluidHandlerItem storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
@@ -95,8 +99,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	private Optional<Integer> interactWithAttachedFluidHandlers(Level world, BlockPos pos, IFluidHandler storageFluidHandler) {
 		for (Direction dir : Direction.values()) {
-			boolean successful = WorldHelper.getBlockEntity(world, pos.offset(dir.getNormal())).map(te ->
-					te.getCapability(ForgeCapabilities.FLUID_HANDLER, dir.getOpposite()).map(fluidHandler -> {
+			boolean successful = WorldHelper.getBlockEntity(world, pos.offset(dir.getNormal()))
+					.map(te -> te.getCapability(ForgeCapabilities.FLUID_HANDLER, dir.getOpposite()).map(fluidHandler -> {
 						if (isInput()) {
 							return fillFromFluidHandler(fluidHandler, storageFluidHandler, getMaxInOut());
 						} else {
@@ -112,7 +116,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int getMaxInOut() {
-		return Math.max(FluidType.BUCKET_VOLUME, pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * getAdjustedStackMultiplier(storageWrapper));
+		return Math.max(FluidType.BUCKET_VOLUME,
+				pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * getAdjustedStackMultiplier(storageWrapper));
 	}
 
 	public int getAdjustedStackMultiplier(IStorageWrapper storageWrapper) {
@@ -157,8 +162,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		if (dir != Direction.UP) {
 			for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 				FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
-				if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
-						&& WorldHelper.playerMayInteract(player, offsetPos)
+				if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid) && WorldHelper.playerMayInteract(player, offsetPos)
 						&& isValidForFluidPlacement(world, offsetPos)
 						&& FluidUtil.tryPlaceFluid(null, world, InteractionHand.MAIN_HAND, offsetPos, storageFluidHandler, tankFluid)) {
 					return true;
@@ -230,7 +234,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private boolean handleFluidContainerInHands(Player player, IFluidHandler storageFluidHandler) {
-		return handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.MAIN_HAND) || handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.OFF_HAND);
+		return handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.MAIN_HAND)
+				|| handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.OFF_HAND);
 	}
 
 	private boolean handleFluidContainerInHand(IFluidHandler storageFluidHandler, Player player, InteractionHand hand) {

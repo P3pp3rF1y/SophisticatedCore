@@ -53,7 +53,8 @@ public class ContextButton extends ButtonBase {
 		}
 	}
 
-	private void renderBackground(GuiGraphics guiGraphics, TextureBlitData leftButtonHoveredBackground, TextureBlitData middleButtonHoveredBackground, TextureBlitData rightButtonHoveredBackground) {
+	private void renderBackground(GuiGraphics guiGraphics, TextureBlitData leftButtonHoveredBackground, TextureBlitData middleButtonHoveredBackground,
+			TextureBlitData rightButtonHoveredBackground) {
 		int left = x;
 		GuiHelper.blit(guiGraphics, left, y, leftButtonHoveredBackground);
 		left += leftButtonHoveredBackground.getWidth();

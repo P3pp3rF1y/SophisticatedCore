@@ -25,7 +25,8 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 		this(id, width, height, fixedInputSlots, variants, ItemStack::isSameItemSameTags);
 	}
 
-	public GroupedCraftingRecipe(ResourceLocation id, int width, int height, List<List<ItemStack>> fixedInputSlots, List<GroupedCraftingVariant> variants, BiPredicate<ItemStack, ItemStack> resultMatcher) {
+	public GroupedCraftingRecipe(ResourceLocation id, int width, int height, List<List<ItemStack>> fixedInputSlots, List<GroupedCraftingVariant> variants,
+			BiPredicate<ItemStack, ItemStack> resultMatcher) {
 		super(id, "", CraftingBookCategory.MISC, width, height, getIngredients(fixedInputSlots, variants), variants.get(0).result());
 		this.id = id;
 		this.width = width;
@@ -52,9 +53,7 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 		int groupedInputCount = variants.stream().mapToInt(variant -> variant.displayedInputs().size()).max().orElse(0);
 		for (int groupedInputIndex = 0; groupedInputIndex < groupedInputCount; groupedInputIndex++) {
 			int index = groupedInputIndex;
-			inputSlots.add(variants.stream()
-					.filter(variant -> variant.displayedInputs().size() > index)
-					.map(variant -> variant.displayedInputs().get(index))
+			inputSlots.add(variants.stream().filter(variant -> variant.displayedInputs().size() > index).map(variant -> variant.displayedInputs().get(index))
 					.toList());
 		}
 		return inputSlots;
@@ -81,10 +80,8 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 	}
 
 	public Optional<ItemStack> findResultForDisplayedInput(ItemStack stack) {
-		return variants.stream()
-				.filter(variant -> variant.displayedInputs().stream().anyMatch(input -> ItemStack.isSameItemSameTags(input, stack)))
-				.map(GroupedCraftingVariant::result)
-				.findFirst();
+		return variants.stream().filter(variant -> variant.displayedInputs().stream().anyMatch(input -> ItemStack.isSameItemSameTags(input, stack)))
+				.map(GroupedCraftingVariant::result).findFirst();
 	}
 
 	public boolean hasFixedInput(ItemStack stack) {
@@ -92,8 +89,7 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 	}
 
 	public Optional<GroupedCraftingRecipe> narrowForResult(ItemStack stack) {
-		return findVariantForResult(stack)
-				.map(variant -> new GroupedCraftingVariant(variant.displayedInputs(), stack))
+		return findVariantForResult(stack).map(variant -> new GroupedCraftingVariant(variant.displayedInputs(), stack))
 				.map(variant -> new GroupedCraftingRecipe(id, width, height, fixedInputSlots, List.of(variant), resultMatcher));
 	}
 
@@ -103,9 +99,8 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 
 		int groupedInputCount = variants.stream().mapToInt(variant -> variant.displayedInputs().size()).max().orElse(0);
 		IntStream.range(0, groupedInputCount)
-				.mapToObj(index -> Ingredient.of(variants.stream()
-						.filter(variant -> variant.displayedInputs().size() > index)
-						.map(variant -> variant.displayedInputs().get(index))))
+				.mapToObj(index -> Ingredient
+						.of(variants.stream().filter(variant -> variant.displayedInputs().size() > index).map(variant -> variant.displayedInputs().get(index))))
 				.forEach(ingredients::add);
 
 		return ingredients;

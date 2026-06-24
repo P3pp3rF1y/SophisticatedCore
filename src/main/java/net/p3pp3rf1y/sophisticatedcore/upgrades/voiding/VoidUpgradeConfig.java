@@ -9,7 +9,8 @@ public class VoidUpgradeConfig extends FilteredUpgradeConfigBase {
 	public VoidUpgradeConfig(ForgeConfigSpec.Builder builder, String name, String path, int defaultFilterSlots, int defaultSlotsInRow) {
 		super(builder, name, path, defaultFilterSlots, defaultSlotsInRow);
 
-		voidAlwaysEnabled = builder.comment("Determines whether void upgrade allows voiding always or it only has overflow options").define("voidAlwaysEnabled", true);
+		voidAlwaysEnabled = builder.comment("Determines whether void upgrade allows voiding always or it only has overflow options").define("voidAlwaysEnabled",
+				true);
 
 		builder.pop();
 	}

@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Supplier;
 
 public class TankClickMessage {

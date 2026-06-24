@@ -18,6 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nonnull;
+
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -58,7 +59,9 @@ public class TransferItemsMessage {
 				mergeToPlayersInventory(storageWrapper, player);
 			}
 		} else {
-			InventoryHelper.transfer(new PlayerMainInvWithoutHotbarWrapper(player.getInventory()), new FilteredStorageItemHandler(storageWrapper, msg.filterByContents), s -> {});
+			InventoryHelper.transfer(new PlayerMainInvWithoutHotbarWrapper(player.getInventory()),
+					new FilteredStorageItemHandler(storageWrapper, msg.filterByContents), s -> {
+					});
 		}
 	}
 
@@ -98,11 +101,12 @@ public class TransferItemsMessage {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == this) return true;
-		if (obj == null || obj.getClass() != this.getClass()) return false;
+		if (obj == this)
+			return true;
+		if (obj == null || obj.getClass() != this.getClass())
+			return false;
 		var that = (TransferItemsMessage) obj;
-		return this.transferToInventory == that.transferToInventory &&
-				this.filterByContents == that.filterByContents;
+		return this.transferToInventory == that.transferToInventory && this.filterByContents == that.filterByContents;
 	}
 
 	@Override
@@ -112,11 +116,8 @@ public class TransferItemsMessage {
 
 	@Override
 	public String toString() {
-		return "TransferItemsMessage[" +
-				"transferToInventory=" + transferToInventory + ", " +
-				"filterByContents=" + filterByContents + ']';
+		return "TransferItemsMessage[" + "transferToInventory=" + transferToInventory + ", " + "filterByContents=" + filterByContents + ']';
 	}
-
 
 	private static class PlayerMainInvWithoutHotbarWrapper extends InvWrapper {
 		private final int minSlot;

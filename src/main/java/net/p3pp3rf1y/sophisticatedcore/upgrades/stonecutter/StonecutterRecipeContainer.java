@@ -45,13 +45,15 @@ public class StonecutterRecipeContainer {
 	private final DataSlot selectedRecipe = DataSlot.standalone();
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
-	private Runnable inventoryUpdateListener = () -> {};
+	private Runnable inventoryUpdateListener = () -> {
+	};
 	private final Supplier<Optional<ResourceLocation>> getLastSelectedRecipeId;
 	private final Consumer<ResourceLocation> setLastSelectedRecipeId;
 	private final List<ResourceLocation> recentResultItems = new ArrayList<>();
 	private long lastOnTake = -1;
 
-	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level) {
+	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater,
+			ContainerLevelAccess worldPosCallable, Level level) {
 		this.upgradeContainer = upgradeContainer;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
@@ -144,7 +146,8 @@ public class StonecutterRecipeContainer {
 	}
 
 	public boolean isRecentResult(int resultIndex) {
-		return isIndexInRecipeBounds(resultIndex) && recentResultItems.contains(getItemRegistryName(recipes.get(resultIndex).getResultItem(level.registryAccess())));
+		return isIndexInRecipeBounds(resultIndex)
+				&& recentResultItems.contains(getItemRegistryName(recipes.get(resultIndex).getResultItem(level.registryAccess())));
 	}
 
 	public int getRecentResultOrder(int resultIndex) {
@@ -182,7 +185,8 @@ public class StonecutterRecipeContainer {
 
 	private void updateClientRecentResults(ItemStack ingredient) {
 		if (level.isClientSide) {
-			updateRecentResultItems(ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
+			updateRecentResultItems(
+					ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
 		}
 	}
 
@@ -226,7 +230,8 @@ public class StonecutterRecipeContainer {
 
 		@Override
 		public void onTake(Player player, ItemStack stack) {
-			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(), getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
+			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(),
+					getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
 				if (player instanceof ServerPlayer serverPlayer) {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}

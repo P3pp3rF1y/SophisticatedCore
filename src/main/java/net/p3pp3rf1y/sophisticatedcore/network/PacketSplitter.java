@@ -4,19 +4,21 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 public final class PacketSplitter {
 	public static final byte STATE_FIRST = 1;
-	public static final byte STATE_LAST  = 2;
+	public static final byte STATE_LAST = 2;
 
 	private final int partSize;
 	private final List<byte[]> receivedBuffers = new ArrayList<>();
 
 	public PacketSplitter(int partSize) {
-		if (partSize <= 0) throw new IllegalArgumentException("partSize must be > 0");
+		if (partSize <= 0)
+			throw new IllegalArgumentException("partSize must be > 0");
 		this.partSize = partSize;
 	}
 
@@ -79,4 +81,3 @@ public final class PacketSplitter {
 		receivedBuffers.clear();
 	}
 }
-

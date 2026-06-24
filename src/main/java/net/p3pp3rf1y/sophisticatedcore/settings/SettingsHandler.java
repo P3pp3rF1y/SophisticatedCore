@@ -23,7 +23,8 @@ public abstract class SettingsHandler {
 	private final Map<Class<?>, List<?>> interfaceCategories = new HashMap<>();
 	private final Map<Class<? extends ISettingsCategory<?>>, ISettingsCategory<?>> typeCategories = new HashMap<>();
 
-	protected SettingsHandler(CompoundTag contentsNbt, Runnable markContentsDirty, Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier) {
+	protected SettingsHandler(CompoundTag contentsNbt, Runnable markContentsDirty, Supplier<InventoryHandler> inventoryHandlerSupplier,
+			Supplier<RenderInfo> renderInfoSupplier) {
 		this.contentsNbt = contentsNbt;
 		this.markContentsDirty = markContentsDirty;
 		addSettingsCategories(inventoryHandlerSupplier, renderInfoSupplier, getSettingsNbtFromContentsNbt(contentsNbt));
@@ -34,11 +35,13 @@ public abstract class SettingsHandler {
 	private void addSettingsCategories(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
 		addSettingsCategory(settingsNbt, getGlobalSettingsCategoryName(), markContentsDirty, this::instantiateGlobalSettingsCategory);
 		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
-		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty, (categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
+		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty,
+				(categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
 		addItemDisplayCategory(inventoryHandlerSupplier, renderInfoSupplier, settingsNbt);
 	}
 
-	protected abstract void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt);
+	protected abstract void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier,
+			CompoundTag settingsNbt);
 
 	public abstract String getGlobalSettingsCategoryName();
 
@@ -48,7 +51,8 @@ public abstract class SettingsHandler {
 		return getTypeCategory(MainSettingsCategory.class);
 	}
 
-	protected void addSettingsCategory(CompoundTag settingsNbt, String categoryName, Runnable markContentsDirty, BiFunction<CompoundTag, Consumer<CompoundTag>, ISettingsCategory<?>> instantiateCategory) {
+	protected void addSettingsCategory(CompoundTag settingsNbt, String categoryName, Runnable markContentsDirty,
+			BiFunction<CompoundTag, Consumer<CompoundTag>, ISettingsCategory<?>> instantiateCategory) {
 		ISettingsCategory<?> category = instantiateCategory.apply(settingsNbt.getCompound(categoryName), tag -> {
 			saveCategoryNbt(settingsNbt, categoryName, tag);
 			markContentsDirty.run();
@@ -58,7 +62,7 @@ public abstract class SettingsHandler {
 	}
 
 	private <T extends ISettingsCategory<T>> void addTypeCategory(ISettingsCategory<?> category) {
-		//noinspection unchecked
+		// noinspection unchecked
 		typeCategories.put((Class<T>) category.getClass(), category);
 	}
 
@@ -69,12 +73,12 @@ public abstract class SettingsHandler {
 	}
 
 	public <T> List<T> getCategoriesThatImplement(Class<T> categoryClass) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return (List<T>) interfaceCategories.computeIfAbsent(categoryClass, this::getListOfWrappersThatImplement);
 	}
 
 	public <T extends ISettingsCategory<?>> T getTypeCategory(Class<T> categoryClazz) {
-		//noinspection unchecked - only inserted in one place where it's made sure that class is the same as the category instance
+		// noinspection unchecked - only inserted in one place where it's made sure that class is the same as the category instance
 		return (T) typeCategories.get(categoryClazz);
 	}
 
@@ -82,7 +86,7 @@ public abstract class SettingsHandler {
 		List<T> ret = new ArrayList<>();
 		for (ISettingsCategory<?> category : settingsCategories.values()) {
 			if (uc.isInstance(category)) {
-				//noinspection unchecked
+				// noinspection unchecked
 				ret.add((T) category);
 			}
 		}

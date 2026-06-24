@@ -31,7 +31,7 @@ public class SophisticatedCore {
 	private static String networkProtocolVersion;
 	public final CommonEventHandler commonEventHandler = new CommonEventHandler();
 
-	@SuppressWarnings("java:S1118") //needs to be public for mod to work
+	@SuppressWarnings("java:S1118") // needs to be public for mod to work
 	public SophisticatedCore() {
 		networkProtocolVersion = ModLoadingContext.get().getActiveContainer().getModInfo().getVersion().toString();
 		ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);

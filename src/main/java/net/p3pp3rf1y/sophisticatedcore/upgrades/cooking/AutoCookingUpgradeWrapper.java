@@ -22,13 +22,18 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.XpHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U, R>, U extends UpgradeItemBase<W> & IAutoCookingUpgradeItem, R extends AbstractCookingRecipe>
-		extends UpgradeWrapperBase<W, U>
-		implements ITickableUpgrade, ICookingUpgrade<R> {
+		extends
+			UpgradeWrapperBase<W, U>
+		implements
+			ITickableUpgrade,
+			ICookingUpgrade<R> {
 	private static final int NOTHING_TO_DO_COOLDOWN = 10;
 	private static final int NO_INVENTORY_SPACE_COOLDOWN = 60;
 
@@ -43,7 +48,8 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 	private int inputCooldown = 0;
 	private final AutoCookingUpgradeConfig autoCookingUpgradeConfig;
 
-	public AutoCookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, float burnTimeModifier) {
+	public AutoCookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType,
+			float burnTimeModifier) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		this.recipeType = recipeType;
 		autoCookingUpgradeConfig = upgradeItem.getAutoCookingUpgradeConfig();

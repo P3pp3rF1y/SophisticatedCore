@@ -7,7 +7,8 @@ import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 public class ReiCompat implements ICompat {
 	@Override
 	public void setup() {
-		PacketHandler.INSTANCE.registerMessage(ReiTransferRecipeMessage.class, ReiTransferRecipeMessage::encode, ReiTransferRecipeMessage::decode, ReiTransferRecipeMessage::onMessage);
+		PacketHandler.INSTANCE.registerMessage(ReiTransferRecipeMessage.class, ReiTransferRecipeMessage::encode, ReiTransferRecipeMessage::decode,
+				ReiTransferRecipeMessage::onMessage);
 		CommonMessages.registerMessages();
 	}
 }

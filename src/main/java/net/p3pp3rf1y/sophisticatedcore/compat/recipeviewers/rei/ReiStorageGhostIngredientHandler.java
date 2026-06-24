@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> implements DraggableStackVisitor<S> {
 	private final Class<S> handingScreenClass;
 
@@ -32,12 +33,10 @@ public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 
 	@Override
 	public DraggedAcceptorResult acceptDraggedStack(DraggingContext<S> context, DraggableStack stack) {
-        Point cursor = context.getCurrentPosition();
+		Point cursor = context.getCurrentPosition();
 		if (cursor != null) {
-            Optional<ReiGhostTarget> target = getDraggableAcceptingBounds(context, stack)
-					.map(ReiGhostTarget.class::cast)
-					.filter(b -> b.contains(cursor.getX(), cursor.getY()))
-					.findFirst();
+			Optional<ReiGhostTarget> target = getDraggableAcceptingBounds(context, stack).map(ReiGhostTarget.class::cast)
+					.filter(b -> b.contains(cursor.getX(), cursor.getY())).findFirst();
 			if (target.isPresent()) {
 				target.get().accept();
 				return DraggedAcceptorResult.CONSUMED;
@@ -54,16 +53,12 @@ public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 		if (stack.getStack().getType() == VanillaEntryTypes.ITEM) {
 			StorageContainerMenuBase<?> menu = context.getScreen().getMenu();
 			if (stack.getStack().getValue() instanceof ItemStack ghostStack) {
-				FluidStack fluidStack = ghostStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
-						.filter(fluidHandler -> fluidHandler.getTanks() > 0)
+				FluidStack fluidStack = ghostStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).filter(fluidHandler -> fluidHandler.getTanks() > 0)
 						.map(fluidHandler -> fluidHandler.getFluidInTank(0)).orElse(FluidStack.EMPTY);
 
 				if (!fluidStack.isEmpty()) {
-					screen.getUpgradeSettingsControl()
-							.getOpenTab()
-							.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
-							.map(PumpUpgradeTab.Advanced.class::cast)
-							.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, targets));
+					screen.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
+							.map(PumpUpgradeTab.Advanced.class::cast).ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, targets));
 					return targets.stream();
 				}
 				menu.getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
@@ -83,13 +78,10 @@ public class ReiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 				}));
 			}
 		} else if (stack.getStack().getType() == VanillaEntryTypes.FLUID) {
-			screen.getUpgradeSettingsControl()
-					.getOpenTab()
-					.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
-					.map(PumpUpgradeTab.Advanced.class::cast)
+			screen.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast)
 					.ifPresent(pumpUpgradeTab -> {
 						dev.architectury.fluid.FluidStack ghostFluidStack = stack.getStack().castValue();
-						addFluidTargets(pumpUpgradeTab, new FluidStack(ghostFluidStack.getFluid(), (int)ghostFluidStack.getAmount()), targets);
+						addFluidTargets(pumpUpgradeTab, new FluidStack(ghostFluidStack.getFluid(), (int) ghostFluidStack.getAmount()), targets);
 					});
 		}
 

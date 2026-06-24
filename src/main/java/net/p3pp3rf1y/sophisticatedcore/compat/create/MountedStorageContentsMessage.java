@@ -8,6 +8,7 @@ import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.network.ISplittableMessage;
 
 import javax.annotation.Nullable;
+
 import java.util.UUID;
 import java.util.function.Supplier;
 

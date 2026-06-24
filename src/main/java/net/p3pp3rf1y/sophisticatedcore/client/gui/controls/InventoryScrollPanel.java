@@ -25,7 +25,8 @@ public class InventoryScrollPanel extends ScrollPanel {
 	private final int numberOfSlots;
 	private final int slotsInARow;
 
-	public InventoryScrollPanel(Minecraft client, IInventoryScreen screen, int firstSlotIndex, int numberOfSlots, int slotsInARow, int height, int top, int left) {
+	public InventoryScrollPanel(Minecraft client, IInventoryScreen screen, int firstSlotIndex, int numberOfSlots, int slotsInARow, int height, int top,
+			int left) {
 		super(client, slotsInARow * 18 + 6, height, top, left, 0);
 		this.screen = screen;
 		this.firstSlotIndex = firstSlotIndex;
@@ -93,7 +94,7 @@ public class InventoryScrollPanel extends ScrollPanel {
 		}
 
 		default void setVisibleSlotsCount(int visibleSlotsCount) {
-			//noop
+			// noop
 		}
 	}
 
@@ -104,7 +105,7 @@ public class InventoryScrollPanel extends ScrollPanel {
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		//noop
+		// noop
 	}
 
 	@Override

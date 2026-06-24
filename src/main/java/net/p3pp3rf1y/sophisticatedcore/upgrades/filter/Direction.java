@@ -6,9 +6,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum Direction implements StringRepresentable {
-	BOTH("both"),
-	INPUT("input"),
-	OUTPUT("output");
+	BOTH("both"), INPUT("input"), OUTPUT("output");
 
 	private final String name;
 

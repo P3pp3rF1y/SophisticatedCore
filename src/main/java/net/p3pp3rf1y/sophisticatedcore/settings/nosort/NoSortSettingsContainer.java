@@ -25,7 +25,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 				case SELECT_ALL_ACTION -> selectAllSlots();
 				case UNSELECT_ALL_ACTION -> unselectAllSlots();
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		} else if (data.contains(SELECT_SLOT_TAG)) {

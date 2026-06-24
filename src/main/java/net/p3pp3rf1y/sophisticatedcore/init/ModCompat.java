@@ -47,7 +47,7 @@ public class ModCompat {
 		compatFactories.put(CompatModIds.FTB_CHUNKS, () -> FTBChunksCompat::new);
 		compatFactories.put(CompatModIds.OPEN_PARTIES_AND_CLAIMS_CHUNKS, () -> OpenPACCompat::new);
 		compatFactories.put(CompatModIds.ACCESSORIES, () -> AccessoriesCompat::new);
-		//compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
+		// compatFactories.put(CompatModIds.QUARK, () -> QuarkCompat::new); //TODO readd quark compat
 	}
 
 	public static void initCompats() {

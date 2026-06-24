@@ -6,10 +6,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum SortBy implements StringRepresentable {
-	NAME("name"),
-	MOD("mod"),
-	COUNT("count"),
-	TAGS("tags");
+	NAME("name"), MOD("mod"), COUNT("count"), TAGS("tags");
 
 	private final String name;
 

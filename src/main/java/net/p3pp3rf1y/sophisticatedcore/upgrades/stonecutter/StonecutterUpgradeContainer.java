@@ -10,14 +10,19 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.IRecentCraftedResultsRefresh;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-public class StonecutterUpgradeContainer extends UpgradeContainerBase<StonecutterUpgradeWrapper, StonecutterUpgradeContainer> implements IRecentCraftedResultsRefresh {
+public class StonecutterUpgradeContainer extends UpgradeContainerBase<StonecutterUpgradeWrapper, StonecutterUpgradeContainer>
+		implements
+			IRecentCraftedResultsRefresh {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
 	private static final String DATA_REFILL_INPUT = "refill_input";
 	private final StonecutterRecipeContainer recipeContainer;
 
-	public StonecutterUpgradeContainer(Player player, int upgradeContainerId, StonecutterUpgradeWrapper upgradeWrapper, UpgradeContainerType<StonecutterUpgradeWrapper, StonecutterUpgradeContainer> type) {
+	public StonecutterUpgradeContainer(Player player, int upgradeContainerId, StonecutterUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<StonecutterUpgradeWrapper, StonecutterUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		ContainerLevelAccess worldPosCallable = player.level().isClientSide ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
+		ContainerLevelAccess worldPosCallable = player.level().isClientSide
+				? ContainerLevelAccess.NULL
+				: ContainerLevelAccess.create(player.level(), player.blockPosition());
 		recipeContainer = new StonecutterRecipeContainer(this, slots::add, this, worldPosCallable, player.level());
 	}
 

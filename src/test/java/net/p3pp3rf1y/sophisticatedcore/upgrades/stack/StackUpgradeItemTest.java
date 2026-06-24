@@ -1,7 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.stack;
 
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.SharedConstants;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -54,7 +54,7 @@ class StackUpgradeItemTest {
 
 		Assertions.assertFalse(result.isSuccessful());
 		TranslatableContents contents = Assertions.assertInstanceOf(TranslatableContents.class, result.getErrorMessage().orElseThrow().getContents());
-		Assertions.assertArrayEquals(new Object[] {1}, contents.getArgs());
+		Assertions.assertArrayEquals(new Object[]{1}, contents.getArgs());
 	}
 
 	private static StackUpgradeItem.Wrapper stackUpgradeWrapper(double stackSizeMultiplier) {

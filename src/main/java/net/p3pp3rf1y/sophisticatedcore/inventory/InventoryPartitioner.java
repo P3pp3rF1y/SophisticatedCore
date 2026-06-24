@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -26,7 +27,9 @@ public class InventoryPartitioner {
 	}
 
 	private int getIndexForSlot(int slot) {
-		if (slot < 0) {return -1;}
+		if (slot < 0) {
+			return -1;
+		}
 
 		if (baseIndexes.length == 1) {
 			return 0;
@@ -167,8 +170,10 @@ public class InventoryPartitioner {
 
 		boolean replacedNext = false;
 		for (int i = 0; i < index; i++) {
-			if (i == index - 1 && inventoryPartHandlers[i] instanceof IInventoryPartHandler.Default && baseIndexes.length > index + 1 && inventoryPartHandlers[index + 1] instanceof IInventoryPartHandler.Default) {
-				newParts.add(new IInventoryPartHandler.Default(parent, inventoryPartHandlers[i].getSlots() + inventoryPartHandlers[index + 1].getSlots() + slotsAtPartIndex));
+			if (i == index - 1 && inventoryPartHandlers[i] instanceof IInventoryPartHandler.Default && baseIndexes.length > index + 1
+					&& inventoryPartHandlers[index + 1] instanceof IInventoryPartHandler.Default) {
+				newParts.add(new IInventoryPartHandler.Default(parent,
+						inventoryPartHandlers[i].getSlots() + inventoryPartHandlers[index + 1].getSlots() + slotsAtPartIndex));
 				newBaseIndexes.add(baseIndexes[i]);
 				replacedNext = true;
 				continue;
@@ -222,8 +227,8 @@ public class InventoryPartitioner {
 
 	private void deserializeNBT(CompoundTag tag, Supplier<MemorySettingsCategory> getMemorySettings) {
 		if (!tag.contains("baseIndexes")) {
-			this.inventoryPartHandlers = new IInventoryPartHandler[] {new IInventoryPartHandler.Default(parent, parent.getSlots())};
-			this.baseIndexes = new int[] {0};
+			this.inventoryPartHandlers = new IInventoryPartHandler[]{new IInventoryPartHandler.Default(parent, parent.getSlots())};
+			this.baseIndexes = new int[]{0};
 			return;
 		}
 

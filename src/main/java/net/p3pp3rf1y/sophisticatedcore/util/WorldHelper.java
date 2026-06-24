@@ -9,13 +9,15 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
 
 public class WorldHelper {
-	private WorldHelper() {}
+	private WorldHelper() {
+	}
 
 	private static final List<BiPredicate<Player, BlockPos>> ADDITIONAL_INTERACTION_CHECKS = new ArrayList<>();
 
@@ -99,7 +101,8 @@ public class WorldHelper {
 					}
 					BlockPos pos = be.getBlockPos();
 					int y = pos.getY();
-					if (y < minY || y > maxY) continue;
+					if (y < minY || y > maxY)
+						continue;
 
 					long dx = (long) pos.getX() - origin.getX();
 					long dz = (long) pos.getZ() - origin.getZ();

@@ -28,10 +28,12 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class InventoryHelper {
 	private InventoryHelper() {
 	}
@@ -41,13 +43,10 @@ public class InventoryHelper {
 
 	static {
 		registerPlayerInventoryProvider(player -> player.getCapability(ForgeCapabilities.ITEM_HANDLER).orElse(EmptyHandler.INSTANCE));
-		registerEquipmentInventoryProvider(player -> new CombinedInvWrapper(
-				new PlayerArmorInvWrapper(player.getInventory()),
-				new PlayerOffhandInvWrapper(player.getInventory()),
-				new RangedWrapper(new InvWrapper(player.getInventory()), player.getInventory().selected, player.getInventory().selected + 1))
-		);
+		registerEquipmentInventoryProvider(
+				player -> new CombinedInvWrapper(new PlayerArmorInvWrapper(player.getInventory()), new PlayerOffhandInvWrapper(player.getInventory()),
+						new RangedWrapper(new InvWrapper(player.getInventory()), player.getInventory().selected, player.getInventory().selected + 1)));
 	}
-
 
 	public static void registerEquipmentInventoryProvider(Function<Player, IItemHandler> provider) {
 		PLAYER_EQUIPMENT_INVENTORY_PROVIDERS.add(provider);
@@ -205,7 +204,8 @@ public class InventoryHelper {
 		return runPickupOnPickupResponseUpgrades(world, null, upgradeHandler, remainingStack, simulate);
 	}
 
-	public static ItemStack runPickupOnPickupResponseUpgrades(Level world, @Nullable Player player, UpgradeHandler upgradeHandler, ItemStack remainingStack, boolean simulate) {
+	public static ItemStack runPickupOnPickupResponseUpgrades(Level world, @Nullable Player player, UpgradeHandler upgradeHandler, ItemStack remainingStack,
+			boolean simulate) {
 		// Some broken pickup stacks are not empty but report 0 max stack size; skip them to avoid crashing stack-limit calculations.
 		if (remainingStack.isEmpty() || remainingStack.getMaxStackSize() <= 0) {
 			return remainingStack;
@@ -229,7 +229,8 @@ public class InventoryHelper {
 	}
 
 	private static void playPickupSound(Level level, @Nonnull Player player) {
-		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, RandHelper.getRandomMinusOneToOne(level.random) * 1.4F + 2.0F);
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F,
+				RandHelper.getRandomMinusOneToOne(level.random) * 1.4F + 2.0F);
 	}
 
 	public static void iterate(IItemHandler handler, BiConsumer<Integer, ItemStack> actOn) {
@@ -243,7 +244,9 @@ public class InventoryHelper {
 	public static void iterate(IItemHandler handler, BiConsumer<Integer, ItemStack> actOn, BooleanSupplier shouldExit, boolean getVirtualCounts) {
 		int slots = handler.getSlots();
 		for (int slot = 0; slot < slots; slot++) {
-			ItemStack stack = !getVirtualCounts && handler instanceof InventoryHandler inventoryHandler ? inventoryHandler.getSlotStack(slot) : handler.getStackInSlot(slot);
+			ItemStack stack = !getVirtualCounts && handler instanceof InventoryHandler inventoryHandler
+					? inventoryHandler.getSlotStack(slot)
+					: handler.getStackInSlot(slot);
 			actOn.accept(slot, stack);
 			if (shouldExit.getAsBoolean()) {
 				break;

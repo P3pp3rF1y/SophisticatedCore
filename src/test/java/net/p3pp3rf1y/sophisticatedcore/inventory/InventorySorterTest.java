@@ -27,11 +27,8 @@ class InventorySorterTest {
 	@Test
 	void sortHandlerTopsUpNoSortSlotsUsingVisibleCount() {
 		Map<Integer, ItemStack> visibleStacks = new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, 100)));
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 5),
-				5, stack(Items.IRON_NUGGET, 10),
-				6, stack(Items.COBBLESTONE, 1)
-		), visibleStacks, Set.of());
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 5), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)), visibleStacks, Set.of());
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
 
@@ -43,11 +40,9 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerTopsUpInfiniteNoSortSlotsUsingInternalCount() {
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 5),
-				5, stack(Items.IRON_NUGGET, 10),
-				6, stack(Items.COBBLESTONE, 1)
-		), new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0));
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 5), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)),
+				new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
 
@@ -58,13 +53,8 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerSortsInfiniteSlotsWithoutLeavingOriginalStacks() {
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3, Map.of(
-				0, stack(Items.COBBLESTONE, 1),
-				1, stack(Items.IRON_NUGGET, 10)
-		), new HashMap<>(Map.of(
-				0, stack(Items.COBBLESTONE, Integer.MAX_VALUE),
-				1, stack(Items.IRON_NUGGET, Integer.MAX_VALUE)
-		)), Set.of(0, 1));
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3, Map.of(0, stack(Items.COBBLESTONE, 1), 1, stack(Items.IRON_NUGGET, 10)),
+				new HashMap<>(Map.of(0, stack(Items.COBBLESTONE, Integer.MAX_VALUE), 1, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0, 1));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of());
 
@@ -75,11 +65,9 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerDoesNotMoveStacksIntoInaccessibleSlots() {
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 100),
-				5, stack(Items.COBBLESTONE, 1),
-				6, stack(Items.IRON_INGOT, 10)
-		), new HashMap<>(), Set.of(), Set.of(0, 1, 2, 3, 4));
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 100), 5, stack(Items.COBBLESTONE, 1), 6, stack(Items.IRON_INGOT, 10)), new HashMap<>(), Set.of(),
+				Set.of(0, 1, 2, 3, 4));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of());
 
@@ -92,11 +80,13 @@ class InventorySorterTest {
 		assertStack(inventoryHandler, 6, Items.COBBLESTONE, 1);
 	}
 
-	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState, Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots) {
+	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState,
+			Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots) {
 		return initInventoryHandlerWithVisibleStacks(slots, initialState, visibleStacks, infiniteSlots, Set.of());
 	}
 
-	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState, Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots, Set<Integer> inaccessibleSlots) {
+	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState,
+			Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots, Set<Integer> inaccessibleSlots) {
 		Map<Integer, ItemStack> internalStacks = new HashMap<>();
 		initialState.forEach((slot, stack) -> internalStacks.put(slot, stack.copy()));
 

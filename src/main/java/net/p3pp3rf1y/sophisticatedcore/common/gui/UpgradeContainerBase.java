@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -66,7 +65,7 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 	}
 
 	public void onInit() {
-		//noop by default
+		// noop by default
 	}
 
 	public abstract void handleMessage(CompoundTag data);
@@ -84,7 +83,7 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 	}
 
 	public void setUpgradeWrapper(IUpgradeWrapper updatedUpgradeWrapper) {
-		//noinspection unchecked - only used in logic that makes sure the item is the same and the same item will have a wrapper with the same (W) class
+		// noinspection unchecked - only used in logic that makes sure the item is the same and the same item will have a wrapper with the same (W) class
 		upgradeWrapper = (W) updatedUpgradeWrapper;
 	}
 
@@ -105,17 +104,17 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 		slot.onTake(player, slotStack);
 	}
 
-	@SuppressWarnings({"unused", "java:S1172"}) //parameter is used in overrides
+	@SuppressWarnings({"unused", "java:S1172"}) // parameter is used in overrides
 	public boolean mergeIntoStorageFirst(Slot slot) {
 		return true;
 	}
 
-	@SuppressWarnings({"unused", "java:S1172"}) //parameter is used in overrides
+	@SuppressWarnings({"unused", "java:S1172"}) // parameter is used in overrides
 	public boolean allowsPickupAll(Slot slot) {
 		return true;
 	}
 
-	@SuppressWarnings({"unused", "java:S1172"}) //parameters are used in overrides
+	@SuppressWarnings({"unused", "java:S1172"}) // parameters are used in overrides
 	public int getRepeatedQuickMoveLimit(Slot slot, ItemStack transferredStack) {
 		return 0;
 	}

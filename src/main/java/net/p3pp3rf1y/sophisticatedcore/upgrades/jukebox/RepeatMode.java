@@ -6,9 +6,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum RepeatMode implements StringRepresentable {
-	ALL("all"),
-	ONE("one"),
-	NO("no");
+	ALL("all"), ONE("one"), NO("no");
 
 	private final String name;
 

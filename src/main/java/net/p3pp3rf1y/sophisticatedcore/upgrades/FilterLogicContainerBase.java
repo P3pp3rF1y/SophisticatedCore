@@ -246,7 +246,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 					return true;
 				}
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		}
@@ -259,7 +259,8 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 
 	public class TagSelectionSlot extends Slot implements IFilterSlot {
 		private ItemStack stack = ItemStack.EMPTY;
-		private Runnable onUpdate = () -> {};
+		private Runnable onUpdate = () -> {
+		};
 
 		public TagSelectionSlot() {
 			super(new SimpleContainer(0), 0, -1, -1);
@@ -312,7 +313,7 @@ public class FilterLogicContainerBase<T extends FilterLogicBase, S extends Slot>
 
 		@Override
 		public void setChanged() {
-			//noop
+			// noop
 		}
 	}
 }

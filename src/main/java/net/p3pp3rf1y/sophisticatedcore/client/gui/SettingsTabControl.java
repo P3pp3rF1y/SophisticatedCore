@@ -14,6 +14,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,21 +31,18 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 	protected <U extends T> U addSettingsTab(Runnable onTabOpenContainerAction, Runnable onTabCloseContainerAction, U tab) {
 		U settingsTab = addChild(tab);
 		settingsTab.setHandlers(() -> {
-					if (openTab != null && differentTabIsOpen(settingsTab)) {
-						openTab.close();
-					}
-					openTab = settingsTab;
-					onTabOpenContainerAction.run();
-				},
-				() -> {
-					if (openTab != null) {
-						openTab = null;
-						onTabCloseContainerAction.run();
-					}
-				},
-				() -> openTab == null || !differentTabIsOpen(settingsTab) || isNotCovered(openTab, settingsTab, true),
-				() -> openTab == null || isNotCovered(openTab, settingsTab, false)
-		);
+			if (openTab != null && differentTabIsOpen(settingsTab)) {
+				openTab.close();
+			}
+			openTab = settingsTab;
+			onTabOpenContainerAction.run();
+		}, () -> {
+			if (openTab != null) {
+				openTab = null;
+				onTabCloseContainerAction.run();
+			}
+		}, () -> openTab == null || !differentTabIsOpen(settingsTab) || isNotCovered(openTab, settingsTab, true),
+				() -> openTab == null || isNotCovered(openTab, settingsTab, false));
 		return settingsTab;
 	}
 
@@ -52,7 +50,7 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		PoseStack pose = guiGraphics.pose();
 		pose.pushPose();
-		pose.translate(0,0, -11);
+		pose.translate(0, 0, -11);
 		children.forEach(child -> {
 			if (child != openTab) {
 				child.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -84,7 +82,7 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -134,6 +132,6 @@ public abstract class SettingsTabControl<C extends AbstractContainerScreen<?>, T
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		//noop
+		// noop
 	}
 }

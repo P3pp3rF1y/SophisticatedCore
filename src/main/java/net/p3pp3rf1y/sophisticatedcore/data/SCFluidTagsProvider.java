@@ -8,11 +8,11 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 
 import javax.annotation.Nullable;
+
 import java.util.concurrent.CompletableFuture;
 
 public class SCFluidTagsProvider extends FluidTagsProvider {
-	public SCFluidTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> provider,
-			@Nullable ExistingFileHelper existingFileHelper) {
+	public SCFluidTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> provider, @Nullable ExistingFileHelper existingFileHelper) {
 		super(output, provider, SophisticatedCore.MOD_ID, existingFileHelper);
 	}
 

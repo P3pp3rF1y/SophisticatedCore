@@ -4,10 +4,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+
 import java.util.Objects;
 
 public class ItemStackHelper {
-	private ItemStackHelper() {}
+	private ItemStackHelper() {
+	}
 
 	public static boolean areItemStackTagsEqualIgnoreDurability(ItemStack stackA, ItemStack stackB) {
 		if (stackA.isEmpty() && stackB.isEmpty()) {

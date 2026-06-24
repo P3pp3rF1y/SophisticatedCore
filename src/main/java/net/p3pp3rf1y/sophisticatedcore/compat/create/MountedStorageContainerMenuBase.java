@@ -18,6 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 
 import javax.annotation.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,11 +31,14 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 	private CompoundTag lastSettingsNbt = null;
 	protected final MountedStorageBase mountedStorage;
 
-	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {
-		this(menuType, containerId, player, getWrapper(player.level(), contraptionEntityId, localPos), parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot, contraptionEntityId, localPos);
+	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex,
+			boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {
+		this(menuType, containerId, player, getWrapper(player.level(), contraptionEntityId, localPos), parentStorageWrapper, storageItemSlotIndex,
+				shouldLockStorageItemSlot, contraptionEntityId, localPos);
 	}
 
-	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper wrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {
+	public MountedStorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, IStorageWrapper wrapper, IStorageWrapper parentStorageWrapper,
+			int storageItemSlotIndex, boolean shouldLockStorageItemSlot, int contraptionEntityId, BlockPos localPos) {
 		super(menuType, containerId, player, wrapper, parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot);
 		if (!(player.level().getEntity(contraptionEntityId) instanceof AbstractContraptionEntity cEntity)) {
 			throw new IllegalArgumentException("Incorrect entity with id " + contraptionEntityId + " expected to find AbstractContraptionEntity");
@@ -106,10 +110,10 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 			return;
 		}
 		if (player instanceof ServerPlayer serverPlayer) {
-			getContraptionEntity().ifPresent(c ->
-					NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, c.getId(), localPos),
-							Component.translatable(getSettingsTitleKey())), this::writeSettingsContainerMenuExtraData)
-			);
+			getContraptionEntity().ifPresent(c -> NetworkHooks.openScreen(serverPlayer,
+					new SimpleMenuProvider((w, p, pl) -> instantiateSettingsContainerMenu(w, pl, c.getId(), localPos),
+							Component.translatable(getSettingsTitleKey())),
+					this::writeSettingsContainerMenuExtraData));
 		}
 	}
 
@@ -117,11 +121,12 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 
 	protected abstract String getSettingsTitleKey();
 
-	protected abstract MountedStorageSettingsContainerMenuBase instantiateSettingsContainerMenu(int windowId, Player player, int contraptionEntityId, BlockPos localPos);
+	protected abstract MountedStorageSettingsContainerMenuBase instantiateSettingsContainerMenu(int windowId, Player player, int contraptionEntityId,
+			BlockPos localPos);
 
 	@Override
 	protected boolean storageItemHasChanged() {
-		return false; //the stack is only used for internal tracking in moving entities so it can't be swapped away by a player
+		return false; // the stack is only used for internal tracking in moving entities so it can't be swapped away by a player
 	}
 
 	@Override

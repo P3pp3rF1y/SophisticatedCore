@@ -67,7 +67,8 @@ public class JukeboxUpgradeNoteParticle extends TextureSheetParticle {
 
 		@Nullable
 		@Override
-		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double pXSpeed, double pYSpeed, double pZSpeed) {
+		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double pXSpeed, double pYSpeed,
+				double pZSpeed) {
 			JukeboxUpgradeNoteParticle particle = new JukeboxUpgradeNoteParticle(level, x, y, z);
 			particle.pickSprite(spriteSet);
 			return particle;

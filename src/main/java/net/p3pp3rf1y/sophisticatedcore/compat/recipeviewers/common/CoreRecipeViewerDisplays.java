@@ -11,7 +11,8 @@ public class CoreRecipeViewerDisplays {
 
 	public static void register(IRecipeViewerDisplayCatalog catalog) {
 		ClientRecipeHelper.transformAllRecipesOfTypeWithIds(RecipeType.CRAFTING, UpgradeNextTierRecipe.class,
-				(id, recipe) -> new ShapedRecipe(id, recipe.getGroup(), CraftingBookCategory.MISC, recipe.getRecipeWidth(), recipe.getRecipeHeight(), recipe.getIngredients(), ClientRecipeHelper.getResultItem(recipe)))
+				(id, recipe) -> new ShapedRecipe(id, recipe.getGroup(), CraftingBookCategory.MISC, recipe.getRecipeWidth(), recipe.getRecipeHeight(),
+						recipe.getIngredients(), ClientRecipeHelper.getResultItem(recipe)))
 				.forEach(catalog::addCraftingRecipe);
 	}
 }

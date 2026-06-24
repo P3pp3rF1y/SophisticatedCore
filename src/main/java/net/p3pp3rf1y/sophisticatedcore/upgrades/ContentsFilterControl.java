@@ -6,11 +6,14 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
-import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.*;
+import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.DURABILITY;
+import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.NBT;
+import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.PRIMARY_MATCH;
 
 public abstract class ContentsFilterControl extends FilterLogicControl<ContentsFilterLogic, ContentsFilterLogicContainer> {
 
-	protected ContentsFilterControl(StorageScreenBase<?> screen, Position position, ContentsFilterLogicContainer filterLogicContainer, int slotsPerRow, ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton, MatchButton... matchButtons) {
+	protected ContentsFilterControl(StorageScreenBase<?> screen, Position position, ContentsFilterLogicContainer filterLogicContainer, int slotsPerRow,
+			ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton, MatchButton... matchButtons) {
 		super(screen, position, filterLogicContainer, slotsPerRow, true, matchButtons);
 		addChild(new ToggleButton<>(new Position(x, y), contentsFilterButton, button -> updateFilterType(), container::getFilterType));
 	}
@@ -35,17 +38,19 @@ public abstract class ContentsFilterControl extends FilterLogicControl<ContentsF
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 
 	public static class Basic extends ContentsFilterControl {
-		public Basic(StorageScreenBase<?> screen, Position position, ContentsFilterLogicContainer filterLogicContainer, int slotsPerRow, ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton) {
+		public Basic(StorageScreenBase<?> screen, Position position, ContentsFilterLogicContainer filterLogicContainer, int slotsPerRow,
+				ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton) {
 			super(screen, position, filterLogicContainer, slotsPerRow, contentsFilterButton);
 		}
 	}
 
 	public static class Advanced extends ContentsFilterControl {
-		public Advanced(StorageScreenBase<?> screen, Position position, ContentsFilterLogicContainer filterLogicContainer, int slotsPerRow, ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton) {
+		public Advanced(StorageScreenBase<?> screen, Position position, ContentsFilterLogicContainer filterLogicContainer, int slotsPerRow,
+				ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton) {
 			super(screen, position, filterLogicContainer, slotsPerRow, contentsFilterButton, PRIMARY_MATCH, DURABILITY, NBT);
 		}
 	}

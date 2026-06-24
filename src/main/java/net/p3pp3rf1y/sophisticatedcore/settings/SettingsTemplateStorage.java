@@ -25,7 +25,8 @@ public class SettingsTemplateStorage extends SavedData {
 	private Map<UUID, Map<String, CompoundTag>> playerNamedTemplates = new HashMap<>();
 	private static final SettingsTemplateStorage clientStorageCopy = new SettingsTemplateStorage();
 
-	private SettingsTemplateStorage() {}
+	private SettingsTemplateStorage() {
+	}
 
 	private SettingsTemplateStorage(Map<UUID, Map<Integer, CompoundTag>> playerTemplates, Map<UUID, Map<String, CompoundTag>> playerNamedTemplates) {
 		this.playerTemplates = playerTemplates;
@@ -52,8 +53,10 @@ public class SettingsTemplateStorage extends SavedData {
 
 	@Override
 	public CompoundTag save(CompoundTag tag) {
-		NBTHelper.putMap(tag, "playerTemplates", playerTemplates, UUID::toString, slotTemplates -> NBTHelper.putMap(new CompoundTag(), "slotTemplates", slotTemplates, String::valueOf, settingsTag -> settingsTag));
-		NBTHelper.putMap(tag, "playerNamedTemplates", playerNamedTemplates, UUID::toString, namedTemplates -> NBTHelper.putMap(new CompoundTag(), "namedTemplates", namedTemplates, v -> v, settingsTag -> settingsTag));
+		NBTHelper.putMap(tag, "playerTemplates", playerTemplates, UUID::toString,
+				slotTemplates -> NBTHelper.putMap(new CompoundTag(), "slotTemplates", slotTemplates, String::valueOf, settingsTag -> settingsTag));
+		NBTHelper.putMap(tag, "playerNamedTemplates", playerNamedTemplates, UUID::toString,
+				namedTemplates -> NBTHelper.putMap(new CompoundTag(), "namedTemplates", namedTemplates, v -> v, settingsTag -> settingsTag));
 		return tag;
 	}
 
@@ -62,7 +65,7 @@ public class SettingsTemplateStorage extends SavedData {
 			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
-				//noinspection ConstantConditions - by this time overworld is loaded
+				// noinspection ConstantConditions - by this time overworld is loaded
 				DimensionDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(SettingsTemplateStorage::load, SettingsTemplateStorage::new, SAVED_DATA_NAME);
 			}
@@ -73,11 +76,13 @@ public class SettingsTemplateStorage extends SavedData {
 	private static SettingsTemplateStorage load(CompoundTag tag) {
 		return new SettingsTemplateStorage(
 				NBTHelper.getMap(tag, "playerTemplates", UUID::fromString,
-				(key, playerTemplatesTag) -> NBTHelper.getMap((CompoundTag) playerTemplatesTag, "slotTemplates", Integer::valueOf, (k, settingsTag) -> Optional.of((CompoundTag) settingsTag))
-		).orElse(new HashMap<>()),
+						(key, playerTemplatesTag) -> NBTHelper.getMap((CompoundTag) playerTemplatesTag, "slotTemplates", Integer::valueOf,
+								(k, settingsTag) -> Optional.of((CompoundTag) settingsTag)))
+						.orElse(new HashMap<>()),
 				NBTHelper.getMap(tag, "playerNamedTemplates", UUID::fromString,
-				(key, playerNamedTemplatesTag) -> NBTHelper.getMap((CompoundTag) playerNamedTemplatesTag, "namedTemplates", v -> v, (k, settingsTag) -> Optional.of((CompoundTag) settingsTag), TreeMap::new)
-		).orElse(new TreeMap<>()));
+						(key, playerNamedTemplatesTag) -> NBTHelper.getMap((CompoundTag) playerNamedTemplatesTag, "namedTemplates", v -> v,
+								(k, settingsTag) -> Optional.of((CompoundTag) settingsTag), TreeMap::new))
+						.orElse(new TreeMap<>()));
 	}
 
 	public void clearPlayerTemplates(LocalPlayer player) {

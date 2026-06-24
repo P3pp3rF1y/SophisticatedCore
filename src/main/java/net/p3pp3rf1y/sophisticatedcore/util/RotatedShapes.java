@@ -54,9 +54,10 @@ public class RotatedShapes {
 			case DOWN -> rotatedShapes[0];
 			case UP -> rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(minX, 1 - minY, 1 - minZ, maxX, 1 - maxY, 1 - maxZ));
 			case NORTH -> rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(minX, 1 - minZ, minY, maxX, 1 - maxZ, maxY));
-			case SOUTH -> rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(1 - minX, 1 - minZ, 1 - minY, 1 - maxX, 1 - maxZ, 1 - maxY));
-			case WEST -> //noinspection SuspiciousNameCombination - nothing suspicious here given that we're rotating
-					rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(minY, 1 - minZ, 1 - minX, maxY, 1 - maxZ, 1 - maxX));
+			case SOUTH ->
+				rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(1 - minX, 1 - minZ, 1 - minY, 1 - maxX, 1 - maxZ, 1 - maxY));
+			case WEST -> // noinspection SuspiciousNameCombination - nothing suspicious here given that we're rotating
+				rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(minY, 1 - minZ, 1 - minX, maxY, 1 - maxZ, 1 - maxX));
 			case EAST -> rotateShape(rotatedShapes[0], (minX, minY, minZ, maxX, maxY, maxZ) -> box(1 - minY, 1 - minZ, minX, 1 - maxY, 1 - maxZ, maxX));
 		};
 	}
@@ -68,9 +69,7 @@ public class RotatedShapes {
 	}
 
 	private VoxelShape or(Stream<VoxelShape> shapes) {
-		return shapes.reduce((v1, v2) -> Shapes.joinUnoptimized(v1, v2, BooleanOp.OR))
-				.map(VoxelShape::optimize)
-				.orElse(Shapes.empty());
+		return shapes.reduce((v1, v2) -> Shapes.joinUnoptimized(v1, v2, BooleanOp.OR)).map(VoxelShape::optimize).orElse(Shapes.empty());
 	}
 
 	public interface DoubleLineFunction {

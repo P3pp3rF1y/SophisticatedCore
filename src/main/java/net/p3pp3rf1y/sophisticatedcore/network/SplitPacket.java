@@ -11,4 +11,3 @@ public record SplitPacket(byte[] payload) {
 		return new SplitPacket(buf.readByteArray());
 	}
 }
-

@@ -31,7 +31,8 @@ public class SyncSlotStackMessage {
 	}
 
 	public static SyncSlotStackMessage decode(FriendlyByteBuf packetBuffer) {
-		return new SyncSlotStackMessage(packetBuffer.readUnsignedByte(), packetBuffer.readVarInt(), packetBuffer.readShort(), PacketHelper.readItemStack(packetBuffer));
+		return new SyncSlotStackMessage(packetBuffer.readUnsignedByte(), packetBuffer.readVarInt(), packetBuffer.readShort(),
+				PacketHelper.readItemStack(packetBuffer));
 	}
 
 	public static void onMessage(SyncSlotStackMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -42,7 +43,8 @@ public class SyncSlotStackMessage {
 
 	private static void handleMessage(SyncSlotStackMessage msg) {
 		LocalPlayer player = Minecraft.getInstance().player;
-		if (player == null || !(player.containerMenu instanceof StorageContainerMenuBase || player.containerMenu instanceof SettingsContainerMenu) || player.containerMenu.containerId != msg.windowId) {
+		if (player == null || !(player.containerMenu instanceof StorageContainerMenuBase || player.containerMenu instanceof SettingsContainerMenu)
+				|| player.containerMenu.containerId != msg.windowId) {
 			return;
 		}
 		player.containerMenu.setItem(msg.slotNumber, msg.stateId, msg.stack);

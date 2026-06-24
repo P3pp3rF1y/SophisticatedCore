@@ -24,12 +24,13 @@ import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record ReiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, CompoundTag tag,
-									   List<Integer> inputSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+public record ReiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, CompoundTag tag, List<Integer> inputSlots,
+		List<Integer> inventorySlots, boolean maxTransfer) {
 	public static void encode(ReiTransferRecipeMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeResourceLocation(msg.recipeId);
 		packetBuffer.writeResourceLocation(msg.recipeTypeId);
@@ -40,14 +41,8 @@ public record ReiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static ReiTransferRecipeMessage decode(FriendlyByteBuf packetBuffer) {
-		return new ReiTransferRecipeMessage(
-				packetBuffer.readResourceLocation(),
-				packetBuffer.readResourceLocation(),
-				packetBuffer.readNbt(),
-				packetBuffer.readList(FriendlyByteBuf::readVarInt),
-				packetBuffer.readList(FriendlyByteBuf::readVarInt),
-				packetBuffer.readBoolean()
-		);
+		return new ReiTransferRecipeMessage(packetBuffer.readResourceLocation(), packetBuffer.readResourceLocation(), packetBuffer.readNbt(),
+				packetBuffer.readList(FriendlyByteBuf::readVarInt), packetBuffer.readList(FriendlyByteBuf::readVarInt), packetBuffer.readBoolean());
 	}
 
 	static void onMessage(ReiTransferRecipeMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -78,15 +73,8 @@ public record ReiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 
 		IntList recipeItemIds = new IntArrayList();
 		if (recipeFinder.findRecipe(ingredients, recipeItemIds)) {
-			CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(
-					player,
-					payload.recipeId,
-					recipeType,
-					recipeItemIds.intStream().mapToObj(RecipeFinder::getStackFromId).toList(),
-					payload.inputSlots,
-					payload.inventorySlots,
-					payload.maxTransfer
-			);
+			CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(player, payload.recipeId, recipeType,
+					recipeItemIds.intStream().mapToObj(RecipeFinder::getStackFromId).toList(), payload.inputSlots, payload.inventorySlots, payload.maxTransfer);
 		}
 	}
 
@@ -94,7 +82,8 @@ public record ReiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 		List<InputIngredient<ItemStack>> inputs = new ArrayList<>();
 		for (Tag t : tag) {
 			CompoundTag compoundTag = (CompoundTag) t;
-			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getInt("Index"), EntryIngredient.read(compoundTag.getList("Ingredient", Tag.TAG_COMPOUND)));
+			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getInt("Index"),
+					EntryIngredient.read(compoundTag.getList("Ingredient", Tag.TAG_COMPOUND)));
 			inputs.add(InputIngredient.withType(stacks, VanillaEntryTypes.ITEM));
 		}
 		return inputs;

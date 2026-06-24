@@ -41,7 +41,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	private Map<Integer, Integer> slotRotations = new HashMap<>();
 	private DisplaySide displaySide = DisplaySide.FRONT;
 
-	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
+	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt,
+			Consumer<CompoundTag> saveNbt, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.renderInfoSupplier = renderInfoSupplier;
 		this.categoryNbt = categoryNbt;
@@ -59,7 +60,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	public void unselectSlot(int slotIndex) {
 		int orderIndex = slotIndexes.indexOf(slotIndex);
 
-		//noinspection RedundantCollectionOperation
+		// noinspection RedundantCollectionOperation
 		slotIndexes.remove(orderIndex);
 		slotRotations.remove(slotIndex);
 		if (slotIndexes.isEmpty()) {
@@ -110,8 +111,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 				float previousSlotFillRatio = previousSlotFillRatios.get(slotIndex);
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
 				float currentSlotFillRatio = calculateSlotFillRatio(stack, inventoryHandler, slotIndex);
-				if (previousSlotCount != stack.getCount()
-						|| previousInfiniteSlots.contains(slotIndex) != inventoryHandler.isInfinite(slotIndex)
+				if (previousSlotCount != stack.getCount() || previousInfiniteSlots.contains(slotIndex) != inventoryHandler.isInfinite(slotIndex)
 						|| !MathHelper.epsilonEquals(previousSlotFillRatio, currentSlotFillRatio)) {
 					return true;
 				}
@@ -136,7 +136,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		renderInfo.refreshItemDisplayRenderInfo(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
 	}
 
-	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderInfo renderInfo, InventoryHandler inventoryHandler, List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
+	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderInfo renderInfo, InventoryHandler inventoryHandler, List<Integer> slotCounts,
+			List<Float> slotFillRatios, List<Integer> infiniteSlots) {
 		if (renderInfo.showsCountsAndFillRatios()) {
 			for (int slotIndex = 0; slotIndex < inventoryHandler.getSlots(); slotIndex++) {
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
@@ -149,9 +150,11 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		}
 	}
 
-	private void collectDisplayItemsAndInaccessibleSlots(List<RenderInfo.DisplayItem> displayItems, InventoryHandler inventoryHandler, List<Integer> inaccessibleSlots) {
+	private void collectDisplayItemsAndInaccessibleSlots(List<RenderInfo.DisplayItem> displayItems, InventoryHandler inventoryHandler,
+			List<Integer> inaccessibleSlots) {
 		for (int slotIndex : slotIndexes) {
-			displayItems.add(new RenderInfo.DisplayItem(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), slotRotations.getOrDefault(slotIndex, 0), slotIndex, displaySide));
+			displayItems.add(new RenderInfo.DisplayItem(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), slotRotations.getOrDefault(slotIndex, 0), slotIndex,
+					displaySide));
 			if (!inventoryHandler.isSlotAccessible(slotIndex)) {
 				inaccessibleSlots.add(slotIndex);
 			}
@@ -284,7 +287,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		slotRotations = NBTHelper.getMap(categoryNbt, ROTATIONS_TAG, Integer::valueOf, (k, v) -> Optional.of(((IntTag) v).getAsInt())).orElseGet(HashMap::new);
 		color = NBTHelper.getInt(categoryNbt, COLOR_TAG).map(DyeColor::byId).orElse(DyeColor.RED);
 
-		//legacy nbt support to be removed in the future
+		// legacy nbt support to be removed in the future
 		NBTHelper.getInt(categoryNbt, SLOT_TAG).ifPresent(e -> {
 			slotIndexes.add(e);
 			categoryNbt.remove(SLOT_TAG);
@@ -334,8 +337,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	/**
 	 * Selects slots that shouldn't be sorted
 	 *
-	 * @param minSlot inclusive
-	 * @param maxSlot exclusive
+	 * @param minSlot
+	 *            inclusive
+	 * @param maxSlot
+	 *            exclusive
 	 */
 
 	public void selectSlots(int minSlot, int maxSlot) {
@@ -356,7 +361,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	@Override
 	public void copyTo(ItemDisplaySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		//noop - keep the display item of the other category
+		// noop - keep the display item of the other category
 	}
 
 	@Override

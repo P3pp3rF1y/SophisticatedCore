@@ -6,9 +6,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum PrimaryMatch implements StringRepresentable {
-	ITEM("item"),
-	MOD("mod"),
-	TAGS("tags");
+	ITEM("item"), MOD("mod"), TAGS("tags");
 
 	private final String name;
 

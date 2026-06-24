@@ -14,7 +14,8 @@ public class CraftingSpecReiDisplay extends DefaultCraftingDisplay<Recipe<?>> {
 	private final CraftingDisplaySpec spec;
 
 	public CraftingSpecReiDisplay(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants) {
-		super(getInputs(spec, variants), List.of(EntryIngredients.ofItemStacks(spec.getOutputStacks(variants))), Optional.of((Recipe<?>) spec.recipe(variants.get(0))));
+		super(getInputs(spec, variants), List.of(EntryIngredients.ofItemStacks(spec.getOutputStacks(variants))),
+				Optional.of((Recipe<?>) spec.recipe(variants.get(0))));
 		this.spec = spec;
 	}
 
@@ -30,7 +31,9 @@ public class CraftingSpecReiDisplay extends DefaultCraftingDisplay<Recipe<?>> {
 
 	@Override
 	public int getInputWidth(int craftingWidth, int craftingHeight) {
-		return spec.shapeless() ? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3) : spec.width();
+		return spec.shapeless()
+				? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3)
+				: spec.width();
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.XpHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,16 +68,16 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 			return;
 		}
 
-		getRandomDamagedItemWithMending(player)
-				.ifPresent(itemStack -> {
+		getRandomDamagedItemWithMending(player).ifPresent(itemStack -> {
 			if (!itemStack.isEmpty() && itemStack.isDamaged() && itemStack.getXpRepairRatio() > 0) {
 				float xpToTryDrain = Math.min(xpPumpUpgradeConfig.maxXpPointsPerMending.get(), itemStack.getDamageValue() / itemStack.getXpRepairRatio());
 				if (xpToTryDrain > 0) {
 					storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
-						FluidStack drained = fluidHandler.drain(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(xpToTryDrain), IFluidHandler.FluidAction.EXECUTE, false);
+						FluidStack drained = fluidHandler.drain(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(xpToTryDrain),
+								IFluidHandler.FluidAction.EXECUTE, false);
 						float xpDrained = XpHelper.liquidToExperience(drained.getAmount());
-								int durabilityToRepair = (int) (xpDrained * itemStack.getXpRepairRatio());
-								itemStack.setDamageValue(itemStack.getDamageValue() - durabilityToRepair);
+						int durabilityToRepair = (int) (xpDrained * itemStack.getXpRepairRatio());
+						itemStack.setDamageValue(itemStack.getDamageValue() - durabilityToRepair);
 					});
 				}
 			}
@@ -87,7 +88,7 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 		List<ItemStack> matchingItems = new ArrayList<>();
 		List<IItemHandler> equipmentHandlers = InventoryHelper.getEquipmentItemHandlersFromPlayer(player);
 
-		for(IItemHandler handler : equipmentHandlers) {
+		for (IItemHandler handler : equipmentHandlers) {
 			for (int slot = 0; slot < handler.getSlots(); slot++) {
 				ItemStack itemStack = handler.getStackInSlot(slot);
 
@@ -123,7 +124,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 
 	private void tryGivePlayerExperienceFromTank(Player player, IStorageFluidHandler fluidHandler, int stopAtLevel, boolean ignoreInOutLimit) {
 		int maxXpPointsToGive = XpHelper.getExperienceForLevel(stopAtLevel) - XpHelper.getPlayerTotalExperience(player);
-		FluidStack drained = fluidHandler.drain(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(maxXpPointsToGive), IFluidHandler.FluidAction.EXECUTE, ignoreInOutLimit);
+		FluidStack drained = fluidHandler.drain(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(maxXpPointsToGive), IFluidHandler.FluidAction.EXECUTE,
+				ignoreInOutLimit);
 
 		if (!drained.isEmpty()) {
 			player.giveExperiencePoints((int) XpHelper.liquidToExperience(drained.getAmount()));
@@ -136,7 +138,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 
 	private void tryFillTankWithPlayerExperience(Player player, IStorageFluidHandler fluidHandler, int stopAtLevel, boolean ignoreInOutLimit) {
 		int maxXpPointsToTake = XpHelper.getPlayerTotalExperience(player) - XpHelper.getExperienceForLevel(stopAtLevel);
-		int filled = fluidHandler.fill(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(maxXpPointsToTake), ModFluids.XP_STILL.get(), IFluidHandler.FluidAction.EXECUTE, ignoreInOutLimit);
+		int filled = fluidHandler.fill(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(maxXpPointsToTake), ModFluids.XP_STILL.get(),
+				IFluidHandler.FluidAction.EXECUTE, ignoreInOutLimit);
 
 		if (filled > 0) {
 			player.giveExperiencePoints((int) -XpHelper.liquidToExperience(filled));
@@ -144,7 +147,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	}
 
 	public void takeLevelsFromPlayer(Player player) {
-		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> tryFillTankWithPlayerExperience(player, fluidHandler, Math.max(player.experienceLevel - getLevelsToStore(), 0)));
+		storageWrapper.getFluidHandler()
+				.ifPresent(fluidHandler -> tryFillTankWithPlayerExperience(player, fluidHandler, Math.max(player.experienceLevel - getLevelsToStore(), 0)));
 	}
 
 	public void takeAllExperienceFromPlayer(Player player) {
@@ -152,7 +156,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	}
 
 	public void giveLevelsToPlayer(Player player) {
-		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> tryGivePlayerExperienceFromTank(player, fluidHandler, player.experienceLevel + getLevelsToTake()));
+		storageWrapper.getFluidHandler()
+				.ifPresent(fluidHandler -> tryGivePlayerExperienceFromTank(player, fluidHandler, player.experienceLevel + getLevelsToTake()));
 	}
 
 	public void giveAllExperienceToPlayer(Player player) {

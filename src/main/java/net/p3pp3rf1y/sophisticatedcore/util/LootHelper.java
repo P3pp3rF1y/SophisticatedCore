@@ -17,11 +17,13 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class LootHelper {
-	private LootHelper() {}
+	private LootHelper() {
+	}
 
 	public static List<ItemStack> getLoot(ResourceLocation lootTableName, MinecraftServer server, ServerLevel level, BlockPos pos, @Nullable Player player) {
 		LootTable lootTable = server.getLootData().getLootTable(lootTableName);
@@ -30,7 +32,8 @@ public class LootHelper {
 		if (player != null) {
 			lootParamsBuilder.withLuck(player.getLuck()).withParameter(LootContextParams.THIS_ENTITY, player);
 		}
-		LootContext.Builder lootBuilder = new LootContext.Builder(lootParamsBuilder.create(LootContextParamSets.CHEST)).withOptionalRandomSeed(level.random.nextLong());
+		LootContext.Builder lootBuilder = new LootContext.Builder(lootParamsBuilder.create(LootContextParamSets.CHEST))
+				.withOptionalRandomSeed(level.random.nextLong());
 		List<ItemStack> lootStacks = new ArrayList<>();
 		lootTable.getRandomItemsRaw(lootBuilder.create(null), lootStacks::add);
 		return lootStacks;

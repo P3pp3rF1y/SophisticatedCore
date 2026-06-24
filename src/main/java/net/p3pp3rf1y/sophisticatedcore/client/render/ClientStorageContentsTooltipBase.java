@@ -20,12 +20,14 @@ import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nullable;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public abstract class ClientStorageContentsTooltipBase implements ClientTooltipComponent {
 	private static final int REFRESH_INTERVAL = 20;
 	private static final String STORAGE_ITEM = "storage";
@@ -89,7 +91,8 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 				addEnergyTooltip(wrapper);
 			}
 			if (upgrades.isEmpty() && sortedContents.isEmpty()) {
-				tooltipLines.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".empty").withStyle(ChatFormatting.YELLOW));
+				tooltipLines
+						.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".empty").withStyle(ChatFormatting.YELLOW));
 			}
 
 			calculateHeight();
@@ -151,15 +154,16 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 			DecimalFormat df = new DecimalFormat("0.###");
 
 			tooltipLines.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".stack_multiplier",
-					Component.literal(df.format(multiplier)).withStyle(ChatFormatting.WHITE)
-			).withStyle(ChatFormatting.GREEN));
+					Component.literal(df.format(multiplier)).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN));
 		}
 	}
 
 	private void addEnergyTooltip(IStorageWrapper wrapper) {
-		wrapper.getEnergyStorage().ifPresent(energyStorage -> tooltipLines.add(Component.translatable(getEnergyTooltipTranslation(),
-				Component.literal(CountAbbreviator.abbreviate(energyStorage.getEnergyStored())).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED)
-		));
+		wrapper.getEnergyStorage()
+				.ifPresent(energyStorage -> tooltipLines.add(Component
+						.translatable(getEnergyTooltipTranslation(),
+								Component.literal(CountAbbreviator.abbreviate(energyStorage.getEnergyStored())).withStyle(ChatFormatting.WHITE))
+						.withStyle(ChatFormatting.RED)));
 	}
 
 	protected String getEnergyTooltipTranslation() {
@@ -234,11 +238,13 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 
 	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, GuiGraphics guiGraphics) {
 		if (!upgrades.isEmpty()) {
-			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font,
+					Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
 			topY = renderUpgrades(guiGraphics, leftX, topY);
 		}
 		if (!sortedContents.isEmpty()) {
-			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font,
+					Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
 			renderContents(minecraft, leftX, topY, guiGraphics, font);
 		}
 	}

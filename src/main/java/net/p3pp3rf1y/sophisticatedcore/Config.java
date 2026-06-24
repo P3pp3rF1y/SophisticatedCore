@@ -17,7 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Config {
 
-	private Config() {}
+	private Config() {
+	}
 
 	public static final Client CLIENT;
 	public static final ForgeConfigSpec CLIENT_SPEC;
@@ -41,9 +42,11 @@ public class Config {
 
 		Client(ForgeConfigSpec.Builder builder) {
 			builder.comment("Client Settings").push("client");
-			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods").defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
+			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods")
+					.defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
 			playButtonSound = builder.comment("Whether click sound should play when custom buttons are clicked in gui").define("playButtonSound", true);
-			mouseTweaksScrollEnabled = builder.comment("Whether scrolling in inventory should be handled by Mouse Tweaks mod if it is in the pack").define("mouseTweaksScrollEnabled", true);
+			mouseTweaksScrollEnabled = builder.comment("Whether scrolling in inventory should be handled by Mouse Tweaks mod if it is in the pack")
+					.define("mouseTweaksScrollEnabled", true);
 			builder.pop();
 		}
 	}
@@ -55,7 +58,7 @@ public class Config {
 			modBus.addListener(this::onConfigReload);
 		}
 
-		@SuppressWarnings("unused") //need the Event parameter for forge reflection to understand what event this listens to
+		@SuppressWarnings("unused") // need the Event parameter for forge reflection to understand what event this listens to
 		public void onConfigReload(ModConfigEvent.Reloading event) {
 			enabledItems.enabledMap.clear();
 		}

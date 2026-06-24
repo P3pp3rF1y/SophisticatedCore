@@ -19,8 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AccessoriesCompat implements ICompat {
 	@Override
 	public void setup() {
-		InventoryHelper.registerPlayerInventoryProvider(player -> AccessoriesCapability.getOptionally(player).<IItemHandler>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyHandler.INSTANCE));
-		InventoryHelper.registerEquipmentInventoryProvider(player -> AccessoriesCapability.getOptionally(player).<IItemHandler>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyHandler.INSTANCE));
+		InventoryHelper.registerPlayerInventoryProvider(player -> AccessoriesCapability.getOptionally(player)
+				.<IItemHandler>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyHandler.INSTANCE));
+		InventoryHelper.registerEquipmentInventoryProvider(player -> AccessoriesCapability.getOptionally(player)
+				.<IItemHandler>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyHandler.INSTANCE));
 	}
 
 	private static class AccessoriesHandler implements IItemHandlerModifiable {

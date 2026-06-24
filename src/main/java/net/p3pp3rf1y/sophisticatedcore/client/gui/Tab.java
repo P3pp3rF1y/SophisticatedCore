@@ -109,10 +109,10 @@ public abstract class Tab extends CompositeWidgetBase<WidgetBase> {
 
 	@Override
 	public void updateNarration(NarrationElementOutput pNarrationElementOutput) {
-		//noop
+		// noop
 	}
 
 	public void tick() {
-		//noop
+		// noop
 	}
 }

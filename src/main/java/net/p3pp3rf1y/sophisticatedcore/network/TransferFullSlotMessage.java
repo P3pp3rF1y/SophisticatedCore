@@ -8,6 +8,7 @@ import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Supplier;
 
 public class TransferFullSlotMessage {

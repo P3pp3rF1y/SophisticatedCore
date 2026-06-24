@@ -23,6 +23,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotValueMap;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -56,7 +57,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	private boolean voidUpgradeInfoInitialized = false;
 	private boolean hasVoidUpgrade = false;
 
-	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
+	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable saveHandler, int baseSlotLimit,
+			StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
 		this.stackUpgradeConfig = stackUpgradeConfig;
 		isInitializing = true;
@@ -65,7 +67,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		this.saveHandler = saveHandler;
 		setBaseSlotLimit(baseSlotLimit);
 		deserializeNBT(contentsNbt.getCompound(INVENTORY_TAG));
-		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompound(PARTITIONER_TAG), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
+		inventoryPartitioner = new InventoryPartitioner(contentsNbt.getCompound(PARTITIONER_TAG), this,
+				() -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		initStackNbts();
 		getSlotTracker().refreshSlotIndexesFrom(this);
 
@@ -109,7 +112,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	@SuppressWarnings("java:S3824")
-	//compute use here would be difficult as then there's no way of telling that value was newly created vs different from the one that needs to be set
+	// compute use here would be difficult as then there's no way of telling that value was newly created vs different from the one that needs to be set
 	private boolean updateSlotNbt(int slot) {
 		ItemStack slotStack = getSlotStack(slot);
 		if (slotStack.isEmpty()) {
@@ -197,7 +200,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void setBaseSlotLimit(int baseSlotLimit) {
-		voidUpgradeInfoInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
+		voidUpgradeInfoInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot
+											// limit needs to be reinitialized as well
 		this.baseSlotLimit = baseSlotLimit;
 		maxStackSizeMultiplier = baseSlotLimit / 64f;
 
@@ -222,11 +226,11 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			return ItemStack.EMPTY;
 		}
 
-/*
-		!!! This issue of not following API definition that says extracted stack must be capped at maxStackSize was introduced to fix dupe bug in Refined Storage they are not fixing, hopefully it doesn't break something else !!!
-		!!! THIS IS NOT SUPPOSED TO MAKE IT INTO ANY OTHER VERSION THAN 1.20 !!!
-		int toExtract = Math.min(amount, existing.getMaxStackSize());
-*/
+		/*
+		 * !!! This issue of not following API definition that says extracted stack must be capped at maxStackSize was introduced to fix dupe bug in Refined
+		 * Storage they are not fixing, hopefully it doesn't break something else !!! !!! THIS IS NOT SUPPOSED TO MAKE IT INTO ANY OTHER VERSION THAN 1.20 !!!
+		 * int toExtract = Math.min(amount, existing.getMaxStackSize());
+		 */
 		int toExtract = amount;
 
 		if (existing.getCount() <= toExtract) {
@@ -272,7 +276,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-		return getSlotTracker().insertItemIntoHandler(this, this::runOnBeforeInsert, this::insertItemInternal, this::triggerSlotOverflowUpgrades, this::triggerStorageOverflowUpgrades, slot, stack, simulate);
+		return getSlotTracker().insertItemIntoHandler(this, this::runOnBeforeInsert, this::insertItemInternal, this::triggerSlotOverflowUpgrades,
+				this::triggerStorageOverflowUpgrades, slot, stack, simulate);
 	}
 
 	public ItemStack insertItemOnlyToSlot(int slot, ItemStack stack, boolean simulate) {
@@ -327,7 +332,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	private ItemStack triggerStorageOverflowUpgrades(ItemStack ret) {
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			ret = overflowUpgrade.onStorageOverflow(ret);
 			if (ret.isEmpty()) {
 				break;
@@ -338,7 +344,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	private void runOnAfterInsert(int slot, boolean simulate, IItemHandlerSimpleInserter handler, IStorageWrapper storageWrapper) {
 		if (!simulate) {
-			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class).forEach(u -> u.onAfterInsert(handler, slot));
+			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class)
+					.forEach(u -> u.onAfterInsert(handler, slot));
 		}
 	}
 
@@ -384,8 +391,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public boolean isItemValid(int slot, ItemStack stack, @Nullable Player player) {
-		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isItemValid(slot, stack, player, super::isItemValid)
-				&& isAllowed(stack) && storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, stack);
+		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isItemValid(slot, stack, player, super::isItemValid) && isAllowed(stack)
+				&& storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, stack);
 	}
 
 	@Override
@@ -403,7 +410,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	public void saveInventory() {
 		contentsNbt.put(INVENTORY_TAG, serializeNBT());
 		if (inventoryPartitioner != null) {
-			//inventory parts may affect inventory slots during their initialization in Inventory Partitioner deserialize,
+			// inventory parts may affect inventory slots during their initialization in Inventory Partitioner deserialize,
 			// but there's no reason to serialize partitioner at that point as its nbt can't during init/deserialization.
 			contentsNbt.put(PARTITIONER_TAG, inventoryPartitioner.serializeNBT());
 		}
@@ -443,7 +450,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public ItemStack insertItem(ItemStack stack, boolean simulate) {
-		return getSlotTracker().insertItemIntoHandler(this, this::runOnBeforeInsert, this::insertItemInternal, this::triggerSlotOverflowUpgrades, this::triggerStorageOverflowUpgrades , stack, simulate);
+		return getSlotTracker().insertItemIntoHandler(this, this::runOnBeforeInsert, this::insertItemInternal, this::triggerSlotOverflowUpgrades,
+				this::triggerStorageOverflowUpgrades, stack, simulate);
 	}
 
 	@Override
@@ -471,7 +479,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	@Override
-	public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+	public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot) {
 		getSlotTracker().registerListeners(onAddStackKey, onRemoveStackKey, onAddFirstEmptySlot, onRemoveLastEmptySlot);
 	}
 
@@ -520,7 +529,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public void unregisterFilterItemsChangeListener() {
-		filterItemsChangeListener = s -> {};
+		filterItemsChangeListener = s -> {
+		};
 	}
 
 	public void initFilterItems() {

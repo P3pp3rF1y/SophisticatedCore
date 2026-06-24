@@ -75,7 +75,7 @@ public class VanillaDiscHandler implements IDiscHandler<RecordItem> {
 				Set<String> blockedDiscs = new HashSet<>(discBlockListGetter.get());
 				musicDiscs = new ArrayList<>();
 				records.forEach((sound, musicDisc) -> {
-					//noinspection ConstantConditions - by this point the disc has registry name
+					// noinspection ConstantConditions - by this point the disc has registry name
 					if (!blockedDiscs.contains(ForgeRegistries.ITEMS.getKey(musicDisc).toString())) {
 						musicDiscs.add(musicDisc);
 					}

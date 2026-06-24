@@ -6,13 +6,13 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum HungerLevel implements StringRepresentable {
-	ANY("any"),
-	HALF("half"),
-	FULL("full");
+	ANY("any"), HALF("half"), FULL("full");
 
 	private final String name;
 
-	HungerLevel(String name) {this.name = name;}
+	HungerLevel(String name) {
+		this.name = name;
+	}
 
 	@Override
 	public String getSerializedName() {

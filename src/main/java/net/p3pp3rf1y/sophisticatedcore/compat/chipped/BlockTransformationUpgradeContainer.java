@@ -10,14 +10,19 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.IRecentCraftedResultsRefresh;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
-public class BlockTransformationUpgradeContainer extends UpgradeContainerBase<BlockTransformationUpgradeWrapper, BlockTransformationUpgradeContainer> implements IRecentCraftedResultsRefresh {
+public class BlockTransformationUpgradeContainer extends UpgradeContainerBase<BlockTransformationUpgradeWrapper, BlockTransformationUpgradeContainer>
+		implements
+			IRecentCraftedResultsRefresh {
 	private static final String DATA_SHIFT_CLICK_INTO_STORAGE = "shiftClickIntoStorage";
 	private static final String DATA_REFILL_INPUT = "refill_input";
 	private final BlockTransformationRecipeContainer recipeContainer;
 
-	public BlockTransformationUpgradeContainer(Player player, int upgradeContainerId, BlockTransformationUpgradeWrapper upgradeWrapper, UpgradeContainerType<BlockTransformationUpgradeWrapper, BlockTransformationUpgradeContainer> type) {
+	public BlockTransformationUpgradeContainer(Player player, int upgradeContainerId, BlockTransformationUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<BlockTransformationUpgradeWrapper, BlockTransformationUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		ContainerLevelAccess worldPosCallable = player.level().isClientSide ? ContainerLevelAccess.NULL : ContainerLevelAccess.create(player.level(), player.blockPosition());
+		ContainerLevelAccess worldPosCallable = player.level().isClientSide
+				? ContainerLevelAccess.NULL
+				: ContainerLevelAccess.create(player.level(), player.blockPosition());
 		recipeContainer = new BlockTransformationRecipeContainer(this, upgradeWrapper.getRecipeType(), slots::add, this, worldPosCallable);
 	}
 

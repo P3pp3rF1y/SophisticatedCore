@@ -23,6 +23,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,11 +58,14 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	@Nullable
 	private Object2IntOpenHashMap<ResourceLocation> recipesUsed = null;
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
-		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), cookingUpgradeConfig, recipeType, burnTimeModifier);
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType,
+			float burnTimeModifier) {
+		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(),
+				cookingUpgradeConfig, recipeType, burnTimeModifier);
 	}
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput,
+			CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
 		this.isFuel = isFuel;
@@ -233,7 +237,8 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 	private Object2IntOpenHashMap<ResourceLocation> getRecipesUsed() {
 		if (recipesUsed == null) {
-			recipesUsed = NBTHelper.getMap(upgrade, "recipesUsed", ResourceLocation::new, (v, t) -> Optional.of(Integer.valueOf(t.getAsString()))).map(Object2IntOpenHashMap::new).orElseGet(Object2IntOpenHashMap::new);
+			recipesUsed = NBTHelper.getMap(upgrade, "recipesUsed", ResourceLocation::new, (v, t) -> Optional.of(Integer.valueOf(t.getAsString())))
+					.map(Object2IntOpenHashMap::new).orElseGet(Object2IntOpenHashMap::new);
 		}
 
 		return recipesUsed;
@@ -353,7 +358,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 				}
 			};
 
-			//TODO in the future remove use of this legacy smeltingInventory load as it should no longer be required
+			// TODO in the future remove use of this legacy smeltingInventory load as it should no longer be required
 			NBTHelper.getCompound(upgrade, "smeltingInventory").ifPresentOrElse(cookingInventory::deserializeNBT,
 					() -> NBTHelper.getCompound(upgrade, "cookingInventory").ifPresent(cookingInventory::deserializeNBT));
 		}

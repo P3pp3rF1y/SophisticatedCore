@@ -5,7 +5,8 @@ import net.minecraft.world.item.DyeColor;
 import java.util.List;
 
 public class ColorHelper {
-	private ColorHelper() {}
+	private ColorHelper() {
+	}
 
 	public static int getColor(float[] colorComponents) {
 		int red = (int) (colorComponents[0] * 255);

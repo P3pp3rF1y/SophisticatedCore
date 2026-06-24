@@ -19,7 +19,8 @@ public class HighStackCountSynchronizer implements ContainerSynchronizer {
 
 	@Override
 	public void sendInitialData(AbstractContainerMenu containerMenu, NonNullList<ItemStack> stacks, ItemStack carriedStack, int[] dataSlots) {
-		PacketHandler.INSTANCE.sendToClient(player, new SyncContainerStacksMessage(containerMenu.containerId, containerMenu.incrementStateId(), stacks, carriedStack));
+		PacketHandler.INSTANCE.sendToClient(player,
+				new SyncContainerStacksMessage(containerMenu.containerId, containerMenu.incrementStateId(), stacks, carriedStack));
 	}
 
 	@Override
@@ -34,6 +35,6 @@ public class HighStackCountSynchronizer implements ContainerSynchronizer {
 
 	@Override
 	public void sendDataChange(AbstractContainerMenu containerMenu, int slotInd, int data) {
-		//noop - not used in StorageContainer
+		// noop - not used in StorageContainer
 	}
 }

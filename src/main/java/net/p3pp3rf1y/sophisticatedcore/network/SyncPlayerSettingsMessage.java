@@ -9,6 +9,7 @@ import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
 
 import javax.annotation.Nullable;
+
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -42,7 +43,8 @@ public class SyncPlayerSettingsMessage implements ISplittableMessage {
 		if (localPlayer == null || msg.settingsNbt == null) {
 			return;
 		}
-		//need to call the static call indirectly otherwise this message class is class loaded during packethandler init and crashes on server due to missing ClientPlayerEntity
+		// need to call the static call indirectly otherwise this message class is class loaded during packethandler init and crashes on server due to missing
+		// ClientPlayerEntity
 		BiConsumer<Player, CompoundTag> setSettings = (player, settingsNbt) -> SettingsManager.setPlayerSettingsTag(player, msg.playerTagName, settingsNbt);
 		setSettings.accept(localPlayer, msg.settingsNbt);
 	}

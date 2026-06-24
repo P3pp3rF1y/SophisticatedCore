@@ -6,7 +6,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class PacketHelper {
-	private PacketHelper() {}
+	private PacketHelper() {
+	}
 
 	public static ItemStack readItemStack(FriendlyByteBuf packetBuffer) {
 		if (!packetBuffer.readBoolean()) {

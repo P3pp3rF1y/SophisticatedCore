@@ -11,6 +11,7 @@ import java.util.List;
 
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper.GUI_CONTROLS;
 
+@SuppressWarnings("PMD.UnnecessaryImport")
 public class TankUpgradeTab extends UpgradeSettingsTab<TankUpgradeContainer> {
 	private static final TextureBlitData ARROW = new TextureBlitData(GUI_CONTROLS, new UV(97, 216), new Dimension(15, 8));
 
