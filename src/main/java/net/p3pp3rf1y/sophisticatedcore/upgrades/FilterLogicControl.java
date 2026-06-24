@@ -7,18 +7,20 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.*;
 
 public class FilterLogicControl<L extends FilterLogic, C extends FilterLogicContainer<L>>
-		extends FilterLogicControlBase<L, FilterLogicContainer.FilterLogicSlot, C> {
+		extends
+			FilterLogicControlBase<L, FilterLogicContainer.FilterLogicSlot, C> {
 	public FilterLogicControl(StorageScreenBase<?> screen, Position position, C filterLogicContainer, int slotsPerRow, MatchButton... showMatchButtons) {
 		this(screen, position, filterLogicContainer, slotsPerRow, showMatchButtons.length > 0, showMatchButtons);
 	}
 
-	protected FilterLogicControl(StorageScreenBase<?> screen, Position position, C filterLogicContainer, int slotsPerRow, boolean buttonsVisible, MatchButton... showMatchButtons) {
+	protected FilterLogicControl(StorageScreenBase<?> screen, Position position, C filterLogicContainer, int slotsPerRow, boolean buttonsVisible,
+			MatchButton... showMatchButtons) {
 		super(screen, filterLogicContainer, position, buttonsVisible, slotsPerRow, showMatchButtons);
 	}
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 
 	public static class Basic extends FilterLogicControl<FilterLogic, FilterLogicContainer<FilterLogic>> {

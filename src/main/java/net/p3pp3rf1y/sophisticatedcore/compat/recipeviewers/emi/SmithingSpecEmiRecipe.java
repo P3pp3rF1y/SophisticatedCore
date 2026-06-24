@@ -8,9 +8,9 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.resources.ResourceLocation;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayVariant;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 
 import java.util.ArrayList;
 import java.util.List;

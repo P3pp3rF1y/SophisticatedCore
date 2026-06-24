@@ -38,7 +38,8 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 		this(catalogSupplier, focusedStackPredicate, focusedStackPredicate);
 	}
 
-	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate, Predicate<ItemStack> focusedOutputPredicate) {
+	public CraftingDisplayCatalogRecipeManagerPluginCompat(Supplier<IRecipeViewerDisplayCatalog> catalogSupplier, Predicate<ItemStack> focusedInputPredicate,
+			Predicate<ItemStack> focusedOutputPredicate) {
 		this.catalogSupplier = catalogSupplier;
 		this.focusedInputPredicate = focusedInputPredicate;
 		this.focusedOutputPredicate = focusedOutputPredicate;
@@ -52,9 +53,7 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 
 	@Override
 	public <V> List<IRecipeType<?>> getRecipeTypes(IFocus<V> focus) {
-		return focus.checkedCast(VanillaTypes.ITEM_STACK)
-				.filter(this::isHandledFocus)
-				.map(ignored -> List.<IRecipeType<?>>of(RecipeTypes.CRAFTING))
+		return focus.checkedCast(VanillaTypes.ITEM_STACK).filter(this::isHandledFocus).map(ignored -> List.<IRecipeType<?>>of(RecipeTypes.CRAFTING))
 				.orElse(List.of());
 	}
 
@@ -65,9 +64,7 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 			return List.of();
 		}
 
-		return focus.checkedCast(VanillaTypes.ITEM_STACK)
-				.map(itemFocus -> (List<T>) getRecipesForFocus(itemFocus))
-				.orElse(List.of());
+		return focus.checkedCast(VanillaTypes.ITEM_STACK).map(itemFocus -> (List<T>) getRecipesForFocus(itemFocus)).orElse(List.of());
 	}
 
 	@Override
@@ -77,9 +74,8 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 			return List.of();
 		}
 
-		return (List<T>) distinctRecipes(catalogSupplier.get().getGlobalCraftingDisplays().stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
-				.toList());
+		return (List<T>) distinctRecipes(
+				catalogSupplier.get().getGlobalCraftingDisplays().stream().flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder)).toList());
 	}
 
 	private boolean isHandledFocus(IFocus<ItemStack> focus) {
@@ -106,18 +102,16 @@ public class CraftingDisplayCatalogRecipeManagerPluginCompat implements IRecipeM
 		if (!focusedInputPredicate.test(stack)) {
 			return List.of();
 		}
-		return inputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(catalogSupplier.get().getCraftingUsagesFor(stack).stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
-				.toList()));
+		return inputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(
+				catalogSupplier.get().getCraftingUsagesFor(stack).stream().flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder)).toList()));
 	}
 
 	private List<RecipeHolder<CraftingRecipe>> getRecipesForOutput(ItemStack stack) {
 		if (!focusedOutputPredicate.test(stack)) {
 			return List.of();
 		}
-		return outputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(catalogSupplier.get().getCraftingRecipesFor(stack).stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
-				.toList()));
+		return outputRecipesByFocus.computeIfAbsent(getFocusKey(stack), ignored -> distinctRecipes(
+				catalogSupplier.get().getCraftingRecipesFor(stack).stream().flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder)).toList()));
 	}
 
 	private static List<RecipeHolder<CraftingRecipe>> distinctRecipes(List<RecipeHolder<CraftingRecipe>> recipes) {

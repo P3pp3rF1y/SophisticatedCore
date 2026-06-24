@@ -10,18 +10,16 @@ import java.util.Map;
 import java.util.Optional;
 
 public class SettingsManager {
-	private SettingsManager() {}
+	private SettingsManager() {
+	}
 
 	private static final Map<String, MainSetting<?>> settings = new HashMap<>();
 
-	public static final MainSetting<Boolean> SHIFT_CLICK_INTO_OPEN_TAB_FIRST =
-			new MainSetting<>("shiftClickOpenTab", NBTHelper::getBoolean, CompoundTag::putBoolean, false);
-	public static final MainSetting<Boolean> KEEP_TAB_OPEN =
-			new MainSetting<>("keepTabOpen", NBTHelper::getBoolean, CompoundTag::putBoolean, true);
-	public static final MainSetting<Boolean> KEEP_SEARCH_PHRASE =
-			new MainSetting<>("keepSearchPhrase", NBTHelper::getBoolean, CompoundTag::putBoolean, true);
-	public static final MainSetting<String> SEARCH_PHRASE =
-			new MainSetting<>("searchPhrase", NBTHelper::getString, CompoundTag::putString, "");
+	public static final MainSetting<Boolean> SHIFT_CLICK_INTO_OPEN_TAB_FIRST = new MainSetting<>("shiftClickOpenTab", NBTHelper::getBoolean,
+			CompoundTag::putBoolean, false);
+	public static final MainSetting<Boolean> KEEP_TAB_OPEN = new MainSetting<>("keepTabOpen", NBTHelper::getBoolean, CompoundTag::putBoolean, true);
+	public static final MainSetting<Boolean> KEEP_SEARCH_PHRASE = new MainSetting<>("keepSearchPhrase", NBTHelper::getBoolean, CompoundTag::putBoolean, true);
+	public static final MainSetting<String> SEARCH_PHRASE = new MainSetting<>("searchPhrase", NBTHelper::getString, CompoundTag::putString, "");
 
 	static {
 		settings.put(SHIFT_CLICK_INTO_OPEN_TAB_FIRST.getName(), SHIFT_CLICK_INTO_OPEN_TAB_FIRST);

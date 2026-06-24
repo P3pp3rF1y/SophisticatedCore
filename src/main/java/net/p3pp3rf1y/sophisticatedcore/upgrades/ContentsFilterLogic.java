@@ -15,7 +15,8 @@ public class ContentsFilterLogic extends FilterLogic {
 	private final Supplier<InventoryHandler> getInventoryHandler;
 	private final MemorySettingsCategory memorySettings;
 
-	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler, MemorySettingsCategory memorySettings, DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
+	public ContentsFilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int filterSlotCount, Supplier<InventoryHandler> getInventoryHandler,
+			MemorySettingsCategory memorySettings, DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
 		super(upgrade, saveHandler, filterSlotCount, filterAttributesComponent);
 		this.getInventoryHandler = getInventoryHandler;
 		this.memorySettings = memorySettings;

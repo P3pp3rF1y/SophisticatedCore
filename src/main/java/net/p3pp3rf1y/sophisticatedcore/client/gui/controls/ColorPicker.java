@@ -50,11 +50,10 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			}
 		};
 		addChild(textColorEntry);
-		colorGradientArea = new ColorGradientArea(new Position(0, 0), new Dimension(COLOR_GRADIENT_WIDTH, COLOR_GRADIENT_HEIGHT),
-				gradientColor -> {
-					textColorEntry.setValueWithoutNotification(ColorHelper.getHexColor(gradientColor));
-					colorPreview.setColor(gradientColor);
-				});
+		colorGradientArea = new ColorGradientArea(new Position(0, 0), new Dimension(COLOR_GRADIENT_WIDTH, COLOR_GRADIENT_HEIGHT), gradientColor -> {
+			textColorEntry.setValueWithoutNotification(ColorHelper.getHexColor(gradientColor));
+			colorPreview.setColor(gradientColor);
+		});
 		colorGradientArea.setColor(color);
 		rainbowSlider = new RainbowSlider(new Position(0, 0), new Dimension(RAINBOW_SLIDER_WIDTH, 50), colorGradientArea::setHue);
 		rainbowSlider.setColor(color);
@@ -73,7 +72,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 				colorGradientArea.setColor(c);
 				rainbowSlider.setColor(c);
 			} catch (NumberFormatException e) {
-				//noop
+				// noop
 			}
 		});
 		addChild(textColorEntry);
@@ -89,13 +88,13 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 		addChild(transparentColorButton);
 
 		cancelButton = new Button(new Position(0, 0), ButtonDefinitions.CANCEL, button -> {
-			colorSetter.accept(color); //just send the old color back
+			colorSetter.accept(color); // just send the old color back
 		});
 		addChild(cancelButton);
 
 		addDefaultColorButtons();
 
-		setPosition(position); //calling set here so that all the positions can be kept in its code
+		setPosition(position); // calling set here so that all the positions can be kept in its code
 	}
 
 	private void addDefaultColorButtons() {
@@ -175,11 +174,9 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 
 					float horizontalFactor = (float) i / getWidth();
 					float verticalFactor = (float) j / getHeight();
-					int color = ARGB.opaque(ARGB.color(
-							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + red * horizontalFactor)),
+					int color = ARGB.opaque(ARGB.color((int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + red * horizontalFactor)),
 							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + green * horizontalFactor)),
-							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + blue * horizontalFactor))
-					));
+							(int) ((1 - verticalFactor) * ((1 - horizontalFactor) * 255 + blue * horizontalFactor))));
 
 					guiGraphics.fill(x + i, y + j, x + i + 1, y + j + 1, color);
 				}
@@ -198,7 +195,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y - 1, 0), this.x + getWidth(), this.y + Math.min(y, getHeight()), 0xFF_FFFFFF);
 			pose.popMatrix();
 			pose.pushMatrix();
-			pose.translate(0, - 0.8f);
+			pose.translate(0, -0.8f);
 			GuiHelper.fill(guiGraphics, this.x, this.y + Math.max(y + 1, 0), this.x + getWidth(), this.y + Math.min(y + 2, getHeight()), 0xFF_FFFFFF);
 			pose.popMatrix();
 			pose.pushMatrix();
@@ -267,7 +264,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker - 1, x + getWidth(), y + getHeight() - hueMarker - 2, 0xFF_FFFFFF);
 			pose.popMatrix();
 			pose.pushMatrix();
-			pose.translate(0, - 0.8f);
+			pose.translate(0, -0.8f);
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker + 1, 0xFF_FFFFFF);
 			pose.popMatrix();
 			GuiHelper.fill(guiGraphics, x, y + getHeight() - hueMarker, x + getWidth(), y + getHeight() - hueMarker - 1, 0xFF_000000);
@@ -306,7 +303,7 @@ public class ColorPicker extends CompositeWidgetBase<WidgetBase> {
 
 		@Override
 		protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-			//noop
+			// noop
 		}
 
 		@Override

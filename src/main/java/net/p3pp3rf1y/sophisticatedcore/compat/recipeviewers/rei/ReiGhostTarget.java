@@ -4,8 +4,6 @@ import me.shedaniel.rei.api.client.gui.drag.DraggableStackVisitor;
 import net.minecraft.world.phys.AABB;
 
 public abstract class ReiGhostTarget implements DraggableStackVisitor.BoundsProvider {
-	public ReiGhostTarget() {
-	}
 
 	public abstract void accept();
 

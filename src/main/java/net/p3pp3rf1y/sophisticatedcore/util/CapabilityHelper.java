@@ -16,6 +16,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -58,19 +59,23 @@ public class CapabilityHelper {
 		return get.apply(t);
 	}
 
-	public static <T, C, U> U getFromCapability(Level level, BlockPos pos, BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
+	public static <T, C, U> U getFromCapability(Level level, BlockPos pos, BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get,
+			U defaultValue) {
 		return getFromCapability(level, pos, null, null, capability, context, get, defaultValue);
 	}
 
-	public static <T, C, U> U getFromCapability(BlockEntity blockEntity, BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
+	public static <T, C, U> U getFromCapability(BlockEntity blockEntity, BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get,
+			U defaultValue) {
 		if (blockEntity.getLevel() == null) {
 			return defaultValue;
 		}
 
-		return getFromCapability(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity, capability, context, get, defaultValue);
+		return getFromCapability(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity, capability, context, get,
+				defaultValue);
 	}
 
-	public static <T, C, U> U getFromCapability(Level level, BlockPos pos, @Nullable BlockState state, @Nullable BlockEntity blockEntity, BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
+	public static <T, C, U> U getFromCapability(Level level, BlockPos pos, @Nullable BlockState state, @Nullable BlockEntity blockEntity,
+			BlockCapability<T, C> capability, @Nullable C context, Function<T, U> get, U defaultValue) {
 		T t = level.getCapability(capability, pos, state, blockEntity, context);
 		if (t == null) {
 			return defaultValue;

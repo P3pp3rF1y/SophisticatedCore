@@ -14,6 +14,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -36,13 +37,15 @@ public class UpgradeHandler extends ItemStackHandler {
 	private boolean persistent = true;
 	private final Map<Class<? extends IUpgradeWrapper>, Consumer<? extends IUpgradeWrapper>> upgradeDefaultsHandlers = new HashMap<>();
 
-	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
+	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, CompoundTag contentsNbt, Runnable contentsSaveHandler,
+			Runnable onInvalidateUpgradeCaches) {
 		super(numberOfUpgradeSlots);
 		this.contentsNbt = contentsNbt;
 		this.storageWrapper = storageWrapper;
 		this.contentsSaveHandler = contentsSaveHandler;
 		this.onInvalidateUpgradeCaches = onInvalidateUpgradeCaches;
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.getCompound(UPGRADE_INVENTORY_TAG).ifPresent(invTag -> deserialize(ValueIOHelper.inputFromCompoundTag(registryAccess, invTag))));
+		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.getCompound(UPGRADE_INVENTORY_TAG)
+				.ifPresent(invTag -> deserialize(ValueIOHelper.inputFromCompoundTag(registryAccess, invTag))));
 		if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER && storageWrapper.getRenderInfo().getUpgradeItems().size() != getSlots()) {
 			setRenderUpgradeItems();
 		}
@@ -82,7 +85,8 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	public void saveInventory() {
-		RegistryHelper.getRegistryAccess().ifPresent(registryAccess -> contentsNbt.put(UPGRADE_INVENTORY_TAG, ValueIOHelper.collectOutputToTag(registryAccess, this::serialize)));
+		RegistryHelper.getRegistryAccess()
+				.ifPresent(registryAccess -> contentsNbt.put(UPGRADE_INVENTORY_TAG, ValueIOHelper.collectOutputToTag(registryAccess, this::serialize)));
 	}
 
 	public void setPersistent(boolean persistent) {
@@ -148,7 +152,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	private <T extends IUpgradeWrapper> Consumer<T> getUpgradeDefaultsHandler(T wrapper) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return (Consumer<T>) upgradeDefaultsHandlers.getOrDefault(wrapper.getClass(), w -> {
 		});
 	}
@@ -204,13 +208,13 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	private <T extends IUpgradeWrapper> void addTypeWrapper(UpgradeType<?> type, T wrapper) {
-		//noinspection unchecked
+		// noinspection unchecked
 		((List<T>) typeWrappers.computeIfAbsent(type, t -> new ArrayList<>())).add(wrapper);
 	}
 
 	public <T extends IUpgradeWrapper> List<T> getTypeWrappers(UpgradeType<T> type) {
 		initializeTypeWrappers();
-		//noinspection unchecked
+		// noinspection unchecked
 		return (List<T>) typeWrappers.getOrDefault(type, Collections.emptyList());
 	}
 
@@ -243,7 +247,7 @@ public class UpgradeHandler extends ItemStackHandler {
 		List<T> ret = new ArrayList<>();
 		for (IUpgradeWrapper wrapper : slotWrappers.values()) {
 			if (wrapper.isEnabled() && uc.isInstance(wrapper)) {
-				//noinspection unchecked
+				// noinspection unchecked
 				ret.add((T) wrapper);
 			}
 		}
@@ -359,13 +363,13 @@ public class UpgradeHandler extends ItemStackHandler {
 
 		@Override
 		public <T> List<T> getWrappersThatImplement(Class<T> upgradeClass) {
-			//noinspection unchecked
+			// noinspection unchecked
 			return (List<T>) interfaceWrappers.computeIfAbsent(upgradeClass, upgradeHandler::getListOfWrappersThatImplement);
 		}
 
 		@Override
 		public <T> List<T> getWrappersThatImplementFromMainStorage(Class<T> upgradeClass) {
-			//noinspection unchecked
+			// noinspection unchecked
 			return (List<T>) interfaceWrappers.computeIfAbsent(upgradeClass, upgradeHandler::getListOfWrappersThatImplement);
 		}
 
@@ -375,4 +379,3 @@ public class UpgradeHandler extends ItemStackHandler {
 		}
 	}
 }
-

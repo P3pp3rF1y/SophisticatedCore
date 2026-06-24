@@ -5,8 +5,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Locale;
 
 public enum TankPosition implements StringRepresentable {
-	LEFT,
-	RIGHT;
+	LEFT, RIGHT;
 
 	@Override
 	public String getSerializedName() {

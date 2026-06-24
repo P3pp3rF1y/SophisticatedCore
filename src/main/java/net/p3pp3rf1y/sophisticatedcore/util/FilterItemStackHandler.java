@@ -6,7 +6,9 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 public class FilterItemStackHandler extends ItemStackHandler {
 	private boolean onlyEmptyFilters = true;
 
-	public FilterItemStackHandler(int size) {super(size);}
+	public FilterItemStackHandler(int size) {
+		super(size);
+	}
 
 	@Override
 	public int getSlotLimit(int slot) {

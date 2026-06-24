@@ -10,10 +10,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum SortBy implements StringRepresentable {
-	NAME("name"),
-	MOD("mod"),
-	COUNT("count"),
-	TAGS("tags");
+	NAME("name"), MOD("mod"), COUNT("count"), TAGS("tags");
 
 	public static final Codec<SortBy> CODEC = StringRepresentable.fromEnum(SortBy::values);
 	public static final StreamCodec<FriendlyByteBuf, SortBy> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(SortBy.class);
@@ -38,7 +35,7 @@ public enum SortBy implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, SortBy> builder = new ImmutableMap.Builder<>();
-		for (SortBy value : SortBy.values()) {
+		for (SortBy value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

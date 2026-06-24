@@ -6,9 +6,7 @@ import net.minecraft.util.StringRepresentable;
 import java.util.Map;
 
 public enum ContentsFilterType implements StringRepresentable {
-	ALLOW("allow"),
-	BLOCK("block"),
-	STORAGE("storage");
+	ALLOW("allow"), BLOCK("block"), STORAGE("storage");
 
 	private final String name;
 

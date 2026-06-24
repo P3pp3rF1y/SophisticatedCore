@@ -48,8 +48,10 @@ public class NoSortSettingsCategory implements ISettingsCategory<NoSortSettingsC
 	/**
 	 * Selects slots that shouldn't be sorted
 	 *
-	 * @param minSlot inclusive
-	 * @param maxSlot exclusive
+	 * @param minSlot
+	 *            inclusive
+	 * @param maxSlot
+	 *            exclusive
 	 */
 
 	public void selectSlots(int minSlot, int maxSlot) {

@@ -39,7 +39,6 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
@@ -55,7 +54,8 @@ public class ClientEventHandler {
 	public static final KeyMapping TRANSFER_TO_STORAGE_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_storage"),
 			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_LEFT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping TRANSFER_TO_INVENTORY_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_inventory"),
-			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET),
+			KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
@@ -196,7 +196,8 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
+	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack,
+			IStashStorageItem.StashResult stashResult) {
 		int x = containerGui.getGuiLeft() + s.x;
 		int y = containerGui.getGuiTop() + s.y;
 
@@ -208,10 +209,13 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, GuiGraphics guiGraphics, ItemStack stack, Optional<TooltipComponent> tooltipComponent) {
+	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, GuiGraphics guiGraphics, ItemStack stack,
+			Optional<TooltipComponent> tooltipComponent) {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
-		GuiHelper.renderTooltip(event.getScreen(), guiGraphics, stack, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), tooltipComponent, x, y);
+		GuiHelper.renderTooltip(event.getScreen(), guiGraphics, stack,
+				Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")),
+				tooltipComponent, x, y);
 	}
 
 	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack inInventory, ItemStack held) {
@@ -225,16 +229,20 @@ public class ClientEventHandler {
 		return Optional.empty();
 	}
 
-	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack potentialStashStorage, ItemStack potentiallyStashable, IStashStorageItem stashStorageItem) {
-		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage, potentiallyStashable);
+	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack potentialStashStorage, ItemStack potentiallyStashable,
+			IStashStorageItem stashStorageItem) {
+		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage,
+				potentiallyStashable);
 		if (stashResult == IStashStorageItem.StashResult.NO_SPACE) {
 			return Optional.empty();
 		}
 		return Optional.of(stashResult);
 	}
 
-	private static Optional<TooltipComponent> getStashTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable, IStashStorageItem stashStorageItem) {
-		if (stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage, potentiallyStashable) == IStashStorageItem.StashResult.NO_SPACE) {
+	private static Optional<TooltipComponent> getStashTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable,
+			IStashStorageItem stashStorageItem) {
+		if (stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage,
+				potentiallyStashable) == IStashStorageItem.StashResult.NO_SPACE) {
 			return Optional.empty();
 		}
 		return stashStorageItem.getInventoryTooltip(potentialStashStorage);

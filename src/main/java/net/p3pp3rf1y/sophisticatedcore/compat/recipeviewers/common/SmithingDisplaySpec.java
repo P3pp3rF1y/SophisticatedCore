@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public record SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> template, Optional<Ingredient> addition, List<SmithingDisplayVariant> variants,
-								 List<SmithingDisplayVariant> globalVariants, Set<SmithingRecipe> replacedRecipes,
-								 IFocusBehavior<SmithingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<SmithingDisplayVariant> {
+		List<SmithingDisplayVariant> globalVariants, Set<SmithingRecipe> replacedRecipes,
+		IFocusBehavior<SmithingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<SmithingDisplayVariant> {
 	public SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> template, Optional<Ingredient> addition, List<SmithingDisplayVariant> variants,
 			List<SmithingDisplayVariant> globalVariants, IFocusBehavior<SmithingDisplayVariant> focusBehavior) {
 		this(id, template, addition, variants, globalVariants, Set.of(), focusBehavior);
@@ -56,8 +56,11 @@ public record SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> temp
 	}
 
 	public RecipeHolder<SmithingRecipe> recipeHolder(SmithingDisplayVariant variant) {
-		Ingredient base = variant.base().getComponentsPatch().isEmpty() ? Ingredient.of(variant.base().getItem()) : DataComponentIngredient.of(false, variant.base());
+		Ingredient base = variant.base().getComponentsPatch().isEmpty()
+				? Ingredient.of(variant.base().getItem())
+				: DataComponentIngredient.of(false, variant.base());
 		ItemStack result = variant.result();
-		return new RecipeHolder<>(ClientRecipeHelper.recipeKey(id), new SmithingTransformRecipe(template, base, addition, new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch())));
+		return new RecipeHolder<>(ClientRecipeHelper.recipeKey(id), new SmithingTransformRecipe(template, base, addition,
+				new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch())));
 	}
 }

@@ -19,7 +19,7 @@ public class SawmillRecipeControl extends BlockConverterRecipeControl<Woodcuttin
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		super.renderBg(guiGraphics, minecraft, mouseX, mouseY);
 		if (getInputCount() > 1) {
-			guiGraphics.drawString(minecraft.font,  "x" + getInputCount(), x + 52, y + 10, ARGB.opaque(4210752), false);
+			guiGraphics.drawString(minecraft.font, "x" + getInputCount(), x + 52, y + 10, ARGB.opaque(4210752), false);
 		}
 	}
 

@@ -11,24 +11,14 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public record AlchemyFilterAttribute(ItemStack filter, AlchemyCondition condition, float value) {
-	public static final Codec<AlchemyFilterAttribute> CODEC = RecordCodecBuilder.create(
-			builder -> builder
-					.group(
-							ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY).fieldOf("filter").forGetter(AlchemyFilterAttribute::filter),
-							AlchemyCondition.CODEC.fieldOf("condition").forGetter(AlchemyFilterAttribute::condition),
-							Codec.FLOAT.fieldOf("value").forGetter(AlchemyFilterAttribute::value)
-					).apply(builder, AlchemyFilterAttribute::new)
-	);
+	public static final Codec<AlchemyFilterAttribute> CODEC = RecordCodecBuilder
+			.create(builder -> builder.group(ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY).fieldOf("filter").forGetter(AlchemyFilterAttribute::filter),
+					AlchemyCondition.CODEC.fieldOf("condition").forGetter(AlchemyFilterAttribute::condition),
+					Codec.FLOAT.fieldOf("value").forGetter(AlchemyFilterAttribute::value)).apply(builder, AlchemyFilterAttribute::new));
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, AlchemyFilterAttribute> STREAM_CODEC = StreamCodec.composite(
-			ItemStack.OPTIONAL_STREAM_CODEC,
-			AlchemyFilterAttribute::filter,
-			AlchemyCondition.STREAM_CODEC,
-			AlchemyFilterAttribute::condition,
-			ByteBufCodecs.FLOAT,
-			AlchemyFilterAttribute::value,
-			AlchemyFilterAttribute::new
-	);
+	public static final StreamCodec<RegistryFriendlyByteBuf, AlchemyFilterAttribute> STREAM_CODEC = StreamCodec.composite(ItemStack.OPTIONAL_STREAM_CODEC,
+			AlchemyFilterAttribute::filter, AlchemyCondition.STREAM_CODEC, AlchemyFilterAttribute::condition, ByteBufCodecs.FLOAT,
+			AlchemyFilterAttribute::value, AlchemyFilterAttribute::new);
 
 	public AlchemyFilterAttribute(ItemStack filter, AlchemyCondition condition) {
 		this(filter, condition, -1);

@@ -6,10 +6,12 @@ import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+
 import java.util.Objects;
 
 public class ItemStackHelper {
-	private ItemStackHelper() {}
+	private ItemStackHelper() {
+	}
 
 	public static boolean areItemStackComponentsEqualIgnoreDurability(ItemStack stackA, ItemStack stackB) {
 		if (stackA.isEmpty() && stackB.isEmpty()) {

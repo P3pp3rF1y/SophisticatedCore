@@ -32,7 +32,8 @@ public class CraftingSpecEmiRecipe extends BasicEmiRecipe {
 		recipes.add(new CraftingSpecEmiRecipe(spec, variants, "", inputIndex -> inputIndex != sourceInputIndex, false));
 		for (int variantIndex = 0; variantIndex < variants.size(); variantIndex++) {
 			if (sourceInputIndex >= 0) {
-				recipes.add(new CraftingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/source/" + variantIndex, inputIndex -> inputIndex == sourceInputIndex, false));
+				recipes.add(new CraftingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/source/" + variantIndex,
+						inputIndex -> inputIndex == sourceInputIndex, false));
 			}
 			recipes.add(new CraftingSpecEmiRecipe(spec, List.of(variants.get(variantIndex)), "/" + variantIndex, inputIndex -> false, true));
 		}
@@ -64,11 +65,13 @@ public class CraftingSpecEmiRecipe extends BasicEmiRecipe {
 		this(spec, variants, variantIndex, inputIndex -> true, true);
 	}
 
-	private CraftingSpecEmiRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int variantIndex, IntPredicate inputIndexFilter, boolean indexOutputs) {
+	private CraftingSpecEmiRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int variantIndex, IntPredicate inputIndexFilter,
+			boolean indexOutputs) {
 		this(spec, variants, variantIndex >= 0 ? "/" + variantIndex : "", inputIndexFilter, indexOutputs);
 	}
 
-	private CraftingSpecEmiRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, String idSuffix, IntPredicate inputIndexFilter, boolean indexOutputs) {
+	private CraftingSpecEmiRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, String idSuffix, IntPredicate inputIndexFilter,
+			boolean indexOutputs) {
 		super(VanillaEmiRecipeCategories.CRAFTING, spec.id().withPath(path -> (path.startsWith("/") ? path : "/" + path) + idSuffix), 118, 54);
 		this.spec = spec;
 		this.variants = variants;
@@ -141,8 +144,7 @@ public class CraftingSpecEmiRecipe extends BasicEmiRecipe {
 
 	private static List<EmiIngredient> getGridInputs(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants) {
 		return spec.getInputSlots(variants).stream()
-				.map(inputSlot -> inputSlot.isEmpty() ? EmiStack.EMPTY : EmiIngredient.of(inputSlot.stream().map(EmiStack::of).toList()))
-				.toList();
+				.map(inputSlot -> inputSlot.isEmpty() ? EmiStack.EMPTY : EmiIngredient.of(inputSlot.stream().map(EmiStack::of).toList())).toList();
 	}
 
 	private static int getSourceInputIndex(CraftingDisplaySpec spec) {

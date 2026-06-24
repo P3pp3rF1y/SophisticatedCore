@@ -6,8 +6,11 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterUpgradeContainer;
 
-public class SawmillUpgradeContainer extends BlockConverterUpgradeContainer<WoodcuttingRecipe, SawmillUpgradeItem.Wrapper, SawmillUpgradeContainer, SawmillRecipeContainer> {
-	public SawmillUpgradeContainer(Player player, int upgradeContainerId, SawmillUpgradeItem.Wrapper upgradeWrapper, UpgradeContainerType<SawmillUpgradeItem.Wrapper, SawmillUpgradeContainer> type) {
+public class SawmillUpgradeContainer
+		extends
+			BlockConverterUpgradeContainer<WoodcuttingRecipe, SawmillUpgradeItem.Wrapper, SawmillUpgradeContainer, SawmillRecipeContainer> {
+	public SawmillUpgradeContainer(Player player, int upgradeContainerId, SawmillUpgradeItem.Wrapper upgradeWrapper,
+			UpgradeContainerType<SawmillUpgradeItem.Wrapper, SawmillUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 	}
 

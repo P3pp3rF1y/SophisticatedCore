@@ -7,8 +7,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import java.util.List;
 import java.util.function.BiPredicate;
 
-public record SingleColorDyeRecipeSpec(ResourceLocation id, List<ItemStack> sourceStacks, List<DyeVariantPair> variantPairs, BiPredicate<ItemStack, ItemStack> resultMatcher)
-		implements IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>> {
+public record SingleColorDyeRecipeSpec(ResourceLocation id, List<ItemStack> sourceStacks, List<DyeVariantPair> variantPairs,
+		BiPredicate<ItemStack, ItemStack> resultMatcher) implements IRecipeViewerDisplaySpec<RecipeHolder<GroupedCraftingRecipe>> {
 	public SingleColorDyeRecipeSpec(ResourceLocation id, List<ItemStack> sourceStacks, List<DyeVariantPair> variantPairs) {
 		this(id, sourceStacks, variantPairs, ItemStack::isSameItemSameComponents);
 	}
@@ -19,9 +19,8 @@ public record SingleColorDyeRecipeSpec(ResourceLocation id, List<ItemStack> sour
 	}
 
 	public GroupedCraftingRecipe recipe() {
-		return new GroupedCraftingRecipe(id, 1, 2, List.of(sourceStacks), variantPairs.stream()
-				.map(pair -> new GroupedCraftingVariant(List.of(pair.dye()), pair.result()))
-				.toList(), resultMatcher);
+		return new GroupedCraftingRecipe(id, 1, 2, List.of(sourceStacks),
+				variantPairs.stream().map(pair -> new GroupedCraftingVariant(List.of(pair.dye()), pair.result())).toList(), resultMatcher);
 	}
 
 	public RecipeHolder<GroupedCraftingRecipe> recipeHolder() {
@@ -35,9 +34,7 @@ public record SingleColorDyeRecipeSpec(ResourceLocation id, List<ItemStack> sour
 
 	@Override
 	public List<RecipeHolder<GroupedCraftingRecipe>> getRecipesFor(ItemStack focusedOutput) {
-		return recipe().narrowForResult(focusedOutput)
-				.map(recipe -> List.of(new RecipeHolder<>(ClientRecipeHelper.recipeKey(id), recipe)))
-				.orElse(List.of());
+		return recipe().narrowForResult(focusedOutput).map(recipe -> List.of(new RecipeHolder<>(ClientRecipeHelper.recipeKey(id), recipe))).orElse(List.of());
 	}
 
 	@Override

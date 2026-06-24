@@ -225,7 +225,8 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 					return true;
 				}
 				case DATA_REMOVE_TAG_NAME -> {
-					data.getString(DATA_REMOVE_TAG_NAME).ifPresent(tagName -> removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagName))));
+					data.getString(DATA_REMOVE_TAG_NAME)
+							.ifPresent(tagName -> removeSelectedTag(TagKey.create(Registries.ITEM, ResourceLocation.parse(tagName))));
 					return true;
 				}
 				case DATA_MATCH_ANY_TAG -> {
@@ -233,7 +234,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 					return true;
 				}
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		}
@@ -241,7 +242,8 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 	}
 
 	protected boolean isDifferentFilterLogicsData(CompoundTag data) {
-		return data.contains(DATA_COMPONENT_KEY) && !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getStringOr(DATA_COMPONENT_KEY, ""));
+		return data.contains(DATA_COMPONENT_KEY)
+				&& !filterLogic.get().getAttributesComponent().getKey().location().toString().equals(data.getStringOr(DATA_COMPONENT_KEY, ""));
 	}
 
 	public class TagSelectionSlot extends Slot implements IFilterSlot {
@@ -300,7 +302,7 @@ public class FilterLogicContainerBase<T extends FilterLogic, S extends Slot> {
 
 		@Override
 		public void setChanged() {
-			//noop
+			// noop
 		}
 	}
 }

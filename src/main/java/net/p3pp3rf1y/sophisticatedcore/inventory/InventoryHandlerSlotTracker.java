@@ -7,6 +7,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotValueMap;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
@@ -116,7 +117,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			@Nullable
 			Set<Integer> partialSlots = partiallyFilledStackSlots.get(stackKey);
 			if (partialSlots == null) {
-				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}", () -> stackKey != null ? stackKey.stack().toString() : "null");
+				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}",
+						() -> stackKey != null ? stackKey.stack().toString() : "null");
 			} else {
 				partialSlots.remove(slot);
 			}
@@ -135,7 +137,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			@Nullable
 			Set<Integer> fullSlots = fullStackSlots.get(stackKey);
 			if (fullSlots == null) {
-				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}", () -> stackKey != null ? stackKey.stack().toString() : "null");
+				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}",
+						() -> stackKey != null ? stackKey.stack().toString() : "null");
 			} else {
 				fullSlots.remove(slot);
 			}
@@ -244,10 +247,10 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	@Override
 	public void refreshSlotIndexesFrom(InventoryHandler itemHandler) {
-		fullStackSlots.keySet().forEach(sk -> onRemoveStackKey.accept(sk));
+		fullStackSlots.keySet().forEach(onRemoveStackKey::accept);
 		fullStackSlots.clear();
 		fullSlotStacks.clear();
-		partiallyFilledStackSlots.keySet().forEach(sk -> onRemoveStackKey.accept(sk));
+		partiallyFilledStackSlots.keySet().forEach(onRemoveStackKey::accept);
 		partiallyFilledStackSlots.clear();
 		partiallyFilledSlotStacks.clear();
 		itemStackKeys.clear();
@@ -266,7 +269,9 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate) {
+	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler,
+			IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack,
+			boolean simulate) {
 		if (emptySlots.isEmpty() && !itemStackKeys.containsKey(stack.getItem())) {
 			return stack;
 		}
@@ -288,7 +293,9 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate) {
+	public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler,
+			IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot,
+			ItemStack stack, boolean simulate) {
 		if (simulate) {
 			ItemStack remainingStack = beforeInsertHandler.apply(stack, simulate);
 			if (remainingStack.isEmpty()) {
@@ -319,7 +326,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 				}
 				boolean insertedSomething = remainingStack.getCount() != stack.getCount();
 				ItemStackKey stackKey = ItemStackKey.of(remainingStack);
-				return handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack, insertedSomething || hasOneFullStackOfItem(stackKey));
+				return handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack,
+						insertedSomething || hasOneFullStackOfItem(stackKey));
 			}
 			return remainingStack;
 		}
@@ -366,7 +374,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+	public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot) {
 		this.onAddStackKey = onAddStackKey;
 		this.onRemoveStackKey = onRemoveStackKey;
 		this.onAddFirstEmptySlot = onAddFirstEmptySlot;
@@ -386,7 +395,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		return shouldInsertIntoEmpty.getAsBoolean() && !emptySlots.isEmpty();
 	}
 
-	private ItemStack handleOverflow(UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStackKey stackKey, ItemStack remainingStack) {
+	private ItemStack handleOverflow(UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStackKey stackKey,
+			ItemStack remainingStack) {
 		boolean hasOneFullStackOfItem = hasOneFullStackOfItem(stackKey);
 		return handleOverflow(slotOverflowHandler, storageOverflowHandler, stackKey, remainingStack, hasOneFullStackOfItem);
 	}
@@ -395,7 +405,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		return fullStackSlots.containsKey(stackKey) && !fullStackSlots.get(stackKey).isEmpty();
 	}
 
-	private ItemStack handleOverflow(UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStackKey stackKey, ItemStack remainingStack, boolean hasOneFullSlotOfItem) {
+	private ItemStack handleOverflow(UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStackKey stackKey,
+			ItemStack remainingStack, boolean hasOneFullSlotOfItem) {
 		if (hasOneFullSlotOfItem) {
 			if (emptySlots.isEmpty() && !partiallyFilledStackSlots.containsKey(stackKey)) {
 				remainingStack = storageOverflowHandler.apply(remainingStack);
@@ -418,7 +429,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 		int sizeBefore = slots.size();
 		int i = 0;
-		// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to inserts
+		// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to
+		// inserts
 		// and going into this logic as well and because of that causing collection to be updated outside of first level iterator. The increment is here just
 		// in case updating cache fails to prevent infinite loop
 		while (partiallyFilledStackSlots.get(stackKey) != null && !partiallyFilledStackSlots.get(stackKey).isEmpty() && i++ < sizeBefore) {
@@ -438,8 +450,10 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		if (shouldInsertIntoEmpty.getAsBoolean() && !remainingStack.isEmpty()) {
 			int sizeBefore = emptySlots.size();
 			int i = 0;
-			// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to inserts
-			// and going into this logic as well and because of that causing collection to be updated outside of first level iterator. The increment is here just
+			// Always taking first element here and iterating while not empty as iterating using iterator would produce CME due to void/compacting reacting to
+			// inserts
+			// and going into this logic as well and because of that causing collection to be updated outside of first level iterator. The increment is here
+			// just
 			// in case updating cache fails to prevent infinite loop
 			while (!emptySlots.isEmpty() && i++ < sizeBefore) {
 				Iterator<Integer> it = emptySlots.iterator();
@@ -481,7 +495,6 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		}
 		return remainingStack;
 	}
-
 
 	private ItemStack insertIntoEmptyMemorySlots(IItemHandlerInserter inserter, boolean simulate, ItemStack stack) {
 		ItemStack remainingStack = stack;

@@ -50,13 +50,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void deserialize() {
-		NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG,
-						Integer::valueOf,
+		NBTHelper
+				.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG, Integer::valueOf,
 						(k, v) -> BuiltInRegistries.ITEM.getOptional(v.asString().map(ResourceLocation::parse).orElse(null)))
 				.ifPresent(map -> map.forEach(this::addSlotItem));
 
-		NBTHelper.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG,
-						Integer::valueOf,
+		NBTHelper
+				.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG, Integer::valueOf,
 						(k, v) -> v instanceof CompoundTag tag ? NBTHelper.deserializeStackFromTag(tag) : Optional.empty())
 				.ifPresent(map -> map.forEach(this::addSlotStack));
 		ignoreNbt = NBTHelper.getBoolean(categoryNbt, IGNORE_NBT_TAG).orElse(true);
@@ -97,13 +97,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void unselectAllFilteStackSlots() {
-		filterStackSlots.keySet().forEach(i -> onStackRemoved.accept(i));
+		filterStackSlots.keySet().forEach(onStackRemoved::accept);
 		slotFilterStacks.clear();
 		filterStackSlots.clear();
 	}
 
 	private void unselectAllFilterItemSlots() {
-		filterItemSlots.keySet().forEach(i -> onItemRemoved.accept(i));
+		filterItemSlots.keySet().forEach(onItemRemoved::accept);
 		slotFilterItems.clear();
 		filterItemSlots.clear();
 	}
@@ -111,8 +111,10 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	/**
 	 * Selects slots that shouldn't be sorted
 	 *
-	 * @param minSlot inclusive
-	 * @param maxSlot exclusive
+	 * @param minSlot
+	 *            inclusive
+	 * @param maxSlot
+	 *            exclusive
 	 */
 
 	public void selectSlots(int minSlot, int maxSlot) {
@@ -239,7 +241,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void serializeFilterItems() {
-		NBTHelper.putMap(categoryNbt, SLOT_FILTER_ITEMS_TAG, slotFilterItems, String::valueOf, i -> StringTag.valueOf(BuiltInRegistries.ITEM.getKey(i).toString()));
+		NBTHelper.putMap(categoryNbt, SLOT_FILTER_ITEMS_TAG, slotFilterItems, String::valueOf,
+				i -> StringTag.valueOf(BuiltInRegistries.ITEM.getKey(i).toString()));
 		NBTHelper.putMap(categoryNbt, SLOT_FILTER_STACKS_TAG, slotFilterStacks, String::valueOf,
 				isk -> isk.stack().isEmpty() ? new CompoundTag() : NBTHelper.serializeStackToTag(isk.stack()).orElse(new CompoundTag()));
 		saveNbt.accept(categoryNbt);
@@ -260,7 +263,6 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 		unselectAllSlots();
 
 		ignoreNbt = otherCategory.ignoreNbt;
-
 
 		if (ignoreNbt) {
 			overwriteFilterItems(otherCategory);
@@ -314,7 +316,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public boolean matchesFilter(ItemStack stack) {
-		return filterItemSlots.containsKey(stack.getItem()) || !filterStackSlots.isEmpty() && filterStackSlots.containsKey(ItemStack.hashItemAndComponents(stack));
+		return filterItemSlots.containsKey(stack.getItem())
+				|| !filterStackSlots.isEmpty() && filterStackSlots.containsKey(ItemStack.hashItemAndComponents(stack));
 	}
 
 	public boolean matchesStackKey(ItemStackKey stackKey) {
@@ -361,7 +364,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	@Override
 	public boolean isLargerThanNumberOfSlots(int slots) {
-		return slotFilterItems.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots) || slotFilterStacks.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
+		return slotFilterItems.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots)
+				|| slotFilterStacks.keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
 
 	@Override

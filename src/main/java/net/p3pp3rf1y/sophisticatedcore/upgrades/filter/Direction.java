@@ -10,9 +10,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum Direction implements StringRepresentable {
-	BOTH("both"),
-	INPUT("input"),
-	OUTPUT("output");
+	BOTH("both"), INPUT("input"), OUTPUT("output");
 
 	public static final Codec<Direction> CODEC = StringRepresentable.fromEnum(Direction::values);
 	public static final StreamCodec<FriendlyByteBuf, Direction> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(Direction.class);
@@ -37,7 +35,7 @@ public enum Direction implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, Direction> builder = new ImmutableMap.Builder<>();
-		for (Direction value : Direction.values()) {
+		for (Direction value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();
