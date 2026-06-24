@@ -39,27 +39,21 @@ public class EmiStorageGhostDragDropHandler<T extends StorageScreenBase<?>> impl
 			if (!emiGhostStack.isEmpty()) {
 				ItemStack ghostStack = emiGhostStack.getItemStack();
 				FluidStack fluidStack = CapabilityHelper.getFromCapability(ItemAccess.forStack(ghostStack), Capabilities.Fluid.ITEM,
-						fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getResource(0).toStack(FluidType.BUCKET_VOLUME) : FluidStack.EMPTY, FluidStack.EMPTY);
+						fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getResource(0).toStack(FluidType.BUCKET_VOLUME) : FluidStack.EMPTY,
+						FluidStack.EMPTY);
 
 				if (!fluidStack.isEmpty()) {
-					screen.getUpgradeSettingsControl()
-							.getOpenTab()
-							.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
-							.map(PumpUpgradeTab.Advanced.class::cast)
+					screen.getUpgradeSettingsControl().getOpenTab().filter(PumpUpgradeTab.Advanced.class::isInstance).map(PumpUpgradeTab.Advanced.class::cast)
 							.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, map));
 				}
 				screen.getMenu().getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
 					if (s instanceof IFilterSlot && s.mayPlace(ghostStack)) {
-						map.put(
-								new Bounds(screen.getLeftX() + s.x, screen.getTopY() + s.y, 18, 18),
+						map.put(new Bounds(screen.getLeftX() + s.x, screen.getTopY() + s.y, 18, 18),
 								(i) -> ClientPacketDistributor.sendToServer(new SetGhostSlotPayload(ghostStack, s.index)));
 					}
 				}));
 			} else if (emiGhostStack.getKey() instanceof Fluid fluid) {
-				screen.getUpgradeSettingsControl()
-						.getOpenTab()
-						.filter(tab -> tab instanceof PumpUpgradeTab.Advanced)
-						.map(PumpUpgradeTab.Advanced.class::cast)
+				screen.getUpgradeSettingsControl().getOpenTab().filter(PumpUpgradeTab.Advanced.class::isInstance).map(PumpUpgradeTab.Advanced.class::cast)
 						.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, new FluidStack(fluid, 1), map));
 			}
 			return map;
@@ -90,10 +84,7 @@ public class EmiStorageGhostDragDropHandler<T extends StorageScreenBase<?>> impl
 		for (int slot = 0; slot < slotTopLeftPositions.size(); slot++) {
 			Position position = slotTopLeftPositions.get(slot);
 			int finalSlot = slot;
-			map.put(
-					new Bounds(position.x(), position.y(), 17, 17),
-					ingredient -> pumpUpgradeTab.getFluidFilterControl().setFluid(finalSlot, ghostFluid)
-			);
+			map.put(new Bounds(position.x(), position.y(), 17, 17), ingredient -> pumpUpgradeTab.getFluidFilterControl().setFluid(finalSlot, ghostFluid));
 		}
 	}
 }

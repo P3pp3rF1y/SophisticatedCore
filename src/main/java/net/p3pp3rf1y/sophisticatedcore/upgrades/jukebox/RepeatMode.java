@@ -10,9 +10,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum RepeatMode implements StringRepresentable {
-	ALL("all"),
-	ONE("one"),
-	NO("no");
+	ALL("all"), ONE("one"), NO("no");
 
 	public static final Codec<RepeatMode> CODEC = StringRepresentable.fromEnum(RepeatMode::values);
 	public static final StreamCodec<FriendlyByteBuf, RepeatMode> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(RepeatMode.class);
@@ -37,7 +35,7 @@ public enum RepeatMode implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, RepeatMode> builder = new ImmutableMap.Builder<>();
-		for (RepeatMode value : RepeatMode.values()) {
+		for (RepeatMode value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

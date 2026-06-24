@@ -31,13 +31,12 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 				return;
 			}
 			settingsTabs.add(addSettingsTab(() -> {
-					}, () -> {
-					},
-					instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen)));
+			}, () -> {
+			}, instantiateContainer(categoryName, settingsContainer, new Position(x, getTopY()), screen)));
 		});
 	}
 
-	@SuppressWarnings("unused") //categoryName used in the overrides
+	@SuppressWarnings("unused") // categoryName used in the overrides
 	protected boolean isSettingsCategoryDisabled(String categoryName) {
 		return false;
 	}
@@ -86,9 +85,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 				Matrix3x2fStack pose = guiGraphics.pose();
 
 				pose.pushMatrix();
-				pose.translate(slot.x + 8,  slot.y + 8);
+				pose.translate(slot.x + 8, slot.y + 8);
 				pose.rotate((float) Math.toRadians(rotation));
-				pose.translate(-slot.x - 8,  -slot.y - 8);
+				pose.translate(-slot.x - 8, -slot.y - 8);
 				guiGraphics.renderItem(itemstack, slot.x, slot.y);
 
 				pose.popMatrix();
@@ -116,8 +115,9 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		T create(C container, Position position, SettingsScreen screen);
 	}
 
-	private <C extends SettingsContainerBase<?>> SettingsTab<C> instantiateContainer(String categoryName, C container, Position position, SettingsScreen screen) {
-		//noinspection unchecked
+	private <C extends SettingsContainerBase<?>> SettingsTab<C> instantiateContainer(String categoryName, C container, Position position,
+			SettingsScreen screen) {
+		// noinspection unchecked
 		return (SettingsTab<C>) getSettingsTabFactory(categoryName).create(container, position, screen);
 	}
 

@@ -10,15 +10,12 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 
-public record SyncDatapackSettingsTemplatePayload(String datapack, String templateName, ContainerContents.SettingsData settingsData) implements CustomPacketPayload {
+public record SyncDatapackSettingsTemplatePayload(String datapack, String templateName,
+		ContainerContents.SettingsData settingsData) implements CustomPacketPayload {
 	public static final Type<SyncDatapackSettingsTemplatePayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_datapack_settings_template"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncDatapackSettingsTemplatePayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.STRING_UTF8,
-			SyncDatapackSettingsTemplatePayload::datapack,
-			ByteBufCodecs.STRING_UTF8,
-			SyncDatapackSettingsTemplatePayload::templateName,
-			ContainerContents.SettingsData.STREAM_CODEC,
-			SyncDatapackSettingsTemplatePayload::settingsData,
+			ByteBufCodecs.STRING_UTF8, SyncDatapackSettingsTemplatePayload::datapack, ByteBufCodecs.STRING_UTF8,
+			SyncDatapackSettingsTemplatePayload::templateName, ContainerContents.SettingsData.STREAM_CODEC, SyncDatapackSettingsTemplatePayload::settingsData,
 			SyncDatapackSettingsTemplatePayload::new);
 
 	@Override

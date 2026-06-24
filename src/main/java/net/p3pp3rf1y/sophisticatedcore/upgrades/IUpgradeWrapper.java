@@ -18,10 +18,10 @@ public interface IUpgradeWrapper {
 	}
 
 	default void onBeforeRemoved() {
-		//noop
+		// noop
 	}
 
 	default void onAdded() {
-		//noop
+		// noop
 	}
 }

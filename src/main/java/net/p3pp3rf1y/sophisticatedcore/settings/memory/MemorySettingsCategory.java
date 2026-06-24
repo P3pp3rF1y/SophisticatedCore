@@ -96,13 +96,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void unselectAllFilteStackSlots() {
-		filterStackSlots.keySet().forEach(i -> onStackRemoved.accept(i));
+		filterStackSlots.keySet().forEach(onStackRemoved::accept);
 		data.clearSlotFilterStacks();
 		filterStackSlots.clear();
 	}
 
 	private void unselectAllFilterItemSlots() {
-		filterItemSlots.keySet().forEach(i -> onItemRemoved.accept(i));
+		filterItemSlots.keySet().forEach(onItemRemoved::accept);
 		data.clearSlotFilterItems();
 		filterItemSlots.clear();
 	}
@@ -110,8 +110,10 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	/**
 	 * Selects slots that shouldn't be sorted
 	 *
-	 * @param minSlot inclusive
-	 * @param maxSlot exclusive
+	 * @param minSlot
+	 *            inclusive
+	 * @param maxSlot
+	 *            exclusive
 	 */
 
 	public void selectSlots(int minSlot, int maxSlot) {
@@ -375,7 +377,8 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	@Override
 	public boolean isLargerThanNumberOfSlots(int slots) {
-		return data.slotFilterItems().keySet().stream().anyMatch(slotIndex -> slotIndex >= slots) || data.slotFilterStacks().keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
+		return data.slotFilterItems().keySet().stream().anyMatch(slotIndex -> slotIndex >= slots)
+				|| data.slotFilterStacks().keySet().stream().anyMatch(slotIndex -> slotIndex >= slots);
 	}
 
 	@Override

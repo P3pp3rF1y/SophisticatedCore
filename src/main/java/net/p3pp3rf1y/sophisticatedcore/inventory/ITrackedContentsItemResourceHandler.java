@@ -10,7 +10,8 @@ public interface ITrackedContentsItemResourceHandler extends ResourceHandler<Ite
 
 	Set<ItemStackKey> getTrackedStacks();
 
-	void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
+	void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot);
 
 	void unregisterStackKeyListeners();
 

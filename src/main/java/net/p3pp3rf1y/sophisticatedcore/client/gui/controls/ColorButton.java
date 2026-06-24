@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.IntConsumer;

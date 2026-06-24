@@ -9,7 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicContainer;
 
 public class AutoCookingUpgradeContainer<R extends AbstractCookingRecipe, W extends AutoCookingUpgradeWrapper<W, ?, R>>
-		extends UpgradeContainerBase<W, AutoCookingUpgradeContainer<R, W>> {
+		extends
+			UpgradeContainerBase<W, AutoCookingUpgradeContainer<R, W>> {
 	private final FilterLogicContainer<FilterLogic> inputFilterLogicContainer;
 
 	private final FilterLogicContainer<FilterLogic> fuelFilterLogicContainer;

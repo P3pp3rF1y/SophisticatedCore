@@ -29,7 +29,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	private final Supplier<MemorySettingsCategory> getMemorySettings;
 	private ItemDisplaySettingsCategoryData data;
 
-	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier, ItemDisplaySettingsCategoryData data, Runnable save, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
+	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
+			ItemDisplaySettingsCategoryData data, Runnable save, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.renderDataHandlerSupplier = renderDataHandlerSupplier;
 		this.data = data;
@@ -89,8 +90,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 				float previousSlotFillRatio = previousSlotFillRatios.get(slotIndex);
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
 				float currentSlotFillRatio = calculateSlotFillRatio(stack, inventoryHandler, slotIndex);
-				if (previousSlotCount != stack.getCount()
-						|| previousInfiniteSlots.contains(slotIndex) != inventoryHandler.isInfinite(slotIndex)
+				if (previousSlotCount != stack.getCount() || previousInfiniteSlots.contains(slotIndex) != inventoryHandler.isInfinite(slotIndex)
 						|| !MathHelper.epsilonEquals(previousSlotFillRatio, currentSlotFillRatio)) {
 					return true;
 				}
@@ -115,7 +115,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		renderDataHandler.refreshDisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
 	}
 
-	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderDataHandler renderDataHandler, InventoryHandler inventoryHandler, List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
+	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderDataHandler renderDataHandler, InventoryHandler inventoryHandler,
+			List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
 		if (renderDataHandler.showsCountsAndFillRatios()) {
 			for (int slotIndex = 0; slotIndex < inventoryHandler.size(); slotIndex++) {
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
@@ -128,9 +129,11 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		}
 	}
 
-	private void collectDisplayItemsAndInaccessibleSlots(List<RenderData.DisplayItemData> displayItems, InventoryHandler inventoryHandler, List<Integer> inaccessibleSlots) {
+	private void collectDisplayItemsAndInaccessibleSlots(List<RenderData.DisplayItemData> displayItems, InventoryHandler inventoryHandler,
+			List<Integer> inaccessibleSlots) {
 		for (int slotIndex : data.slotIndexes()) {
-			displayItems.add(new RenderData.DisplayItemData(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), data.slotRotations().getOrDefault(slotIndex, 0), slotIndex, data.displaySide()));
+			displayItems.add(new RenderData.DisplayItemData(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), data.slotRotations().getOrDefault(slotIndex, 0),
+					slotIndex, data.displaySide()));
 			if (!inventoryHandler.isSlotAccessible(slotIndex)) {
 				inaccessibleSlots.add(slotIndex);
 			}
@@ -272,8 +275,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	/**
 	 * Selects slots that shouldn't be sorted
 	 *
-	 * @param minSlot inclusive
-	 * @param maxSlot exclusive
+	 * @param minSlot
+	 *            inclusive
+	 * @param maxSlot
+	 *            exclusive
 	 */
 
 	public void selectSlots(int minSlot, int maxSlot) {
@@ -294,7 +299,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	@Override
 	public void copyTo(ItemDisplaySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		//noop - keep the display item of the other category
+		// noop - keep the display item of the other category
 	}
 
 	@Override

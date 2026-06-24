@@ -8,12 +8,13 @@ import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.resources.ResourceLocation;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayVariant;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class SmithingSpecEmiRecipe implements EmiRecipe {
 	private final SmithingDisplaySpec spec;
@@ -91,7 +92,7 @@ public class SmithingSpecEmiRecipe implements EmiRecipe {
 		widgets.addGeneratedSlot(random -> EmiStack.of(getVariant(random).result()), unique, 94, 0).recipeContext(this);
 	}
 
-	private SmithingDisplayVariant getVariant(java.util.Random random) {
+	private SmithingDisplayVariant getVariant(Random random) {
 		return variants.get(random.nextInt(variants.size()));
 	}
 }

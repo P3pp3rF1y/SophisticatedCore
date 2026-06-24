@@ -27,6 +27,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.ItemResourceHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.XpHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -72,37 +73,36 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 			return;
 		}
 
-		getRandomDamagedItemWithMending(player)
-				.ifPresent(itemInfo -> {
-					ItemResource resource = itemInfo.handler.getResource(itemInfo.slot);
-					ItemStack itemStack = resource.toStack(itemInfo.handler.getAmountAsInt(itemInfo.slot));
-					if (!itemStack.isEmpty() && itemStack.isDamaged() && itemStack.getXpRepairRatio() > 0) {
-						float xpToTryDrain = Math.min(xpPumpUpgradeConfig.maxXpPointsPerMending.get(), itemStack.getDamageValue() / itemStack.getXpRepairRatio());
-						if (xpToTryDrain > 0) {
-							storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
-								int extracted;
-								try (Transaction tx = Transaction.openRoot()) {
-									extracted = fluidHandler.extract(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(xpToTryDrain), tx, false);
-									if (extracted == 0) {
-										return;
-									}
-									tx.commit();
-								}
-								float xpDrained = XpHelper.liquidToExperience(extracted);
-								int durabilityToRepair = (int) (xpDrained * itemStack.getXpRepairRatio());
-								itemStack.setDamageValue(itemStack.getDamageValue() - durabilityToRepair);
-								InventoryHelper.set(itemInfo.handler, itemInfo.slot, ItemResource.of(itemStack), itemStack.getCount());
-							});
+		getRandomDamagedItemWithMending(player).ifPresent(itemInfo -> {
+			ItemResource resource = itemInfo.handler.getResource(itemInfo.slot);
+			ItemStack itemStack = resource.toStack(itemInfo.handler.getAmountAsInt(itemInfo.slot));
+			if (!itemStack.isEmpty() && itemStack.isDamaged() && itemStack.getXpRepairRatio() > 0) {
+				float xpToTryDrain = Math.min(xpPumpUpgradeConfig.maxXpPointsPerMending.get(), itemStack.getDamageValue() / itemStack.getXpRepairRatio());
+				if (xpToTryDrain > 0) {
+					storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
+						int extracted;
+						try (Transaction tx = Transaction.openRoot()) {
+							extracted = fluidHandler.extract(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(xpToTryDrain), tx, false);
+							if (extracted == 0) {
+								return;
+							}
+							tx.commit();
 						}
-					}
-				});
+						float xpDrained = XpHelper.liquidToExperience(extracted);
+						int durabilityToRepair = (int) (xpDrained * itemStack.getXpRepairRatio());
+						itemStack.setDamageValue(itemStack.getDamageValue() - durabilityToRepair);
+						InventoryHelper.set(itemInfo.handler, itemInfo.slot, ItemResource.of(itemStack), itemStack.getCount());
+					});
+				}
+			}
+		});
 	}
 
 	private Optional<DamagedItemInfo> getRandomDamagedItemWithMending(Player player) {
 		List<DamagedItemInfo> matchingItems = new ArrayList<>();
 		List<ResourceHandler<ItemResource>> equipmentHandlers = InventoryHelper.getEquipmentItemHandlersFromPlayer(player);
 
-		for(ResourceHandler<ItemResource> handler : equipmentHandlers) {
+		for (ResourceHandler<ItemResource> handler : equipmentHandlers) {
 			for (int slot = 0; slot < handler.size(); slot++) {
 				ItemResource resource = handler.getResource(slot);
 				int amount = handler.getAmountAsInt(slot);
@@ -127,7 +127,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 		return Util.getRandomSafe(matchingItems, player.getRandom());
 	}
 
-	private record DamagedItemInfo(ResourceHandler<ItemResource> handler, int slot) {}
+	private record DamagedItemInfo(ResourceHandler<ItemResource> handler, int slot) {
+	}
 
 	private void interactWithPlayer(Player player) {
 		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> {
@@ -168,7 +169,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	private void tryFillTankWithPlayerExperience(Player player, IStorageFluidHandler fluidHandler, int stopAtLevel, boolean ignoreInOutLimit) {
 		int maxXpPointsToTake = XpHelper.getPlayerTotalExperience(player) - XpHelper.getExperienceForLevel(stopAtLevel);
 		try (Transaction tx = Transaction.openRoot()) {
-			int filled = fluidHandler.insert(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(maxXpPointsToTake), ModFluids.XP_STILL.get(), tx, ignoreInOutLimit);
+			int filled = fluidHandler.insert(ModFluids.EXPERIENCE_TAG, XpHelper.experienceToLiquid(maxXpPointsToTake), ModFluids.XP_STILL.get(), tx,
+					ignoreInOutLimit);
 			if (filled > 0) {
 				tx.commit();
 				player.giveExperiencePoints((int) -XpHelper.liquidToExperience(filled));
@@ -177,7 +179,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	}
 
 	public void takeLevelsFromPlayer(Player player) {
-		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> tryFillTankWithPlayerExperience(player, fluidHandler, Math.max(player.experienceLevel - getLevelsToStore(), 0)));
+		storageWrapper.getFluidHandler()
+				.ifPresent(fluidHandler -> tryFillTankWithPlayerExperience(player, fluidHandler, Math.max(player.experienceLevel - getLevelsToStore(), 0)));
 	}
 
 	public void takeAllExperienceFromPlayer(Player player) {
@@ -185,7 +188,8 @@ public class XpPumpUpgradeWrapper extends UpgradeWrapperBase<XpPumpUpgradeWrappe
 	}
 
 	public void giveLevelsToPlayer(Player player) {
-		storageWrapper.getFluidHandler().ifPresent(fluidHandler -> tryGivePlayerExperienceFromTank(player, fluidHandler, player.experienceLevel + getLevelsToTake()));
+		storageWrapper.getFluidHandler()
+				.ifPresent(fluidHandler -> tryGivePlayerExperienceFromTank(player, fluidHandler, player.experienceLevel + getLevelsToTake()));
 	}
 
 	public void giveAllExperienceToPlayer(Player player) {

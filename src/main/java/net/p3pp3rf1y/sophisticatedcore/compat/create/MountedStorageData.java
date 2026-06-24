@@ -19,12 +19,8 @@ import java.util.*;
 //TODO after 1.22 remove support for legacy UUID deserialization via strings
 public class MountedStorageData extends SavedData implements IStorageSavedData {
 	private static final SavedDataType<MountedStorageData> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_mounted_storage", MountedStorageData::new,
-			RecordCodecBuilder.create(
-					builder -> builder.group(
-							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, ContainerContents.CODEC)
-									.fieldOf("storageContents").forGetter(storage -> storage.mountedStorageContents)
-					).apply(builder, MountedStorageData::new)
-			));
+			RecordCodecBuilder.create(builder -> builder.group(Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, ContainerContents.CODEC)
+					.fieldOf("storageContents").forGetter(storage -> storage.mountedStorageContents)).apply(builder, MountedStorageData::new)));
 
 	private static final MountedStorageData clientStorageCopy = new MountedStorageData();
 
@@ -43,7 +39,7 @@ public class MountedStorageData extends SavedData implements IStorageSavedData {
 			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
-				//noinspection ConstantConditions - by this time overworld is loaded
+				// noinspection ConstantConditions - by this time overworld is loaded
 				DimensionDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}

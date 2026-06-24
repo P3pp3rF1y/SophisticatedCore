@@ -10,14 +10,10 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.UUID;
 
-public record MountedStorageContentsPayload(UUID storageUuid,
-											ContainerContents contents) implements CustomPacketPayload {
+public record MountedStorageContentsPayload(UUID storageUuid, ContainerContents contents) implements CustomPacketPayload {
 	public static final Type<MountedStorageContentsPayload> TYPE = new Type<>(SophisticatedCore.getRL("mounted_storage_contents"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, MountedStorageContentsPayload> STREAM_CODEC = StreamCodec.composite(
-			UUIDUtil.STREAM_CODEC,
-			MountedStorageContentsPayload::storageUuid,
-			ContainerContents.STREAM_CODEC,
-			MountedStorageContentsPayload::contents,
+	public static final StreamCodec<RegistryFriendlyByteBuf, MountedStorageContentsPayload> STREAM_CODEC = StreamCodec.composite(UUIDUtil.STREAM_CODEC,
+			MountedStorageContentsPayload::storageUuid, ContainerContents.STREAM_CODEC, MountedStorageContentsPayload::contents,
 			MountedStorageContentsPayload::new);
 
 	@Override

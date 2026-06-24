@@ -19,28 +19,27 @@ import java.util.Map;
 import java.util.Objects;
 
 public class MemorySettingsCategoryData implements ContainerContents.ISettingsCategoryData<MemorySettingsCategoryData> {
-	public static final Codec<MemorySettingsCategoryData> CODEC = RecordCodecBuilder.create(
-			instance -> instance.group(
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Item.CODEC.orElse(Items.AIR.builtInRegistryHolder())).xmap(MemorySettingsCategoryData::toSlotFilterItems, MemorySettingsCategoryData::fromSlotFilterItems).fieldOf("slotFilterItems").forGetter(MemorySettingsCategoryData::slotFilterItems),
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY)).xmap(MemorySettingsCategoryData::toSlotFilterStacks, MemorySettingsCategoryData::fromSlotFilterStacks).fieldOf("slotFilterStacks").forGetter(MemorySettingsCategoryData::slotFilterStacks),
-					Codec.BOOL.fieldOf("ignoreNbt").forGetter(MemorySettingsCategoryData::ignoreNbt)
-			).apply(instance, MemorySettingsCategoryData::new)
-	);
+	public static final Codec<MemorySettingsCategoryData> CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Item.CODEC.orElse(Items.AIR.builtInRegistryHolder()))
+					.xmap(MemorySettingsCategoryData::toSlotFilterItems, MemorySettingsCategoryData::fromSlotFilterItems).fieldOf("slotFilterItems")
+					.forGetter(MemorySettingsCategoryData::slotFilterItems),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ItemStack.OPTIONAL_CODEC.orElse(ItemStack.EMPTY))
+							.xmap(MemorySettingsCategoryData::toSlotFilterStacks, MemorySettingsCategoryData::fromSlotFilterStacks).fieldOf("slotFilterStacks")
+							.forGetter(MemorySettingsCategoryData::slotFilterStacks),
+					Codec.BOOL.fieldOf("ignoreNbt").forGetter(MemorySettingsCategoryData::ignoreNbt))
+			.apply(instance, MemorySettingsCategoryData::new));
 	public static final StreamCodec<RegistryFriendlyByteBuf, MemorySettingsCategoryData> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, Item.STREAM_CODEC.map(Holder::value, Item::builtInRegistryHolder)),
 			MemorySettingsCategoryData::slotFilterItems,
 			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ItemStack.STREAM_CODEC.map(ItemStackKey::of, ItemStackKey::stack)),
-			MemorySettingsCategoryData::slotFilterStacks,
-			ByteBufCodecs.BOOL,
-			MemorySettingsCategoryData::ignoreNbt,
-			MemorySettingsCategoryData::new
-	);
+			MemorySettingsCategoryData::slotFilterStacks, ByteBufCodecs.BOOL, MemorySettingsCategoryData::ignoreNbt, MemorySettingsCategoryData::new);
 
 	private Map<Integer, Item> slotFilterItems = new LinkedHashMap<>();
 	private Map<Integer, ItemStackKey> slotFilterStacks = new LinkedHashMap<>();
 	private boolean ignoreNbt = true;
 
-	public MemorySettingsCategoryData() {}
+	public MemorySettingsCategoryData() {
+	}
 
 	private static Map<Integer, Item> toSlotFilterItems(Map<Integer, Holder<Item>> items) {
 		Map<Integer, Item> slotFilterItems = new LinkedHashMap<>();
@@ -137,7 +136,8 @@ public class MemorySettingsCategoryData implements ContainerContents.ISettingsCa
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof MemorySettingsCategoryData that)) return false;
+		if (!(o instanceof MemorySettingsCategoryData that))
+			return false;
 		return ignoreNbt == that.ignoreNbt && Objects.equals(slotFilterItems, that.slotFilterItems) && Objects.equals(slotFilterStacks, that.slotFilterStacks);
 	}
 

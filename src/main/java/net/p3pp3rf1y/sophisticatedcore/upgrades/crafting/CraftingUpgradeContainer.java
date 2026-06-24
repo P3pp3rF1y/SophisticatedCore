@@ -14,6 +14,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
@@ -23,6 +24,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +41,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 	private final List<ItemStack> matchedCraftingResults = new ArrayList<>();
 	private int selectedCraftingResultIndex = 0;
 
-	public CraftingUpgradeContainer(Player player, int upgradeContainerId, CraftingUpgradeWrapper upgradeWrapper, UpgradeContainerType<CraftingUpgradeWrapper, CraftingUpgradeContainer> type) {
+	public CraftingUpgradeContainer(Player player, int upgradeContainerId, CraftingUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<CraftingUpgradeWrapper, CraftingUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 
 		int slot;
@@ -54,7 +57,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 
 				@Override
 				public boolean mayPickup(Player player) {
-					return getItem().isEmpty() || super.mayPickup(player); // allow taking empty slots so that JEI slot validation would be cool with these slots
+					return getItem().isEmpty() || super.mayPickup(player); // allow taking empty slots so that JEI slot validation would be cool with these
+																			// slots
 				}
 			});
 		}
@@ -68,7 +72,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 
 				ItemStack remainingStack = getItem();
 				checkTakeAchievements(stack);
-				net.neoforged.neoforge.common.CommonHooks.setCraftingPlayer(thePlayer);
+				CommonHooks.setCraftingPlayer(thePlayer);
 				List<ItemStack> remainingItems;
 				if (lastRecipe != null && lastRecipe.value().matches(craftMatrix.asCraftInput(), player.level())) {
 					remainingItems = lastRecipe.value().getRemainingItems(craftMatrix.asCraftInput());
@@ -76,7 +80,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 					remainingItems = NonNullList.withSize(craftMatrix.getContainerSize(), ItemStack.EMPTY);
 				}
 
-				net.neoforged.neoforge.common.CommonHooks.setCraftingPlayer(null);
+				CommonHooks.setCraftingPlayer(null);
 				CraftingInput.Positioned craftingInput = craftMatrix.asPositionedCraftInput();
 				int remaininItemsIndex = 0;
 				for (int row = craftingInput.top(); row < craftingInput.top() + craftingInput.input().height(); row++) {
@@ -90,7 +94,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						ItemStack recipeInputStack = craftMatrix.getItem(i);
 						ItemStack remainingItemStack = remainingItems.get(remaininItemsIndex);
 						if (!recipeInputStack.isEmpty()) {
-							if (remainingItemStack.isEmpty() && shouldRefillCraftingGrid() && upgradeWrapper.extractFromStorageOrPlayer(player, recipeInputStack)) {
+							if (remainingItemStack.isEmpty() && shouldRefillCraftingGrid()
+									&& upgradeWrapper.extractFromStorageOrPlayer(player, recipeInputStack)) {
 								onCraftMatrixChanged(craftMatrix);
 							} else {
 								craftMatrix.removeItem(i, 1);
@@ -128,7 +133,8 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 						player.drop(remaining, false);
 					}
 				}
-				SophisticatedCore.LOGGER.error("Recipe " + (lastRecipe != null ? lastRecipe.id() : "[unknown]") + " returned more than 9 remaining items, ignoring the rest!");
+				SophisticatedCore.LOGGER
+						.error("Recipe " + (lastRecipe != null ? lastRecipe.id() : "[unknown]") + " returned more than 9 remaining items, ignoring the rest!");
 			}
 
 			@Override
@@ -226,7 +232,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 		if (player instanceof ServerPlayer serverPlayer) {
 			ItemStack result = matchedCraftingResults.get(resultIndex).copy();
 			craftingResultSlot.set(result);
-			//noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
+			// noinspection DataFlowIssue - lastRecipe can't be null here as there's always a recipe in list for the result
 			craftResult.setRecipeUsed(serverPlayer, lastRecipe);
 		} else {
 			sendDataToServer(() -> NBTHelper.putInt(new CompoundTag(), DATA_SELECT_RESULT, resultIndex));

@@ -6,6 +6,7 @@ import com.google.common.collect.Multiset;
 import net.blay09.mods.craftingtweaks.api.CraftingGrid;
 import net.blay09.mods.craftingtweaks.api.CraftingGridBuilder;
 import net.blay09.mods.craftingtweaks.api.CraftingGridProvider;
+import net.blay09.mods.craftingtweaks.api.GridBalanceHandler;
 import net.blay09.mods.craftingtweaks.api.GridTransferHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@SuppressWarnings("java:S3776") //keeping this as close as possible to default implementation in crafting tweaks hence higher complexity but easier porting
+@SuppressWarnings("java:S3776") // keeping this as close as possible to default implementation in crafting tweaks hence higher complexity but easier porting
 public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 	@Override
@@ -43,10 +44,8 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 		}
 		builder.addGrid(getCraftingGridStart(storageContainer), getCraftingGridSize(storageContainer))
 				.clearHandler((craftingGrid, player, menu, forced) -> clearGrid(player, menu, forced))
-				.rotateHandler((craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse))
-				.balanceHandler(new StorageCraftingGridBalanceHandler())
-				.transferHandler(new StorageCraftingGridTransferHandler())
-				.hideAllTweakButtons();
+				.rotateHandler((craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse)).balanceHandler(new StorageCraftingGridBalanceHandler())
+				.transferHandler(new StorageCraftingGridTransferHandler()).hideAllTweakButtons();
 	}
 
 	public void clearGrid(Player player, AbstractContainerMenu menu, boolean forced) {
@@ -76,44 +75,44 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 	private int rotateSlotId(int slotId, boolean counterClockwise) {
 		if (!counterClockwise) {
 			switch (slotId) {
-				case 0:
+				case 0 :
 					return 1;
-				case 1:
+				case 1 :
 					return 2;
-				case 2:
+				case 2 :
 					return 5;
-				case 3:
+				case 3 :
 					return 0;
-				case 5:
+				case 5 :
 					return 8;
-				case 6:
+				case 6 :
 					return 3;
-				case 7:
+				case 7 :
 					return 6;
-				case 8:
+				case 8 :
 					return 7;
-				default:
+				default :
 					break;
 			}
 		} else {
 			switch (slotId) {
-				case 0:
+				case 0 :
 					return 3;
-				case 1:
+				case 1 :
 					return 0;
-				case 2:
+				case 2 :
 					return 1;
-				case 3:
+				case 3 :
 					return 6;
-				case 5:
+				case 5 :
 					return 2;
-				case 6:
+				case 6 :
 					return 7;
-				case 7:
+				case 7 :
 					return 8;
-				case 8:
+				case 8 :
 					return 5;
-				default:
+				default :
 					break;
 			}
 		}
@@ -163,7 +162,8 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 	}
 
 	private static Optional<ICraftingContainer> getOpenCraftingContainer(StorageContainerMenuBase<?> container) {
-		return container.getOpenContainer().flatMap(c -> (c instanceof ICraftingContainer craftingContainer) ? Optional.of(craftingContainer) : Optional.empty());
+		return container.getOpenContainer()
+				.flatMap(c -> (c instanceof ICraftingContainer craftingContainer) ? Optional.of(craftingContainer) : Optional.empty());
 	}
 
 	private static int getCraftingGridStart(StorageContainerMenuBase<?> container) {
@@ -184,7 +184,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 		return getOpenCraftingContainer(container).map(ICraftingContainer::getRecipeSlots).orElse(List.of());
 	}
 
-	private static class StorageCraftingGridBalanceHandler implements net.blay09.mods.craftingtweaks.api.GridBalanceHandler<AbstractContainerMenu> {
+	private static class StorageCraftingGridBalanceHandler implements GridBalanceHandler<AbstractContainerMenu> {
 		@Override
 		public void balanceGrid(CraftingGrid grid, Player player, AbstractContainerMenu menu) {
 			if (!(menu instanceof StorageContainerMenuBase<?> storageContainer)) {

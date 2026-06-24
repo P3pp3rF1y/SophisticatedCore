@@ -27,10 +27,13 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>, R extends RecipeHolder<? extends Recipe<?>>> implements IRecipeTransferHandler<C, R> {
+public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>, R extends RecipeHolder<? extends Recipe<?>>>
+		implements
+			IRecipeTransferHandler<C, R> {
 	private final IRecipeTransferHandlerHelper handlerHelper;
 	private final IStackHelper stackHelper;
 
@@ -54,7 +57,8 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 
 		UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = potentialCraftingContainer.get();
 
-		List<Slot> craftingSlots = Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
+		List<Slot> craftingSlots = Collections
+				.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
 		List<Slot> inventorySlots = container.slots.stream().filter(s -> s.mayPickup(player)).toList();
 		if (!validateTransferInfo(container, craftingSlots, inventorySlots)) {
 			return handlerHelper.createInternalError();
@@ -76,12 +80,8 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 			return handlerHelper.createUserErrorWithTooltip(message);
 		}
 
-		RecipeTransferOperationsResult transferOperations = RecipeTransferUtil.getRecipeTransferOperations(
-				stackHelper,
-				inventoryState.availableItemStacks,
-				inputItemSlotViews,
-				craftingSlots
-		);
+		RecipeTransferOperationsResult transferOperations = RecipeTransferUtil.getRecipeTransferOperations(stackHelper, inventoryState.availableItemStacks,
+				inputItemSlotViews, craftingSlots);
 
 		if (!transferOperations.missingItems.isEmpty()) {
 			Component message = Component.translatable("jei.tooltip.error.recipe.transfer.missing");
@@ -106,13 +106,8 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 			}
 			ResourceLocation recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipe.value().getType());
 			if (recipeTypeId != null) {
-				JeiTransferRecipePayload packet = new JeiTransferRecipePayload(
-						recipe.id(),
-						recipeTypeId,
-						toMap(transferOperations.results, container),
-						craftingSlotIndexes,
-						inventorySlotIndexes,
-						maxTransfer);
+				JeiTransferRecipePayload packet = new JeiTransferRecipePayload(recipe.id(), recipeTypeId, toMap(transferOperations.results, container),
+						craftingSlotIndexes, inventorySlotIndexes, maxTransfer);
 				ClientPacketDistributor.sendToServer(packet);
 			}
 		}
@@ -126,11 +121,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 		return ret;
 	}
 
-	private boolean validateTransferInfo(
-			C container,
-			List<Slot> craftingSlots,
-			List<Slot> inventorySlots
-	) {
+	private boolean validateTransferInfo(C container, List<Slot> craftingSlots, List<Slot> inventorySlots) {
 		Collection<Integer> craftingSlotIndexes = slotIndexes(craftingSlots);
 		Collection<Integer> inventorySlotIndexes = slotIndexes(inventorySlots);
 		ArrayList<Slot> allSlots = new ArrayList<>(container.slots);
@@ -138,34 +129,32 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 		Collection<Integer> containerSlotIndexes = slotIndexes(allSlots);
 
 		if (!containerSlotIndexes.containsAll(craftingSlotIndexes)) {
-			SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. " +
-							"The Recipes Transfer Helper references crafting slot indexes [{}] that are not found in the inventory container slots [{}]",
-					this::getClass, container::getClass, () -> StringUtil.intsToString(craftingSlotIndexes), () -> StringUtil.intsToString(containerSlotIndexes)
-			);
+			SophisticatedCore.LOGGER.error(
+					"Recipe Transfer helper {} does not work for container {}. "
+							+ "The Recipes Transfer Helper references crafting slot indexes [{}] that are not found in the inventory container slots [{}]",
+					this::getClass, container::getClass, () -> StringUtil.intsToString(craftingSlotIndexes),
+					() -> StringUtil.intsToString(containerSlotIndexes));
 			return false;
 		}
 
 		if (!containerSlotIndexes.containsAll(inventorySlotIndexes)) {
-			SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. " +
-							"The Recipes Transfer Helper references inventory slot indexes [{}] that are not found in the inventory container slots [{}]",
-					this::getClass, container::getClass, () -> StringUtil.intsToString(inventorySlotIndexes), () -> StringUtil.intsToString(containerSlotIndexes)
-			);
+			SophisticatedCore.LOGGER.error(
+					"Recipe Transfer helper {} does not work for container {}. "
+							+ "The Recipes Transfer Helper references inventory slot indexes [{}] that are not found in the inventory container slots [{}]",
+					this::getClass, container::getClass, () -> StringUtil.intsToString(inventorySlotIndexes),
+					() -> StringUtil.intsToString(containerSlotIndexes));
 			return false;
 		}
 
 		return true;
 	}
 
-	private boolean validateRecipeView(
-			C container,
-			List<Slot> craftingSlots,
-			List<IRecipeSlotView> inputSlots
-	) {
+	private boolean validateRecipeView(C container, List<Slot> craftingSlots, List<IRecipeSlotView> inputSlots) {
 		if (inputSlots.size() > craftingSlots.size()) {
-			SophisticatedCore.LOGGER.error("Recipe View {} does not work for container {}. " +
-							"The Recipe View has more input slots ({}) than the number of inventory crafting slots ({})",
-					getClass(), container.getClass(), inputSlots.size(), craftingSlots.size()
-			);
+			SophisticatedCore.LOGGER.error(
+					"Recipe View {} does not work for container {}. "
+							+ "The Recipe View has more input slots ({}) than the number of inventory crafting slots ({})",
+					getClass(), container.getClass(), inputSlots.size(), craftingSlots.size());
 			return false;
 		}
 
@@ -173,12 +162,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 	}
 
 	@Nullable
-	private InventoryState getInventoryState(
-			Collection<Slot> craftingSlots,
-			Collection<Slot> inventorySlots,
-			Player player,
-			C container
-	) {
+	private InventoryState getInventoryState(Collection<Slot> craftingSlots, Collection<Slot> inventorySlots, Player player, C container) {
 		Map<Slot, ItemStack> availableItemStacks = new HashMap<>();
 		int filledCraftSlotCount = 0;
 		int emptySlotCount = 0;
@@ -187,11 +171,8 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 			final ItemStack stack = slot.getItem();
 			if (!stack.isEmpty()) {
 				if (!slot.mayPickup(player)) {
-					SophisticatedCore.LOGGER.error(
-							"Recipe Transfer helper {} does not work for container {}. " +
-									"The Player is not able to move items out of Crafting Slot number {}",
-							getClass(), container.getClass(), slot.index
-					);
+					SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. "
+							+ "The Player is not able to move items out of Crafting Slot number {}", getClass(), container.getClass(), slot.index);
 					return null;
 				}
 				filledCraftSlotCount++;
@@ -203,11 +184,8 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 			final ItemStack stack = slot.getItem();
 			if (!stack.isEmpty()) {
 				if (!slot.mayPickup(player)) {
-					SophisticatedCore.LOGGER.error(
-							"Recipe Transfer helper {} does not work for container {}. " +
-									"The Player is not able to move items out of Inventory Slot number {}",
-							getClass(), container.getClass(), slot.index
-					);
+					SophisticatedCore.LOGGER.error("Recipe Transfer helper {} does not work for container {}. "
+							+ "The Player is not able to move items out of Inventory Slot number {}", getClass(), container.getClass(), slot.index);
 					return null;
 				}
 				availableItemStacks.put(slot, stack.copy());
@@ -220,16 +198,10 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 	}
 
 	private Set<Integer> slotIndexes(Collection<Slot> slots) {
-		return slots.stream()
-				.map(s -> s.index)
-				.collect(Collectors.toSet());
+		return slots.stream().map(s -> s.index).collect(Collectors.toSet());
 	}
 
-	public record InventoryState(
-			Map<Slot, ItemStack> availableItemStacks,
-			int filledCraftSlotCount,
-			int emptySlotCount
-	) {
+	public record InventoryState(Map<Slot, ItemStack> availableItemStacks, int filledCraftSlotCount, int emptySlotCount) {
 		/**
 		 * check if we have enough inventory space to shuffle items around to their final locations
 		 */

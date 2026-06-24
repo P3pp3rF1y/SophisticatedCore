@@ -6,7 +6,8 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 
 public class ContentsFilteredUpgradeContainer<W extends IUpgradeWrapper & IContentsFilteredUpgrade>
-		extends UpgradeContainerBase<W, ContentsFilteredUpgradeContainer<W>> {
+		extends
+			UpgradeContainerBase<W, ContentsFilteredUpgradeContainer<W>> {
 	private final ContentsFilterLogicContainer filterLogicContainer;
 
 	public ContentsFilteredUpgradeContainer(Player player, int containerId, W wrapper, UpgradeContainerType<W, ContentsFilteredUpgradeContainer<W>> type) {

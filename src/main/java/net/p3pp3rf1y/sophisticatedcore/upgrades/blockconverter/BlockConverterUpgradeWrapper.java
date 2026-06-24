@@ -13,10 +13,13 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.SimpleItemContent;
 
 import javax.annotation.Nullable;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgradeItem<U, W>, W extends BlockConverterUpgradeWrapper<U, W>> extends UpgradeWrapperBase<W, U> {
+public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgradeItem<U, W>, W extends BlockConverterUpgradeWrapper<U, W>>
+		extends
+			UpgradeWrapperBase<W, U> {
 	private final ItemStacksResourceHandler inputInventory;
 
 	public BlockConverterUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
@@ -77,7 +80,8 @@ public abstract class BlockConverterUpgradeWrapper<U extends BlockConverterUpgra
 	}
 
 	public ItemStack extractFromStorage(ItemStack stack, boolean simulate) {
-		int extracted = simulate ? InventoryHelper.simulateExtractExact(storageWrapper.getInventoryHandler(), ItemResource.of(stack), stack.getCount())
+		int extracted = simulate
+				? InventoryHelper.simulateExtractExact(storageWrapper.getInventoryHandler(), ItemResource.of(stack), stack.getCount())
 				: InventoryHelper.extract(storageWrapper.getInventoryHandler(), ItemResource.of(stack), stack.getCount());
 		return extracted == 0 ? ItemStack.EMPTY : stack.copyWithCount(extracted);
 	}

@@ -18,6 +18,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nullable;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -60,7 +61,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	}
 
 	protected long getLastRequestTime() {
-		return ClientStorageContentsTooltipBase.lastRequestTime;
+		return lastRequestTime;
 	}
 
 	private void requestContents(LocalPlayer player, IStorageWrapper wrapper) {
@@ -87,7 +88,8 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 				addEnergyTooltip(wrapper);
 			}
 			if (upgrades.isEmpty() && sortedContents.isEmpty()) {
-				tooltipLines.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".empty").withStyle(ChatFormatting.YELLOW));
+				tooltipLines
+						.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".empty").withStyle(ChatFormatting.YELLOW));
 			}
 
 			calculateHeight();
@@ -101,7 +103,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	}
 
 	protected boolean shouldRefreshContents() {
-		return ClientStorageContentsTooltipBase.shouldRefreshContents;
+		return shouldRefreshContents;
 	}
 
 	private void calculateWidth() {
@@ -149,15 +151,16 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 			DecimalFormat df = new DecimalFormat("0.###");
 
 			tooltipLines.add(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".stack_multiplier",
-					Component.literal(df.format(multiplier)).withStyle(ChatFormatting.WHITE)
-			).withStyle(ChatFormatting.GREEN));
+					Component.literal(df.format(multiplier)).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.GREEN));
 		}
 	}
 
 	private void addEnergyTooltip(IStorageWrapper wrapper) {
-		wrapper.getEnergyHandler().ifPresent(energyStorage -> tooltipLines.add(Component.translatable(getEnergyTooltipTranslation(),
-				Component.literal(CountAbbreviator.abbreviate(energyStorage.getAmountAsInt())).withStyle(ChatFormatting.WHITE)).withStyle(ChatFormatting.RED)
-		));
+		wrapper.getEnergyHandler()
+				.ifPresent(energyStorage -> tooltipLines.add(Component
+						.translatable(getEnergyTooltipTranslation(),
+								Component.literal(CountAbbreviator.abbreviate(energyStorage.getAmountAsInt())).withStyle(ChatFormatting.WHITE))
+						.withStyle(ChatFormatting.RED)));
 	}
 
 	protected String getEnergyTooltipTranslation() {
@@ -173,8 +176,8 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 				} else {
 					tooltipLines.add(Component.translatable(getFluidTooltipTranslation(),
 							Component.literal(CountAbbreviator.abbreviate(fluidHandler.getAmountAsInt(tank))).withStyle(ChatFormatting.WHITE),
-							Component.translatable(fluid.getFluidType().getDescriptionId(fluid.toStack(FluidType.BUCKET_VOLUME))).withStyle(ChatFormatting.BLUE)
-					));
+							Component.translatable(fluid.getFluidType().getDescriptionId(fluid.toStack(FluidType.BUCKET_VOLUME)))
+									.withStyle(ChatFormatting.BLUE)));
 				}
 			}
 		});
@@ -231,11 +234,13 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 
 	private void renderContentsTooltip(Minecraft minecraft, Font font, int leftX, int topY, GuiGraphics guiGraphics) {
 		if (!upgrades.isEmpty()) {
-			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font,
+					Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".upgrades").withStyle(ChatFormatting.YELLOW));
 			topY = renderUpgrades(guiGraphics, leftX, topY);
 		}
 		if (!sortedContents.isEmpty()) {
-			topY = renderTooltipLine(guiGraphics, leftX, topY, font, Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
+			topY = renderTooltipLine(guiGraphics, leftX, topY, font,
+					Component.translatable(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".inventory").withStyle(ChatFormatting.YELLOW));
 			renderContents(minecraft, leftX, topY, guiGraphics, font);
 		}
 	}

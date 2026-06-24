@@ -16,14 +16,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class StreamCodecHelper {
-	private StreamCodecHelper() {}
+	private StreamCodecHelper() {
+	}
 
 	public static final StreamCodec<ByteBuf, Vec3> VEC3 = new StreamCodec<>() {
 		@Override
@@ -88,7 +91,7 @@ public class StreamCodecHelper {
 	}
 
 	public static <B extends ByteBuf, V> StreamCodec<B, V> singleton(Supplier<V> instantiator) {
-		return new StreamCodec<B, V>() {
+		return new StreamCodec<>() {
 			@Override
 			public V decode(B p_320376_) {
 				return instantiator.get();
@@ -96,22 +99,21 @@ public class StreamCodecHelper {
 
 			@Override
 			public void encode(B p_320158_, V p_320396_) {
-				//noop
+				// noop
 			}
 		};
 	}
 
-	public static <B extends ByteBuf, T> StreamCodec<B, T> defaulting(
-			StreamCodec<B, T> inner, T defaultVal, java.util.function.Predicate<T> isDefault) {
-		return ByteBufCodecs.optional(inner).map(
-				opt -> opt.orElse(defaultVal),                     // decode: missing -> default
-				val -> isDefault.test(val) ? Optional.empty()      // encode: default -> omit
-						: Optional.of(val)
-		);
+	public static <B extends ByteBuf, T> StreamCodec<B, T> defaulting(StreamCodec<B, T> inner, T defaultVal, Predicate<T> isDefault) {
+		return ByteBufCodecs.optional(inner).map(opt -> opt.orElse(defaultVal), // decode: missing -> default
+				val -> isDefault.test(val)
+						? Optional.empty() // encode: default -> omit
+						: Optional.of(val));
 	}
 
-	public static <B extends ByteBuf, E, V extends Collection<E>> StreamCodec<B, V> ofCollection(StreamCodec<B, E> elementStreamCodec, Supplier<V> instantiator) {
-		return new StreamCodec<B, V>() {
+	public static <B extends ByteBuf, E, V extends Collection<E>> StreamCodec<B, V> ofCollection(StreamCodec<B, E> elementStreamCodec,
+			Supplier<V> instantiator) {
+		return new StreamCodec<>() {
 			@Override
 			public V decode(B buf) {
 				int size = buf.readInt();
@@ -132,14 +134,13 @@ public class StreamCodecHelper {
 		};
 	}
 
-	public static <B extends ByteBuf, K, V, M extends Map<K, V>> StreamCodec<B, M> ofMap(StreamCodec<? super B, K> keyStreamCodec, StreamCodec<? super B, V> valueStreamCodec, Supplier<M> instantiator) {
+	public static <B extends ByteBuf, K, V, M extends Map<K, V>> StreamCodec<B, M> ofMap(StreamCodec<? super B, K> keyStreamCodec,
+			StreamCodec<? super B, V> valueStreamCodec, Supplier<M> instantiator) {
 		return ofMap(keyStreamCodec, k -> valueStreamCodec, instantiator);
 	}
 
-	public static <B extends ByteBuf, K, V, M extends Map<K, V>> StreamCodec<B,M> ofMap(
-			StreamCodec<? super B, K> keyStreamCodec,
-			Function<K, StreamCodec<? super B, V>> valueStreamCodec,
-			Supplier<M> instantiator) {
+	public static <B extends ByteBuf, K, V, M extends Map<K, V>> StreamCodec<B, M> ofMap(StreamCodec<? super B, K> keyStreamCodec,
+			Function<K, StreamCodec<? super B, V>> valueStreamCodec, Supplier<M> instantiator) {
 		return new StreamCodec<>() {
 			@Override
 			public M decode(B buf) {
@@ -164,24 +165,12 @@ public class StreamCodecHelper {
 		};
 	}
 
-	public static <B, C, T1, T2, T3, T4, T5, T6, T7> StreamCodec<B, C> composite(
-			final StreamCodec<? super B, T1> pCodec1,
-			final Function<C, T1> pGetter1,
-			final StreamCodec<? super B, T2> pCodec2,
-			final Function<C, T2> pGetter2,
-			final StreamCodec<? super B, T3> pCodec3,
-			final Function<C, T3> pGetter3,
-			final StreamCodec<? super B, T4> pCodec4,
-			final Function<C, T4> pGetter4,
-			final StreamCodec<? super B, T5> pCodec5,
-			final Function<C, T5> pGetter5,
-			final StreamCodec<? super B, T6> pCodec6,
-			final Function<C, T6> pGetter6,
-			final StreamCodec<? super B, T7> pCodec7,
-			final Function<C, T7> pGetter7,
-			final Function7<T1, T2, T3, T4, T5, T6, T7, C> pFactory
-	) {
-		return new StreamCodec<B, C>() {
+	public static <B, C, T1, T2, T3, T4, T5, T6, T7> StreamCodec<B, C> composite(final StreamCodec<? super B, T1> pCodec1, final Function<C, T1> pGetter1,
+			final StreamCodec<? super B, T2> pCodec2, final Function<C, T2> pGetter2, final StreamCodec<? super B, T3> pCodec3, final Function<C, T3> pGetter3,
+			final StreamCodec<? super B, T4> pCodec4, final Function<C, T4> pGetter4, final StreamCodec<? super B, T5> pCodec5, final Function<C, T5> pGetter5,
+			final StreamCodec<? super B, T6> pCodec6, final Function<C, T6> pGetter6, final StreamCodec<? super B, T7> pCodec7, final Function<C, T7> pGetter7,
+			final Function7<T1, T2, T3, T4, T5, T6, T7, C> pFactory) {
+		return new StreamCodec<>() {
 			@Override
 			public C decode(B buffer) {
 				T1 t1 = pCodec1.decode(buffer);
@@ -207,26 +196,12 @@ public class StreamCodecHelper {
 		};
 	}
 
-	public static <B, C, T1, T2, T3, T4, T5, T6, T7, T8> StreamCodec<B, C> composite(
-			final StreamCodec<? super B, T1> pCodec1,
-			final Function<C, T1> pGetter1,
-			final StreamCodec<? super B, T2> pCodec2,
-			final Function<C, T2> pGetter2,
-			final StreamCodec<? super B, T3> pCodec3,
-			final Function<C, T3> pGetter3,
-			final StreamCodec<? super B, T4> pCodec4,
-			final Function<C, T4> pGetter4,
-			final StreamCodec<? super B, T5> pCodec5,
-			final Function<C, T5> pGetter5,
-			final StreamCodec<? super B, T6> pCodec6,
-			final Function<C, T6> pGetter6,
-			final StreamCodec<? super B, T7> pCodec7,
-			final Function<C, T7> pGetter7,
-			final StreamCodec<? super B, T8> pCodec8,
-			final Function<C, T8> pGetter8,
-			final Function8<T1, T2, T3, T4, T5, T6, T7, T8, C> pFactory
-	) {
-		return new StreamCodec<B, C>() {
+	public static <B, C, T1, T2, T3, T4, T5, T6, T7, T8> StreamCodec<B, C> composite(final StreamCodec<? super B, T1> pCodec1, final Function<C, T1> pGetter1,
+			final StreamCodec<? super B, T2> pCodec2, final Function<C, T2> pGetter2, final StreamCodec<? super B, T3> pCodec3, final Function<C, T3> pGetter3,
+			final StreamCodec<? super B, T4> pCodec4, final Function<C, T4> pGetter4, final StreamCodec<? super B, T5> pCodec5, final Function<C, T5> pGetter5,
+			final StreamCodec<? super B, T6> pCodec6, final Function<C, T6> pGetter6, final StreamCodec<? super B, T7> pCodec7, final Function<C, T7> pGetter7,
+			final StreamCodec<? super B, T8> pCodec8, final Function<C, T8> pGetter8, final Function8<T1, T2, T3, T4, T5, T6, T7, T8, C> pFactory) {
+		return new StreamCodec<>() {
 			@Override
 			public C decode(B buffer) {
 				T1 t1 = pCodec1.decode(buffer);
@@ -254,28 +229,13 @@ public class StreamCodecHelper {
 		};
 	}
 
-	public static <B, C, T1, T2, T3, T4, T5, T6, T7, T8, T9> StreamCodec<B, C> composite(
-			final StreamCodec<? super B, T1> pCodec1,
-			final Function<C, T1> pGetter1,
-			final StreamCodec<? super B, T2> pCodec2,
-			final Function<C, T2> pGetter2,
-			final StreamCodec<? super B, T3> pCodec3,
-			final Function<C, T3> pGetter3,
-			final StreamCodec<? super B, T4> pCodec4,
-			final Function<C, T4> pGetter4,
-			final StreamCodec<? super B, T5> pCodec5,
-			final Function<C, T5> pGetter5,
-			final StreamCodec<? super B, T6> pCodec6,
-			final Function<C, T6> pGetter6,
-			final StreamCodec<? super B, T7> pCodec7,
-			final Function<C, T7> pGetter7,
-			final StreamCodec<? super B, T8> pCodec8,
-			final Function<C, T8> pGetter8,
-			final StreamCodec<? super B, T9> pCodec9,
-			final Function<C, T9> pGetter9,
-			final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, C> pFactory
-	) {
-		return new StreamCodec<B, C>() {
+	public static <B, C, T1, T2, T3, T4, T5, T6, T7, T8, T9> StreamCodec<B, C> composite(final StreamCodec<? super B, T1> pCodec1,
+			final Function<C, T1> pGetter1, final StreamCodec<? super B, T2> pCodec2, final Function<C, T2> pGetter2, final StreamCodec<? super B, T3> pCodec3,
+			final Function<C, T3> pGetter3, final StreamCodec<? super B, T4> pCodec4, final Function<C, T4> pGetter4, final StreamCodec<? super B, T5> pCodec5,
+			final Function<C, T5> pGetter5, final StreamCodec<? super B, T6> pCodec6, final Function<C, T6> pGetter6, final StreamCodec<? super B, T7> pCodec7,
+			final Function<C, T7> pGetter7, final StreamCodec<? super B, T8> pCodec8, final Function<C, T8> pGetter8, final StreamCodec<? super B, T9> pCodec9,
+			final Function<C, T9> pGetter9, final Function9<T1, T2, T3, T4, T5, T6, T7, T8, T9, C> pFactory) {
+		return new StreamCodec<>() {
 			@Override
 			public C decode(B buffer) {
 				T1 t1 = pCodec1.decode(buffer);

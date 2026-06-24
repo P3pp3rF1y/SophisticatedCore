@@ -47,7 +47,8 @@ public class SmithingSpecCategoryExtension<R extends SmithingRecipe> implements 
 	}
 
 	@Override
-	public void onDisplayedIngredientsUpdate(R recipe, IRecipeSlotDrawable templateSlot, IRecipeSlotDrawable baseSlot, IRecipeSlotDrawable additionSlot, IRecipeSlotDrawable outputSlot, IFocusGroup focuses) {
+	public void onDisplayedIngredientsUpdate(R recipe, IRecipeSlotDrawable templateSlot, IRecipeSlotDrawable baseSlot, IRecipeSlotDrawable additionSlot,
+			IRecipeSlotDrawable outputSlot, IFocusGroup focuses) {
 		SmithingDisplaySpec spec = specFactory.apply(recipe);
 		List<SmithingDisplayVariant> focusedVariants = getFocusedVariants(spec, focuses);
 		if (!focusedVariants.isEmpty()) {
@@ -57,22 +58,15 @@ public class SmithingSpecCategoryExtension<R extends SmithingRecipe> implements 
 			return;
 		}
 
-		baseSlot.getDisplayedItemStack()
-				.flatMap(stack -> spec.getUsagesFor(stack).stream().findFirst())
+		baseSlot.getDisplayedItemStack().flatMap(stack -> spec.getUsagesFor(stack).stream().findFirst())
 				.ifPresent(variant -> outputSlot.createDisplayOverrides().addItemStack(variant.result()));
 	}
 
 	private List<SmithingDisplayVariant> getFocusedVariants(SmithingDisplaySpec spec, IFocusGroup focuses) {
-		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
-				.filter(focusedStackPredicate)
-				.findFirst();
+		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).map(focus -> focus.getTypedValue().getIngredient())
+				.filter(focusedStackPredicate).findFirst();
 		return outputFocus.map(spec::getRecipesFor).orElseGet(() -> focuses.getItemStackFocuses(RecipeIngredientRole.INPUT)
-			.map(focus -> focus.getTypedValue().getIngredient())
-			.filter(focusedStackPredicate)
-			.findFirst()
-			.map(spec::getUsagesFor)
-			.orElse(List.of()));
+				.map(focus -> focus.getTypedValue().getIngredient()).filter(focusedStackPredicate).findFirst().map(spec::getUsagesFor).orElse(List.of()));
 
 	}
 }

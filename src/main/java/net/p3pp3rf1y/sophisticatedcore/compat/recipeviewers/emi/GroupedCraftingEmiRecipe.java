@@ -38,7 +38,8 @@ public class GroupedCraftingEmiRecipe extends BasicEmiRecipe {
 		for (int i = 0; i < recipe.getVariants().size(); i++) {
 			int variantIndex = i;
 			ResourceLocation variantId = id.withPath(path -> path + "/" + variantIndex);
-			GroupedCraftingRecipe narrowedRecipe = new GroupedCraftingRecipe(variantId, recipe.getDisplayWidth(), recipe.getDisplayHeight(), recipe.getFixedInputSlots(), List.of(recipe.getVariants().get(i)));
+			GroupedCraftingRecipe narrowedRecipe = new GroupedCraftingRecipe(variantId, recipe.getDisplayWidth(), recipe.getDisplayHeight(),
+					recipe.getFixedInputSlots(), List.of(recipe.getVariants().get(i)));
 			recipes.add(new GroupedCraftingEmiRecipe(variantId, narrowedRecipe, false, true));
 		}
 		return recipes;

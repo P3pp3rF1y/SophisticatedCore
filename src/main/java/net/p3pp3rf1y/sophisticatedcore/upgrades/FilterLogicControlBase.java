@@ -17,6 +17,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,8 @@ import java.util.function.IntConsumer;
 import static net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicControlBase.MatchButton.*;
 
 public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Slot, C extends FilterLogicContainerBase<F, S>>
-		extends CompositeWidgetBase<WidgetBase> {
+		extends
+			CompositeWidgetBase<WidgetBase> {
 	public static final int TAG_FONT_COLOR = ARGB.opaque(16383998);
 	public static final int MORE_TAGS_FONT_COLOR = ARGB.opaque(13882323);
 	private static final int MAX_TAG_NAME_WIDTH = 68;
@@ -49,7 +51,8 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 	private ToggleButton<Boolean> durabilityButton = null;
 	private int tagButtonsYOffset;
 
-	protected FilterLogicControlBase(StorageScreenBase<?> screen, C container, Position position, boolean buttonsVisible, int slotsPerRow, MatchButton... showMatchButtons) {
+	protected FilterLogicControlBase(StorageScreenBase<?> screen, C container, Position position, boolean buttonsVisible, int slotsPerRow,
+			MatchButton... showMatchButtons) {
 		super(position, new Dimension(0, 0));
 		this.screen = screen;
 		this.container = container;
@@ -61,20 +64,20 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 		totalSlotRows = fullSlotRows + (slotsInExtraRow > 0 ? 1 : 0);
 
 		if (shouldShow(ALLOW_LIST)) {
-			addChild(new ToggleButton<>(new Position(x, y), ButtonDefinitions.ALLOW_LIST, button -> container.setAllowList(!container.isAllowList()), container::isAllowList));
+			addChild(new ToggleButton<>(new Position(x, y), ButtonDefinitions.ALLOW_LIST, button -> container.setAllowList(!container.isAllowList()),
+					container::isAllowList));
 		}
 		if (shouldShow(PRIMARY_MATCH)) {
-			addChild(new ToggleButton<>(new Position(x + 18, y), ButtonDefinitions.PRIMARY_MATCH,
-					button -> {
-						PrimaryMatch next = container.getPrimaryMatch().next();
-						if (next == PrimaryMatch.TAGS) {
-							container.getFilterSlots().forEach(slot -> slot.x = StorageScreenBase.DISABLED_SLOT_X_POS);
-							onTagsMatchSelected();
-						}
-						container.setPrimaryMatch(next);
-						setDurabilityAndNbtButtonsVisibility();
-						moveSlotsToView();
-					}, container::getPrimaryMatch));
+			addChild(new ToggleButton<>(new Position(x + 18, y), ButtonDefinitions.PRIMARY_MATCH, button -> {
+				PrimaryMatch next = container.getPrimaryMatch().next();
+				if (next == PrimaryMatch.TAGS) {
+					container.getFilterSlots().forEach(slot -> slot.x = StorageScreenBase.DISABLED_SLOT_X_POS);
+					onTagsMatchSelected();
+				}
+				container.setPrimaryMatch(next);
+				setDurabilityAndNbtButtonsVisibility();
+				moveSlotsToView();
+			}, container::getPrimaryMatch));
 			addTagButtons();
 		}
 		if (shouldShow(DURABILITY)) {
@@ -83,8 +86,8 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 			addChild(durabilityButton);
 		}
 		if (shouldShow(NBT)) {
-			nbtButton = new ToggleButton<>(new Position(x + 54, y), ButtonDefinitions.MATCH_NBT,
-					button -> container.setMatchNbt(!container.shouldMatchNbt()), container::shouldMatchNbt);
+			nbtButton = new ToggleButton<>(new Position(x + 54, y), ButtonDefinitions.MATCH_NBT, button -> container.setMatchNbt(!container.shouldMatchNbt()),
+					container::shouldMatchNbt);
 			addChild(nbtButton);
 		}
 		updateDimensions(Math.max(slotsPerRow * 18, getMaxButtonWidth()), (fullSlotRows + (slotsInExtraRow > 0 ? 1 : 0)) * 18 + slotsTopYOffset);
@@ -102,7 +105,7 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 	}
 
 	protected void onTagsMatchSelected() {
-		//noop
+		// noop
 	}
 
 	private void addTagButtons() {
@@ -146,7 +149,8 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 		updateAddTooltip();
 		container.getTagSelectionSlot().setOnUpdate(this::updateAddTooltip);
 
-		addChild(new ToggleButton<Boolean>(new Position(x + 54, y + tagButtonsYOffset), ButtonDefinitions.MATCH_ANY_TAG, button -> container.setMatchAnyTag(!container.shouldMatchAnyTag()), container::shouldMatchAnyTag) {
+		addChild(new ToggleButton<Boolean>(new Position(x + 54, y + tagButtonsYOffset), ButtonDefinitions.MATCH_ANY_TAG,
+				button -> container.setMatchAnyTag(!container.shouldMatchAnyTag()), container::shouldMatchAnyTag) {
 			@Override
 			protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 				if (container.getPrimaryMatch() == PrimaryMatch.TAGS) {
@@ -205,14 +209,16 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 			}
 			curIndex++;
 		}
-		removeTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+		removeTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("remove_tag.controls")).withStyle(ChatFormatting.ITALIC,
+				ChatFormatting.DARK_GRAY));
 	}
 
 	private void updateAddTooltip() {
 		addTagTooltip.clear();
 		addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag")));
 		if (container.getTagSelectionSlot().getItem().isEmpty()) {
-			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_item")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_item")).withStyle(ChatFormatting.ITALIC,
+					ChatFormatting.DARK_GRAY));
 			return;
 		}
 		Set<TagKey<Item>> tagsToAdd = container.getTagsToAdd();
@@ -226,9 +232,11 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 			curIndex++;
 		}
 		if (tagsToAdd.isEmpty()) {
-			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_additional_tags")).withStyle(ChatFormatting.ITALIC, ChatFormatting.YELLOW));
+			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.no_additional_tags"))
+					.withStyle(ChatFormatting.ITALIC, ChatFormatting.YELLOW));
 		} else {
-			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.controls")).withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY));
+			addTagTooltip.add(Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("add_tag.controls")).withStyle(ChatFormatting.ITALIC,
+					ChatFormatting.DARK_GRAY));
 		}
 	}
 
@@ -284,7 +292,8 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 		int maxTagNameLines = getTagListHeight() / 10;
 		for (TagKey<Item> tagName : tagNames) {
 			if (tagNames.size() > maxTagNameLines && count == maxTagNameLines - 1) {
-				guiGraphics.drawString(minecraft.font, Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.tag_overflow"), String.valueOf(tagNames.size() - (maxTagNameLines - 1))), x + 2, y + 23 + count * 10, MORE_TAGS_FONT_COLOR, false);
+				guiGraphics.drawString(minecraft.font, Component.translatable(TranslationHelper.INSTANCE.translUpgradeKey("tag_list.tag_overflow"),
+						String.valueOf(tagNames.size() - (maxTagNameLines - 1))), x + 2, y + 23 + count * 10, MORE_TAGS_FONT_COLOR, false);
 				break;
 			}
 			String name = tagName.location().toString();
@@ -368,9 +377,6 @@ public abstract class FilterLogicControlBase<F extends FilterLogic, S extends Sl
 	}
 
 	public enum MatchButton {
-		ALLOW_LIST,
-		PRIMARY_MATCH,
-		DURABILITY,
-		NBT
+		ALLOW_LIST, PRIMARY_MATCH, DURABILITY, NBT
 	}
 }

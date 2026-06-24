@@ -8,12 +8,13 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import java.util.List;
 
 public class AutoSmeltingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper> implements IAutoCookingUpgradeItem {
-	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper::new);
+	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper> TYPE = new UpgradeType<>(
+			AutoCookingUpgradeWrapper.AutoSmeltingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoSmeltingUpgradeConfig;
 
 	public AutoSmeltingUpgradeItem(AutoCookingUpgradeConfig autoSmeltingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
-        super(upgradeTypeLimitConfig, properties);
-        this.autoSmeltingUpgradeConfig = autoSmeltingUpgradeConfig;
+		super(upgradeTypeLimitConfig, properties);
+		this.autoSmeltingUpgradeConfig = autoSmeltingUpgradeConfig;
 	}
 
 	@Override

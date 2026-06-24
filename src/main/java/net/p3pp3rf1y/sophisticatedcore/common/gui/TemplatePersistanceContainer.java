@@ -34,6 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nullable;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -93,7 +94,8 @@ public class TemplatePersistanceContainer {
 		}
 		getNamedSaves().forEach(name -> loadSlots.add(new NamedPersistanceSlot(name)));
 
-		DatapackSettingsTemplateManager.getTemplates().forEach((datapackName, templates) -> templates.forEach((templateName, templateNbt) -> loadSlots.add(new DatapackSlot(datapackName, templateName))));
+		DatapackSettingsTemplateManager.getTemplates().forEach(
+				(datapackName, templates) -> templates.forEach((templateName, templateNbt) -> loadSlots.add(new DatapackSlot(datapackName, templateName))));
 
 		if (loadSlotIndex == -1 && !loadSlots.isEmpty()) {
 			loadSlotIndex = 0;
@@ -133,19 +135,22 @@ public class TemplatePersistanceContainer {
 			return;
 		}
 		settingsContainer.getStorageWrapper().getSettingsHandler().getSettingsCategories().values().forEach(category -> {
-			//noinspection unchecked
+			// noinspection unchecked
 			overwriteCategory(category.getClass(), category, selectedTemplate.getTypeCategory(category.getClass()));
 		});
 
 		sendDataToServer(() -> NBTHelper.putString(new CompoundTag(), ACTION_TAG, "loadTemplate"));
 
 		if (getPlayer().level().isClientSide()) {
-			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("load_template"), loadSlots.get(loadSlotIndex).getSlotName()), false);
+			getPlayer().displayClientMessage(
+					Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("load_template"), loadSlots.get(loadSlotIndex).getSlotName()),
+					false);
 		}
 	}
 
-	private <T extends ISettingsCategory<T, ?>> void overwriteCategory(Class<T> categoryClazz, ISettingsCategory<?, ?> currentCategory, ISettingsCategory<?, ?> otherCategory) {
-		//noinspection unchecked
+	private <T extends ISettingsCategory<T, ?>> void overwriteCategory(Class<T> categoryClazz, ISettingsCategory<?, ?> currentCategory,
+			ISettingsCategory<?, ?> otherCategory) {
+		// noinspection unchecked
 		((T) currentCategory).overwriteWith(((T) otherCategory));
 	}
 
@@ -163,7 +168,8 @@ public class TemplatePersistanceContainer {
 		moveSaveSlotIndexTo(saveSlot.getSlotName());
 
 		if (getPlayer().level().isClientSide()) {
-			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("save_template"), saveSlot.getSlotName()), false);
+			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("save_template"), saveSlot.getSlotName()),
+					false);
 		}
 	}
 
@@ -211,7 +217,8 @@ public class TemplatePersistanceContainer {
 	private void updateSelectedTemplate() {
 		if (loadSlotIndex > -1 && loadSlotIndex < loadSlots.size()) {
 			ContainerContents.SettingsData data = loadSlots.get(loadSlotIndex).getSettingsData(getPlayer(), SettingsTemplateStorage.get());
-			selectedTemplate = new TemplateSettingsHandler(data, registryAccess, settingsContainer.getStorageWrapper().getSettingsHandler().getPlayerSettingsName()) {
+			selectedTemplate = new TemplateSettingsHandler(data, registryAccess,
+					settingsContainer.getStorageWrapper().getSettingsHandler().getPlayerSettingsName()) {
 				@Override
 				protected SettingsHandler getCurrentSettingsHandler() {
 					return settingsContainer.getStorageWrapper().getSettingsHandler();
@@ -255,13 +262,16 @@ public class TemplatePersistanceContainer {
 
 	public void exportTemplate(String fileName) {
 		if (fileName.isEmpty()) {
-			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("export_template.empty_name")).withStyle(ChatFormatting.RED), false);
+			getPlayer().displayClientMessage(
+					Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("export_template.empty_name")).withStyle(ChatFormatting.RED),
+					false);
 			return;
 		}
 
 		Matcher matcher = EXPORT_FILE_NAME_PATTERN.matcher(fileName);
 		if (!matcher.matches()) {
-			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("export_template.invalid_characters"), findNonMatchingCharacters(matcher, fileName)).withStyle(ChatFormatting.RED), false);
+			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("export_template.invalid_characters"),
+					findNonMatchingCharacters(matcher, fileName)).withStyle(ChatFormatting.RED), false);
 			return;
 		}
 
@@ -289,7 +299,8 @@ public class TemplatePersistanceContainer {
 			ContainerContents.SettingsData data = settingsContainer.getStorageWrapper().getSettingsHandler().getSettingsData().copy();
 			try {
 				RegistryOps<Tag> ops = RegistryHelper.getRegistryAccess().orElseThrow().createSerializationContext(NbtOps.INSTANCE);
-				NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, exportPath, (new SnbtPrinterTagVisitor()).visit(ContainerContents.SettingsData.CODEC.encode(data, ops, ops.empty()).getOrThrow()));
+				NbtToSnbt.writeSnbt(CachedOutput.NO_CACHE, exportPath,
+						(new SnbtPrinterTagVisitor()).visit(ContainerContents.SettingsData.CODEC.encode(data, ops, ops.empty()).getOrThrow()));
 			} catch (IOException e) {
 				SophisticatedCore.LOGGER.error("Error writing template export", e);
 				return;
@@ -301,10 +312,8 @@ public class TemplatePersistanceContainer {
 
 			initSlots();
 
-			getPlayer().displayClientMessage(
-					Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("export_template"),
-							serverLevel.getServer().getWorldPath(LevelResource.ROOT).relativize(exportPath).toString()), false
-			);
+			getPlayer().displayClientMessage(Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("export_template"),
+					serverLevel.getServer().getWorldPath(LevelResource.ROOT).relativize(exportPath).toString()), false);
 		}
 	}
 
@@ -325,7 +334,6 @@ public class TemplatePersistanceContainer {
 		return selectedTemplate != null && selectedTemplate.getSettingsCategories().values().stream()
 				.anyMatch(category -> category.isLargerThanNumberOfSlots(settingsContainer.getStorageWrapper().getInventoryHandler().size()));
 	}
-
 
 	private static boolean initDatapackStructure(Path datapackRoot, Path templatesDir) {
 		try {
@@ -366,12 +374,14 @@ public class TemplatePersistanceContainer {
 
 		protected abstract SettingsHandler getCurrentSettingsHandler();
 
-
 		@Override
-		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
+		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
+				ContainerContents.SettingsData settingsData) {
 			int itemNumberLimit = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).getItemNumberLimit();
-			this.addSettingsCategory(settingsData, ItemDisplaySettingsCategory.NAME, markContentsDirty, (categoryData, saveNbt) ->
-					new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, categoryData, saveNbt, itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)), ItemDisplaySettingsCategoryData::new);
+			this.addSettingsCategory(settingsData, ItemDisplaySettingsCategory.NAME, markContentsDirty,
+					(categoryData, saveNbt) -> new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, categoryData, saveNbt,
+							itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)),
+					ItemDisplaySettingsCategoryData::new);
 		}
 	}
 
@@ -385,7 +395,7 @@ public class TemplatePersistanceContainer {
 		}
 
 		default void persistTo(Player player, SettingsTemplateStorage settingsTemplateStorage, ContainerContents.SettingsData settingsData) {
-			//noop
+			// noop
 		}
 
 		default boolean showsTextbox() {
@@ -393,7 +403,7 @@ public class TemplatePersistanceContainer {
 		}
 
 		default void setSlotName(String slotName) {
-			//noop
+			// noop
 		}
 
 		default MutableComponent getSlotTooltipName() {

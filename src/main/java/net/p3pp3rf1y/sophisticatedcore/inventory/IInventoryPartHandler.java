@@ -12,6 +12,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 
 import javax.annotation.Nullable;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -47,7 +48,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void set(int slot, ItemResource resource, int amount, IndexModifier<ItemResource> setSuper) {
-		//noop
+		// noop
 	}
 
 	default boolean isValid(int slot, ItemResource resource, @Nullable Player player, BiPredicate<Integer, ItemResource> isValidSuper) {
@@ -74,7 +75,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void onSlotLimitChange() {
-		//noop
+		// noop
 	}
 
 	default Set<Integer> getNoSortSlots() {
@@ -82,7 +83,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void onSlotFilterChanged(int slot) {
-		//noop
+		// noop
 	}
 
 	default boolean isFilterItem(Item item) {
@@ -94,7 +95,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void onInit() {
-		//noop
+		// noop
 	}
 
 	default boolean isInfinite(int slot) {
@@ -114,7 +115,7 @@ public interface IInventoryPartHandler {
 	}
 
 	default void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotInternal) {
-		//noop
+		// noop
 	}
 
 	class Default implements IInventoryPartHandler {

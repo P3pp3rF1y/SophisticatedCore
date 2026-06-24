@@ -20,7 +20,7 @@ public class ImageButton extends ButtonBase {
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -30,6 +30,6 @@ public class ImageButton extends ButtonBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 }

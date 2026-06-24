@@ -39,7 +39,7 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 
 	@Override
 	public void markClean() {
-		//noop
+		// noop
 	}
 
 	@Override

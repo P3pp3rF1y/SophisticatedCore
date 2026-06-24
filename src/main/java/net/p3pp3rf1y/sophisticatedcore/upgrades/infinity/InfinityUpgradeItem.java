@@ -20,12 +20,15 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wrapper> {
-	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List.of(new UpgradeConflictDefinition(i -> true, 0, TranslationHelper.INSTANCE.translError("add.any_upgrade_exists"), TranslationHelper.INSTANCE.translError("add.no_upgrade_can_be_added")));
+	public static final List<UpgradeConflictDefinition> UPGRADE_CONFLICT_DEFINITIONS = List.of(new UpgradeConflictDefinition(i -> true, 0,
+			TranslationHelper.INSTANCE.translError("add.any_upgrade_exists"), TranslationHelper.INSTANCE.translError("add.no_upgrade_can_be_added")));
 	public static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
 	static {
-		InventoryPartRegistry.registerFactory(InfinityInventoryPart.Admin.NAME, (parent, slotRange, getMemorySettings) -> new InfinityInventoryPart.Admin(parent, slotRange));
-		InventoryPartRegistry.registerFactory(InfinityInventoryPart.Survival.NAME, (parent, slotRange, getMemorySettings) -> new InfinityInventoryPart.Survival(parent, slotRange));
+		InventoryPartRegistry.registerFactory(InfinityInventoryPart.Admin.NAME,
+				(parent, slotRange, getMemorySettings) -> new InfinityInventoryPart.Admin(parent, slotRange));
+		InventoryPartRegistry.registerFactory(InfinityInventoryPart.Survival.NAME,
+				(parent, slotRange, getMemorySettings) -> new InfinityInventoryPart.Survival(parent, slotRange));
 	}
 
 	private final boolean admin;
@@ -78,7 +81,8 @@ public class InfinityUpgradeItem extends UpgradeItemBase<InfinityUpgradeItem.Wra
 			super.onAdded();
 
 			InventoryHandler inventoryHandler = storageWrapper.getInventoryHandler();
-			inventoryHandler.getInventoryPartitioner().addInventoryPart(0, Integer.MAX_VALUE, upgradeItem.createInventoryPartHandler(inventoryHandler, new SlotRange(0, inventoryHandler.size())));
+			inventoryHandler.getInventoryPartitioner().addInventoryPart(0, Integer.MAX_VALUE,
+					upgradeItem.createInventoryPartHandler(inventoryHandler, new SlotRange(0, inventoryHandler.size())));
 			storageWrapper.getSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).itemsChanged();
 		}
 

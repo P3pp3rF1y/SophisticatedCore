@@ -16,6 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -39,11 +40,13 @@ public class FilterLogic {
 	@Nullable
 	private FilterAttributes emptyAttributes = null;
 
-	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int defaultFilterSlotCount, DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
+	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int defaultFilterSlotCount,
+			DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
 		this(upgrade, saveHandler, defaultFilterSlotCount, s -> true, filterAttributesComponent);
 	}
 
-	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int defaultFilterSlotCount, Predicate<ItemStack> isItemValid, DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
+	public FilterLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, int defaultFilterSlotCount, Predicate<ItemStack> isItemValid,
+			DeferredHolder<DataComponentType<?>, DataComponentType<FilterAttributes>> filterAttributesComponent) {
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
 		this.filterAttributesComponent = filterAttributesComponent;
@@ -82,21 +85,22 @@ public class FilterLogic {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
 				return isTagMatch(tags);
 			} else {
-				return (getFilterHandler().hasOnlyEmptyFilters() && emptyAllowListMatchesEverything)
-						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> stackMatchesFilter(filter, item, damageValue, empty, components), () -> false, returnValue -> returnValue);
+				return (getFilterHandler().hasOnlyEmptyFilters() && emptyAllowListMatchesEverything) || InventoryHelper.iterate(getFilterHandler(),
+						(slot, filter) -> stackMatchesFilter(filter, item, damageValue, empty, components), () -> false, returnValue -> returnValue);
 			}
 		} else {
 			if (getPrimaryMatch() == PrimaryMatch.TAGS) {
 				return !isTagMatch(tags);
 			} else {
-				return getFilterHandler().hasOnlyEmptyFilters()
-						|| InventoryHelper.iterate(getFilterHandler(), (slot, filter) -> !stackMatchesFilter(filter, item, damageValue, empty, components), () -> true, returnValue -> !returnValue);
+				return getFilterHandler().hasOnlyEmptyFilters() || InventoryHelper.iterate(getFilterHandler(),
+						(slot, filter) -> !stackMatchesFilter(filter, item, damageValue, empty, components), () -> true, returnValue -> !returnValue);
 			}
 		}
 	}
 
 	public boolean matchesFilter(ItemResource resource) {
-		return matchesFilter(resource.getItem().builtInRegistryHolder().tags(), resource.getItem(), resource.getOrDefault(DataComponents.DAMAGE, 0), resource.isEmpty(), resource.getComponents());
+		return matchesFilter(resource.getItem().builtInRegistryHolder().tags(), resource.getItem(), resource.getOrDefault(DataComponents.DAMAGE, 0),
+				resource.isEmpty(), resource.getComponents());
 	}
 
 	private boolean isTagMatch(Stream<TagKey<Item>> tags) {
@@ -123,7 +127,7 @@ public class FilterLogic {
 		if (tagKeys == null) {
 			initTags();
 		}
-		return tags.anyMatch(t -> tagKeys.contains(t));
+		return tags.anyMatch(tagKeys::contains);
 	}
 
 	protected FilterAttributes getAttributes() {
@@ -132,7 +136,8 @@ public class FilterLogic {
 
 	private FilterAttributes getEmptyAttributes() {
 		if (emptyAttributes == null) {
-			emptyAttributes = new FilterAttributes(Collections.emptySet(), allowListDefault, false, false, PrimaryMatch.ITEM, true, ItemContainerContents.EMPTY, false, false);
+			emptyAttributes = new FilterAttributes(Collections.emptySet(), allowListDefault, false, false, PrimaryMatch.ITEM, true, ItemContainerContents.EMPTY,
+					false, false);
 		}
 		return emptyAttributes;
 	}
@@ -167,7 +172,8 @@ public class FilterLogic {
 			return false;
 		}
 
-		return !shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(filter.isEmpty(), filter.getComponents(), isEmpty, components);
+		return !shouldMatchComponents()
+				|| ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(filter.isEmpty(), filter.getComponents(), isEmpty, components);
 	}
 
 	public Set<TagKey<Item>> getTagKeys() {
@@ -257,7 +263,8 @@ public class FilterLogic {
 	}
 
 	public class ObservableFilterItemStackHandler extends FilterItemStackHandler {
-		private IntConsumer onSlotChange = s -> {};
+		private IntConsumer onSlotChange = s -> {
+		};
 		public ObservableFilterItemStackHandler(int filterSlotCount) {
 			super(filterSlotCount);
 		}

@@ -9,15 +9,10 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategoryData;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.PlayerMainSettingsSavedData;
 
-public record SyncPlayerSettingsPayload(String name,
-										MainSettingsCategoryData data) implements CustomPacketPayload {
+public record SyncPlayerSettingsPayload(String name, MainSettingsCategoryData data) implements CustomPacketPayload {
 	public static final Type<SyncPlayerSettingsPayload> TYPE = new Type<>(SophisticatedCore.getRL("sync_player_settings"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SyncPlayerSettingsPayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.STRING_UTF8,
-			SyncPlayerSettingsPayload::name,
-			MainSettingsCategoryData.STREAM_CODEC,
-			SyncPlayerSettingsPayload::data,
-			SyncPlayerSettingsPayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SyncPlayerSettingsPayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.STRING_UTF8,
+			SyncPlayerSettingsPayload::name, MainSettingsCategoryData.STREAM_CODEC, SyncPlayerSettingsPayload::data, SyncPlayerSettingsPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

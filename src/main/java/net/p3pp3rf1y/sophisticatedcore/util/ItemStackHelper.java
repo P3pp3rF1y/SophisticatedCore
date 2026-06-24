@@ -5,12 +5,15 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.TypedDataComponent;
 
 import javax.annotation.Nullable;
+
 import java.util.Objects;
 
 public class ItemStackHelper {
-	private ItemStackHelper() {}
+	private ItemStackHelper() {
+	}
 
-	public static boolean areItemStackComponentsEqualIgnoreDurability(boolean aIsEmpty, DataComponentMap componentsA, boolean bIsEmpty, DataComponentMap componentsB) {
+	public static boolean areItemStackComponentsEqualIgnoreDurability(boolean aIsEmpty, DataComponentMap componentsA, boolean bIsEmpty,
+			DataComponentMap componentsB) {
 		if (aIsEmpty && bIsEmpty) {
 			return true;
 		} else if (!aIsEmpty && !bIsEmpty) {

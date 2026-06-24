@@ -79,16 +79,16 @@ public class DatapackSettingsTemplateManager {
 
 			resourceManager.listResources(DIRECTORY, fileName -> fileName.getPath().endsWith(SUFFIX)).forEach((resourcelocation, resource) -> {
 				String s = resourcelocation.getPath();
-				ResourceLocation resourceLocationWithoutSuffix = ResourceLocation.fromNamespaceAndPath(resourcelocation.getNamespace(), s.substring(i, s.length() - PATH_SUFFIX_LENGTH));
+				ResourceLocation resourceLocationWithoutSuffix = ResourceLocation.fromNamespaceAndPath(resourcelocation.getNamespace(),
+						s.substring(i, s.length() - PATH_SUFFIX_LENGTH));
 
-				try (
-						InputStream inputstream = resource.open();
-						Reader reader = new BufferedReader(new InputStreamReader(inputstream, StandardCharsets.UTF_8))
-				) {
+				try (InputStream inputstream = resource.open();
+						Reader reader = new BufferedReader(new InputStreamReader(inputstream, StandardCharsets.UTF_8))) {
 					String fileContents = IOUtils.toString(reader);
 
 					RegistryOps<Tag> ops = getRegistryLookup().createSerializationContext(NbtOps.INSTANCE);
-					Pair<ContainerContents.SettingsData, Tag> decodeResult = ContainerContents.SettingsData.CODEC.decode(ops, TagParser.parseCompoundFully(fileContents)).getOrThrow();
+					Pair<ContainerContents.SettingsData, Tag> decodeResult = ContainerContents.SettingsData.CODEC
+							.decode(ops, TagParser.parseCompoundFully(fileContents)).getOrThrow();
 					if (map.put(resourceLocationWithoutSuffix, decodeResult.getFirst()) != null) {
 						throw new IllegalStateException("Duplicate data file ignored with ID " + resourceLocationWithoutSuffix);
 					}

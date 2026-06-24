@@ -22,15 +22,10 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import java.util.Set;
 
-public record TransferItemsPayload(boolean transferToInventory,
-								   boolean filterByContents) implements CustomPacketPayload {
+public record TransferItemsPayload(boolean transferToInventory, boolean filterByContents) implements CustomPacketPayload {
 	public static final CustomPacketPayload.Type<TransferItemsPayload> TYPE = new CustomPacketPayload.Type<>(SophisticatedCore.getRL("transfer_items"));
-	public static final StreamCodec<ByteBuf, TransferItemsPayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.BOOL,
-			TransferItemsPayload::transferToInventory,
-			ByteBufCodecs.BOOL,
-			TransferItemsPayload::filterByContents,
-			TransferItemsPayload::new);
+	public static final StreamCodec<ByteBuf, TransferItemsPayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.BOOL,
+			TransferItemsPayload::transferToInventory, ByteBufCodecs.BOOL, TransferItemsPayload::filterByContents, TransferItemsPayload::new);
 
 	public static void handlePayload(TransferItemsPayload payload, IPayloadContext context) {
 		Player player = context.player();
@@ -46,7 +41,7 @@ public record TransferItemsPayload(boolean transferToInventory,
 				mergeToPlayersInventory(storageWrapper, player);
 			}
 		} else {
-			try(Transaction tx = Transaction.openRoot()) {
+			try (Transaction tx = Transaction.openRoot()) {
 				FilteredStorageItemHandler filteredStorage = new FilteredStorageItemHandler(storageWrapper, payload.filterByContents);
 				InventoryHelper.iteratePlayerInventory(player, (slot, stack) -> {
 					if (slot < 9 || stack.isEmpty()) {
@@ -70,7 +65,8 @@ public record TransferItemsPayload(boolean transferToInventory,
 
 			int moved = InventoryHelper.mergeIntoPlayerInventory(player, stack, 9);
 			if (moved > 0) {
-				storageWrapper.getInventoryHandler().setStackInSlot(slot, stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
+				storageWrapper.getInventoryHandler().setStackInSlot(slot,
+						stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
 			}
 		}, () -> false, false);
 	}
@@ -83,7 +79,8 @@ public record TransferItemsPayload(boolean transferToInventory,
 			}
 			int moved = InventoryHelper.mergeIntoPlayerInventory(player, stack, 0);
 			if (moved > 0) {
-				storageWrapper.getInventoryHandler().setStackInSlot(slot, stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
+				storageWrapper.getInventoryHandler().setStackInSlot(slot,
+						stack.getCount() == moved ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - moved));
 			}
 		}, () -> false, false);
 	}
@@ -109,7 +106,8 @@ public record TransferItemsPayload(boolean transferToInventory,
 		}
 
 		protected boolean matchesFilter(ItemResource resource) {
-			return uniqueStacks.contains(ItemStackKey.of(resource)) || storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(resource.getItem(), resource.getComponents());
+			return uniqueStacks.contains(ItemStackKey.of(resource)) || storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class)
+					.matchesFilter(resource.getItem(), resource.getComponents());
 		}
 
 		@Override

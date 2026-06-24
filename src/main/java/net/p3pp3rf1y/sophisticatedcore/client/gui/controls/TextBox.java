@@ -13,6 +13,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Consumer;
 
 public class TextBox extends WidgetBase {
@@ -27,14 +28,14 @@ public class TextBox extends WidgetBase {
 
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
 	protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		editBox.renderWidget(guiGraphics, mouseX, mouseY, partialTicks);
 		if (editBox.getValue().isEmpty() && unfocusedEmptyHint != null && !editBox.isFocused()) {
-			int x = editBox.getX() + editBox.getWidth() / 2 + 2/* editBox.isBordered() ? editBox.getX() + 4 : editBox.getX()*/;
+			int x = editBox.getX() + editBox.getWidth() / 2 + 2/* editBox.isBordered() ? editBox.getX() + 4 : editBox.getX() */;
 			int y = editBox.isBordered() ? editBox.getY() + (editBox.getHeight() - 8) / 2 : editBox.getY();
 			guiGraphics.drawCenteredString(font, unfocusedEmptyHint, x, y, ARGB.opaque(editBox.textColor));
 		}
@@ -61,7 +62,7 @@ public class TextBox extends WidgetBase {
 	}
 
 	protected void onEnterPressed() {
-		//noop
+		// noop
 	}
 
 	public String getValue() {

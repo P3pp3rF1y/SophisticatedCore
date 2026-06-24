@@ -13,8 +13,7 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 		addChild(new StorageSettingsTab(new Position(x, getTopY()), screen, storageSettingsTabTooltip));
 		for (Map.Entry<Integer, UpgradeContainerBase<?, ?>> entry : screen.getMenu().getUpgradeContainers().entrySet()) {
 			addSettingsTab(() -> screen.getMenu().setOpenTabId(entry.getKey()), () -> screen.getMenu().removeOpenTabId(),
-					UpgradeGuiManager.getTab(entry.getValue(), new Position(x, getTopY()), screen))
-					.onAfterInit();
+					UpgradeGuiManager.getTab(entry.getValue(), new Position(x, getTopY()), screen)).onAfterInit();
 		}
 	}
 
@@ -31,7 +30,6 @@ public class UpgradeSettingsTabControl extends SettingsTabControl<StorageScreenB
 	public void tick() {
 		children.forEach(Tab::tick);
 	}
-
 
 	@Override
 	public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {

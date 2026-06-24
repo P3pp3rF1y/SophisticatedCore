@@ -20,16 +20,12 @@ public class InventorySorter {
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> {
 		return o.getKey().stack().getHoverName().getString().toLowerCase();
 	});
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
-			Comparator
-					.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
-						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().stack().getItem());
-						return registryName.getNamespace();
-					})
-					.thenComparing(o -> {
-						return o.getKey().stack().getHoverName().getString();
-					});
-
+	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD = Comparator.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
+		ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().stack().getItem());
+		return registryName.getNamespace();
+	}).thenComparing(o -> {
+		return o.getKey().stack().getHoverName().getString();
+	});
 
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_COUNT = (first, second) -> {
 		int ret = second.getValue().compareTo(first.getValue());
@@ -83,7 +79,8 @@ public class InventorySorter {
 		sortHandler(handler, comparator, noSortSlots, Set.of());
 	}
 
-	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots, Set<Integer> ignoredSlots) {
+	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots,
+			Set<Integer> ignoredSlots) {
 		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
 		skippedSlots.addAll(ignoredSlots);
 		Set<Integer> accessibleNoSortSlots = new HashSet<>(noSortSlots);
@@ -183,11 +180,12 @@ public class InventorySorter {
 	}
 
 	private static int placeStack(InventoryHandler handler, ItemStackKey current, int count, int slot, boolean countWithCurrentStack) {
-		return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getBaseCapacity(ItemResource.of(stack)), handler::getInternalStack, handler::setStackInSlotInternal);
+		return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getBaseCapacity(ItemResource.of(stack)), handler::getInternalStack,
+				handler::setStackInSlotInternal);
 	}
 
-	private static int placeStack(ItemStackKey current, int count, int slot, boolean countWithCurrentStack,
-								  IStackLimitGetter stackLimitGetter, ISlotStackGetter slotStackGetter, ISlotStackSetter slotStackSetter) {
+	private static int placeStack(ItemStackKey current, int count, int slot, boolean countWithCurrentStack, IStackLimitGetter stackLimitGetter,
+			ISlotStackGetter slotStackGetter, ISlotStackSetter slotStackSetter) {
 		ItemStack copy = current.stack().copy();
 		int slotLimit = stackLimitGetter.getStackLimit(slot, copy);
 		int existingCount = slotStackGetter.getSlotStack(slot).getCount();
