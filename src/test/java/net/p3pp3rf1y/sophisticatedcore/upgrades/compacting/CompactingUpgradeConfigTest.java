@@ -62,7 +62,8 @@ class CompactingUpgradeConfigTest {
 		}
 	}
 
-	private static CompactingUpgradeConfig getConfigWithCachedShape(RecipeHelper.CompactingRecipeShape shape) throws NoSuchFieldException, IllegalAccessException {
+	private static CompactingUpgradeConfig getConfigWithCachedShape(RecipeHelper.CompactingRecipeShape shape)
+			throws NoSuchFieldException, IllegalAccessException {
 		ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 		CompactingUpgradeConfig config = new CompactingUpgradeConfig(builder, "Compacting Upgrade", "compactingUpgrade", 9, 3);
 		builder.build();
@@ -74,7 +75,8 @@ class CompactingUpgradeConfigTest {
 		return argThat(stack -> stack != null && stack.getItem() == item);
 	}
 
-	private static void setCachedShapes(CompactingUpgradeConfig config, RecipeHelper.CompactingRecipeShape shape) throws NoSuchFieldException, IllegalAccessException {
+	private static void setCachedShapes(CompactingUpgradeConfig config, RecipeHelper.CompactingRecipeShape shape)
+			throws NoSuchFieldException, IllegalAccessException {
 		java.lang.reflect.Field additionalCompactingShapesList = CompactingUpgradeConfig.class.getDeclaredField("additionalCompactingShapesList");
 		additionalCompactingShapesList.setAccessible(true);
 		additionalCompactingShapesList.set(config, List.of(shape));

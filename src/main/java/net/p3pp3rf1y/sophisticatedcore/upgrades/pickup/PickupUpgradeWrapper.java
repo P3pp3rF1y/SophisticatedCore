@@ -15,14 +15,15 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import java.util.function.Consumer;
 
 public class PickupUpgradeWrapper extends UpgradeWrapperBase<PickupUpgradeWrapper, PickupUpgradeItem>
-		implements IPickupResponseUpgrade, IContentsFilteredUpgrade {
+		implements
+			IPickupResponseUpgrade,
+			IContentsFilteredUpgrade {
 	private final ContentsFilterLogic filterLogic;
 
 	public PickupUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
-		filterLogic = new ContentsFilterLogic(upgrade, stack -> save(), upgradeItem.getFilterSlotCount(),
-				storageWrapper::getInventoryHandler, storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class),
-				ModCoreDataComponents.FILTER_ATTRIBUTES);
+		filterLogic = new ContentsFilterLogic(upgrade, stack -> save(), upgradeItem.getFilterSlotCount(), storageWrapper::getInventoryHandler,
+				storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class), ModCoreDataComponents.FILTER_ATTRIBUTES);
 	}
 
 	@Override

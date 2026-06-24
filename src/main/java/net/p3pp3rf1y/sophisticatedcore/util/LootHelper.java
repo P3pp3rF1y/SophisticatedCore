@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class LootHelper {
-	private LootHelper() {}
+	private LootHelper() {
+	}
 
 	public static List<ItemStack> getLoot(Identifier lootTableName, MinecraftServer server, ServerLevel level, BlockPos pos, @Nullable Player player) {
 		LootTable lootTable = server.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, lootTableName));

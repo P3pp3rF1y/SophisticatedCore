@@ -5,7 +5,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
 
@@ -13,7 +12,8 @@ public final class RecipeWrapperSerializer {
 	private RecipeWrapperSerializer() {
 	}
 
-	public static <T extends Recipe<?>, R extends Recipe<?> & IWrapperRecipe<T>> RecipeSerializer<R> create(Function<T, R> initialize, RecipeSerializer<T> recipeSerializer) {
+	public static <T extends Recipe<?>, R extends Recipe<?> & IWrapperRecipe<T>> RecipeSerializer<R> create(Function<T, R> initialize,
+			RecipeSerializer<T> recipeSerializer) {
 		MapCodec<R> codec = recipeSerializer.codec().xmap(initialize, IWrapperRecipe::getCompose);
 		StreamCodec<RegistryFriendlyByteBuf, R> streamCodec = new StreamCodec<>() {
 			@Override

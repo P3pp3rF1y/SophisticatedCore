@@ -12,7 +12,8 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 	public static final String DATA_INTERACT_WITH_FLUID_HANDLERS = "interactWithFluidHandlers";
 	private final FluidFilterContainer fluidFilterContainer;
 
-	public PumpUpgradeContainer(Player player, int upgradeContainerId, PumpUpgradeWrapper upgradeWrapper, UpgradeContainerType<PumpUpgradeWrapper, PumpUpgradeContainer> type) {
+	public PumpUpgradeContainer(Player player, int upgradeContainerId, PumpUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<PumpUpgradeWrapper, PumpUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 
 		fluidFilterContainer = new FluidFilterContainer(player, this, upgradeWrapper::getFluidFilterLogic);

@@ -13,7 +13,7 @@ public class SmeltingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.S
 	private final CookingUpgradeConfig smeltingUpgradeConfig;
 
 	public SmeltingUpgradeItem(CookingUpgradeConfig smeltingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
-        super(upgradeTypeLimitConfig, properties);
+		super(upgradeTypeLimitConfig, properties);
 		this.smeltingUpgradeConfig = smeltingUpgradeConfig;
 	}
 

@@ -26,7 +26,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 				case SELECT_ALL_ACTION -> selectAllSlots();
 				case UNSELECT_ALL_ACTION -> unselectAllSlots();
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		});

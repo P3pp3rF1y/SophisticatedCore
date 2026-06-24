@@ -44,7 +44,9 @@ public class FluidFilterControl extends WidgetBase {
 				FluidState fluidState = fluid.getFluid().defaultFluidState();
 				FluidModel fluidModel = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(fluidState);
 				TextureAtlasSprite still = fluidModel.stillMaterial().sprite();
-				int color = fluidModel.tintSource() instanceof FluidTintSource fluidTintSource ? fluidTintSource.colorAsStack(fluid) : fluidModel.tintSource() != null ? fluidModel.tintSource().color(fluidState.createLegacyBlock()) : -1;
+				int color = fluidModel.tintSource() instanceof FluidTintSource fluidTintSource
+						? fluidTintSource.colorAsStack(fluid)
+						: fluidModel.tintSource() != null ? fluidModel.tintSource().color(fluidState.createLegacyBlock()) : -1;
 				GuiHelper.renderTiledSprite(guiGraphics, still, color, x + i * 18 + 1, y + 1, 16);
 			}
 		}
@@ -90,7 +92,7 @@ public class FluidFilterControl extends WidgetBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO narration
+		// TODO narration
 	}
 
 	public void setFluid(int index, FluidStack fluid) {

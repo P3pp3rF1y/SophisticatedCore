@@ -1,10 +1,10 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.trashslot;
 
 import net.blay09.mods.trashslot.api.event.RegisterTrashSlotContainerLayoutsEvent;
+import net.minecraft.world.inventory.MenuType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.minecraft.world.inventory.MenuType;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 
 import java.util.HashSet;
@@ -26,7 +26,7 @@ public class TrashSlotCompat implements ICompat {
 
 	@Override
 	public void setup() {
-		//noop
+		// noop
 	}
 
 	private void onRegisterLayouts(RegisterTrashSlotContainerLayoutsEvent event) {

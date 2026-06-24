@@ -28,16 +28,19 @@ public class RecentCraftedResultStorage extends SavedData {
 	public static final int MAX_RECENT_RESULTS_PER_INGREDIENT = 4;
 	private static final String SCOPES_TAG = "scopes";
 	private static final Codec<List<Identifier>> RECENT_RESULTS_CODEC = Codec.list(Identifier.CODEC)
-			.xmap(results -> results.stream().limit(MAX_RECENT_RESULTS_PER_INGREDIENT).toList(), List::copyOf).xmap(CodecHelper::toMutable, Function.identity());
-	private static final Codec<Map<Identifier, Map<Identifier, List<Identifier>>>> SCOPES_CODEC = Codec.unboundedMap(
-			Identifier.CODEC,
-			Codec.unboundedMap(Identifier.CODEC, RECENT_RESULTS_CODEC).xmap(CodecHelper::toMutable, Function.identity())
-	).xmap(CodecHelper::toMutable, Function.identity());
-	private static final SavedDataType<RecentCraftedResultStorage> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "recent_crafted_results"), RecentCraftedResultStorage::new,
-			RecordCodecBuilder.create(builder -> builder.group(
-					Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), SCOPES_CODEC).xmap(CodecHelper::toMutable, Function.identity())
-							.fieldOf("playerRecentResults").forGetter((RecentCraftedResultStorage storage) -> storage.playerRecentResults)
-			).apply(builder, RecentCraftedResultStorage::new)));
+			.xmap(results -> results.stream().limit(MAX_RECENT_RESULTS_PER_INGREDIENT).toList(), List::copyOf)
+			.xmap(CodecHelper::toMutable, Function.identity());
+	private static final Codec<Map<Identifier, Map<Identifier, List<Identifier>>>> SCOPES_CODEC = Codec
+			.unboundedMap(Identifier.CODEC, Codec.unboundedMap(Identifier.CODEC, RECENT_RESULTS_CODEC).xmap(CodecHelper::toMutable, Function.identity()))
+			.xmap(CodecHelper::toMutable, Function.identity());
+	private static final SavedDataType<RecentCraftedResultStorage> TYPE = new SavedDataType<>(
+			Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "recent_crafted_results"), RecentCraftedResultStorage::new,
+			RecordCodecBuilder
+					.create(builder -> builder
+							.group(Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), SCOPES_CODEC)
+									.xmap(CodecHelper::toMutable, Function.identity()).fieldOf("playerRecentResults")
+									.forGetter((RecentCraftedResultStorage storage) -> storage.playerRecentResults))
+							.apply(builder, RecentCraftedResultStorage::new)));
 
 	private final Map<UUID, Map<Identifier, Map<Identifier, List<Identifier>>>> playerRecentResults;
 	private static Map<Identifier, Map<Identifier, List<Identifier>>> clientRecentResults = new HashMap<>();
@@ -52,15 +55,13 @@ public class RecentCraftedResultStorage extends SavedData {
 
 	public static RecentCraftedResultStorage get(ServerLevel level) {
 		ServerLevel overworld = level.getServer().getLevel(Level.OVERWORLD);
-		//noinspection ConstantConditions - overworld is loaded while server levels are available
+		// noinspection ConstantConditions - overworld is loaded while server levels are available
 		SavedDataStorage storage = overworld.getDataStorage();
 		return storage.computeIfAbsent(TYPE);
 	}
 
 	public List<Identifier> getRecentResults(Player player, Identifier scope, Identifier ingredient) {
-		return playerRecentResults.getOrDefault(player.getUUID(), Map.of())
-				.getOrDefault(scope, Map.of())
-				.getOrDefault(ingredient, List.of());
+		return playerRecentResults.getOrDefault(player.getUUID(), Map.of()).getOrDefault(scope, Map.of()).getOrDefault(ingredient, List.of());
 	}
 
 	public static List<Identifier> getClientRecentResults(Identifier scope, Identifier ingredient) {
@@ -82,8 +83,7 @@ public class RecentCraftedResultStorage extends SavedData {
 
 	public boolean recordCraftedResult(Player player, Identifier scope, Identifier ingredient, Identifier result) {
 		List<Identifier> recentResults = playerRecentResults.computeIfAbsent(player.getUUID(), uuid -> new HashMap<>())
-				.computeIfAbsent(scope, key -> new HashMap<>())
-				.computeIfAbsent(ingredient, key -> new ArrayList<>());
+				.computeIfAbsent(scope, key -> new HashMap<>()).computeIfAbsent(ingredient, key -> new ArrayList<>());
 		if (!recentResults.isEmpty() && recentResults.get(0).equals(result)) {
 			return false;
 		}

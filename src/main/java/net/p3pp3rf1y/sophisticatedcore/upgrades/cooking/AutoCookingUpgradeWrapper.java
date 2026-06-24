@@ -29,8 +29,11 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U, R>, U extends UpgradeItemBase<W> & IAutoCookingUpgradeItem, R extends AbstractCookingRecipe>
-		extends UpgradeWrapperBase<W, U>
-		implements ITickableUpgrade, ICookingUpgrade<R> {
+		extends
+			UpgradeWrapperBase<W, U>
+		implements
+			ITickableUpgrade,
+			ICookingUpgrade<R> {
 	private static final int NOTHING_TO_DO_COOLDOWN = 10;
 	private static final int NO_INVENTORY_SPACE_COOLDOWN = 60;
 
@@ -44,13 +47,14 @@ public class AutoCookingUpgradeWrapper<W extends AutoCookingUpgradeWrapper<W, U,
 	private int fuelCooldown = 0;
 	private int inputCooldown = 0;
 
-	public AutoCookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, ResourceKey<RecipePropertySet> acceptedInputs, float burnTimeModifier) {
+	public AutoCookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType,
+			ResourceKey<RecipePropertySet> acceptedInputs, float burnTimeModifier) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		this.recipeType = recipeType;
 		RecipePropertySet validInput = RecipeHelper.getPropertySet(acceptedInputs);
 		AutoCookingUpgradeConfig autoCookingUpgradeConfig = upgradeItem.getAutoCookingUpgradeConfig();
-		inputFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.inputFilterSlots.get(),
-				validInput::test, ModCoreDataComponents.INPUT_FILTER_ATTRIBUTES);
+		inputFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.inputFilterSlots.get(), validInput::test,
+				ModCoreDataComponents.INPUT_FILTER_ATTRIBUTES);
 		inputFilterLogic.setAllowByDefault(true);
 		fuelFilterLogic = new FilterLogic(upgrade, upgradeSaveHandler, autoCookingUpgradeConfig.fuelFilterSlots.get(),
 				s -> s.getBurnTime(recipeType, WorldHelper.getFuelValues()) > 0, ModCoreDataComponents.FUEL_FILTER_ATTRIBUTES);

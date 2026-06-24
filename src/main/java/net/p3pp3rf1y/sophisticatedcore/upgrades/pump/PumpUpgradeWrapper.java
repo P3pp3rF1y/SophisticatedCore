@@ -61,7 +61,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		if (isInCooldown(level)) {
 			return;
 		}
-		setCooldown(level, storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, level, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
+		setCooldown(level,
+				storageWrapper.getFluidHandler().map(storageFluidHandler -> tick(storageFluidHandler, entity, level, pos)).orElse(DID_NOTHING_COOLDOWN_TIME));
 	}
 
 	private int tick(ResourceHandler<FluidResource> storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
@@ -77,10 +78,13 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 			}
 		}
 		return handleInWorldInteractions(storageFluidHandler, entity, level, pos)
-				.orElseGet(() -> lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime() ? HAND_INTERACTION_COOLDOWN_TIME : DID_NOTHING_COOLDOWN_TIME);
+				.orElseGet(() -> lastHandActionTime + 10 * HAND_INTERACTION_COOLDOWN_TIME > level.getGameTime()
+						? HAND_INTERACTION_COOLDOWN_TIME
+						: DID_NOTHING_COOLDOWN_TIME);
 	}
 
-	private Optional<Integer> handleInWorldInteractions(ResourceHandler<FluidResource> storageFluidHandler, @Nullable Entity entity, Level level, BlockPos pos) {
+	private Optional<Integer> handleInWorldInteractions(ResourceHandler<FluidResource> storageFluidHandler, @Nullable Entity entity, Level level,
+			BlockPos pos) {
 		if (shouldInteractWithWorld()) {
 			Optional<Integer> newCooldown = interactWithWorld(level, pos, storageFluidHandler, entity);
 			if (newCooldown.isPresent()) {
@@ -95,8 +99,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 
 	private Optional<Integer> interactWithAttachedFluidHandlers(Level level, BlockPos pos, ResourceHandler<FluidResource> storageFluidHandler) {
 		for (Direction dir : Direction.values()) {
-			boolean successful = WorldHelper.getBlockEntity(level, pos.offset(dir.getUnitVec3i())).map(be ->
-					CapabilityHelper.<Boolean>getFromFluidHandler(be, dir.getOpposite(), fluidHandler -> {
+			boolean successful = WorldHelper.getBlockEntity(level, pos.offset(dir.getUnitVec3i()))
+					.map(be -> CapabilityHelper.<Boolean>getFromFluidHandler(be, dir.getOpposite(), fluidHandler -> {
 						if (isInput()) {
 							return tryFluidTransfer(fluidHandler, storageFluidHandler, getMaxInOut());
 						} else {
@@ -112,7 +116,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int getMaxInOut() {
-		return Math.max(FluidType.BUCKET_VOLUME, pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * getAdjustedStackMultiplier(storageWrapper));
+		return Math.max(FluidType.BUCKET_VOLUME,
+				pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * getAdjustedStackMultiplier(storageWrapper));
 	}
 
 	public int getAdjustedStackMultiplier(IStorageWrapper storageWrapper) {
@@ -158,7 +163,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 			try (Transaction tx = Transaction.openRoot()) {
 				for (int tank = 0; tank < storageFluidHandler.size(); tank++) {
 					FluidResource tankFluid = storageFluidHandler.getResource(tank);
-					if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid) && WorldHelper.playerMayInteract(player, offsetPos) && isValidForFluidPlacement(level, offsetPos)
+					if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid) && WorldHelper.playerMayInteract(player, offsetPos)
+							&& isValidForFluidPlacement(level, offsetPos)
 							&& storageFluidHandler.extract(tankFluid, FluidType.BUCKET_VOLUME, tx) == FluidType.BUCKET_VOLUME
 							&& FluidUtil.tryPlaceFluid(tankFluid, null, level, InteractionHand.MAIN_HAND, offsetPos)) {
 						tx.commit();
@@ -220,7 +226,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		return false;
 	}
 
-	private static boolean pickupBlock(Level level, BlockPos pos, ResourceHandler<FluidResource> storageFluidHandler, BucketPickup bucketPickup, FluidState fluidState, BlockState state, Player player) {
+	private static boolean pickupBlock(Level level, BlockPos pos, ResourceHandler<FluidResource> storageFluidHandler, BucketPickup bucketPickup,
+			FluidState fluidState, BlockState state, Player player) {
 		Fluid fluid = fluidState.getType();
 		try (Transaction tx = Transaction.openRoot()) {
 			if (storageFluidHandler.insert(FluidResource.of(fluid), FluidType.BUCKET_VOLUME, tx) == FluidType.BUCKET_VOLUME) {
@@ -243,7 +250,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private boolean handleFluidContainerInHands(Player player, ResourceHandler<FluidResource> storageFluidHandler) {
-		return handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.MAIN_HAND) || handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.OFF_HAND);
+		return handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.MAIN_HAND)
+				|| handleFluidContainerInHand(storageFluidHandler, player, InteractionHand.OFF_HAND);
 	}
 
 	private boolean handleFluidContainerInHand(ResourceHandler<FluidResource> storageFluidHandler, Player player, InteractionHand hand) {

@@ -3,7 +3,8 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import net.minecraft.world.entity.player.Player;
 
 public class XpHelper {
-	private XpHelper() {}
+	private XpHelper() {
+	}
 
 	private static final int RATIO = 20;
 

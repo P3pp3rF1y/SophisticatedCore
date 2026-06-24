@@ -12,7 +12,9 @@ import java.util.Optional;
 public class GroupedCraftingReiDisplay extends DefaultCraftingDisplay<Recipe<?>> {
 	@SuppressWarnings("unchecked")
 	public GroupedCraftingReiDisplay(RecipeHolder<GroupedCraftingRecipe> recipeHolder) {
-		super(recipeHolder.value().getInputSlots().stream().map(EntryIngredients::ofItemStacks).toList(), List.of(EntryIngredients.ofItemStacks(recipeHolder.value().getResultStacks())), Optional.of((RecipeHolder<Recipe<?>>) (RecipeHolder<?>) recipeHolder));
+		super(recipeHolder.value().getInputSlots().stream().map(EntryIngredients::ofItemStacks).toList(),
+				List.of(EntryIngredients.ofItemStacks(recipeHolder.value().getResultStacks())),
+				Optional.of((RecipeHolder<Recipe<?>>) (RecipeHolder<?>) recipeHolder));
 	}
 
 	@Override

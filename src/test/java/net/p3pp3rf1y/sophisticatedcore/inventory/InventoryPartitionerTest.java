@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -177,7 +178,7 @@ class InventoryPartitionerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(ints = { 1, 2, 3, 4 })
+	@ValueSource(ints = {1, 2, 3, 4})
 	void getFirstSpaceReturnsCorrectRangeForSmallInventories(int slots) {
 		InventoryHandler invHandler = getInventoryHandler(slots);
 

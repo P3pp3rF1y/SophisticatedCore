@@ -23,7 +23,7 @@ public class ItemButton extends ButtonBase {
 
 	@Override
 	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override

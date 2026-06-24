@@ -97,8 +97,6 @@ public abstract class ShapedRecipeDisplayBuilder<R> implements IRecipeDisplayBui
 			}
 		}
 
-		return !charset.isEmpty()
-				? DataResult.error(() -> "Key defines symbols that aren't used in pattern: " + charset)
-				: DataResult.success(list);
+		return !charset.isEmpty() ? DataResult.error(() -> "Key defines symbols that aren't used in pattern: " + charset) : DataResult.success(list);
 	}
 }

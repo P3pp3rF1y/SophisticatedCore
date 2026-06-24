@@ -20,7 +20,8 @@ public class ReiSubtypeInterpreter extends PropertyBasedSubtypeInterpreterWrappe
 	public long hash(ComparisonContext context, ItemStack stack) {
 		long hashCode = 1;
 		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
-			@Nullable Object value = definition.getPropertyValue(stack);
+			@Nullable
+			Object value = definition.getPropertyValue(stack);
 			hashCode = 31 * hashCode + (value == null ? 0 : value.hashCode());
 		}
 		return hashCode;

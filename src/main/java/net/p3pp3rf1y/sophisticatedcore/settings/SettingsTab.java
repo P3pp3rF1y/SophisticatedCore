@@ -36,9 +36,9 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 		return 0;
 	}
 
-	@SuppressWarnings("unused") //parameters used in overrides
+	@SuppressWarnings("unused") // parameters used in overrides
 	public void extractExtra(GuiGraphicsExtractor guiGraphics, Slot slot) {
-		//noop by default
+		// noop by default
 	}
 
 	@SuppressWarnings("unused") // parameter used in override
@@ -46,8 +46,8 @@ public abstract class SettingsTab<C extends SettingsContainerBase<?>> extends Se
 		return ItemStack.EMPTY;
 	}
 
-	@SuppressWarnings("unused") //parameters used in overrides
+	@SuppressWarnings("unused") // parameters used in overrides
 	public void extractSlotStackOverlay(GuiGraphicsExtractor guiGraphics, Slot slot, boolean templateLoadHovered) {
-		//noop by default
+		// noop by default
 	}
 }

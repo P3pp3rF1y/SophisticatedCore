@@ -33,7 +33,8 @@ public interface ISlotTracker {
 
 	void restoreSlotFromSnapshot(Snapshot snapshot);
 
-	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
+	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot);
 
 	void unregisterStackKeyListeners();
 
@@ -63,7 +64,7 @@ public interface ISlotTracker {
 
 		@Override
 		public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
-			//noop
+			// noop
 		}
 
 		@Override
@@ -88,17 +89,17 @@ public interface ISlotTracker {
 
 		@Override
 		public void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack) {
-			//noop
+			// noop
 		}
 
 		@Override
 		public void clear() {
-			//noop
+			// noop
 		}
 
 		@Override
 		public void refreshSlotIndexesFrom(InventoryHandler itemHandler) {
-			//noop
+			// noop
 		}
 
 		@Override
@@ -108,17 +109,18 @@ public interface ISlotTracker {
 
 		@Override
 		public void restoreSlotFromSnapshot(Snapshot snapshot) {
-			//noop
+			// noop
 		}
 
 		@Override
-		public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
-			//noop
+		public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+				Runnable onRemoveLastEmptySlot) {
+			// noop
 		}
 
 		@Override
 		public void unregisterStackKeyListeners() {
-			//noop
+			// noop
 		}
 
 		@Override

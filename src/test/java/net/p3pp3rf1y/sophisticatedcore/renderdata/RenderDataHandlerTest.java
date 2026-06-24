@@ -1,9 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.renderdata;
 
+import net.minecraft.world.item.ItemStack;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +26,8 @@ class RenderDataHandlerTest {
 
 		renderDataHandler.setUpgradeItems(List.of(ItemStack.EMPTY, ItemStack.EMPTY));
 
-		Assertions.assertEquals(List.of(ItemStack.EMPTY, ItemStack.EMPTY), renderDataHandler.getUpgradeItems(), "Empty upgrade slots should be preserved in render data");
+		Assertions.assertEquals(List.of(ItemStack.EMPTY, ItemStack.EMPTY), renderDataHandler.getUpgradeItems(),
+				"Empty upgrade slots should be preserved in render data");
 	}
 
 	@Test
@@ -51,6 +51,7 @@ class RenderDataHandlerTest {
 		renderDataHandler.setBatteryRenderData(new RenderData.BatteryRenderData(0.5f));
 
 		Assertions.assertEquals(1, saves.get(), "Changed battery render data should trigger save");
-		Assertions.assertEquals(Optional.of(new RenderData.BatteryRenderData(0.5f)), renderDataHandler.getBatteryRenderData(), "Battery render data should be updated");
+		Assertions.assertEquals(Optional.of(new RenderData.BatteryRenderData(0.5f)), renderDataHandler.getBatteryRenderData(),
+				"Battery render data should be updated");
 	}
 }

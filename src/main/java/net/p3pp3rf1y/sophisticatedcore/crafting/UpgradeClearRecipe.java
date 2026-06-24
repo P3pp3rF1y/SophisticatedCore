@@ -9,7 +9,6 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.p3pp3rf1y.sophisticatedcore.init.ModRecipes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 
 public class UpgradeClearRecipe extends CustomRecipe {

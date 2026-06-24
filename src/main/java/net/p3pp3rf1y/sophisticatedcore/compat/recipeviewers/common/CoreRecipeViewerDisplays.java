@@ -14,8 +14,11 @@ public class CoreRecipeViewerDisplays {
 	}
 
 	public static void register(IRecipeViewerDisplayCatalog catalog) {
-		ClientRecipeHelper.transformAllRecipesOfType(RecipeType.CRAFTING, UpgradeNextTierRecipe.class,
-				(id, recipe) -> new RecipeHolder<CraftingRecipe>(ClientRecipeHelper.recipeKey(id), new ShapedRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), recipe.getCompose().pattern, ItemStackTemplate.fromNonEmptyStack(ClientRecipeHelper.getResultItem(recipe)))))
+		ClientRecipeHelper
+				.transformAllRecipesOfType(RecipeType.CRAFTING, UpgradeNextTierRecipe.class,
+						(id, recipe) -> new RecipeHolder<CraftingRecipe>(ClientRecipeHelper.recipeKey(id),
+								new ShapedRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+										recipe.getCompose().pattern, ItemStackTemplate.fromNonEmptyStack(ClientRecipeHelper.getResultItem(recipe)))))
 				.forEach(catalog::addCraftingRecipe);
 	}
 }

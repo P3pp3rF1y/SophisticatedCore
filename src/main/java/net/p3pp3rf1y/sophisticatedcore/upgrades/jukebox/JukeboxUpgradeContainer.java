@@ -15,18 +15,17 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 
 	private static final String ACTION_DATA = "action";
 
-	public JukeboxUpgradeContainer(Player player, int upgradeContainerId, JukeboxUpgradeWrapper upgradeWrapper, UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> type) {
+	public JukeboxUpgradeContainer(Player player, int upgradeContainerId, JukeboxUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 		for (int slot = 0; slot < upgradeWrapper.getDiscInventory().size(); slot++) {
 			int finalSlot = slot;
-			slots.add(new ResourceHandlerSlot(upgradeWrapper.getDiscInventory(),
-					(index, resource, amount) -> {
-						upgradeWrapper.getDiscInventory().set(index, resource, amount);
-						if (upgradeWrapper.isPlaying() && finalSlot == upgradeWrapper.getDiscSlotActive()) {
-							upgradeWrapper.stop(player);
-						}
-					},
-					slot, -100, -100) {
+			slots.add(new ResourceHandlerSlot(upgradeWrapper.getDiscInventory(), (index, resource, amount) -> {
+				upgradeWrapper.getDiscInventory().set(index, resource, amount);
+				if (upgradeWrapper.isPlaying() && finalSlot == upgradeWrapper.getDiscSlotActive()) {
+					upgradeWrapper.stop(player);
+				}
+			}, slot, -100, -100) {
 			});
 		}
 	}
@@ -37,7 +36,8 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 			switch (actionName) {
 				case "play" -> {
 					if (player.containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu) {
-						storageContainerMenu.getBlockPosition().ifPresentOrElse(pos -> upgradeWrapper.play(player.level(), pos), () -> upgradeWrapper.play(storageContainerMenu.getEntity().orElse(player)));
+						storageContainerMenu.getBlockPosition().ifPresentOrElse(pos -> upgradeWrapper.play(player.level(), pos),
+								() -> upgradeWrapper.play(storageContainerMenu.getEntity().orElse(player)));
 					}
 				}
 				case "stop" -> upgradeWrapper.stop(player);

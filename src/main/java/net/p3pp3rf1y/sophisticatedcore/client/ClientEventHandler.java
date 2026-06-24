@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
@@ -18,7 +19,6 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.*;
-import net.minecraft.client.renderer.block.FluidModel;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
@@ -40,7 +40,6 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
@@ -199,7 +198,8 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphicsExtractor guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
+	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphicsExtractor guiGraphics, Slot s, ItemStack stack,
+			IStashStorageItem.StashResult stashResult) {
 		int x = containerGui.getGuiLeft() + s.x;
 		int y = containerGui.getGuiTop() + s.y;
 
@@ -211,10 +211,13 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, GuiGraphicsExtractor guiGraphics, ItemStack stack, Optional<TooltipComponent> tooltipComponent) {
+	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, GuiGraphicsExtractor guiGraphics, ItemStack stack,
+			Optional<TooltipComponent> tooltipComponent) {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
-		GuiHelper.extractTooltip(event.getScreen(), guiGraphics, stack, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), tooltipComponent, x, y);
+		GuiHelper.extractTooltip(event.getScreen(), guiGraphics, stack,
+				Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")),
+				tooltipComponent, x, y);
 	}
 
 	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack inInventory, ItemStack held) {
@@ -228,16 +231,20 @@ public class ClientEventHandler {
 		return Optional.empty();
 	}
 
-	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack potentialStashStorage, ItemStack potentiallyStashable, IStashStorageItem stashStorageItem) {
-		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage, potentiallyStashable);
+	private static Optional<IStashStorageItem.StashResult> getStashResult(ItemStack potentialStashStorage, ItemStack potentiallyStashable,
+			IStashStorageItem stashStorageItem) {
+		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage,
+				potentiallyStashable);
 		if (stashResult == IStashStorageItem.StashResult.NO_SPACE) {
 			return Optional.empty();
 		}
 		return Optional.of(stashResult);
 	}
 
-	private static Optional<TooltipComponent> getStashTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable, IStashStorageItem stashStorageItem) {
-		if (stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage, potentiallyStashable) == IStashStorageItem.StashResult.NO_SPACE) {
+	private static Optional<TooltipComponent> getStashTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable,
+			IStashStorageItem stashStorageItem) {
+		if (stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage,
+				potentiallyStashable) == IStashStorageItem.StashResult.NO_SPACE) {
 			return Optional.empty();
 		}
 		return stashStorageItem.getInventoryTooltip(potentialStashStorage);
@@ -261,10 +268,8 @@ public class ClientEventHandler {
 	private static void registerFluidModels(RegisterFluidModelsEvent event) {
 		event.register(new FluidModel.Unbaked(
 				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still")),
-				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing")),
-				null,
-				null
-		), ModFluids.XP_STILL.get(), ModFluids.XP_FLOWING.get());
+				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing")), null,
+				null), ModFluids.XP_STILL.get(), ModFluids.XP_FLOWING.get());
 	}
 
 	private static class SophisticatedScreenKeyConflictContext implements IKeyConflictContext {

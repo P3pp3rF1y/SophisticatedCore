@@ -21,8 +21,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AccessoriesCompat implements ICompat {
 	@Override
 	public void setup() {
-		InventoryHelper.registerPlayerInventoryProvider(player -> AccessoriesCapability.getOptionally(player).<ResourceHandler<ItemResource>>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyResourceHandler.instance()));
-		InventoryHelper.registerEquipmentInventoryProvider(player -> AccessoriesCapability.getOptionally(player).<ResourceHandler<ItemResource>>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyResourceHandler.instance()));
+		InventoryHelper.registerPlayerInventoryProvider(player -> AccessoriesCapability.getOptionally(player)
+				.<ResourceHandler<ItemResource>>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyResourceHandler.instance()));
+		InventoryHelper.registerEquipmentInventoryProvider(player -> AccessoriesCapability.getOptionally(player)
+				.<ResourceHandler<ItemResource>>map(cap -> new AccessoriesHandler(player, cap)).orElse(EmptyResourceHandler.instance()));
 	}
 
 	private static class AccessoriesHandler implements ResourceHandler<ItemResource> {
@@ -167,7 +169,6 @@ public class AccessoriesCompat implements ICompat {
 			}
 			return countToExtract;
 		}
-
 
 		private static class SlotReferenceJournal extends SnapshotJournal<ItemStack> {
 			private final SlotReference slotReference;

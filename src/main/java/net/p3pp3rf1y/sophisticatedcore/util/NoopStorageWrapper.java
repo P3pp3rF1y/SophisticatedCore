@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 @SuppressWarnings("java:S4144")
-//this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
+// this is noop wrapper and thus identical implementation isn't an issue especially when it means just returning same field
 public class NoopStorageWrapper implements IStorageWrapper {
 	public static final NoopStorageWrapper INSTANCE = new NoopStorageWrapper();
 
@@ -39,7 +39,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void setContentsChangeHandler(Runnable contentsChangeHandler) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -72,8 +72,9 @@ public class NoopStorageWrapper implements IStorageWrapper {
 			settingsHandler = new SettingsHandler(new ContainerContents.SettingsData(), () -> {
 			}, this::getInventoryHandler, this::getRenderDataHandler, "") {
 				@Override
-				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
-					//noop
+				protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier,
+						Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
+					// noop
 				}
 			};
 		}
@@ -113,22 +114,22 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void setOpenTabId(int openTabId) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void removeOpenTabId() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setColors(int mainColor, int accentColor) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setSortBy(SortBy sortBy) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -138,32 +139,32 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void sort() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void onContentsUpdated() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void refreshInventoryForUpgradeProcessing() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void refreshInventoryForInputOutput() {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setPersistent(boolean persistent) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void fillWithLoot(Player playerEntity) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -178,7 +179,7 @@ public class NoopStorageWrapper implements IStorageWrapper {
 
 	@Override
 	public void setColumnsTaken(int columnsTaken, boolean hasChanged) {
-		//noop
+		// noop
 	}
 
 	@Override

@@ -38,7 +38,8 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 	private final Map<Class<? extends IUpgradeWrapper>, Consumer<? extends IUpgradeWrapper>> upgradeDefaultsHandlers = new HashMap<>();
 	private final Set<Integer> runningOnBeforeRemovedOnSlots = new HashSet<>();
 
-	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable contentsSaveHandler, Runnable onInvalidateUpgradeCaches) {
+	public UpgradeHandler(int numberOfUpgradeSlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable contentsSaveHandler,
+			Runnable onInvalidateUpgradeCaches) {
 		super(numberOfUpgradeSlots);
 		this.upgradeData = containerContents.upgrades();
 		this.storageWrapper = storageWrapper;
@@ -169,7 +170,7 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 	}
 
 	private <T extends IUpgradeWrapper> Consumer<T> getUpgradeDefaultsHandler(T wrapper) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return (Consumer<T>) upgradeDefaultsHandlers.getOrDefault(wrapper.getClass(), w -> {
 		});
 	}
@@ -217,13 +218,13 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 	}
 
 	private <T extends IUpgradeWrapper> void addTypeWrapper(UpgradeType<?> type, T wrapper) {
-		//noinspection unchecked
+		// noinspection unchecked
 		((List<T>) typeWrappers.computeIfAbsent(type, t -> new ArrayList<>())).add(wrapper);
 	}
 
 	public <T extends IUpgradeWrapper> List<T> getTypeWrappers(UpgradeType<T> type) {
 		initializeTypeWrappers();
-		//noinspection unchecked
+		// noinspection unchecked
 		return (List<T>) typeWrappers.getOrDefault(type, Collections.emptyList());
 	}
 
@@ -256,7 +257,7 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 		List<T> ret = new ArrayList<>();
 		for (IUpgradeWrapper wrapper : slotWrappers.values()) {
 			if (wrapper.isEnabled() && uc.isInstance(wrapper)) {
-				//noinspection unchecked
+				// noinspection unchecked
 				ret.add((T) wrapper);
 			}
 		}
@@ -378,13 +379,13 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 
 		@Override
 		public <T> List<T> getWrappersThatImplement(Class<T> upgradeClass) {
-			//noinspection unchecked
+			// noinspection unchecked
 			return (List<T>) interfaceWrappers.computeIfAbsent(upgradeClass, upgradeHandler::getListOfWrappersThatImplement);
 		}
 
 		@Override
 		public <T> List<T> getWrappersThatImplementFromMainStorage(Class<T> upgradeClass) {
-			//noinspection unchecked
+			// noinspection unchecked
 			return (List<T>) interfaceWrappers.computeIfAbsent(upgradeClass, upgradeHandler::getListOfWrappersThatImplement);
 		}
 
@@ -394,4 +395,3 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 		}
 	}
 }
-

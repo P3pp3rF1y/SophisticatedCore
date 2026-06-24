@@ -62,8 +62,7 @@ public class RecipeViewerRecipeHelper {
 	}
 
 	public static Collection<Optional<Ingredient>> getIngredients(Recipe<?> recipe) {
-		return getShapedRecipe(recipe)
-				.<Collection<Optional<Ingredient>>>map(shapedRecipe -> shapedRecipe.pattern.ingredients())
+		return getShapedRecipe(recipe).<Collection<Optional<Ingredient>>>map(shapedRecipe -> shapedRecipe.pattern.ingredients())
 				.orElseGet(() -> getShapelessIngredients(recipe)
 						.<Collection<Optional<Ingredient>>>map(ingredients -> ingredients.stream().map(Optional::of).toList())
 						.orElseGet(Collections::emptyList));

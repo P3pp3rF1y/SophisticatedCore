@@ -9,8 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,7 +32,8 @@ public class SophisticatedContainerLayout implements TrashContainerLayout {
 		if (context.screen() instanceof StorageScreenBase<?> storageScreen) {
 			List<Rect2i> collisionAreas = new ArrayList<>();
 			AbstractContainerScreenAccessor screenAccessor = (AbstractContainerScreenAccessor) context.screen();
-			collisionAreas.add(new Rect2i(screenAccessor.getLeftPos(), screenAccessor.getTopPos(), screenAccessor.getImageWidth(), screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
+			collisionAreas.add(new Rect2i(screenAccessor.getLeftPos(), screenAccessor.getTopPos(), screenAccessor.getImageWidth(),
+					screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
 			getPlayerInventoryBounds(storageScreen, screenAccessor).ifPresent(collisionAreas::add);
 			storageScreen.getUpgradeSlotsRectangle().ifPresent(collisionAreas::add);
 			collisionAreas.addAll(storageScreen.getUpgradeSettingsControl().getTabRectangles());
@@ -55,7 +56,8 @@ public class SophisticatedContainerLayout implements TrashContainerLayout {
 		}
 
 		if (identifier.equals(MAIN_BOUNDS_ID)) {
-			return Optional.of(new Rect2i(screenAccessor.getLeftPos(), screenAccessor.getTopPos(), screenAccessor.getImageWidth(), screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
+			return Optional.of(new Rect2i(screenAccessor.getLeftPos(), screenAccessor.getTopPos(), screenAccessor.getImageWidth(),
+					screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
 		}
 		if (identifier.equals(PLAYER_INVENTORY_BOUNDS_ID)) {
 			return getPlayerInventoryBounds(storageScreen, screenAccessor);
@@ -83,11 +85,8 @@ public class SophisticatedContainerLayout implements TrashContainerLayout {
 	@Override
 	public Optional<Snap> getDefaultSnap(TrashSlotContainerContext context) {
 		AbstractContainerScreenAccessor screenAccessor = (AbstractContainerScreenAccessor) context.screen();
-		return Optional.of(new Snap(
-				Optional.of(new SnapCoordinateProvider.Constant(screenAccessor.getLeftPos() + getDefaultSlotX(context.screen()))),
-				Optional.of(new SnapCoordinateProvider.Constant(screenAccessor.getTopPos() + getDefaultSlotY(context.screen()))),
-				SlotVisual.DEFAULT
-		));
+		return Optional.of(new Snap(Optional.of(new SnapCoordinateProvider.Constant(screenAccessor.getLeftPos() + getDefaultSlotX(context.screen()))),
+				Optional.of(new SnapCoordinateProvider.Constant(screenAccessor.getTopPos() + getDefaultSlotY(context.screen()))), SlotVisual.DEFAULT));
 	}
 
 	@Override
@@ -97,51 +96,44 @@ public class SophisticatedContainerLayout implements TrashContainerLayout {
 
 	private static Map<Identifier, Snap> createSnaps() {
 		Map<Identifier, Snap> snaps = new LinkedHashMap<>();
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/top"), edgeSnap(ScreenBoundsProvider.SCREEN_ID, SlotVisual.ATTACH_TOP, true));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/left"), edgeSnap(ScreenBoundsProvider.SCREEN_ID, SlotVisual.ATTACH_LEFT, false));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/right"), edgeSnap(ScreenBoundsProvider.SCREEN_ID, SlotVisual.ATTACH_RIGHT, false));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_left"), edgeSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_LEFT, false));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_right"), edgeSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_RIGHT, false));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_bottom_left"), cornerSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_BOTTOM_LEFT, true));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_bottom"), edgeSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_BOTTOM, true));
-		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_bottom_right"), cornerSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_BOTTOM_RIGHT, false));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/top"),
+				edgeSnap(ScreenBoundsProvider.SCREEN_ID, SlotVisual.ATTACH_TOP, true));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/left"),
+				edgeSnap(ScreenBoundsProvider.SCREEN_ID, SlotVisual.ATTACH_LEFT, false));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/right"),
+				edgeSnap(ScreenBoundsProvider.SCREEN_ID, SlotVisual.ATTACH_RIGHT, false));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_left"),
+				edgeSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_LEFT, false));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_right"),
+				edgeSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_RIGHT, false));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_bottom_left"),
+				cornerSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_BOTTOM_LEFT, true));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_bottom"),
+				edgeSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_BOTTOM, true));
+		snaps.put(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "trashslot/player_bottom_right"),
+				cornerSnap(PLAYER_INVENTORY_BOUNDS_ID, SlotVisual.ATTACH_BOTTOM_RIGHT, false));
 		return snaps;
 	}
 
 	private static Snap edgeSnap(Identifier rectId, SlotVisual visual, boolean horizontal) {
 		if (horizontal) {
 			return new Snap(
-					Optional.of(new SnapCoordinateProvider.Range(
-							new SnapCoordinateProvider.Left(rectId, getHorizontalRangeStartOffset(visual)),
-							new SnapCoordinateProvider.Right(rectId, getHorizontalRangeEndOffset(visual))
-					)),
-					Optional.of(visual == SlotVisual.ATTACH_TOP
-							? new SnapCoordinateProvider.Top(rectId, -15)
-							: new SnapCoordinateProvider.Bottom(rectId, -1)),
-					visual
-			);
+					Optional.of(new SnapCoordinateProvider.Range(new SnapCoordinateProvider.Left(rectId, getHorizontalRangeStartOffset(visual)),
+							new SnapCoordinateProvider.Right(rectId, getHorizontalRangeEndOffset(visual)))),
+					Optional.of(visual == SlotVisual.ATTACH_TOP ? new SnapCoordinateProvider.Top(rectId, -15) : new SnapCoordinateProvider.Bottom(rectId, -1)),
+					visual);
 		}
 
 		return new Snap(
-				Optional.of(visual == SlotVisual.ATTACH_LEFT
-						? new SnapCoordinateProvider.Left(rectId, -15)
-						: new SnapCoordinateProvider.Right(rectId, -1)),
-				Optional.of(new SnapCoordinateProvider.Range(
-						new SnapCoordinateProvider.Top(rectId, visual == SlotVisual.ATTACH_LEFT ? 11 : 10),
-						new SnapCoordinateProvider.Bottom(rectId, visual == SlotVisual.ATTACH_LEFT ? -24 : -28)
-				)),
-				visual
-		);
+				Optional.of(visual == SlotVisual.ATTACH_LEFT ? new SnapCoordinateProvider.Left(rectId, -15) : new SnapCoordinateProvider.Right(rectId, -1)),
+				Optional.of(new SnapCoordinateProvider.Range(new SnapCoordinateProvider.Top(rectId, visual == SlotVisual.ATTACH_LEFT ? 11 : 10),
+						new SnapCoordinateProvider.Bottom(rectId, visual == SlotVisual.ATTACH_LEFT ? -24 : -28))),
+				visual);
 	}
 
 	private static Snap cornerSnap(Identifier rectId, SlotVisual visual, boolean left) {
-		return new Snap(
-				Optional.of(left
-						? new SnapCoordinateProvider.Left(rectId, 8)
-						: new SnapCoordinateProvider.Right(rectId, -24)),
-				Optional.of(new SnapCoordinateProvider.Bottom(rectId, -1)),
-				visual
-		);
+		return new Snap(Optional.of(left ? new SnapCoordinateProvider.Left(rectId, 8) : new SnapCoordinateProvider.Right(rectId, -24)),
+				Optional.of(new SnapCoordinateProvider.Bottom(rectId, -1)), visual);
 	}
 
 	private static int getHorizontalRangeStartOffset(SlotVisual visual) {
@@ -160,8 +152,7 @@ public class SophisticatedContainerLayout implements TrashContainerLayout {
 
 	private Optional<Rect2i> getPlayerInventoryBounds(StorageScreenBase<?> storageScreen, AbstractContainerScreenAccessor screenAccessor) {
 		return Optional.of(new Rect2i(getPlayerInventoryLeftSnap(storageScreen, screenAccessor),
-				screenAccessor.getTopPos() + screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT,
-				PLAYER_INVENTORY_WIDTH,
+				screenAccessor.getTopPos() + screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT, PLAYER_INVENTORY_WIDTH,
 				HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
 	}
 

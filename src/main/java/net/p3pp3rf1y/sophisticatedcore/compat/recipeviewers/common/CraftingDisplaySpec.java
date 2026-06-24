@@ -20,8 +20,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public record CraftingDisplaySpec(Identifier id, boolean shapeless, int width, int height, NonNullList<Ingredient> baseIngredients,
-								  List<CraftingDisplayVariant> variants, List<CraftingDisplayVariant> globalVariants, Set<Identifier> replacedRecipeIds,
-								  IFocusBehavior<CraftingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<CraftingDisplayVariant> {
+		List<CraftingDisplayVariant> variants, List<CraftingDisplayVariant> globalVariants, Set<Identifier> replacedRecipeIds,
+		IFocusBehavior<CraftingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<CraftingDisplayVariant> {
 	public CraftingDisplaySpec(Identifier id, boolean shapeless, int width, int height, NonNullList<Ingredient> baseIngredients,
 			List<CraftingDisplayVariant> variants, IFocusBehavior<CraftingDisplayVariant> focusBehavior) {
 		this(id, shapeless, width, height, baseIngredients, variants, variants, Set.of(), focusBehavior);
@@ -59,8 +59,7 @@ public record CraftingDisplaySpec(Identifier id, boolean shapeless, int width, i
 			int inputIndex = i;
 			List<ItemStack> variantInputs = displayVariants.stream()
 					.filter(variant -> variant.inputs().size() > inputIndex && !variant.inputs().get(inputIndex).isEmpty())
-					.map(variant -> variant.inputs().get(inputIndex))
-					.toList();
+					.map(variant -> variant.inputs().get(inputIndex)).toList();
 			inputSlots.add(variantInputs.isEmpty() ? ingredientStacks(baseIngredients.get(i)) : variantInputs);
 		}
 		return inputSlots;
@@ -88,8 +87,10 @@ public record CraftingDisplaySpec(Identifier id, boolean shapeless, int width, i
 				ingredients.add(baseIngredients.get(i));
 			}
 		}
-		List<Optional<Ingredient>> shapedIngredients = ingredients.stream().map(ingredient -> ingredient.isEmpty() ? Optional.<Ingredient>empty() : Optional.of(ingredient)).toList();
-		CraftingRecipe recipe = shapeless ? new SpecShapelessRecipe(this, displayVariants, variant.firstOutput(), ingredients)
+		List<Optional<Ingredient>> shapedIngredients = ingredients.stream()
+				.map(ingredient -> ingredient.isEmpty() ? Optional.<Ingredient>empty() : Optional.of(ingredient)).toList();
+		CraftingRecipe recipe = shapeless
+				? new SpecShapelessRecipe(this, displayVariants, variant.firstOutput(), ingredients)
 				: new SpecShapedRecipe(this, displayVariants, width, height, shapedIngredients, variant.firstOutput());
 		return new RecipeHolder<>(ClientRecipeHelper.recipeKey(id), recipe);
 	}
@@ -106,8 +107,10 @@ public record CraftingDisplaySpec(Identifier id, boolean shapeless, int width, i
 		private final CraftingDisplaySpec spec;
 		private final List<CraftingDisplayVariant> variants;
 
-		private SpecShapedRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int width, int height, List<Optional<Ingredient>> ingredients, ItemStack result) {
-			super(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(width, height, ingredients, Optional.empty()), ItemStackTemplate.fromNonEmptyStack(result));
+		private SpecShapedRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int width, int height, List<Optional<Ingredient>> ingredients,
+				ItemStack result) {
+			super(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+					new ShapedRecipePattern(width, height, ingredients, Optional.empty()), ItemStackTemplate.fromNonEmptyStack(result));
 			this.spec = spec;
 			this.variants = List.copyOf(variants);
 		}
@@ -128,7 +131,8 @@ public record CraftingDisplaySpec(Identifier id, boolean shapeless, int width, i
 		private final List<CraftingDisplayVariant> variants;
 
 		private SpecShapelessRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, ItemStack result, NonNullList<Ingredient> ingredients) {
-			super(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(result), ingredients);
+			super(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(result),
+					ingredients);
 			this.spec = spec;
 			this.variants = List.copyOf(variants);
 		}

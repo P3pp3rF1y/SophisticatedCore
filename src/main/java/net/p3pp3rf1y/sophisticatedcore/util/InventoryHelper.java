@@ -42,10 +42,8 @@ public class InventoryHelper {
 
 	static {
 		registerPlayerInventoryProvider(player -> player.getCapability(Capabilities.Item.ENTITY));
-		registerEquipmentInventoryProvider(player -> new CombinedResourceHandler<>(
-				PlayerInventoryWrapper.of(player).getArmorSlots(),
-				PlayerInventoryWrapper.of(player).getHandSlots()
-		));
+		registerEquipmentInventoryProvider(
+				player -> new CombinedResourceHandler<>(PlayerInventoryWrapper.of(player).getArmorSlots(), PlayerInventoryWrapper.of(player).getHandSlots()));
 	}
 
 	public static void registerEquipmentInventoryProvider(Function<Player, ResourceHandler<ItemResource>> provider) {
@@ -93,7 +91,8 @@ public class InventoryHelper {
 			int slots = Math.min(from.size(), to.size());
 			for (int i = 0; i < slots; i++) {
 				ItemStack s = from.getResource(i).toStack(from.getAmountAsInt(i));
-				if (s.isEmpty()) continue;
+				if (s.isEmpty())
+					continue;
 				to.insert(ItemResource.of(s), s.getCount(), tx);
 			}
 			tx.commit();
@@ -145,15 +144,19 @@ public class InventoryHelper {
 		iterate(handler, actOn, () -> false);
 	}
 
-	public static <T extends ResourceHandler<ItemResource> & ISlotStackAccessor> void iterate(T handler, BiConsumer<Integer, ItemStack> actOn, BooleanSupplier shouldExit) {
+	public static <T extends ResourceHandler<ItemResource> & ISlotStackAccessor> void iterate(T handler, BiConsumer<Integer, ItemStack> actOn,
+			BooleanSupplier shouldExit) {
 		iterate(handler, actOn, shouldExit, true);
 	}
 
-	public static <T extends ResourceHandler<ItemResource> & ISlotStackAccessor> void iterate(T handler, BiConsumer<Integer, ItemStack> actOn, BooleanSupplier shouldExit, boolean getVirtualCounts) {
+	public static <T extends ResourceHandler<ItemResource> & ISlotStackAccessor> void iterate(T handler, BiConsumer<Integer, ItemStack> actOn,
+			BooleanSupplier shouldExit, boolean getVirtualCounts) {
 		int slots = handler.size();
 		for (int slot = 0; slot < slots; slot++) {
 			ItemStack stack;
-			stack = !getVirtualCounts && handler instanceof InventoryHandler inventoryHandler ? inventoryHandler.getInternalStack(slot) : handler.getStackInSlot(slot);
+			stack = !getVirtualCounts && handler instanceof InventoryHandler inventoryHandler
+					? inventoryHandler.getInternalStack(slot)
+					: handler.getStackInSlot(slot);
 			actOn.accept(slot, stack);
 			if (shouldExit.getAsBoolean()) {
 				break;
@@ -187,15 +190,18 @@ public class InventoryHelper {
 		return missingCount.getValue();
 	}
 
-	public static <T, H extends ResourceHandler<ItemResource> & ISlotStackAccessor> T iterate(H handler, BiFunction<Integer, ItemStack, T> getFromStack, Supplier<T> supplyDefault, Predicate<T> shouldExit) {
+	public static <T, H extends ResourceHandler<ItemResource> & ISlotStackAccessor> T iterate(H handler, BiFunction<Integer, ItemStack, T> getFromStack,
+			Supplier<T> supplyDefault, Predicate<T> shouldExit) {
 		return iterate(handler, slot -> getFromStack.apply(slot, handler.getStackInSlot(slot)), supplyDefault, shouldExit);
 	}
 
-	public static <T> T iterate(ResourceHandler<ItemResource> handler, TriFunction<Integer, ItemResource, Integer, T> getFromResource, Supplier<T> supplyDefault, Predicate<T> shouldExit) {
+	public static <T> T iterate(ResourceHandler<ItemResource> handler, TriFunction<Integer, ItemResource, Integer, T> getFromResource,
+			Supplier<T> supplyDefault, Predicate<T> shouldExit) {
 		return iterate(handler, slot -> getFromResource.apply(slot, handler.getResource(slot), handler.getAmountAsInt(slot)), supplyDefault, shouldExit);
 	}
 
-	public static <T, H extends ResourceHandler<ItemResource>> T iterate(ResourceHandler<ItemResource> handler, IntFunction<T> getFromHandler, Supplier<T> supplyDefault, Predicate<T> shouldExit) {
+	public static <T, H extends ResourceHandler<ItemResource>> T iterate(ResourceHandler<ItemResource> handler, IntFunction<T> getFromHandler,
+			Supplier<T> supplyDefault, Predicate<T> shouldExit) {
 		T ret = supplyDefault.get();
 		int slots = handler.size();
 		for (int slot = 0; slot < slots; slot++) {
@@ -213,7 +219,8 @@ public class InventoryHelper {
 			return ItemStack.EMPTY;
 		}
 		ItemStack stack = itemHandler.getResource(slot).toStack(itemHandler.getAmountAsInt(slot));
-		if (stack.isEmpty()) return ItemStack.EMPTY;
+		if (stack.isEmpty())
+			return ItemStack.EMPTY;
 		try (var tx = Transaction.openRoot()) {
 			int moved = itemHandler.extract(slot, ItemResource.of(stack), stack.getCount(), tx);
 			if (moved > 0) {
@@ -290,7 +297,8 @@ public class InventoryHelper {
 		}
 	}
 
-	public static void dropItem(ResourceHandler<ItemResource> handler, Level level, double x, double y, double z, Integer slot, ItemStack stack, Transaction tx) {
+	public static void dropItem(ResourceHandler<ItemResource> handler, Level level, double x, double y, double z, Integer slot, ItemStack stack,
+			Transaction tx) {
 		if (stack.isEmpty()) {
 			return;
 		}
@@ -324,9 +332,9 @@ public class InventoryHelper {
 			itemHandlers.add(itemHandler);
 			for (int slot = 0; slot < itemHandler.size(); slot++) {
 				ItemStack slotStack = itemHandler.getResource(slot).toStack(itemHandler.getAmountAsInt(slot));
-				if (slotStack.isEmpty()) continue;
-				ResourceHandler<ItemResource> containerHandler =
-						ItemAccess.forStack(slotStack).getCapability(Capabilities.Item.ITEM);
+				if (slotStack.isEmpty())
+					continue;
+				ResourceHandler<ItemResource> containerHandler = ItemAccess.forStack(slotStack).getCapability(Capabilities.Item.ITEM);
 				if (containerHandler != null) {
 					itemHandlers.add(containerHandler);
 				}
@@ -462,7 +470,8 @@ public class InventoryHelper {
 	public static int insert(int index, ResourceHandler<ItemResource> inv, ItemResource res, int amount) {
 		try (Transaction tx = Transaction.openRoot()) {
 			int moved = inv.insert(index, res, amount, tx);
-			if (moved > 0) tx.commit();
+			if (moved > 0)
+				tx.commit();
 			return moved;
 		}
 	}
@@ -514,12 +523,13 @@ public class InventoryHelper {
 	public static int insert(ResourceHandler<ItemResource> inv, ItemResource res, int amount) {
 		try (var tx = Transaction.openRoot()) {
 			int moved = inv.insert(res, amount, tx);
-			if (moved > 0) tx.commit();
+			if (moved > 0)
+				tx.commit();
 			return moved;
 		}
 	}
 
-	//TODO cleanup below anything that's not used anywhere else
+	// TODO cleanup below anything that's not used anywhere else
 
 	public static int simulateInsert(ResourceHandler<ItemResource> inv, ItemResource res, int amount) {
 		try (var tx = Transaction.openRoot()) {
@@ -532,7 +542,8 @@ public class InventoryHelper {
 		int slots = inv.size();
 		for (int i = 0; i < slots && moved < maxAmount; i++) {
 			ItemStack s = inv.getResource(i).toStack(inv.getAmountAsInt(i));
-			if (s.isEmpty() || !match.test(s)) continue;
+			if (s.isEmpty() || !match.test(s))
+				continue;
 			int want = Math.min(maxAmount - moved, s.getCount());
 			moved += inv.extract(i, ItemResource.of(s), want, tx);
 		}
@@ -545,7 +556,8 @@ public class InventoryHelper {
 	public static int extractMatching(ResourceHandler<ItemResource> inv, Predicate<ItemStack> match, int maxAmount) {
 		try (var tx = Transaction.openRoot()) {
 			int moved = extractMatching(inv, match, maxAmount, tx);
-			if (moved > 0) tx.commit();
+			if (moved > 0)
+				tx.commit();
 			return moved;
 		}
 	}
@@ -602,7 +614,8 @@ public class InventoryHelper {
 	/**
 	 * Move resources between handlers with an optional filter, within the given transaction.
 	 */
-	public static int move(ResourceHandler<ItemResource> from, ResourceHandler<ItemResource> to, Predicate<ItemResource> filter, int maxAmount, Transaction tx) {
+	public static int move(ResourceHandler<ItemResource> from, ResourceHandler<ItemResource> to, Predicate<ItemResource> filter, int maxAmount,
+			Transaction tx) {
 		return ResourceHandlerUtil.move(from, to, filter, maxAmount, tx);
 	}
 
@@ -612,7 +625,8 @@ public class InventoryHelper {
 	public static int move(ResourceHandler<ItemResource> from, ResourceHandler<ItemResource> to, Predicate<ItemResource> filter, int maxAmount) {
 		try (var tx = Transaction.openRoot()) {
 			int moved = move(from, to, filter, maxAmount, tx);
-			if (moved > 0) tx.commit();
+			if (moved > 0)
+				tx.commit();
 			return moved;
 		}
 	}

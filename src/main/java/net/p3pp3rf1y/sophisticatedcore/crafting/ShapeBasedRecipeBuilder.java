@@ -54,7 +54,8 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 		this.factory = factory;
 	}
 
-	private ShapeBasedRecipeBuilder(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
+	private ShapeBasedRecipeBuilder(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate,
+			Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
 		this.items = items;
 		this.category = RecipeCategory.MISC;
 		this.result = result.asItem();
@@ -82,7 +83,8 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 		return new ShapeBasedRecipeBuilder(items, result, resultTemplate, r -> r);
 	}
 
-	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate, Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
+	public static ShapeBasedRecipeBuilder shaped(HolderGetter<Item> items, ItemLike result, ItemStackTemplate resultTemplate,
+			Function<ShapedRecipe, ? extends CraftingRecipe> factory) {
 		return new ShapeBasedRecipeBuilder(items, result, resultTemplate, factory);
 	}
 
@@ -140,14 +142,11 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 
 	@Override
 	public void save(RecipeOutput recipeOutput, ResourceKey<Recipe<?>> id) {
-		ShapedRecipe compose = new ShapedRecipe(
-				RecipeBuilder.createCraftingCommonInfo(showNotification),
-				RecipeBuilder.createCraftingBookInfo(category, group),
-				ShapedRecipePattern.of(key, rows),
-				resultTemplate
-		);
+		ShapedRecipe compose = new ShapedRecipe(RecipeBuilder.createCraftingCommonInfo(showNotification), RecipeBuilder.createCraftingBookInfo(category, group),
+				ShapedRecipePattern.of(key, rows), resultTemplate);
 		HoldingRecipeOutput holdingRecipeOutput = new HoldingRecipeOutput(recipeOutput.advancement());
 		holdingRecipeOutput.accept(id, compose, advancementBuilder.build(recipeOutput, id, category));
-		recipeOutput.withConditions(new ItemEnabledCondition(result)).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(), holdingRecipeOutput.getConditions());
+		recipeOutput.withConditions(new ItemEnabledCondition(result)).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(),
+				holdingRecipeOutput.getConditions());
 	}
 }

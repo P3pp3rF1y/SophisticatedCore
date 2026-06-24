@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.IntSupplier;
@@ -52,7 +53,7 @@ public class Label extends WidgetBase {
 
 	@Override
 	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -107,6 +108,6 @@ public class Label extends WidgetBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 }

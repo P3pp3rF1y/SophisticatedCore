@@ -13,10 +13,8 @@ import org.jspecify.annotations.Nullable;
 
 public record SyncContainerClientDataPayload(@Nullable CompoundTag data) implements CustomPacketPayload {
 	public static final Type<SyncContainerClientDataPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_container_client_data"));
-	public static final StreamCodec<ByteBuf, SyncContainerClientDataPayload> STREAM_CODEC = StreamCodec.composite(
-			StreamCodecHelper.ofNullable(ByteBufCodecs.COMPOUND_TAG),
-			SyncContainerClientDataPayload::data,
-			SyncContainerClientDataPayload::new);
+	public static final StreamCodec<ByteBuf, SyncContainerClientDataPayload> STREAM_CODEC = StreamCodec
+			.composite(StreamCodecHelper.ofNullable(ByteBufCodecs.COMPOUND_TAG), SyncContainerClientDataPayload::data, SyncContainerClientDataPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

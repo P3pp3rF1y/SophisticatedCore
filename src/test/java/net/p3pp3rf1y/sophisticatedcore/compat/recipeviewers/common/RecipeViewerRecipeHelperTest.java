@@ -4,9 +4,10 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -19,7 +20,6 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.Level;
-import net.minecraft.server.Bootstrap;
 import net.p3pp3rf1y.sophisticatedcore.crafting.CustomShapelessRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.IWrapperRecipe;
 import org.junit.jupiter.api.Test;
@@ -48,8 +48,10 @@ class RecipeViewerRecipeHelperTest {
 
 	@Test
 	void getIngredientsIncludesWrappedShapedRecipeIngredients() {
-		WrappedShapedRecipe wrappedRecipe = new WrappedShapedRecipe(new ShapedRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
-				new ShapedRecipePattern(2, 1, NonNullList.of(Optional.empty(), Optional.of(Ingredient.of(Items.STONE)), Optional.of(Ingredient.of(Items.DIORITE))), Optional.empty()),
+		WrappedShapedRecipe wrappedRecipe = new WrappedShapedRecipe(new ShapedRecipe(new Recipe.CommonInfo(true),
+				new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+				new ShapedRecipePattern(2, 1,
+						NonNullList.of(Optional.empty(), Optional.of(Ingredient.of(Items.STONE)), Optional.of(Ingredient.of(Items.DIORITE))), Optional.empty()),
 				ItemStackTemplate.fromNonEmptyStack(new ItemStack(Items.GRANITE))));
 
 		Collection<Optional<Ingredient>> ingredients = RecipeViewerRecipeHelper.getIngredients(wrappedRecipe);
@@ -62,8 +64,9 @@ class RecipeViewerRecipeHelperTest {
 
 	@Test
 	void getIngredientsIncludesWrappedCustomShapelessRecipeIngredients() {
-		WrappedCustomShapelessRecipe wrappedRecipe = new WrappedCustomShapelessRecipe(new ShapelessRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
-				ItemStackTemplate.fromNonEmptyStack(new ItemStack(Items.GRANITE)), List.of(Ingredient.of(Items.STONE), Ingredient.of(Items.DIORITE))));
+		WrappedCustomShapelessRecipe wrappedRecipe = new WrappedCustomShapelessRecipe(
+				new ShapelessRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(new ItemStack(Items.GRANITE)), List.of(Ingredient.of(Items.STONE), Ingredient.of(Items.DIORITE))));
 
 		Collection<Optional<Ingredient>> ingredients = RecipeViewerRecipeHelper.getIngredients(wrappedRecipe);
 
