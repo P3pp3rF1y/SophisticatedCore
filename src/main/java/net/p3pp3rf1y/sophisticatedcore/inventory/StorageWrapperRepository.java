@@ -30,7 +30,8 @@ public class StorageWrapperRepository {
 			storageWrapper = instantiateWrapper(stack, factory);
 			stackStorageWrappers.put(stack, storageWrapper);
 		} else if (!wrapperClass.isInstance(storageWrapper)) {
-			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...", stack, wrapperClass);
+			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...",
+					stack, wrapperClass);
 			stackStorageWrappers.invalidate(stack);
 			storageWrapper = instantiateWrapper(stack, factory);
 			stackStorageWrappers.put(stack, storageWrapper);
@@ -42,19 +43,14 @@ public class StorageWrapperRepository {
 		stackStorageWrappers.put(stack, storageWrapper);
 	}
 
-/*    public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) { //TODO future UUID based caching and retrieval
-        IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid);
-        if (storageWrapper == null) {
-            storageWrapper = instantiateWrapper(factory);
-            uuidStorageWrappers.put(uuid, storageWrapper);
-        } else if (!wrapperClass.isInstance(storageWrapper)) {
-            SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with UUID {} is not an instance of {}. Replacing with new instance...", uuid, wrapperClass);
-            uuidStorageWrappers.invalidate(uuid);
-            storageWrapper = instantiateWrapper(factory);
-            uuidStorageWrappers.put(uuid, storageWrapper);
-        }
-        return wrapperClass.cast(storageWrapper);
-    }*/
+	/*
+	 * public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) {
+	 * //TODO future UUID based caching and retrieval IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid); if (storageWrapper == null) {
+	 * storageWrapper = instantiateWrapper(factory); uuidStorageWrappers.put(uuid, storageWrapper); } else if (!wrapperClass.isInstance(storageWrapper)) {
+	 * SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with UUID {} is not an instance of {}. Replacing with new instance...", uuid,
+	 * wrapperClass); uuidStorageWrappers.invalidate(uuid); storageWrapper = instantiateWrapper(factory); uuidStorageWrappers.put(uuid, storageWrapper); }
+	 * return wrapperClass.cast(storageWrapper); }
+	 */
 
 	private static <T extends IStorageWrapper> T instantiateWrapper(ItemStack stack, Function<ItemStack, T> instantiate) {
 		return instantiate.apply(stack);

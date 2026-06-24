@@ -43,6 +43,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.FilterItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nullable;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -83,7 +84,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		List<AlchemyFilterAttribute> attributes = new ArrayList<>(getFilterAttributes());
 		AlchemyFilterAttribute attribute = attributes.get(slot);
 		if (attribute.filter().isEmpty()) {
-			AlchemyCondition defaultConditionForPotion = itemDefinitions.stream().filter(def -> def.filter.test(filter)).findFirst().map(def -> def.getDefaultCondition.apply(filter)).orElse(AlchemyCondition.NEVER);
+			AlchemyCondition defaultConditionForPotion = itemDefinitions.stream().filter(def -> def.filter.test(filter)).findFirst()
+					.map(def -> def.getDefaultCondition.apply(filter)).orElse(AlchemyCondition.NEVER);
 			attribute = attribute.setConditionAndValue(defaultConditionForPotion, defaultConditionForPotion.defaultValue());
 		} else if (filter.isEmpty()) {
 			attribute = attribute.setConditionAndValue(AlchemyCondition.NEVER, -1);
@@ -200,7 +202,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 				itemDefinitions.stream().filter(def -> def.filter.test(filterAttribute.filter())).findFirst().ifPresent(def -> {
 					if (def.canApply.test(livingEntity, filterAttribute.filter(), shouldMatchAllEffects(), shouldMatchEffectAmplifier())) {
 						InventoryHelper.iterate(storageWrapper.getInventoryForUpgradeProcessing(), (slot, stack) -> {
-							if (def.filter().test(stack) && def.stackMatches.test(stack, filterAttribute.filter(), shouldMatchAllEffects(), shouldMatchEffectDuration(), shouldMatchEffectAmplifier())) {
+							if (def.filter().test(stack) && def.stackMatches.test(stack, filterAttribute.filter(), shouldMatchAllEffects(),
+									shouldMatchEffectDuration(), shouldMatchEffectAmplifier())) {
 								remainingApplyTime = def.startUsing.applyAsInt(stack, livingEntity);
 								if (remainingApplyTime > 0) {
 									applying = true;
@@ -228,16 +231,17 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.OMINOUS_BOTTLE, stack -> AlchemyCondition.ALWAYS,
 				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> !le.hasEffect(MobEffects.BAD_OMEN),
 				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> stack.getItem() == Items.OMINOUS_BOTTLE,
-				ItemStack::getUseDuration,
-				(stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity)
-		));
+				ItemStack::getUseDuration, (stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity)));
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.SPLASH_POTION, AlchemyUpgradeWrapper::getDefaultConditionForPotion,
-				AlchemyUpgradeWrapper::shouldApplyPotionEffectsTo, AlchemyUpgradeWrapper::stackPotionEffectsMatch,
-				(stack, livingEntity) -> {
+				AlchemyUpgradeWrapper::shouldApplyPotionEffectsTo, AlchemyUpgradeWrapper::stackPotionEffectsMatch, (stack, livingEntity) -> {
 					Level level = livingEntity.level();
-					level.playSound(null, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
-					ThrownSplashPotion thrownPotion = new ThrownSplashPotion(level, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack);
-					onHit(thrownPotion, new EntityHitResult(livingEntity, new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
+					level.playSound(null, livingEntity.getX() + livingEntity.getBbWidth() / 2, livingEntity.getY(),
+							livingEntity.getZ() + livingEntity.getBbWidth() / 2, SoundEvents.SPLASH_POTION_THROW, SoundSource.PLAYERS, 0.5F,
+							0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
+					ThrownSplashPotion thrownPotion = new ThrownSplashPotion(level, livingEntity.getX() + livingEntity.getBbWidth() / 2,
+							livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ() + livingEntity.getBbWidth() / 2, stack);
+					onHit(thrownPotion, new EntityHitResult(livingEntity,
+							new Vec3(livingEntity.getX(), livingEntity.getY() + livingEntity.getEyeHeight(), livingEntity.getZ())));
 					return 1;
 				}, (stack, livingEntity) -> ItemStack.EMPTY, false));
 		addItemDefinition(new AlchemyItemDefinition(stack -> stack.getItem() == Items.POTION, AlchemyUpgradeWrapper::getDefaultConditionForPotion,
@@ -257,10 +261,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 						return shouldApplyConsumableEffectsTo(le, potionStack, matchAllEffects, matchEffectAmplifier);
 					}
 					return false;
-				},
-				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
-				ItemStack::getUseDuration,
-				(stack, livingEntity) -> {
+				}, (stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
+				ItemStack::getUseDuration, (stack, livingEntity) -> {
 					if (livingEntity instanceof ZombieVillager zombieVillager && zombieVillager.hasEffect(MobEffects.WEAKNESS)) {
 						zombieVillager.startConverting(null, livingEntity.level().random.nextInt(2401) + 3600);
 						return ItemStack.EMPTY;
@@ -268,18 +270,14 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 
 					return stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity);
 				}));
-		addItemDefinition(new AlchemyItemDefinition(
-				AlchemyUpgradeWrapper::isEffectAffectingConsumable,
-				AlchemyUpgradeWrapper::getDefaultConditionForConsumable,
+		addItemDefinition(new AlchemyItemDefinition(AlchemyUpgradeWrapper::isEffectAffectingConsumable, AlchemyUpgradeWrapper::getDefaultConditionForConsumable,
 				(le, potionStack, matchAllEffects, matchEffectAmplifier) -> {
 					if (le instanceof Player) {
 						return shouldApplyConsumableEffectsTo(le, potionStack, matchAllEffects, matchEffectAmplifier);
 					}
 					return false;
-				},
-				(stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
-				ItemStack::getUseDuration, (stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity))
-		);
+				}, (stack, filter, matchAllEffects, matchEffectDuration, matchEffectAmplifier) -> ItemStack.isSameItemSameComponents(filter, stack),
+				ItemStack::getUseDuration, (stack, livingEntity) -> stack.getItem().finishUsingItem(stack, livingEntity.level(), livingEntity)));
 	}
 
 	private static AlchemyCondition getDefaultConditionForConsumable(ItemStack stack) {
@@ -314,7 +312,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 
 		List<ConsumeEffect> consumeEffects = consumable.onConsumeEffects();
 		for (ConsumeEffect consumeEffect : consumeEffects) {
-			if (consumeEffect instanceof ClearAllStatusEffectsConsumeEffect || consumeEffect instanceof RemoveStatusEffectsConsumeEffect || consumeEffect instanceof ApplyStatusEffectsConsumeEffect) {
+			if (consumeEffect instanceof ClearAllStatusEffectsConsumeEffect || consumeEffect instanceof RemoveStatusEffectsConsumeEffect
+					|| consumeEffect instanceof ApplyStatusEffectsConsumeEffect) {
 				return true;
 			}
 		}
@@ -332,7 +331,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		}
 	}
 
-	public static boolean stackPotionEffectsMatch(ItemStack stack, ItemStack filter, boolean matchAllEffects, boolean matchEffectDuration, boolean matchEffectAmplifier) {
+	public static boolean stackPotionEffectsMatch(ItemStack stack, ItemStack filter, boolean matchAllEffects, boolean matchEffectDuration,
+			boolean matchEffectAmplifier) {
 		if (matchAllEffects && matchEffectDuration && matchEffectAmplifier) {
 			return ItemStack.isSameItemSameComponents(filter, stack);
 		}
@@ -360,11 +360,11 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		return true;
 	}
 
-	private static boolean matchEffectIn(PotionContents potionContents, MobEffectInstance filterEffectInstance, boolean matchEffectDuration, boolean matchEffectAmplifier) {
+	private static boolean matchEffectIn(PotionContents potionContents, MobEffectInstance filterEffectInstance, boolean matchEffectDuration,
+			boolean matchEffectAmplifier) {
 		for (MobEffectInstance effectInstance : potionContents.getAllEffects()) {
 			Holder<MobEffect> effect = effectInstance.getEffect();
-			if (effect == filterEffectInstance.getEffect()
-					&& (!matchEffectDuration || effectInstance.getDuration() == filterEffectInstance.getDuration())
+			if (effect == filterEffectInstance.getEffect() && (!matchEffectDuration || effectInstance.getDuration() == filterEffectInstance.getDuration())
 					&& (!matchEffectAmplifier || effectInstance.getAmplifier() == filterEffectInstance.getAmplifier())) {
 				return true;
 			}
@@ -420,7 +420,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 
 	private static boolean effectPresent(LivingEntity le, Holder<MobEffect> effect, boolean matchEffectAmplifier, int amplifier) {
 		MobEffectInstance leEffectInstance = le.getEffect(effect);
-		//checking for duration and amplifier greater than passed in because otherwise applying the passed in ones to an entity would do nothing
+		// checking for duration and amplifier greater than passed in because otherwise applying the passed in ones to an entity would do nothing
 		return leEffectInstance != null && (!matchEffectAmplifier || leEffectInstance.getAmplifier() >= amplifier);
 	}
 
@@ -433,7 +433,7 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 			if (consumeEffect instanceof ApplyStatusEffectsConsumeEffect applyStatusEffects) {
 				return areEffectsMissing(le, matchAllEffects, matchEffectAmplifier, applyStatusEffects.effects());
 			} else if (consumeEffect instanceof ClearAllStatusEffectsConsumeEffect) {
-				return true; //always apply these effects
+				return true; // always apply these effects
 			} else if (consumeEffect instanceof RemoveStatusEffectsConsumeEffect removeStatusEffects) {
 				return areEffectsPresent(le, matchAllEffects, matchEffectAmplifier, removeStatusEffects.effects());
 			}
@@ -471,7 +471,8 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 	}
 
 	public boolean isValidAlchemyItem(ItemStack stack) {
-		return itemDefinitions.stream().anyMatch(def -> def.filter.test(stack)) && !InventoryHelper.hasItem(getFilterHandler(), s -> ItemStack.isSameItemSameComponents(s, stack));
+		return itemDefinitions.stream().anyMatch(def -> def.filter.test(stack))
+				&& !InventoryHelper.hasItem(getFilterHandler(), s -> ItemStack.isSameItemSameComponents(s, stack));
 	}
 
 	public ObservableFilterItemStackHandler getFilterHandler() {
@@ -527,14 +528,11 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 		save();
 	}
 
-	public record AlchemyItemDefinition(Predicate<ItemStack> filter,
-										Function<ItemStack, AlchemyCondition> getDefaultCondition,
-										AlchemyItemEntityMatcher canApply, AlchemyItemStackMatcher stackMatches,
-										StartUsing startUsing, FinishUsing finishUsing, boolean hasItemUseEffects) {
-		public AlchemyItemDefinition(Predicate<ItemStack> filter,
-									 Function<ItemStack, AlchemyCondition> getDefaultCondition,
-									 AlchemyItemEntityMatcher canApply, AlchemyItemStackMatcher stackMatches,
-									 StartUsing startUsing, FinishUsing finishUsing) {
+	public record AlchemyItemDefinition(Predicate<ItemStack> filter, Function<ItemStack, AlchemyCondition> getDefaultCondition,
+			AlchemyItemEntityMatcher canApply, AlchemyItemStackMatcher stackMatches, StartUsing startUsing, FinishUsing finishUsing,
+			boolean hasItemUseEffects) {
+		public AlchemyItemDefinition(Predicate<ItemStack> filter, Function<ItemStack, AlchemyCondition> getDefaultCondition, AlchemyItemEntityMatcher canApply,
+				AlchemyItemStackMatcher stackMatches, StartUsing startUsing, FinishUsing finishUsing) {
 			this(filter, getDefaultCondition, canApply, stackMatches, startUsing, finishUsing, true);
 		}
 	}
@@ -554,7 +552,6 @@ public class AlchemyUpgradeWrapper extends UpgradeWrapperBase<AlchemyUpgradeWrap
 	public interface FinishUsing {
 		ItemStack apply(ItemStack stack, LivingEntity livingEntity);
 	}
-
 
 	public class ObservableFilterItemStackHandler extends FilterItemStackHandler {
 		public ObservableFilterItemStackHandler(int filterSlotCount) {

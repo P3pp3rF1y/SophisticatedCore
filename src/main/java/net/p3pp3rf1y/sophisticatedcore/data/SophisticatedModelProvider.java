@@ -20,13 +20,9 @@ public abstract class SophisticatedModelProvider extends ModelProvider {
 
 	protected void generateCubeBottomTopReuseTopOnBottom(BlockModelGenerators blockModels, Block block) {
 		blockModels.createTrivialBlock(block,
-				TexturedModel.createDefault(
-						b -> new TextureMapping()
-								.put(TextureSlot.TOP, TextureMapping.getBlockTexture(block, "_top"))
-								.put(TextureSlot.SIDE, TextureMapping.getBlockTexture(block, "_side"))
-								.put(TextureSlot.BOTTOM, TextureMapping.getBlockTexture(block, "_top")),
-						ModelTemplates.CUBE_BOTTOM_TOP
-				));
+				TexturedModel.createDefault(b -> new TextureMapping().put(TextureSlot.TOP, TextureMapping.getBlockTexture(block, "_top"))
+						.put(TextureSlot.SIDE, TextureMapping.getBlockTexture(block, "_side"))
+						.put(TextureSlot.BOTTOM, TextureMapping.getBlockTexture(block, "_top")), ModelTemplates.CUBE_BOTTOM_TOP));
 	}
 
 	protected void addItemClasses(List<Item> itemList, List<Class<? extends Item>> itemClasses) {

@@ -25,16 +25,17 @@ public class RecentCraftedResultStorage extends SavedData {
 	private static final String SAVED_DATA_NAME = SophisticatedCore.MOD_ID + "_recent_crafted_results";
 	private static final String SCOPES_TAG = "scopes";
 	private static final Codec<List<ResourceLocation>> RECENT_RESULTS_CODEC = Codec.list(ResourceLocation.CODEC)
-			.xmap(results -> results.stream().limit(MAX_RECENT_RESULTS_PER_INGREDIENT).toList(), List::copyOf).xmap(CodecHelper::toMutable, Function.identity());
-	private static final Codec<Map<ResourceLocation, Map<ResourceLocation, List<ResourceLocation>>>> SCOPES_CODEC = Codec.unboundedMap(
-			ResourceLocation.CODEC,
-			Codec.unboundedMap(ResourceLocation.CODEC, RECENT_RESULTS_CODEC).xmap(CodecHelper::toMutable, Function.identity())
-	).xmap(CodecHelper::toMutable, Function.identity());
+			.xmap(results -> results.stream().limit(MAX_RECENT_RESULTS_PER_INGREDIENT).toList(), List::copyOf)
+			.xmap(CodecHelper::toMutable, Function.identity());
+	private static final Codec<Map<ResourceLocation, Map<ResourceLocation, List<ResourceLocation>>>> SCOPES_CODEC = Codec
+			.unboundedMap(ResourceLocation.CODEC,
+					Codec.unboundedMap(ResourceLocation.CODEC, RECENT_RESULTS_CODEC).xmap(CodecHelper::toMutable, Function.identity()))
+			.xmap(CodecHelper::toMutable, Function.identity());
 	private static final SavedDataType<RecentCraftedResultStorage> TYPE = new SavedDataType<>(SAVED_DATA_NAME, RecentCraftedResultStorage::new,
-			RecordCodecBuilder.create(builder -> builder.group(
-					Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), SCOPES_CODEC).xmap(CodecHelper::toMutable, Function.identity())
-							.fieldOf("playerRecentResults").forGetter(storage -> storage.playerRecentResults)
-			).apply(builder, RecentCraftedResultStorage::new)));
+			RecordCodecBuilder.create(builder -> builder
+					.group(Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), SCOPES_CODEC)
+							.xmap(CodecHelper::toMutable, Function.identity()).fieldOf("playerRecentResults").forGetter(storage -> storage.playerRecentResults))
+					.apply(builder, RecentCraftedResultStorage::new)));
 
 	private final Map<UUID, Map<ResourceLocation, Map<ResourceLocation, List<ResourceLocation>>>> playerRecentResults;
 	private static Map<ResourceLocation, Map<ResourceLocation, List<ResourceLocation>>> clientRecentResults = new HashMap<>();
@@ -49,15 +50,13 @@ public class RecentCraftedResultStorage extends SavedData {
 
 	public static RecentCraftedResultStorage get(ServerLevel level) {
 		ServerLevel overworld = level.getServer().getLevel(Level.OVERWORLD);
-		//noinspection ConstantConditions - overworld is loaded while server levels are available
+		// noinspection ConstantConditions - overworld is loaded while server levels are available
 		DimensionDataStorage storage = overworld.getDataStorage();
 		return storage.computeIfAbsent(TYPE);
 	}
 
 	public List<ResourceLocation> getRecentResults(Player player, ResourceLocation scope, ResourceLocation ingredient) {
-		return playerRecentResults.getOrDefault(player.getUUID(), Map.of())
-				.getOrDefault(scope, Map.of())
-				.getOrDefault(ingredient, List.of());
+		return playerRecentResults.getOrDefault(player.getUUID(), Map.of()).getOrDefault(scope, Map.of()).getOrDefault(ingredient, List.of());
 	}
 
 	public static List<ResourceLocation> getClientRecentResults(ResourceLocation scope, ResourceLocation ingredient) {
@@ -79,8 +78,7 @@ public class RecentCraftedResultStorage extends SavedData {
 
 	public boolean recordCraftedResult(Player player, ResourceLocation scope, ResourceLocation ingredient, ResourceLocation result) {
 		List<ResourceLocation> recentResults = playerRecentResults.computeIfAbsent(player.getUUID(), uuid -> new HashMap<>())
-				.computeIfAbsent(scope, key -> new HashMap<>())
-				.computeIfAbsent(ingredient, key -> new ArrayList<>());
+				.computeIfAbsent(scope, key -> new HashMap<>()).computeIfAbsent(ingredient, key -> new ArrayList<>());
 		if (!recentResults.isEmpty() && recentResults.get(0).equals(result)) {
 			return false;
 		}

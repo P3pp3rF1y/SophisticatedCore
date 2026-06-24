@@ -53,10 +53,8 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 
 	@Override
 	public ShapedRecipeDisplayBuilder<CraftingRecipe> define(Character symbol, List<ItemStack> itemStacks) {
-		return define(symbol,
-				Ingredient.of(itemStacks.isEmpty() ? Items.AIR : itemStacks.getFirst().getItem()),
-				new SlotDisplay.Composite(itemStacks.stream().map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())
-		);
+		return define(symbol, Ingredient.of(itemStacks.isEmpty() ? Items.AIR : itemStacks.getFirst().getItem()),
+				new SlotDisplay.Composite(itemStacks.stream().map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList()));
 	}
 
 	@Override

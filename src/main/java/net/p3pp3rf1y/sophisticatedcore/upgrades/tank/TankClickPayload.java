@@ -16,9 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 public record TankClickPayload(int upgradeSlot) implements CustomPacketPayload {
 	public static final Type<TankClickPayload> TYPE = new Type<>(SophisticatedCore.getRL("tank_click"));
-	public static final StreamCodec<ByteBuf, TankClickPayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT,
-			TankClickPayload::upgradeSlot,
+	public static final StreamCodec<ByteBuf, TankClickPayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.INT, TankClickPayload::upgradeSlot,
 			TankClickPayload::new);
 
 	@Override

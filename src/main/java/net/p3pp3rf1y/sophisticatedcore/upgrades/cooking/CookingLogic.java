@@ -31,6 +31,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,18 +62,20 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private long remainingCookTime = 0;
 	private long remainingBurnTime = 0;
 
-	public static final Codec<Map<ResourceKey<Recipe<?>>, Integer>> RECIPES_USED_CODEC = Codec.unboundedMap(ResourceKey.codec(Registries.RECIPE), ExtraCodecs.NON_NEGATIVE_INT);
+	public static final Codec<Map<ResourceKey<Recipe<?>>, Integer>> RECIPES_USED_CODEC = Codec.unboundedMap(ResourceKey.codec(Registries.RECIPE),
+			ExtraCodecs.NON_NEGATIVE_INT);
 
 	public static final StreamCodec<ByteBuf, ResourceKey<Recipe<?>>> RECIPE_KEY_STREAM_CODEC = ResourceKey.streamCodec(Registries.RECIPE);
-	public static final StreamCodec<FriendlyByteBuf, Map<ResourceKey<Recipe<?>>, Integer>> RECIPES_USED_STREAM_CODEC =
-			StreamCodec.of((buf, map) -> buf.writeMap(map, RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT),
-					buf -> buf.readMap(RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT));
+	public static final StreamCodec<FriendlyByteBuf, Map<ResourceKey<Recipe<?>>, Integer>> RECIPES_USED_STREAM_CODEC = StreamCodec
+			.of((buf, map) -> buf.writeMap(map, RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT), buf -> buf.readMap(RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT));
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, Predicate<ItemStack> isInput, float burnTimeModifier) {
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType,
+			Predicate<ItemStack> isInput, float burnTimeModifier) {
 		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, isInput, cookingUpgradeConfig, recipeType, burnTimeModifier);
 	}
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput,
+			CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
 		this.isFuel = isFuel;

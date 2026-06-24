@@ -29,11 +29,14 @@ public interface ISlotTracker {
 
 	void refreshSlotIndexesFrom(InventoryHandler itemHandler);
 
-	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate);
+	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter,
+			UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate);
 
-	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate);
+	ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter,
+			UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate);
 
-	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot);
+	void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot);
 
 	void unregisterStackKeyListeners();
 
@@ -58,7 +61,7 @@ public interface ISlotTracker {
 	class Noop implements ISlotTracker {
 		@Override
 		public void setShouldInsertIntoEmpty(BooleanSupplier shouldInsertIntoEmpty) {
-			//noop
+			// noop
 		}
 
 		@Override
@@ -83,42 +86,48 @@ public interface ISlotTracker {
 
 		@Override
 		public void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack) {
-			//noop
+			// noop
 		}
 
 		@Override
 		public void clear() {
-			//noop
+			// noop
 		}
 
 		@Override
 		public void refreshSlotIndexesFrom(InventoryHandler itemHandler) {
-			//noop
+			// noop
 		}
 
 		@Override
-		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack, boolean simulate) {
+		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler,
+				IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, ItemStack stack,
+				boolean simulate) {
 			return stack;
 		}
 
 		@Override
-		public ItemStack extractItemFromHandler(InventoryHandler inventoryHandler, IItemHandlerExtractor extractItemInternal, ItemStack stack, boolean simulate) {
+		public ItemStack extractItemFromHandler(InventoryHandler inventoryHandler, IItemHandlerExtractor extractItemInternal, ItemStack stack,
+				boolean simulate) {
 			return ItemStack.EMPTY;
 		}
 
 		@Override
-		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler, IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot, ItemStack stack, boolean simulate) {
+		public ItemStack insertItemIntoHandler(InventoryHandler itemHandler, BiFunction<ItemStack, Boolean, ItemStack> beforeInsertHandler,
+				IItemHandlerInserter inserter, UnaryOperator<ItemStack> slotOverflowHandler, UnaryOperator<ItemStack> storageOverflowHandler, int slot,
+				ItemStack stack, boolean simulate) {
 			return inserter.insertItem(slot, stack, simulate);
 		}
 
 		@Override
-		public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
-			//noop
+		public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+				Runnable onRemoveLastEmptySlot) {
+			// noop
 		}
 
 		@Override
 		public void unregisterStackKeyListeners() {
-			//noop
+			// noop
 		}
 
 		@Override

@@ -14,6 +14,6 @@ public interface IInsertResponseUpgrade {
 	}
 
 	default void onAfterInsert(IItemHandlerSimpleInserter inventoryHandler, int slot) {
-		//noop by default
+		// noop by default
 	}
 }

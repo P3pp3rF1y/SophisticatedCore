@@ -13,7 +13,8 @@ public class StorageSettingsTab extends Tab {
 	private final StorageScreenBase<?> screen;
 
 	public StorageSettingsTab(Position position, StorageScreenBase<?> screen, String tabTooltip) {
-		super(position, Component.translatable(tabTooltip), onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
+		super(position, Component.translatable(tabTooltip),
+				onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
 		this.screen = screen;
 	}
 

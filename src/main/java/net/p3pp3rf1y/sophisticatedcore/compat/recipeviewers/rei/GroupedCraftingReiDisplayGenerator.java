@@ -43,10 +43,8 @@ public class GroupedCraftingReiDisplayGenerator implements DynamicDisplayGenerat
 			return Optional.empty();
 		}
 
-		List<GroupedCraftingReiDisplay> displays = catalogSupplier.get().getGroupedCraftingSpecs().stream()
-				.flatMap(spec -> spec.getUsagesFor(stack).stream())
-				.map(GroupedCraftingReiDisplay::new)
-				.toList();
+		List<GroupedCraftingReiDisplay> displays = catalogSupplier.get().getGroupedCraftingSpecs().stream().flatMap(spec -> spec.getUsagesFor(stack).stream())
+				.map(GroupedCraftingReiDisplay::new).toList();
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -55,6 +53,7 @@ public class GroupedCraftingReiDisplayGenerator implements DynamicDisplayGenerat
 		if (!builder.getRecipesFor().isEmpty() || !builder.getUsagesFor().isEmpty()) {
 			return Optional.empty();
 		}
-		return Optional.of(catalogSupplier.get().getGroupedCraftingSpecs().stream().flatMap(spec -> spec.getAllDisplays().stream()).map(GroupedCraftingReiDisplay::new).toList());
+		return Optional.of(catalogSupplier.get().getGroupedCraftingSpecs().stream().flatMap(spec -> spec.getAllDisplays().stream())
+				.map(GroupedCraftingReiDisplay::new).toList());
 	}
 }

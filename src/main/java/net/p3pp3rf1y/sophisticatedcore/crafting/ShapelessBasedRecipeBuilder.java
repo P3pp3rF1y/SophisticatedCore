@@ -26,7 +26,8 @@ public class ShapelessBasedRecipeBuilder extends ShapelessRecipeBuilder {
 		this(items, new ItemStack(result, count), factory);
 	}
 
-	public static ShapelessBasedRecipeBuilder shapeless(HolderGetter<Item> items, ItemStack result, Function<ShapelessRecipe, ? extends CraftingRecipe> factory) {
+	public static ShapelessBasedRecipeBuilder shapeless(HolderGetter<Item> items, ItemStack result,
+			Function<ShapelessRecipe, ? extends CraftingRecipe> factory) {
 		return new ShapelessBasedRecipeBuilder(items, result, factory);
 	}
 
@@ -42,11 +43,13 @@ public class ShapelessBasedRecipeBuilder extends ShapelessRecipeBuilder {
 		return shapeless(items, new ItemStack(result, count));
 	}
 
-	public static ShapelessBasedRecipeBuilder shapeless(HolderGetter<Item> items, ItemLike result, Function<ShapelessRecipe, ? extends CraftingRecipe> factory) {
+	public static ShapelessBasedRecipeBuilder shapeless(HolderGetter<Item> items, ItemLike result,
+			Function<ShapelessRecipe, ? extends CraftingRecipe> factory) {
 		return shapeless(items, result, 1, factory);
 	}
 
-	public static ShapelessBasedRecipeBuilder shapeless(HolderGetter<Item> items, ItemLike result, int count, Function<ShapelessRecipe, ? extends CraftingRecipe> factory) {
+	public static ShapelessBasedRecipeBuilder shapeless(HolderGetter<Item> items, ItemLike result, int count,
+			Function<ShapelessRecipe, ? extends CraftingRecipe> factory) {
 		return new ShapelessBasedRecipeBuilder(items, result, count, factory);
 	}
 
@@ -59,6 +62,7 @@ public class ShapelessBasedRecipeBuilder extends ShapelessRecipeBuilder {
 			return;
 		}
 
-		recipeOutput.withConditions(new ItemEnabledCondition(getResult())).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(), holdingRecipeOutput.getConditions());
+		recipeOutput.withConditions(new ItemEnabledCondition(getResult())).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(),
+				holdingRecipeOutput.getConditions());
 	}
 }

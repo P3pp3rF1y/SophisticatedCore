@@ -21,10 +21,11 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 	public static final String DATA_MATCH_AMPLIFIER = "matchAmplifier";
 	private static final String DATA_ENTITY_MATCH = "entityMatch";
 
-	public AlchemyUpgradeContainer(Player player, int upgradeContainerId, AlchemyUpgradeWrapper upgradeWrapper, UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
+	public AlchemyUpgradeContainer(Player player, int upgradeContainerId, AlchemyUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(), (slot, stack) ->
-				slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
+		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(),
+				(slot, stack) -> slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
 					@Override
 					public boolean mayPlace(ItemStack stack) {
 						return stack.isEmpty() || getItemHandler().isItemValid(slot, stack);

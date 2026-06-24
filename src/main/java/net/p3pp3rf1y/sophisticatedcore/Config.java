@@ -18,7 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Config {
 	private static final String ENABLED_ITEM_MATCHER = "([a-z0-9_.-]+:[a-z0-9_/.-]+\\|(true|false))";
 
-	private Config() {}
+	private Config() {
+	}
 
 	public static final Client CLIENT;
 	public static final ModConfigSpec CLIENT_SPEC;
@@ -42,9 +43,11 @@ public class Config {
 
 		Client(ModConfigSpec.Builder builder) {
 			builder.comment("Client Settings").push("client");
-			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods").defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
+			sortButtonsPosition = builder.comment("Positions where sort buttons can display to help with conflicts with controls from other mods")
+					.defineEnum("sortButtonsPosition", SortButtonsPosition.TITLE_LINE_RIGHT);
 			playButtonSound = builder.comment("Whether click sound should play when custom buttons are clicked in the GUI").define("playButtonSound", true);
-			mouseTweaksScrollEnabled = builder.comment("Whether scrolling in inventory should be handled by Mouse Tweaks mod if it is in the pack").define("mouseTweaksScrollEnabled", true);
+			mouseTweaksScrollEnabled = builder.comment("Whether scrolling in inventory should be handled by Mouse Tweaks mod if it is in the pack")
+					.define("mouseTweaksScrollEnabled", true);
 			builder.pop();
 		}
 	}
@@ -57,7 +60,7 @@ public class Config {
 			modBus.addListener(this::onConfigReload);
 		}
 
-		@SuppressWarnings("unused") //need the Event parameter for forge reflection to understand what event this listens to
+		@SuppressWarnings("unused") // need the Event parameter for forge reflection to understand what event this listens to
 		public void onConfigReload(ModConfigEvent.Reloading event) {
 			enabledItems.enabledMap.clear();
 		}
@@ -81,8 +84,8 @@ public class Config {
 			private final Map<ResourceLocation, Boolean> enabledMap = new ConcurrentHashMap<>();
 
 			EnabledItems(ModConfigSpec.Builder builder, Runnable onConfigChange) {
-				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)")
-						.defineListAllowEmpty("enabledItems", ArrayList::new, () -> "minecraft:bundle|true", itemName -> itemName instanceof String s && s.matches(ENABLED_ITEM_MATCHER));
+				itemsEnableList = builder.comment("Disable / enable any items here (disables their recipes)").defineListAllowEmpty("enabledItems",
+						ArrayList::new, () -> "minecraft:bundle|true", itemName -> itemName instanceof String s && s.matches(ENABLED_ITEM_MATCHER));
 				this.onConfigChange = onConfigChange;
 			}
 

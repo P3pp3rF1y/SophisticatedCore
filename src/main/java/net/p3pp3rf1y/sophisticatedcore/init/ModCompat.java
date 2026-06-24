@@ -35,6 +35,6 @@ public class ModCompat {
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.MOUSE_TWEAKS), () -> mobBus -> new MouseTweaksCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.FTB_CHUNKS), () -> mobBus -> new FTBChunksCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.OPEN_PARTIES_AND_CLAIMS_CHUNKS), () -> mobBus -> new OpenPACCompat());
-		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
+		// CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
 	}
 }

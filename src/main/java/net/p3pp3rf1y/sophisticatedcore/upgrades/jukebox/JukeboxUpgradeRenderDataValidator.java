@@ -7,6 +7,7 @@ import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderDataValidator;
 public class JukeboxUpgradeRenderDataValidator implements IUpgradeRenderDataValidator<JukeboxUpgradeClientData> {
 	@Override
 	public boolean isValid(IStorageWrapper storageWrapper, Level level, JukeboxUpgradeClientData upgradeClientData) {
-		return upgradeClientData.isPlaying() && storageWrapper.getUpgradeHandler().getTypeWrappers(JukeboxUpgradeItem.TYPE).stream().anyMatch(JukeboxUpgradeWrapper::isPlaying);
+		return upgradeClientData.isPlaying()
+				&& storageWrapper.getUpgradeHandler().getTypeWrappers(JukeboxUpgradeItem.TYPE).stream().anyMatch(JukeboxUpgradeWrapper::isPlaying);
 	}
 }

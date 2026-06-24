@@ -17,15 +17,10 @@ import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 public enum AlchemyCondition implements StringRepresentable {
-	NEVER(le -> false),
-	ALWAYS(le -> true),
-	UNDER_WATER(Entity::isUnderWater),
-	ON_FIRE(Entity::isOnFire),
-	FALLING(le -> le.fallDistance > 2),
-	MINING(le -> le instanceof ServerPlayer serverPlayer && serverPlayer.gameMode.isDestroyingBlock),
-	SPRINTING(Entity::isSprinting),
-	HURT((le, v) -> le.getHealth() > 0 && le.getHealth() < le.getMaxHealth() && le.getHealth() / le.getMaxHealth() < v, 0.75f),
-	NEGATIVE_EFFECT((le, v) -> le.getActiveEffects().stream().anyMatch(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL));
+	NEVER(le -> false), ALWAYS(le -> true), UNDER_WATER(Entity::isUnderWater), ON_FIRE(Entity::isOnFire), FALLING(le -> le.fallDistance > 2), MINING(
+			le -> le instanceof ServerPlayer serverPlayer && serverPlayer.gameMode.isDestroyingBlock), SPRINTING(Entity::isSprinting), HURT(
+					(le, v) -> le.getHealth() > 0 && le.getHealth() < le.getMaxHealth() && le.getHealth() / le.getMaxHealth() < v, 0.75f), NEGATIVE_EFFECT((le,
+							v) -> le.getActiveEffects().stream().anyMatch(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL));
 
 	public static final Codec<AlchemyCondition> CODEC = StringRepresentable.fromEnum(AlchemyCondition::values);
 	public static final StreamCodec<FriendlyByteBuf, AlchemyCondition> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(AlchemyCondition.class);
@@ -61,7 +56,7 @@ public enum AlchemyCondition implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, AlchemyCondition> builder = new ImmutableMap.Builder<>();
-		for (AlchemyCondition value : AlchemyCondition.values()) {
+		for (AlchemyCondition value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

@@ -74,7 +74,7 @@ public class MainSettingsContainer extends SettingsContainerBase<MainSettingsCat
 		return getSettingValue(SettingsManager.KEEP_SEARCH_PHRASE);
 	}
 
-	protected  <S> S getSettingValue(MainSetting<S> setting) {
+	protected <S> S getSettingValue(MainSetting<S> setting) {
 		if (context == Context.PLAYER) {
 			return SettingsManager.getPlayerSettingOrDefault(getPlayer(), getCategory().getPlayerSettingsTagName(), setting);
 		} else {

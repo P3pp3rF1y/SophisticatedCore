@@ -21,15 +21,14 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 public class SettingsTemplateStorage extends SavedData {
-	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_settings_templates", SettingsTemplateStorage::new,
-			RecordCodecBuilder.create(
-					builder -> builder.group(
-							Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, CompoundTag.CODEC))
-									.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
-							Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, CompoundTag.CODEC))
-									.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates)
-					).apply(builder, SettingsTemplateStorage::new)
-			));
+	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_settings_templates",
+			SettingsTemplateStorage::new,
+			RecordCodecBuilder.create(builder -> builder.group(
+					Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, CompoundTag.CODEC))
+							.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
+					Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, CompoundTag.CODEC))
+							.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates))
+					.apply(builder, SettingsTemplateStorage::new)));
 
 	private Map<UUID, Map<Integer, CompoundTag>> playerTemplates = new HashMap<>();
 	private Map<UUID, Map<String, CompoundTag>> playerNamedTemplates = new HashMap<>();
@@ -66,7 +65,7 @@ public class SettingsTemplateStorage extends SavedData {
 			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
-				//noinspection ConstantConditions - by this time overworld is loaded
+				// noinspection ConstantConditions - by this time overworld is loaded
 				DimensionDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}

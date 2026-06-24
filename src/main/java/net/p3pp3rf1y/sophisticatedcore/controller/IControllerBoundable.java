@@ -37,18 +37,18 @@ public interface IControllerBoundable {
 	}
 
 	default void saveControllerPos(CompoundTag tag) {
-		getControllerPos().ifPresent(p -> tag.putLong(IControllerBoundable.CONTROLLER_POS_TAG, p.asLong()));
+		getControllerPos().ifPresent(p -> tag.putLong(CONTROLLER_POS_TAG, p.asLong()));
 	}
 
 	default void loadControllerPos(CompoundTag tag) {
-		NBTHelper.getLong(tag, IControllerBoundable.CONTROLLER_POS_TAG).ifPresent(value -> {
+		NBTHelper.getLong(tag, CONTROLLER_POS_TAG).ifPresent(value -> {
 			BlockPos controllerPos = BlockPos.of(value);
 			setControllerPos(controllerPos);
 		});
 	}
 
 	default void addToController(Level level, BlockPos pos, BlockPos controllerPos) {
-		//noop by default
+		// noop by default
 	}
 
 	default void addToAdjacentController() {
@@ -57,14 +57,11 @@ public interface IControllerBoundable {
 			BlockPos pos = getStorageBlockPos();
 			for (Direction dir : Direction.values()) {
 				BlockPos offsetPos = pos.offset(dir.getUnitVec3i());
-				WorldHelper.getBlockEntity(level, offsetPos, IControllerBoundable.class).ifPresentOrElse(
-						s -> {
-							if (s.canConnectStorages()) {
-								s.getControllerPos().ifPresent(controllerPos -> addToController(level, pos, controllerPos));
-							}
-						},
-						() -> addToController(level, pos, offsetPos)
-				);
+				WorldHelper.getBlockEntity(level, offsetPos, IControllerBoundable.class).ifPresentOrElse(s -> {
+					if (s.canConnectStorages()) {
+						s.getControllerPos().ifPresent(controllerPos -> addToController(level, pos, controllerPos));
+					}
+				}, () -> addToController(level, pos, offsetPos));
 				if (getControllerPos().isPresent()) {
 					break;
 				}

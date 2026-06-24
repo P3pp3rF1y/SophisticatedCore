@@ -8,7 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class InventoryLayoutFitter {
-	private InventoryLayoutFitter() {}
+	private InventoryLayoutFitter() {
+	}
 
 	public static InventoryLayoutFitResult fit(List<InventoryLayoutPart> parts, int targetSlots, int targetColumns) {
 		return fit(parts, targetSlots, targetColumns, false);
@@ -30,10 +31,10 @@ public class InventoryLayoutFitter {
 	}
 
 	private static List<InventoryLayoutPart> orderPartsForCompaction(List<InventoryLayoutPart> parts) {
-		return parts.stream().sorted(Comparator
-				.comparingInt(InventoryLayoutFitter::compactionPriority)
-				.thenComparing(Comparator.comparingInt((InventoryLayoutPart part) -> part.width() * part.height()).reversed())
-				.thenComparingInt(InventoryLayoutPart::firstSlot))
+		return parts.stream()
+				.sorted(Comparator.comparingInt(InventoryLayoutFitter::compactionPriority)
+						.thenComparing(Comparator.comparingInt((InventoryLayoutPart part) -> part.width() * part.height()).reversed())
+						.thenComparingInt(InventoryLayoutPart::firstSlot))
 				.toList();
 	}
 
@@ -44,11 +45,13 @@ public class InventoryLayoutFitter {
 		return part.id().startsWith("stack:") ? 2 : 1;
 	}
 
-	private static InventoryLayoutFitResult fitInternal(List<InventoryLayoutPart> parts, int targetSlots, int targetColumns, boolean compact, boolean preserveStacks) {
+	private static InventoryLayoutFitResult fitInternal(List<InventoryLayoutPart> parts, int targetSlots, int targetColumns, boolean compact,
+			boolean preserveStacks) {
 		return fitInternal(parts, targetSlots, targetColumns, compact, preserveStacks, false);
 	}
 
-	private static InventoryLayoutFitResult fitInternal(List<InventoryLayoutPart> parts, int targetSlots, int targetColumns, boolean compact, boolean preserveStacks, boolean fillGapsWithStacks) {
+	private static InventoryLayoutFitResult fitInternal(List<InventoryLayoutPart> parts, int targetSlots, int targetColumns, boolean compact,
+			boolean preserveStacks, boolean fillGapsWithStacks) {
 		Set<Integer> occupiedSlots = new HashSet<>();
 		Map<String, Integer> fittedSlots = new HashMap<>();
 		Set<Integer> errorSlots = new HashSet<>();
@@ -56,7 +59,8 @@ public class InventoryLayoutFitter {
 
 		for (int partIndex = 0; partIndex < parts.size(); partIndex++) {
 			InventoryLayoutPart part = parts.get(partIndex);
-			int fittedSlot = findNextFit(part, fillGapsWithStacks && part.id().startsWith("stack:") ? 0 : nextSlot, targetSlots, targetColumns, occupiedSlots, compact, preserveStacks);
+			int fittedSlot = findNextFit(part, fillGapsWithStacks && part.id().startsWith("stack:") ? 0 : nextSlot, targetSlots, targetColumns, occupiedSlots,
+					compact, preserveStacks);
 			if (fittedSlot < 0) {
 				for (int remainingPartIndex = partIndex; remainingPartIndex < parts.size(); remainingPartIndex++) {
 					errorSlots.addAll(parts.get(remainingPartIndex).sourceSlots());
@@ -66,17 +70,21 @@ public class InventoryLayoutFitter {
 
 			occupy(part, fittedSlot, targetColumns, occupiedSlots);
 			fittedSlots.put(part.id(), fittedSlot);
-			nextSlot = !compact && fittedSlot == part.firstSlot() ? Math.max(nextSlot, getSlotAfterPart(part, fittedSlot, targetColumns)) : fittedSlot + part.width();
+			nextSlot = !compact && fittedSlot == part.firstSlot()
+					? Math.max(nextSlot, getSlotAfterPart(part, fittedSlot, targetColumns))
+					: fittedSlot + part.width();
 		}
 
 		return InventoryLayoutFitResult.fit(fittedSlots);
 	}
 
-	private static int findNextFit(InventoryLayoutPart part, int nextSlot, int targetSlots, int targetColumns, Set<Integer> occupiedSlots, boolean compact, boolean preserveStacks) {
+	private static int findNextFit(InventoryLayoutPart part, int nextSlot, int targetSlots, int targetColumns, Set<Integer> occupiedSlots, boolean compact,
+			boolean preserveStacks) {
 		if (part.id().startsWith("fixed:")) {
 			return fits(part, part.firstSlot(), targetSlots, targetColumns, occupiedSlots) ? part.firstSlot() : -1;
 		}
-		if (shouldPreserveFirstSlot(part, compact, preserveStacks) && part.firstSlot() < targetSlots && fits(part, part.firstSlot(), targetSlots, targetColumns, occupiedSlots)) {
+		if (shouldPreserveFirstSlot(part, compact, preserveStacks) && part.firstSlot() < targetSlots
+				&& fits(part, part.firstSlot(), targetSlots, targetColumns, occupiedSlots)) {
 			return part.firstSlot();
 		}
 

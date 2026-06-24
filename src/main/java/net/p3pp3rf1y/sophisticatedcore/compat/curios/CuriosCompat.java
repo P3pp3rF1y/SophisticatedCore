@@ -14,7 +14,9 @@ public class CuriosCompat implements ICompat {
 	}
 
 	private void addInventoryItemHandler() {
-		InventoryHelper.registerPlayerInventoryProvider(player -> CuriosApi.getCuriosInventory(player).<IItemHandler>map(ICuriosItemHandler::getEquippedCurios).orElse(EmptyItemHandler.INSTANCE));
-		InventoryHelper.registerEquipmentInventoryProvider(player -> CuriosApi.getCuriosInventory(player).<IItemHandler>map(ICuriosItemHandler::getEquippedCurios).orElse(EmptyItemHandler.INSTANCE));
+		InventoryHelper.registerPlayerInventoryProvider(
+				player -> CuriosApi.getCuriosInventory(player).<IItemHandler>map(ICuriosItemHandler::getEquippedCurios).orElse(EmptyItemHandler.INSTANCE));
+		InventoryHelper.registerEquipmentInventoryProvider(
+				player -> CuriosApi.getCuriosInventory(player).<IItemHandler>map(ICuriosItemHandler::getEquippedCurios).orElse(EmptyItemHandler.INSTANCE));
 	}
 }

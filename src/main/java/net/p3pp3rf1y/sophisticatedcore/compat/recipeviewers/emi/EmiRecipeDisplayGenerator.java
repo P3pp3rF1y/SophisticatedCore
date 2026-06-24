@@ -34,12 +34,8 @@ public class EmiRecipeDisplayGenerator implements IRecipeDisplayGenerator<EmiCra
 
 	@Override
 	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Optional<Ingredient> base, Optional<Ingredient> addition, ItemStack result) {
-		return id -> registry.addRecipe(new EmiSmithingRecipe(
-				EmiIngredient.of(template.orElse(Ingredient.of(HolderSet.empty()))),
-				EmiIngredient.of(base.orElse(Ingredient.of(HolderSet.empty()))),
-				EmiIngredient.of(addition.orElse(Ingredient.of(HolderSet.empty()))),
-				EmiStack.of(result),
-				id.location())
-		);
+		return id -> registry.addRecipe(new EmiSmithingRecipe(EmiIngredient.of(template.orElse(Ingredient.of(HolderSet.empty()))),
+				EmiIngredient.of(base.orElse(Ingredient.of(HolderSet.empty()))), EmiIngredient.of(addition.orElse(Ingredient.of(HolderSet.empty()))),
+				EmiStack.of(result), id.location()));
 	}
 }

@@ -1,9 +1,9 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.rei;
 
-import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.display.DisplaySerializer;
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCraftingDisplay;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayVariant;
@@ -31,7 +31,9 @@ public class CraftingSpecReiDisplay extends DefaultCraftingDisplay {
 
 	@Override
 	public int getInputWidth(int craftingWidth, int craftingHeight) {
-		return spec.shapeless() ? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3) : spec.width();
+		return spec.shapeless()
+				? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3)
+				: spec.width();
 	}
 
 	@Override

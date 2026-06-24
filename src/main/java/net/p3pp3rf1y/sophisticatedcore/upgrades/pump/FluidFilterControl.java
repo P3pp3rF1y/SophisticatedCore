@@ -44,7 +44,8 @@ public class FluidFilterControl extends WidgetBase {
 				IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid.getFluid());
 				ResourceLocation texture = renderProperties.getStillTexture(fluid);
 				TextureAtlasSprite still = minecraft.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(texture);
-				GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, RenderType::guiTextured, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1, 16);
+				GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, RenderType::guiTextured, still, renderProperties.getTintColor(fluid), x + i * 18 + 1, y + 1,
+						16);
 			}
 		}
 	}
@@ -87,7 +88,7 @@ public class FluidFilterControl extends WidgetBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO narration
+		// TODO narration
 	}
 
 	public void setFluid(int index, FluidStack fluid) {

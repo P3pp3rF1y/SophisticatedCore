@@ -26,11 +26,11 @@ public class SlotValueMap<T> {
 		return new SlotValueMap<>();
 	}
 
-	public static <T> SlotValueMap<T> of (int slot, T value) {
+	public static <T> SlotValueMap<T> of(int slot, T value) {
 		return new SlotValueMap<>(slot, value);
 	}
 
-	public static <T> SlotValueMap<T> of (int slot1, T value1, int slot2, T value2) {
+	public static <T> SlotValueMap<T> of(int slot1, T value1, int slot2, T value2) {
 		return new SlotValueMap<>(slot1, value1, slot2, value2);
 	}
 

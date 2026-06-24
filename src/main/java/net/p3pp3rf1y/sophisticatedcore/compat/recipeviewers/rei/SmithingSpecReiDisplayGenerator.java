@@ -49,11 +49,8 @@ public class SmithingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 	}
 
 	private static DefaultSmithingDisplay toDisplay(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants) {
-		List<EntryIngredient> inputs = List.of(
-				EntryIngredients.ofIngredient(spec.template().orElseThrow()),
-				EntryIngredients.ofItemStacks(spec.getBaseStacks(variants)),
-				EntryIngredients.ofIngredient(spec.addition().orElseThrow())
-		);
+		List<EntryIngredient> inputs = List.of(EntryIngredients.ofIngredient(spec.template().orElseThrow()),
+				EntryIngredients.ofItemStacks(spec.getBaseStacks(variants)), EntryIngredients.ofIngredient(spec.addition().orElseThrow()));
 		return new DefaultSmithingDisplay(inputs, List.of(EntryIngredients.ofItemStacks(spec.getResultStacks(variants))), Optional.of(spec.id()));
 	}
 }

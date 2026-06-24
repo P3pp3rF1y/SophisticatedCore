@@ -40,9 +40,8 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<Display> displays = new ArrayList<>(catalogSupplier.get().getCraftingRecipesFor(stack).stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
-				.toList());
+		List<Display> displays = new ArrayList<>(
+				catalogSupplier.get().getCraftingRecipesFor(stack).stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -52,9 +51,8 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<Display> displays = new ArrayList<>(catalogSupplier.get().getCraftingUsagesFor(stack).stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
-				.toList());
+		List<Display> displays = new ArrayList<>(
+				catalogSupplier.get().getCraftingUsagesFor(stack).stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -64,11 +62,9 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<Display> displays = new ArrayList<>(catalogSupplier.get().getGlobalCraftingDisplays().stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
-		catalogSupplier.get().getCraftingRecipes().stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
-				.filter(Objects::nonNull)
-				.forEach(displays::add);
+		List<Display> displays = new ArrayList<>(
+				catalogSupplier.get().getGlobalCraftingDisplays().stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
+		catalogSupplier.get().getCraftingRecipes().stream().map(CraftingSpecReiDisplayGenerator::toDisplay).filter(Objects::nonNull).forEach(displays::add);
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -84,7 +80,8 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 		private final CraftingRecipe recipe;
 
 		private CatalogCraftingReiDisplay(RecipeHolder<CraftingRecipe> recipeHolder) {
-			super(getInputs(recipeHolder.value()), List.of(EntryIngredients.of(ClientRecipeHelper.getResultItem(recipeHolder.value()))), Optional.of(recipeHolder.id().location()));
+			super(getInputs(recipeHolder.value()), List.of(EntryIngredients.of(ClientRecipeHelper.getResultItem(recipeHolder.value()))),
+					Optional.of(recipeHolder.id().location()));
 			this.recipe = recipeHolder.value();
 		}
 
@@ -100,12 +97,16 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 
 		@Override
 		public int getInputWidth(int craftingWidth, int craftingHeight) {
-			return recipe instanceof ShapedRecipe shapedRecipe ? shapedRecipe.getWidth() : craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3);
+			return recipe instanceof ShapedRecipe shapedRecipe
+					? shapedRecipe.getWidth()
+					: craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3);
 		}
 
 		@Override
 		public int getInputHeight(int craftingWidth, int craftingHeight) {
-			return recipe instanceof ShapedRecipe shapedRecipe ? shapedRecipe.getHeight() : (int) Math.ceil(getInputEntries().size() / (double) getInputWidth(craftingWidth, craftingHeight));
+			return recipe instanceof ShapedRecipe shapedRecipe
+					? shapedRecipe.getHeight()
+					: (int) Math.ceil(getInputEntries().size() / (double) getInputWidth(craftingWidth, craftingHeight));
 		}
 
 		@Override
@@ -121,7 +122,6 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 
 	private static List<EntryIngredient> getInputs(CraftingRecipe recipe) {
 		return RecipeHelper.getIngredients(recipe).stream()
-				.map(optionalIngredient -> EntryIngredients.ofSlotDisplay(Ingredient.optionalIngredientToDisplay(optionalIngredient)))
-				.toList();
+				.map(optionalIngredient -> EntryIngredients.ofSlotDisplay(Ingredient.optionalIngredientToDisplay(optionalIngredient))).toList();
 	}
 }
