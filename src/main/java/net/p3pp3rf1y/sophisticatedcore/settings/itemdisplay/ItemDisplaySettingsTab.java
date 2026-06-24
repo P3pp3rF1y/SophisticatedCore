@@ -27,29 +27,32 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 			.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("rotate")))
 			.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("rotate_detail"), null, ChatFormatting.GRAY))
 			.build();
-	private static final TextureBlitData ROTATE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(128, 64), Dimension.SQUARE_16);
-	public static final ButtonDefinition ROTATE = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND, ROTATE_FOREGROUND);
+	private static final TextureBlitData ROTATE_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(1, 1), Dimension.SQUARE_256, new UV(128, 64),
+			Dimension.SQUARE_16);
+	public static final ButtonDefinition ROTATE = new ButtonDefinition(Dimension.SQUARE_16, DEFAULT_BUTTON_BACKGROUND, DEFAULT_BUTTON_HOVERED_BACKGROUND,
+			ROTATE_FOREGROUND);
 
-	private static final ButtonDefinition.Toggle<DisplaySide> DISPLAY_SIDE = ButtonDefinitions.createToggleButtonDefinition(
-			Map.of(
-					DisplaySide.FRONT, GuiHelper.getButtonStateData(new UV(144, 64), Dimension.SQUARE_16, new Position(1, 1),
-							TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_front"), null)),
-					DisplaySide.LEFT, GuiHelper.getButtonStateData(new UV(160, 64), Dimension.SQUARE_16, new Position(1, 1),
-							TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_left"), null)),
-					DisplaySide.RIGHT, GuiHelper.getButtonStateData(new UV(176, 64), Dimension.SQUARE_16, new Position(1, 1),
-							TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_right"), null))
-			));
+	private static final ButtonDefinition.Toggle<DisplaySide> DISPLAY_SIDE = ButtonDefinitions.createToggleButtonDefinition(Map.of(DisplaySide.FRONT,
+			GuiHelper.getButtonStateData(new UV(144, 64), Dimension.SQUARE_16, new Position(1, 1),
+					TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_front"), null)),
+			DisplaySide.LEFT,
+			GuiHelper.getButtonStateData(new UV(160, 64), Dimension.SQUARE_16, new Position(1, 1),
+					TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_left"), null)),
+			DisplaySide.RIGHT, GuiHelper.getButtonStateData(new UV(176, 64), Dimension.SQUARE_16, new Position(1, 1),
+					TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("display_side_right"), null))));
 	private int currentSelectedSlot = -1;
 
 	public ItemDisplaySettingsTab(ItemDisplaySettingsContainer container, Position position, SettingsScreen screen) {
 		super(container, position, screen, Component.translatable(TranslationHelper.INSTANCE.translSettings(ItemDisplaySettingsCategory.NAME)),
 				new ImmutableList.Builder<Component>()
 						.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsTooltip(ItemDisplaySettingsCategory.NAME)))
-						.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsTooltip(ItemDisplaySettingsCategory.NAME) + "_detail", null, ChatFormatting.GRAY))
+						.addAll(TranslationHelper.INSTANCE.getTranslatedLines(
+								TranslationHelper.INSTANCE.translSettingsTooltip(ItemDisplaySettingsCategory.NAME) + "_detail", null, ChatFormatting.GRAY))
 						.build(),
 				new ImmutableList.Builder<Component>()
 						.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsTooltip(ItemDisplaySettingsCategory.NAME)))
-						.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsTooltip(ItemDisplaySettingsCategory.NAME) + "_open_detail", null, ChatFormatting.GRAY))
+						.addAll(TranslationHelper.INSTANCE.getTranslatedLines(
+								TranslationHelper.INSTANCE.translSettingsTooltip(ItemDisplaySettingsCategory.NAME) + "_open_detail", null, ChatFormatting.GRAY))
 						.build(),
 				onTabIconClicked -> new ImageButton(new Position(position.x() + 1, position.y() + 4), Dimension.SQUARE_16, ICON, onTabIconClicked));
 		addHideableChild(new Button(new Position(x + 3, y + 24), ROTATE, button -> {
@@ -81,11 +84,12 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	public Optional<Integer> getSlotOverlayColor(int slotNumber, boolean templateLoadHovered) {
 		if (templateLoadHovered) {
 			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(ItemDisplaySettingsCategory.class)
-					.filter(c -> c.getSlots().contains(slotNumber))
-					.map(category -> category.getColor().getTextureDiffuseColor() & 0x00_FFFFFF | (80 << 24));
+					.filter(c -> c.getSlots().contains(slotNumber)).map(category -> category.getColor().getTextureDiffuseColor() & 0x00_FFFFFF | (80 << 24));
 		}
 
-		return getSettingsContainer().isSlotSelected(slotNumber) ? Optional.of(getSettingsContainer().getColor().getTextureDiffuseColor() | (80 << 24)) : Optional.empty();
+		return getSettingsContainer().isSlotSelected(slotNumber)
+				? Optional.of(getSettingsContainer().getColor().getTextureDiffuseColor() | (80 << 24))
+				: Optional.empty();
 	}
 
 	@Override
@@ -119,9 +123,7 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	public int getItemRotation(int slotIndex, boolean templateLoadHovered) {
 		if (templateLoadHovered) {
 			return getSettingsContainer().getSettingsContainer().getSelectedTemplatesCategory(ItemDisplaySettingsCategory.class)
-					.filter(c -> c.getSlots().contains(slotIndex))
-					.map(category -> category.getRotation(slotIndex))
-					.orElse(0);
+					.filter(c -> c.getSlots().contains(slotIndex)).map(category -> category.getRotation(slotIndex)).orElse(0);
 		}
 
 		return getSettingsContainer().getRotation(slotIndex);

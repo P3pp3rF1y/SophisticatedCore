@@ -23,7 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StorageSoundHandler {
 	private static final int SOUND_STOP_CHECK_INTERVAL = 10;
 
-	private StorageSoundHandler() {}
+	private StorageSoundHandler() {
+	}
 
 	private static final Map<UUID, SoundInstance> storageSounds = new ConcurrentHashMap<>();
 	private static long lastPlaybackChecked = 0;
@@ -43,7 +44,9 @@ public class StorageSoundHandler {
 	public static boolean isStorageSoundPlayingNear(Vec3 position, double radius) {
 		double radiusSqr = radius * radius;
 		return storageSounds.values().stream().anyMatch(sound -> {
-			Vec3 soundPosition = sound instanceof StorageSoundPosition storageSoundPosition ? storageSoundPosition.getStorageSoundPosition() : new Vec3(sound.getX(), sound.getY(), sound.getZ());
+			Vec3 soundPosition = sound instanceof StorageSoundPosition storageSoundPosition
+					? storageSoundPosition.getStorageSoundPosition()
+					: new Vec3(sound.getX(), sound.getY(), sound.getZ());
 			double xDiff = soundPosition.x - position.x;
 			double yDiff = soundPosition.y - position.y;
 			double zDiff = soundPosition.z - position.z;
@@ -54,9 +57,7 @@ public class StorageSoundHandler {
 	public static void tick(LevelTickEvent.Post event) {
 		if (!storageSounds.isEmpty() && lastPlaybackChecked < event.getLevel().getGameTime() - SOUND_STOP_CHECK_INTERVAL) {
 			lastPlaybackChecked = event.getLevel().getGameTime();
-			storageSounds.entrySet().removeIf(entry ->
-					!Minecraft.getInstance().getSoundManager().isActive(entry.getValue())
-			);
+			storageSounds.entrySet().removeIf(entry -> !Minecraft.getInstance().getSoundManager().isActive(entry.getValue()));
 		}
 	}
 
@@ -82,7 +83,7 @@ public class StorageSoundHandler {
 			playStorageSound(storageUuid, new PlayerDirectStorageSoundInstance(soundEvent, player, level.random, volume, pitch));
 			return;
 		}
-		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, volume, pitch, entity, level.random.nextLong()){
+		playStorageSound(storageUuid, new EntityBoundSoundInstance(soundEvent, SoundSource.RECORDS, volume, pitch, entity, level.random.nextLong()) {
 			@Override
 			public void tick() {
 				super.tick();

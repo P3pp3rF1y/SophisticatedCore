@@ -12,6 +12,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
 import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -45,18 +46,17 @@ public class CoreFakePlayer extends FakePlayer {
 
 	@Override
 	protected void onEffectAdded(MobEffectInstance effect, @Nullable Entity entity) {
-		//noop
+		// noop
 	}
 
 	@Override
 	protected void onEffectUpdated(MobEffectInstance effect, boolean updateAttributes, @Nullable Entity entity) {
-		//noop
+		// noop
 	}
-
 
 	@Override
 	protected void onEffectRemoved(MobEffectInstance effect) {
-		//noop
+		// noop
 	}
 
 	@Override

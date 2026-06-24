@@ -26,7 +26,8 @@ public class JeiSubtypeInterpreter extends PropertyBasedSubtypeInterpreterWrappe
 	public String getLegacyStringSubtypeInfo(ItemStack itemStack, UidContext context) {
 		StringBuilder result = new StringBuilder();
 		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
-			@Nullable Object value = definition.getPropertyValue(itemStack);
+			@Nullable
+			Object value = definition.getPropertyValue(itemStack);
 			if (value != null) {
 				String serializedValue = getSerializedPropertyValue(definition, value);
 				if (!result.isEmpty()) {
@@ -39,7 +40,7 @@ public class JeiSubtypeInterpreter extends PropertyBasedSubtypeInterpreterWrappe
 	}
 
 	private <T> String getSerializedPropertyValue(IPropertyDefinition<T> definition, Object value) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return definition.serializePropertyValue((T) value);
 	}
 }

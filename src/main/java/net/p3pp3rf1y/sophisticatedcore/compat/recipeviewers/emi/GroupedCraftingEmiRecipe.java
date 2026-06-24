@@ -46,7 +46,8 @@ public class GroupedCraftingEmiRecipe extends BasicEmiRecipe {
 		for (int i = 0; i < recipe.getVariants().size(); i++) {
 			int variantIndex = i;
 			ResourceLocation id = recipeHolder.id().withPath(path -> path + "/" + variantIndex);
-			GroupedCraftingRecipe narrowedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(), recipe.getFixedInputSlots(), List.of(recipe.getVariants().get(i)), recipe.getResultMatcher());
+			GroupedCraftingRecipe narrowedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(),
+					recipe.getFixedInputSlots(), List.of(recipe.getVariants().get(i)), recipe.getResultMatcher());
 			recipes.add(new GroupedCraftingEmiRecipe(id, narrowedRecipe, false, true));
 		}
 		return recipes;
@@ -63,7 +64,8 @@ public class GroupedCraftingEmiRecipe extends BasicEmiRecipe {
 				int focusedSlotIndex = slotIndex;
 				int focusedStackIndex = stackIndex;
 				ResourceLocation id = baseId.withPath(path -> path + "/input/" + focusedSlotIndex + "/" + focusedStackIndex);
-				GroupedCraftingRecipe focusedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(), narrowFixedInputSlot(fixedInputSlots, slotIndex, fixedInputSlot.get(stackIndex)), recipe.getVariants(), recipe.getResultMatcher());
+				GroupedCraftingRecipe focusedRecipe = new GroupedCraftingRecipe(id, recipe.getDisplayWidth(), recipe.getDisplayHeight(),
+						narrowFixedInputSlot(fixedInputSlots, slotIndex, fixedInputSlot.get(stackIndex)), recipe.getVariants(), recipe.getResultMatcher());
 				recipes.add(new GroupedCraftingEmiRecipe(id, focusedRecipe, true, false));
 			}
 		}

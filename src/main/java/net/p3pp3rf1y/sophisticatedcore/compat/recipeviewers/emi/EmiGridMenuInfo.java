@@ -24,6 +24,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,8 +44,8 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 		this.recipeType = recipeType;
 	}
 
-    @Override
-    public List<Slot> getInputSources(C handler) {
+	@Override
+	public List<Slot> getInputSources(C handler) {
 		Player player = Minecraft.getInstance().player;
 		if (player == null) {
 			return getCraftingSlots(handler);
@@ -52,8 +53,8 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 
 		List<Slot> slots = new ArrayList<>(handler.slots.stream().filter(s -> s.mayPickup(player)).toList());
 		slots.addAll(getCraftingSlots(handler));
-        return slots;
-    }
+		return slots;
+	}
 
 	@Override
 	public EmiPlayerInventory getInventory(AbstractContainerScreen<C> screen) {
@@ -62,11 +63,11 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 		return new EmiPlayerInventory(slots.stream().map(Slot::getItem).map(EmiStack::of).toList());
 	}
 
-    @Override
-    public List<Slot> getCraftingSlots(C handler) {
+	@Override
+	public List<Slot> getCraftingSlots(C handler) {
 		UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = handler.getOpenOrFirstCraftingContainer(recipeType).orElse(null);
-        return Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
-    }
+		return Collections.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
+	}
 
 	private List<Slot> getPlayerInventorySlots(C handler) {
 		Player player = Minecraft.getInstance().player;
@@ -74,22 +75,20 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 			return List.of();
 		}
 
-		return handler.slots.stream()
-				.filter(slot -> slot.container instanceof Inventory)
+		return handler.slots.stream().filter(slot -> slot.container instanceof Inventory)
 				.filter(slot -> slot.getContainerSlot() >= 0 && slot.getContainerSlot() < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS)
-				.filter(slot -> slot.mayPickup(player))
-				.toList();
+				.filter(slot -> slot.mayPickup(player)).toList();
 	}
 
-    @Override
-    public @Nullable Slot getOutputSlot(C handler) {
-        return handler.getOpenOrFirstCraftingContainer(recipeType).map(c -> c.getSlots().getLast()).orElse(null);
-    }
+	@Override
+	public @Nullable Slot getOutputSlot(C handler) {
+		return handler.getOpenOrFirstCraftingContainer(recipeType).map(c -> c.getSlots().getLast()).orElse(null);
+	}
 
-    @Override
-    public boolean supportsRecipe(EmiRecipe recipe) {
-        return VanillaEmiRecipeCategories.CRAFTING.equals(recipe.getCategory()) && recipe.supportsRecipeTree();
-    }
+	@Override
+	public boolean supportsRecipe(EmiRecipe recipe) {
+		return VanillaEmiRecipeCategories.CRAFTING.equals(recipe.getCategory()) && recipe.supportsRecipeTree();
+	}
 
 	@Override
 	public boolean canCraft(EmiRecipe recipe, EmiCraftContext<C> context) {
@@ -97,13 +96,14 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 	}
 
 	@Override
-    public boolean craft(EmiRecipe recipe, EmiCraftContext<C> context) {
+	public boolean craft(EmiRecipe recipe, EmiCraftContext<C> context) {
 		// We only need a stack of 1 here as the maxTransfer will be handled server side differently
-        List<ItemStack> stacks = EmiRecipeFiller.getStacks(this, recipe, context.getScreen(), 1);
-        if (stacks != null) {
+		List<ItemStack> stacks = EmiRecipeFiller.getStacks(this, recipe, context.getScreen(), 1);
+		if (stacks != null) {
 			C container = context.getScreenHandler();
 			Optional<? extends UpgradeContainerBase<?, ?>> potentialCraftingContainer = container.getOpenOrFirstCraftingContainer(recipeType);
-			//noinspection OptionalGetWithoutIsPresent - Can be suppressed cause emi does a canCraft check before calling the craft method, and we test for a crafting container there
+			// noinspection OptionalGetWithoutIsPresent - Can be suppressed cause emi does a canCraft check before calling the craft method, and we test for a
+			// crafting container there
 			UpgradeContainerBase<?, ?> openOrFirstCraftingContainer = potentialCraftingContainer.get();
 			if (!openOrFirstCraftingContainer.isOpen()) {
 				container.getOpenContainer().ifPresent(c -> {
@@ -114,11 +114,11 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 				container.setOpenTabId(openOrFirstCraftingContainer.getUpgradeContainerId());
 			}
 
-            Minecraft.getInstance().setScreen(context.getScreen());
-            if (!EmiClient.onServer) {
-                return EmiRecipeFiller.clientFill(this, recipe, context.getScreen(), stacks, context.getDestination());
-            } else {
-				int action = switch(context.getDestination()) {
+			Minecraft.getInstance().setScreen(context.getScreen());
+			if (!EmiClient.onServer) {
+				return EmiRecipeFiller.clientFill(this, recipe, context.getScreen(), stacks, context.getDestination());
+			} else {
+				int action = switch (context.getDestination()) {
 					case NONE -> 0;
 					case CURSOR -> 1;
 					case INVENTORY -> 2;
@@ -127,23 +127,15 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 				ResourceLocation recipeTypeId = BuiltInRegistries.RECIPE_TYPE.getKey(recipeType);
 				if (recipeTypeId != null) {
 					Slot output = getOutputSlot(container);
-					PacketDistributor.sendToServer(
-							new EmiTransferRecipePayload(
-									recipe.getId(),
-									recipeTypeId,
-									action,
-									getInputSources(container).stream().map(s -> s == null ? -1 : s.index).toList(),
-									getCraftingSlots(recipe, container).stream().map(s -> s == null ? -1 : s.index).toList(),
-									output == null ? -1 : output.index,
-									stacks,
-									context.getAmount() > 1
-							)
-					);
+					PacketDistributor.sendToServer(new EmiTransferRecipePayload(recipe.getId(), recipeTypeId, action,
+							getInputSources(container).stream().map(s -> s == null ? -1 : s.index).toList(),
+							getCraftingSlots(recipe, container).stream().map(s -> s == null ? -1 : s.index).toList(), output == null ? -1 : output.index,
+							stacks, context.getAmount() > 1));
 				}
 			}
-            return true;
-        }
-        return false;
-    }
+			return true;
+		}
+		return false;
+	}
 
 }

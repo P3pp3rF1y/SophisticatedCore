@@ -10,6 +10,6 @@ public interface IUpgradeWrapperAccessor {
 	void clearCache();
 
 	default void onBeforeDeconstruct() {
-		//noop
+		// noop
 	}
 }

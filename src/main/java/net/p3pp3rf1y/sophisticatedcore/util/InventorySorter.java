@@ -16,15 +16,12 @@ public class InventorySorter {
 	private InventorySorter() {
 	}
 
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator.comparing(o -> o.getKey().getStack().getHoverName().getString().toLowerCase());
-	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD =
-			Comparator
-					.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
-						ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().getStack().getItem());
-						return registryName.getNamespace();
-					})
-					.thenComparing(o -> o.getKey().getStack().getHoverName().getString());
-
+	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_NAME = Comparator
+			.comparing(o -> o.getKey().getStack().getHoverName().getString().toLowerCase());
+	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_MOD = Comparator.<Map.Entry<ItemStackKey, Integer>, String>comparing(o -> {
+		ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(o.getKey().getStack().getItem());
+		return registryName.getNamespace();
+	}).thenComparing(o -> o.getKey().getStack().getHoverName().getString());
 
 	public static final Comparator<Map.Entry<ItemStackKey, Integer>> BY_COUNT = (first, second) -> {
 		int ret = second.getValue().compareTo(first.getValue());
@@ -78,7 +75,8 @@ public class InventorySorter {
 		sortHandler(handler, comparator, noSortSlots, Set.of());
 	}
 
-	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots, Set<Integer> ignoredSlots) {
+	public static void sortHandler(IItemHandlerModifiable handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots,
+			Set<Integer> ignoredSlots) {
 		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
 		skippedSlots.addAll(ignoredSlots);
 		Set<Integer> accessibleNoSortSlots = new HashSet<>(noSortSlots);
@@ -101,7 +99,8 @@ public class InventorySorter {
 		sortIntoOtherSlots(handler, skippedSlots, sortedList, slots);
 	}
 
-	private static void sortIntoOtherSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList, int slots) {
+	private static void sortIntoOtherSlots(IItemHandlerModifiable handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList,
+			int slots) {
 		Iterator<Map.Entry<ItemStackKey, Integer>> ite = sortedList.iterator();
 		ItemStackKey current = null;
 		int count = 0;
@@ -154,7 +153,9 @@ public class InventorySorter {
 		}
 
 		int existingCount = slotStack.getCount();
-		int slotLimit = handler instanceof InventoryHandler inventoryHandler ? inventoryHandler.getStackLimit(slot, current.getStack()) : handler.getSlotLimit(slot);
+		int slotLimit = handler instanceof InventoryHandler inventoryHandler
+				? inventoryHandler.getStackLimit(slot, current.getStack())
+				: handler.getSlotLimit(slot);
 		int countPlaced = (int) Math.min((long) slotLimit, existingCount + (long) count) - existingCount;
 		if (countPlaced <= 0) {
 			return 0;
@@ -180,14 +181,16 @@ public class InventorySorter {
 
 	private static int placeStack(IItemHandlerModifiable handler, ItemStackKey current, int count, int slot, boolean countWithCurrentStack) {
 		if (handler instanceof InventoryHandler inventoryHandler) {
-			return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> inventoryHandler.getBaseStackLimit(stack), inventoryHandler::getSlotStack, inventoryHandler::setSlotStack);
+			return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> inventoryHandler.getBaseStackLimit(stack),
+					inventoryHandler::getSlotStack, inventoryHandler::setSlotStack);
 		} else {
-			return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getSlotLimit(s), handler::getStackInSlot, handler::setStackInSlot);
+			return placeStack(current, count, slot, countWithCurrentStack, (s, stack) -> handler.getSlotLimit(s), handler::getStackInSlot,
+					handler::setStackInSlot);
 		}
 	}
 
-	private static int placeStack(ItemStackKey current, int count, int slot, boolean countWithCurrentStack,
-								  IStackLimitGetter stackLimitGetter, ISlotStackGetter slotStackGetter, ISlotStackSetter slotStackSetter) {
+	private static int placeStack(ItemStackKey current, int count, int slot, boolean countWithCurrentStack, IStackLimitGetter stackLimitGetter,
+			ISlotStackGetter slotStackGetter, ISlotStackSetter slotStackSetter) {
 		ItemStack copy = current.getStack().copy();
 		int slotLimit = stackLimitGetter.getStackLimit(slot, copy);
 		int existingCount = slotStackGetter.getSlotStack(slot).getCount();

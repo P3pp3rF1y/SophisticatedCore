@@ -21,7 +21,8 @@ public abstract class UpgradeItemBase<T extends IUpgradeWrapper> extends ItemBas
 
 	@Override
 	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
-		tooltip.addAll(TranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null, ChatFormatting.DARK_GRAY));
+		tooltip.addAll(TranslationHelper.INSTANCE.getTranslatedLines(stack.getItem().getDescriptionId() + TranslationHelper.TOOLTIP_SUFFIX, null,
+				ChatFormatting.DARK_GRAY));
 	}
 
 	@Override

@@ -7,8 +7,7 @@ import net.p3pp3rf1y.sophisticatedcore.api.IUpgradeRenderDataValidator;
 public class CookingUpgradeRenderDataValidator implements IUpgradeRenderDataValidator<CookingUpgradeRenderData> {
 	@Override
 	public boolean isValid(IStorageWrapper storageWrapper, Level level, CookingUpgradeRenderData upgradeRenderData) {
-		return upgradeRenderData.isBurning()
-				&& storageWrapper.getUpgradeHandler().getWrappersThatImplement(ICookingUpgrade.class).stream()
+		return upgradeRenderData.isBurning() && storageWrapper.getUpgradeHandler().getWrappersThatImplement(ICookingUpgrade.class).stream()
 				.anyMatch(wrapper -> wrapper.getCookingLogic().getBurnTimeFinish() >= level.getGameTime());
 	}
 }

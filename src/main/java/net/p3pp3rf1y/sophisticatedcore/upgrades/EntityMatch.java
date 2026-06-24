@@ -11,9 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public enum EntityMatch implements StringRepresentable {
-	PLAYERS,
-	PLAYERS_AND_ENTITIES,
-	ENTITIES;
+	PLAYERS, PLAYERS_AND_ENTITIES, ENTITIES;
 
 	public static final Codec<EntityMatch> CODEC = StringRepresentable.fromEnum(EntityMatch::values);
 	public static final StreamCodec<FriendlyByteBuf, EntityMatch> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(EntityMatch.class);
@@ -28,7 +26,7 @@ public enum EntityMatch implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, EntityMatch> builder = new ImmutableMap.Builder<>();
-		for (EntityMatch value : EntityMatch.values()) {
+		for (EntityMatch value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

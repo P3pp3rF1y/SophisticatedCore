@@ -38,7 +38,7 @@ public interface ILinkable extends IControllerBoundable {
 		}
 	}
 	default void setNotLinked() {
-		//noop by default
+		// noop by default
 	}
 	Set<BlockPos> getConnectablePositions();
 	boolean connectLinkedSelf();

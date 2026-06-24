@@ -9,20 +9,12 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.ClientRecipeH
 
 public class EmiClientRecipeHelper {
 	public static EmiCraftingRecipe wrapSyntheticShapedRecipe(ResourceLocation id, CraftingRecipe recipe) {
-		return new EmiCraftingRecipe(
-				recipe.getIngredients().stream().map(EmiIngredient::of).toList(),
-				EmiStack.of(ClientRecipeHelper.getResultItem(recipe)),
-				id.withPath(path -> path.startsWith("/") ? path : "/" + path),
-				false
-		);
+		return new EmiCraftingRecipe(recipe.getIngredients().stream().map(EmiIngredient::of).toList(), EmiStack.of(ClientRecipeHelper.getResultItem(recipe)),
+				id.withPath(path -> path.startsWith("/") ? path : "/" + path), false);
 	}
 
 	public static EmiCraftingRecipe wrapSyntheticShapelessRecipe(ResourceLocation id, CraftingRecipe recipe) {
-		return new EmiCraftingRecipe(
-				recipe.getIngredients().stream().map(EmiIngredient::of).toList(),
-				EmiStack.of(ClientRecipeHelper.getResultItem(recipe)),
-				id.withPath(path -> path.startsWith("/") ? path : "/" + path),
-				true
-		);
+		return new EmiCraftingRecipe(recipe.getIngredients().stream().map(EmiIngredient::of).toList(), EmiStack.of(ClientRecipeHelper.getResultItem(recipe)),
+				id.withPath(path -> path.startsWith("/") ? path : "/" + path), true);
 	}
 }

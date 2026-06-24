@@ -6,7 +6,8 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class CookingUpgradeRenderData implements IUpgradeRenderData {
-	public static final UpgradeRenderDataType<CookingUpgradeRenderData> TYPE = new UpgradeRenderDataType<>("smelting", CookingUpgradeRenderData.class, CookingUpgradeRenderData::deserializeNBT);
+	public static final UpgradeRenderDataType<CookingUpgradeRenderData> TYPE = new UpgradeRenderDataType<>("smelting", CookingUpgradeRenderData.class,
+			CookingUpgradeRenderData::deserializeNBT);
 
 	private final boolean burning;
 

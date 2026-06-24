@@ -13,11 +13,13 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UpgradeRenderRegistry {
-	private UpgradeRenderRegistry() {}
+	private UpgradeRenderRegistry() {
+	}
 
 	private static final Map<UpgradeRenderDataType<?>, IUpgradeRenderer<?>> UPGRADE_RENDERERS = new HashMap<>();
 
-	private static <T extends IUpgradeRenderData> void registerUpgradeRenderer(UpgradeRenderDataType<T> upgradeRenderDataType, IUpgradeRenderer<T> upgradeRenderer) {
+	private static <T extends IUpgradeRenderData> void registerUpgradeRenderer(UpgradeRenderDataType<T> upgradeRenderDataType,
+			IUpgradeRenderer<T> upgradeRenderer) {
 		UPGRADE_RENDERERS.put(upgradeRenderDataType, upgradeRenderer);
 	}
 
@@ -27,7 +29,7 @@ public class UpgradeRenderRegistry {
 	}
 
 	public static <T extends IUpgradeRenderData> Optional<IUpgradeRenderer<T>> getUpgradeRenderer(UpgradeRenderDataType<T> upgradeRenderDataType) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return Optional.ofNullable((IUpgradeRenderer<T>) UPGRADE_RENDERERS.get(upgradeRenderDataType));
 	}
 }

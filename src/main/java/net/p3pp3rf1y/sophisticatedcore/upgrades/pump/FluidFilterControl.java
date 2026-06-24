@@ -86,7 +86,7 @@ public class FluidFilterControl extends WidgetBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO narration
+		// TODO narration
 	}
 
 	public void setFluid(int index, FluidStack fluid) {

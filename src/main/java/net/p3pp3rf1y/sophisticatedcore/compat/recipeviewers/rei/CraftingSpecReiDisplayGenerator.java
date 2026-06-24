@@ -12,8 +12,8 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.ShapedRecipe;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayView;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.ClientRecipeHelper;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingDisplayView;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.IRecipeViewerDisplayCatalog;
 
 import java.util.ArrayList;
@@ -38,9 +38,8 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<Display> displays = new ArrayList<>(catalogSupplier.get().getCraftingRecipesFor(stack).stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
-				.toList());
+		List<Display> displays = new ArrayList<>(
+				catalogSupplier.get().getCraftingRecipesFor(stack).stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -50,9 +49,8 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<Display> displays = new ArrayList<>(catalogSupplier.get().getCraftingUsagesFor(stack).stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
-				.toList());
+		List<Display> displays = new ArrayList<>(
+				catalogSupplier.get().getCraftingUsagesFor(stack).stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -62,11 +60,9 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 			return Optional.empty();
 		}
 
-		List<Display> displays = new ArrayList<>(catalogSupplier.get().getGlobalCraftingDisplays().stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
-		catalogSupplier.get().getCraftingRecipes().stream()
-				.map(CraftingSpecReiDisplayGenerator::toDisplay)
-				.filter(Objects::nonNull)
-				.forEach(displays::add);
+		List<Display> displays = new ArrayList<>(
+				catalogSupplier.get().getGlobalCraftingDisplays().stream().map(CraftingSpecReiDisplayGenerator::toDisplay).toList());
+		catalogSupplier.get().getCraftingRecipes().stream().map(CraftingSpecReiDisplayGenerator::toDisplay).filter(Objects::nonNull).forEach(displays::add);
 		return displays.isEmpty() ? Optional.empty() : Optional.of(displays);
 	}
 
@@ -83,7 +79,8 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 		private final CraftingRecipe recipe;
 
 		private CatalogCraftingReiDisplay(RecipeHolder<Recipe<?>> recipeHolder) {
-			super(getInputs(recipeHolder.value()), List.of(EntryIngredients.of(ClientRecipeHelper.getResultItem(recipeHolder.value()))), Optional.of(recipeHolder));
+			super(getInputs(recipeHolder.value()), List.of(EntryIngredients.of(ClientRecipeHelper.getResultItem(recipeHolder.value()))),
+					Optional.of(recipeHolder));
 			this.recipe = (CraftingRecipe) recipeHolder.value();
 		}
 
@@ -99,12 +96,16 @@ public class CraftingSpecReiDisplayGenerator implements DynamicDisplayGenerator<
 
 		@Override
 		public int getInputWidth(int craftingWidth, int craftingHeight) {
-			return recipe instanceof ShapedRecipe shapedRecipe ? shapedRecipe.getWidth() : craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3);
+			return recipe instanceof ShapedRecipe shapedRecipe
+					? shapedRecipe.getWidth()
+					: craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3);
 		}
 
 		@Override
 		public int getInputHeight(int craftingWidth, int craftingHeight) {
-			return recipe instanceof ShapedRecipe shapedRecipe ? shapedRecipe.getHeight() : (int) Math.ceil(getInputEntries().size() / (double) getInputWidth(craftingWidth, craftingHeight));
+			return recipe instanceof ShapedRecipe shapedRecipe
+					? shapedRecipe.getHeight()
+					: (int) Math.ceil(getInputEntries().size() / (double) getInputWidth(craftingWidth, craftingHeight));
 		}
 
 		@Override

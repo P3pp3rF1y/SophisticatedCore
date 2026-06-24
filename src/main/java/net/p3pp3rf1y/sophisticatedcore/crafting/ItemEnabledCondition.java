@@ -9,10 +9,8 @@ import net.neoforged.neoforge.common.conditions.ICondition;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 
 public record ItemEnabledCondition(ResourceLocation itemRegistryName) implements ICondition {
-	public static final MapCodec<ItemEnabledCondition> CODEC = RecordCodecBuilder.mapCodec(
-			builder -> builder
-					.group(
-							ResourceLocation.CODEC.fieldOf("itemRegistryName").forGetter(ItemEnabledCondition::itemRegistryName))
+	public static final MapCodec<ItemEnabledCondition> CODEC = RecordCodecBuilder
+			.mapCodec(builder -> builder.group(ResourceLocation.CODEC.fieldOf("itemRegistryName").forGetter(ItemEnabledCondition::itemRegistryName))
 					.apply(builder, ItemEnabledCondition::new));
 
 	public ItemEnabledCondition(Item item) {

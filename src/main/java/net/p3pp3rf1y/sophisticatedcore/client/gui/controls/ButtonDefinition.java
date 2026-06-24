@@ -5,6 +5,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TextureBlitData;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Map;
 
@@ -22,8 +23,8 @@ public class ButtonDefinition {
 		this(dimension, backgroundTexture, hoveredBackgroundTexture, null, Component.literal(""));
 	}
 
-	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture,
-			@Nullable TextureBlitData hoveredBackgroundTexture, @Nullable TextureBlitData foregroundTexture, Component... tooltip) {
+	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture, @Nullable TextureBlitData hoveredBackgroundTexture,
+			@Nullable TextureBlitData foregroundTexture, Component... tooltip) {
 		this.dimension = dimension;
 		this.backgroundTexture = backgroundTexture;
 		this.hoveredBackgroundTexture = hoveredBackgroundTexture;

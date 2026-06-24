@@ -6,7 +6,8 @@ import net.p3pp3rf1y.sophisticatedcore.renderdata.UpgradeRenderDataType;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class JukeboxUpgradeRenderData implements IUpgradeRenderData {
-	public static final UpgradeRenderDataType<JukeboxUpgradeRenderData> TYPE = new UpgradeRenderDataType<>("jukebox", JukeboxUpgradeRenderData.class, JukeboxUpgradeRenderData::deserializeNBT);
+	public static final UpgradeRenderDataType<JukeboxUpgradeRenderData> TYPE = new UpgradeRenderDataType<>("jukebox", JukeboxUpgradeRenderData.class,
+			JukeboxUpgradeRenderData::deserializeNBT);
 
 	private final boolean playing;
 

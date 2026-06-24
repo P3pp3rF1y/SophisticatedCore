@@ -45,7 +45,8 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		if (isServer()) {
 			getCategory().unselectSlot(slotIndex);
 		} else {
-			getCategory().unselectSlot(slotIndex); //need to do this on client as well so that selection highlight knows whether the slot was unselected and can move to it
+			getCategory().unselectSlot(slotIndex); // need to do this on client as well so that selection highlight knows whether the slot was unselected and
+													// can move to it
 			sendIntToServer(UNSELECT_SLOT_TAG, slotIndex);
 		}
 	}
@@ -57,7 +58,8 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		if (isServer()) {
 			getCategory().selectSlot(slotIndex);
 		} else {
-			getCategory().selectSlot(slotIndex); //need to do this on client as well so that selection highlight knows whether the slot was selected and can move to it
+			getCategory().selectSlot(slotIndex); // need to do this on client as well so that selection highlight knows whether the slot was selected and can
+													// move to it
 			sendIntToServer(SELECT_SLOT_TAG, slotIndex);
 		}
 	}

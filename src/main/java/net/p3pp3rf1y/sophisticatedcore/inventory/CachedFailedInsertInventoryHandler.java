@@ -8,7 +8,10 @@ import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-public class CachedFailedInsertInventoryHandler<T extends IItemHandlerModifiable & IInsertBlockOverride> implements IItemHandlerModifiable, IInsertBlockOverride {
+public class CachedFailedInsertInventoryHandler<T extends IItemHandlerModifiable & IInsertBlockOverride>
+		implements
+			IItemHandlerModifiable,
+			IInsertBlockOverride {
 	private final Supplier<T> wrappedHandlerGetter;
 	private final LongSupplier timeSupplier;
 	private long currentCacheTime = 0;
@@ -52,7 +55,8 @@ public class CachedFailedInsertInventoryHandler<T extends IItemHandlerModifiable
 		ItemStack result = wrappedHandlerGetter.get().insertItem(slot, stack, false);
 
 		if (result == stack) {
-			failedInsertStacks.add(stack); //only working with stack references because this logic is meant to handle the case where something tries to insert the same stack number of slots times
+			failedInsertStacks.add(stack); // only working with stack references because this logic is meant to handle the case where something tries to insert
+											// the same stack number of slots times
 		}
 
 		return result;

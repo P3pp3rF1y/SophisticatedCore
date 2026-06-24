@@ -16,10 +16,13 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterRec
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SawmillRecipeContainer extends BlockConverterRecipeContainer<WoodcuttingRecipe, SawmillUpgradeItem.Wrapper, SawmillRecipeContainer, SawmillUpgradeContainer> {
+public class SawmillRecipeContainer
+		extends
+			BlockConverterRecipeContainer<WoodcuttingRecipe, SawmillUpgradeItem.Wrapper, SawmillRecipeContainer, SawmillUpgradeContainer> {
 	private int maxInputCount;
 
-	public SawmillRecipeContainer(SawmillUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level) {
+	public SawmillRecipeContainer(SawmillUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater,
+			ContainerLevelAccess worldPosCallable, Level level) {
 		super(upgradeContainer, addSlot, serverUpdater, worldPosCallable, level, SawmillMod.SAWMILL_TAKE.get());
 	}
 

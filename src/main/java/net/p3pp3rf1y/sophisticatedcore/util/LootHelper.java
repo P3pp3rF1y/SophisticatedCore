@@ -19,12 +19,14 @@ import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class LootHelper {
-	private LootHelper() {}
+	private LootHelper() {
+	}
 
 	public static List<ItemStack> getLoot(ResourceLocation lootTableName, MinecraftServer server, ServerLevel level, BlockPos pos, @Nullable Player player) {
 		LootTable lootTable = server.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, lootTableName));

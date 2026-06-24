@@ -21,12 +21,13 @@ public class UpgradeRenderDataValidatorRegistry {
 		registerValidator(JukeboxUpgradeRenderData.TYPE, new JukeboxUpgradeRenderDataValidator());
 	}
 
-	private static <T extends IUpgradeRenderData> void registerValidator(UpgradeRenderDataType<T> upgradeRenderDataType, IUpgradeRenderDataValidator<T> validator) {
+	private static <T extends IUpgradeRenderData> void registerValidator(UpgradeRenderDataType<T> upgradeRenderDataType,
+			IUpgradeRenderDataValidator<T> validator) {
 		VALIDATORS.put(upgradeRenderDataType, validator);
 	}
 
 	public static <T extends IUpgradeRenderData> Optional<IUpgradeRenderDataValidator<T>> getValidator(UpgradeRenderDataType<T> upgradeRenderDataType) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return Optional.ofNullable((IUpgradeRenderDataValidator<T>) VALIDATORS.get(upgradeRenderDataType));
 	}
 }

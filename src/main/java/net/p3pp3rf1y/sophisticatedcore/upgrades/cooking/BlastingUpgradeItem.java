@@ -12,7 +12,7 @@ public class BlastingUpgradeItem extends UpgradeItemBase<CookingUpgradeWrapper.B
 	private final CookingUpgradeConfig blastingUpgradeConfig;
 
 	public BlastingUpgradeItem(CookingUpgradeConfig blastingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
+		super(upgradeTypeLimitConfig);
 		this.blastingUpgradeConfig = blastingUpgradeConfig;
 	}
 

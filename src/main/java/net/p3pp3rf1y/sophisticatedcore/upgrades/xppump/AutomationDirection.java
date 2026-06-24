@@ -10,17 +10,16 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum AutomationDirection implements StringRepresentable {
-	INPUT("input"),
-	OUTPUT("output"),
-	KEEP("keep"),
-	OFF("off");
+	INPUT("input"), OUTPUT("output"), KEEP("keep"), OFF("off");
 
 	public static final Codec<AutomationDirection> CODEC = StringRepresentable.fromEnum(AutomationDirection::values);
 	public static final StreamCodec<FriendlyByteBuf, AutomationDirection> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(AutomationDirection.class);
 
 	private final String name;
 
-	AutomationDirection(String name) {this.name = name;}
+	AutomationDirection(String name) {
+		this.name = name;
+	}
 
 	@Override
 	public String getSerializedName() {
@@ -36,7 +35,7 @@ public enum AutomationDirection implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, AutomationDirection> builder = new ImmutableMap.Builder<>();
-		for (AutomationDirection value : AutomationDirection.values()) {
+		for (AutomationDirection value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

@@ -32,12 +32,14 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 	private static final Dimension DIMENSION_16_12 = new Dimension(16, 12);
 	private static final TextureBlitData SMALL_BUTTON_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(53, 18), DIMENSION_8_12);
 	private static final TextureBlitData SMALL_BUTTON_HOVERED_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(61, 18), DIMENSION_8_12);
-	private static final TextureBlitData PREVIOS_RESULT_FOREGROUND = new TextureBlitData(ICONS, new Position(0, 0), Dimension.SQUARE_256, new UV(48, 144), DIMENSION_8_12);
-	private static final ButtonDefinition PREVIOUS_RESULT = new ButtonDefinition(DIMENSION_8_12, SMALL_BUTTON_BACKGROUND, SMALL_BUTTON_HOVERED_BACKGROUND, PREVIOS_RESULT_FOREGROUND,
-			Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("previous_result")));
-	private static final TextureBlitData NEXT_RESULT_FOREGROUND = new TextureBlitData(ICONS, new Position(0, 0), Dimension.SQUARE_256, new UV(56, 144), DIMENSION_8_12);
-	private static final ButtonDefinition NEXT_RESULT = new ButtonDefinition(DIMENSION_8_12, SMALL_BUTTON_BACKGROUND, SMALL_BUTTON_HOVERED_BACKGROUND, NEXT_RESULT_FOREGROUND,
-			Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("next_result")));
+	private static final TextureBlitData PREVIOS_RESULT_FOREGROUND = new TextureBlitData(ICONS, new Position(0, 0), Dimension.SQUARE_256, new UV(48, 144),
+			DIMENSION_8_12);
+	private static final ButtonDefinition PREVIOUS_RESULT = new ButtonDefinition(DIMENSION_8_12, SMALL_BUTTON_BACKGROUND, SMALL_BUTTON_HOVERED_BACKGROUND,
+			PREVIOS_RESULT_FOREGROUND, Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("previous_result")));
+	private static final TextureBlitData NEXT_RESULT_FOREGROUND = new TextureBlitData(ICONS, new Position(0, 0), Dimension.SQUARE_256, new UV(56, 144),
+			DIMENSION_8_12);
+	private static final ButtonDefinition NEXT_RESULT = new ButtonDefinition(DIMENSION_8_12, SMALL_BUTTON_BACKGROUND, SMALL_BUTTON_HOVERED_BACKGROUND,
+			NEXT_RESULT_FOREGROUND, Component.translatable(TranslationHelper.INSTANCE.translUpgradeButton("next_result")));
 	private static final TextureBlitData BIG_BUTTON_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(69, 18), DIMENSION_16_12);
 	private static final TextureBlitData BIG_BUTTON_HOVERED_BACKGROUND = new TextureBlitData(GUI_CONTROLS, new UV(63, 30), DIMENSION_16_12);
 	private static final ButtonDefinition SELECT_RESULT = new ButtonDefinition(DIMENSION_16_12, BIG_BUTTON_BACKGROUND, BIG_BUTTON_HOVERED_BACKGROUND, null,
@@ -69,12 +71,14 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 	private Tuple<Position, Dimension> resultListPositionDimensions;
 	private final List<Position> resultChoicePositions = new ArrayList<>();
 
-	public CraftingUpgradeTab(CraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillCraftingGridButton) {
-		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("crafting"), TranslationHelper.INSTANCE.translUpgradeTooltip("crafting"));
-		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton, button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()),
-				getContainer()::shouldShiftClickIntoStorage));
-		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), refillCraftingGridButton, button -> getContainer().setRefillCraftingGrid(!getContainer().shouldRefillCraftingGrid()),
-				getContainer()::shouldRefillCraftingGrid));
+	public CraftingUpgradeTab(CraftingUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen,
+			ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillCraftingGridButton) {
+		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("crafting"),
+				TranslationHelper.INSTANCE.translUpgradeTooltip("crafting"));
+		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton,
+				button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()), getContainer()::shouldShiftClickIntoStorage));
+		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), refillCraftingGridButton,
+				button -> getContainer().setRefillCraftingGrid(!getContainer().shouldRefillCraftingGrid()), getContainer()::shouldRefillCraftingGrid));
 		craftingUIAddition = screen.getCraftingUIAddition();
 		openTabDimension = new Dimension(63 + craftingUIAddition.getWidth(), 142);
 		previousResultButton = new Button(new Position(x + 3 + 6 + craftingUIAddition.getWidth(), y + 118), PREVIOUS_RESULT, button -> {
@@ -85,7 +89,8 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 			@Override
 			public void renderTooltip(Screen screen, GuiGraphics guiGraphics, int mouseX, int mouseY) {
 				if (visible && isMouseOver(mouseX, mouseY)) {
-					guiGraphics.renderTooltip(minecraft.font, getTooltip().stream().map(Component::getVisualOrderText).toList(), LEFT_SIDE_TOOLTIP_POSITIONER, mouseX, mouseY);
+					guiGraphics.renderTooltip(minecraft.font, getTooltip().stream().map(Component::getVisualOrderText).toList(), LEFT_SIDE_TOOLTIP_POSITIONER,
+							mouseX, mouseY);
 				}
 			}
 		};
@@ -140,14 +145,16 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 				for (int i = 0; i < matchedCraftingResults.size(); i++) {
 					int xOffset = (i % 3) * 18;
 					int yOffset = (i / 3) * 18;
-					resultChoicePositions.add(new Position(resultListPositionDimensions.getA().x() + RESULT_SELECTION_BORDER_WIDTH + xOffset, resultListPositionDimensions.getA().y() + RESULT_SELECTION_BORDER_WIDTH + yOffset));
+					resultChoicePositions.add(new Position(resultListPositionDimensions.getA().x() + RESULT_SELECTION_BORDER_WIDTH + xOffset,
+							resultListPositionDimensions.getA().y() + RESULT_SELECTION_BORDER_WIDTH + yOffset));
 				}
 			}
 
 			guiGraphics.pose().pushPose();
 			guiGraphics.pose().translate(0, 0, 410);
 
-			renderResultSelectionBackground(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getB().width(), resultListPositionDimensions.getB().height(), resultListPositionDimensions.getA().x(), resultListPositionDimensions.getA().y());
+			renderResultSelectionBackground(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getB().width(),
+					resultListPositionDimensions.getB().height(), resultListPositionDimensions.getA().x(), resultListPositionDimensions.getA().y());
 			renderResultChoices(guiGraphics, matchedCraftingResults, resultListPositionDimensions.getA().x(), resultListPositionDimensions.getA().y());
 			renderSelectionSlotHover(guiGraphics, mouseX, mouseY);
 
@@ -171,7 +178,8 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 		int slotsLeftX = pos.x() + RESULT_SELECTION_BORDER_WIDTH;
 		int slotsTopY = pos.y() + RESULT_SELECTION_BORDER_WIDTH;
 
-		if (mouseX >= slotsLeftX && mouseX < pos.x() + dim.width() - RESULT_SELECTION_BORDER_WIDTH && mouseY >= slotsTopY && mouseY < pos.y() + dim.height() - RESULT_SELECTION_BORDER_WIDTH) {
+		if (mouseX >= slotsLeftX && mouseX < pos.x() + dim.width() - RESULT_SELECTION_BORDER_WIDTH && mouseY >= slotsTopY
+				&& mouseY < pos.y() + dim.height() - RESULT_SELECTION_BORDER_WIDTH) {
 			for (int i = 0; i < resultChoicePositions.size(); i++) {
 				Position position = resultChoicePositions.get(i);
 				if (mouseX >= position.x() && mouseX < position.x() + 18 && mouseY >= position.y() && mouseY < position.y() + 18) {
@@ -200,22 +208,25 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 		int height = RESULT_SELECTION_BORDER_WIDTH + ((matchedCraftingResults.size() - 1) / 3 + 1) * 18 + RESULT_SELECTION_BORDER_WIDTH;
 		int width = RESULT_SELECTION_BORDER_WIDTH + Math.min(matchedCraftingResults.size(), 3) * 18 + RESULT_SELECTION_BORDER_WIDTH;
 
-		int resultListLeftX = selectResultButton.getX() + 8 - RESULT_SELECTION_BORDER_WIDTH -(int) (Math.min(matchedCraftingResults.size(), 3) / 2f * 18);
+		int resultListLeftX = selectResultButton.getX() + 8 - RESULT_SELECTION_BORDER_WIDTH - (int) (Math.min(matchedCraftingResults.size(), 3) / 2f * 18);
 		int resultListTopY = selectResultButton.getY() - height;
 		resultListPositionDimensions = new Tuple<>(new Position(resultListLeftX, resultListTopY), new Dimension(width, height));
 
 	}
 
-	private static void renderResultSelectionBackground(GuiGraphics guiGraphics, List<ItemStack> matchedCraftingResults, int width, int height, int resultListLeftX, int resultListTopY) {
+	private static void renderResultSelectionBackground(GuiGraphics guiGraphics, List<ItemStack> matchedCraftingResults, int width, int height,
+			int resultListLeftX, int resultListTopY) {
 		int halfWidth = width / 2;
 		int halfHeight = height / 2;
 
 		guiGraphics.blit(GUI_CONTROLS, resultListLeftX, resultListTopY, 85, 24, halfWidth, halfHeight, 256, 256);
 		guiGraphics.blit(GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY, (float) 117 - halfWidth, 24, halfWidth, halfHeight, 256, 256);
 		guiGraphics.blit(GUI_CONTROLS, resultListLeftX, resultListTopY + halfHeight, 85, (float) 56 - halfHeight, halfWidth, halfHeight, 256, 256);
-		guiGraphics.blit(GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY + halfHeight, (float) 117 - halfWidth, (float) 56 - halfHeight, halfWidth, halfHeight, 256, 256);
+		guiGraphics.blit(GUI_CONTROLS, resultListLeftX + halfWidth, resultListTopY + halfHeight, (float) 117 - halfWidth, (float) 56 - halfHeight, halfWidth,
+				halfHeight, 256, 256);
 
-		GuiHelper.renderSlotsBackground(guiGraphics, resultListLeftX + RESULT_SELECTION_BORDER_WIDTH, resultListTopY + RESULT_SELECTION_BORDER_WIDTH, 3, matchedCraftingResults.size() / 3, matchedCraftingResults.size() % 3);
+		GuiHelper.renderSlotsBackground(guiGraphics, resultListLeftX + RESULT_SELECTION_BORDER_WIDTH, resultListTopY + RESULT_SELECTION_BORDER_WIDTH, 3,
+				matchedCraftingResults.size() / 3, matchedCraftingResults.size() % 3);
 	}
 
 	private void renderResultChoices(GuiGraphics guiGraphics, List<ItemStack> matchedCraftingResults, int resultListLeftX, int resultListTopY) {

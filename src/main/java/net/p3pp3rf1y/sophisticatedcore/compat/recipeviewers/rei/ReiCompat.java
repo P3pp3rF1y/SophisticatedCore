@@ -15,7 +15,7 @@ public class ReiCompat implements ICompat {
 
 	@Override
 	public void setup() {
-		//noop
+		// noop
 	}
 
 	private void registerPackets(final RegisterPayloadHandlersEvent event) {

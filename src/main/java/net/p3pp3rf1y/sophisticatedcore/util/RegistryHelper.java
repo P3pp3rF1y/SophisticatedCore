@@ -12,7 +12,6 @@ import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.Validate;
 
-import java.nio.file.FileSystem;
 import java.util.Optional;
 
 public class RegistryHelper {

@@ -17,7 +17,8 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 	private final BlockPos localPos;
 	private CompoundTag lastSettingsNbt = null;
 
-	public MountedStorageSettingsContainerMenuBase(MenuType<?> menuType, int windowId, Player player, IStorageWrapper storageWrapper, int contraptionEntityId, BlockPos localPos) {
+	public MountedStorageSettingsContainerMenuBase(MenuType<?> menuType, int windowId, Player player, IStorageWrapper storageWrapper, int contraptionEntityId,
+			BlockPos localPos) {
 		super(menuType, windowId, player, storageWrapper);
 		this.contraptionEntityId = contraptionEntityId;
 		this.localPos = localPos;

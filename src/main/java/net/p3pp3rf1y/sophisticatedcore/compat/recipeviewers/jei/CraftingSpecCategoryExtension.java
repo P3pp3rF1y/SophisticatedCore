@@ -31,12 +31,15 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 	@Override
 	public void setRecipe(RecipeHolder<R> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
 		CraftingDisplaySpec spec = specFactory.apply(recipeHolder);
-		List<CraftingDisplayVariant> variants = recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe ? specRecipe.variants() : narrowToFocus(spec, focuses);
+		List<CraftingDisplayVariant> variants = recipeHolder.value() instanceof IRecipeViewerCraftingSpecRecipe specRecipe
+				? specRecipe.variants()
+				: narrowToFocus(spec, focuses);
 		List<List<ItemStack>> inputStacks = spec.getInputSlots(variants);
 		List<ItemStack> outputStacks = spec.getOutputStacks(variants);
 		List<IRecipeSlotBuilder> inputSlots = craftingGridHelper.createAndSetInputs(builder, inputStacks, spec.width(), spec.height());
 		IRecipeSlotBuilder outputSlot = craftingGridHelper.createAndSetOutputs(builder, outputStacks);
-		if (spec.focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior && sourceResultFocusBehavior.sourceInputIndex() < inputSlots.size()) {
+		if (spec.focusBehavior() instanceof SourceResultFocusBehavior sourceResultFocusBehavior
+				&& sourceResultFocusBehavior.sourceInputIndex() < inputSlots.size()) {
 			List<ItemStack> sourceStacks = inputStacks.get(sourceResultFocusBehavior.sourceInputIndex());
 			if (sourceStacks.size() == 1 && outputStacks.size() == 1) {
 				builder.createFocusLink(inputSlots.get(sourceResultFocusBehavior.sourceInputIndex()), outputSlot);
@@ -55,19 +58,15 @@ public class CraftingSpecCategoryExtension<R extends CraftingRecipe> implements 
 	}
 
 	private List<CraftingDisplayVariant> narrowToFocus(CraftingDisplaySpec spec, IFocusGroup focuses) {
-		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
-				.filter(focusedStackPredicate)
-				.findFirst();
+		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).map(focus -> focus.getTypedValue().getIngredient())
+				.filter(focusedStackPredicate).findFirst();
 		if (outputFocus.isPresent()) {
 			List<CraftingDisplayVariant> variants = spec.getRecipesFor(outputFocus.get());
 			return variants.isEmpty() ? spec.getGlobalDisplays() : variants;
 		}
 
-		Optional<ItemStack> inputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.INPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
-				.filter(focusedStackPredicate)
-				.findFirst();
+		Optional<ItemStack> inputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.INPUT).map(focus -> focus.getTypedValue().getIngredient())
+				.filter(focusedStackPredicate).findFirst();
 		if (inputFocus.isPresent()) {
 			List<CraftingDisplayVariant> variants = spec.getUsagesFor(inputFocus.get());
 			return variants.isEmpty() ? spec.getGlobalDisplays() : variants;

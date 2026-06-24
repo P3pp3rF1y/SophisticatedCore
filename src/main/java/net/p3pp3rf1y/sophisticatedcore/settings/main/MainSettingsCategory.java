@@ -45,21 +45,21 @@ public class MainSettingsCategory<T extends MainSettingsCategory<?>> implements 
 
 	@Override
 	public void overwriteWith(T otherCategory) {
-		//noop for now
+		// noop for now
 	}
 
 	@Override
 	public boolean isLargerThanNumberOfSlots(int slots) {
-		return false; //no slots in this category so it can't be too large
+		return false; // no slots in this category so it can't be too large
 	}
 
 	@Override
 	public void copyTo(T otherCategory, int startFromSlot, int slotOffset) {
-		//noop just letting the other retain its state
+		// noop just letting the other retain its state
 	}
 
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
-		//noop no slots to delete
+		// noop no slots to delete
 	}
 }

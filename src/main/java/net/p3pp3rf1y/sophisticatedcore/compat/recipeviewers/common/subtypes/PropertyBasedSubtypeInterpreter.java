@@ -4,6 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,8 +18,7 @@ public abstract class PropertyBasedSubtypeInterpreter {
 		return propertyDefinitions;
 	}
 
-	protected <T> void addOptionalProperty(Function<ItemStack, Optional<T>> propertyGetter, String propertyName,
-										   Function<T, String> propertyValueSerializer) {
+	protected <T> void addOptionalProperty(Function<ItemStack, Optional<T>> propertyGetter, String propertyName, Function<T, String> propertyValueSerializer) {
 		addDefinition(s -> propertyGetter.andThen(i -> i.orElse(null)).apply(s), propertyName, propertyValueSerializer);
 	}
 
@@ -49,7 +49,8 @@ public abstract class PropertyBasedSubtypeInterpreter {
 		boolean allNulls = true;
 		List<Object> results = new ArrayList<>(getPropertyDefinitions().size());
 		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
-			@Nullable Object value = definition.getPropertyValue(stack);
+			@Nullable
+			Object value = definition.getPropertyValue(stack);
 			if (value != null) {
 				allNulls = false;
 			}
@@ -62,14 +63,15 @@ public abstract class PropertyBasedSubtypeInterpreter {
 	}
 
 	private <T> String getSerializedPropertyValue(IPropertyDefinition<T> definition, Object value) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return definition.serializePropertyValue((T) value);
 	}
 
 	public String getRegistrySanitizedItemString(ItemStack stack) {
 		StringBuilder result = new StringBuilder();
 		for (IPropertyDefinition<?> definition : getPropertyDefinitions()) {
-			@Nullable Object value = definition.getPropertyValue(stack);
+			@Nullable
+			Object value = definition.getPropertyValue(stack);
 			if (value != null) {
 				String serializedValue = sanitize(getSerializedPropertyValue(definition, value));
 				if (!result.isEmpty()) {

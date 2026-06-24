@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,8 +46,9 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, stack) -> {
 			if (slot != excludeUpgradeSlot && stack.getItem() instanceof IUpgradeItem<?> upgradeItem) {
 				for (UpgradeConflictDefinition conflictDefinition : upgradeItem.getUpgradeConflicts()) {
-					//only checking for single item conflicts here would need to be expanded to support multiple,
-					// but there isn't a case like that at the moment because the other conflict check (the one where item inserted checks items that exist) covers all multiple item cases
+					// only checking for single item conflicts here would need to be expanded to support multiple,
+					// but there isn't a case like that at the moment because the other conflict check (the one where item inserted checks items that exist)
+					// covers all multiple item cases
 					if (conflictDefinition.maxConflictingAllowed() == 0 && conflictDefinition.isConflictingItem.test(upgradeStack.getItem())) {
 						result.set(UpgradeSlotChangeResult.fail(conflictDefinition.otherBeingAddedErrorMessage, Set.of(slot), Set.of(), Set.of()));
 						return;
@@ -57,7 +59,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		return result.get();
 	}
 
-	private UpgradeSlotChangeResult checkForConflictingUpgrades(IStorageWrapper storageWrapper, List<UpgradeConflictDefinition> upgradeConflicts, int excludeUpgradeSlot) {
+	private UpgradeSlotChangeResult checkForConflictingUpgrades(IStorageWrapper storageWrapper, List<UpgradeConflictDefinition> upgradeConflicts,
+			int excludeUpgradeSlot) {
 		for (UpgradeConflictDefinition conflictDefinition : upgradeConflicts) {
 			AtomicInteger conflictingCount = new AtomicInteger(0);
 			Set<Integer> conflictingSlots = new HashSet<>();
@@ -86,9 +89,11 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		}
 
 		if (upgradesPerStorage == 0) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.upgrade_not_allowed", getName(), storageWrapper.getDisplayName()), Set.of(), Set.of(), Set.of());
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.upgrade_not_allowed", getName(), storageWrapper.getDisplayName()),
+					Set.of(), Set.of(), Set.of());
 		} else if (upgradesInGroupPerStorage == 0) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.upgrade_not_allowed", Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), Set.of(), Set.of(), Set.of());
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.upgrade_not_allowed",
+					Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), Set.of(), Set.of(), Set.of());
 		}
 
 		Set<Integer> slotsWithUpgrade = new HashSet<>();
@@ -99,7 +104,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		});
 
 		if (slotsWithUpgrade.size() >= upgradesPerStorage) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.only_x_upgrades_allowed", upgradesPerStorage, getName(), storageWrapper.getDisplayName(), upgradesPerStorage), slotsWithUpgrade, Set.of(), Set.of());
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.only_x_upgrades_allowed", upgradesPerStorage, getName(),
+					storageWrapper.getDisplayName(), upgradesPerStorage), slotsWithUpgrade, Set.of(), Set.of());
 		}
 
 		Set<Integer> slotsWithUgradeGroup = new HashSet<>();
@@ -110,7 +116,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		});
 
 		if (slotsWithUgradeGroup.size() >= upgradesInGroupPerStorage) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.only_x_upgrades_allowed", upgradesInGroupPerStorage, Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), slotsWithUgradeGroup, Set.of(), Set.of());
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.only_x_upgrades_allowed", upgradesInGroupPerStorage,
+					Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), slotsWithUgradeGroup, Set.of(), Set.of());
 		}
 
 		return UpgradeSlotChangeResult.success();
@@ -157,11 +164,13 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		return UpgradeSlotChangeResult.success();
 	}
 
-	default UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot, @Nullable IUpgradeItem<?> upgradeInSlot) {
+	default UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot,
+			@Nullable IUpgradeItem<?> upgradeInSlot) {
 		return checkExtraInsertConditions(upgradeStack, storageWrapper, isClientSide, upgradeInSlot);
 	}
 
-	default UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, @Nullable IUpgradeItem<?> upgradeInSlot) {
+	default UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide,
+			@Nullable IUpgradeItem<?> upgradeInSlot) {
 		return UpgradeSlotChangeResult.success();
 	}
 
@@ -183,8 +192,8 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 
 	Component getName();
 
-	record UpgradeConflictDefinition(Predicate<Item> isConflictingItem, int maxConflictingAllowed,
-									 Component errorMessage, Component otherBeingAddedErrorMessage) {
+	record UpgradeConflictDefinition(Predicate<Item> isConflictingItem, int maxConflictingAllowed, Component errorMessage,
+			Component otherBeingAddedErrorMessage) {
 		public UpgradeConflictDefinition(Predicate<Item> isConflictingItem, int maxConflictingAllowed, Component errorMessage) {
 			this(isConflictingItem, maxConflictingAllowed, errorMessage, errorMessage);
 		}
