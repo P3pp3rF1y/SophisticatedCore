@@ -16,7 +16,8 @@ public class CraftingSpecReiDisplay extends DefaultCraftingDisplay<Recipe<?>> {
 
 	@SuppressWarnings("unchecked")
 	public CraftingSpecReiDisplay(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants) {
-		super(getInputs(spec, variants), List.of(EntryIngredients.ofItemStacks(spec.getOutputStacks(variants))), Optional.of((RecipeHolder<Recipe<?>>) (RecipeHolder<?>) spec.recipeHolder(variants.getFirst())));
+		super(getInputs(spec, variants), List.of(EntryIngredients.ofItemStacks(spec.getOutputStacks(variants))),
+				Optional.of((RecipeHolder<Recipe<?>>) (RecipeHolder<?>) spec.recipeHolder(variants.getFirst())));
 		this.spec = spec;
 	}
 
@@ -32,7 +33,9 @@ public class CraftingSpecReiDisplay extends DefaultCraftingDisplay<Recipe<?>> {
 
 	@Override
 	public int getInputWidth(int craftingWidth, int craftingHeight) {
-		return spec.shapeless() ? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3) : spec.width();
+		return spec.shapeless()
+				? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3)
+				: spec.width();
 	}
 
 	@Override

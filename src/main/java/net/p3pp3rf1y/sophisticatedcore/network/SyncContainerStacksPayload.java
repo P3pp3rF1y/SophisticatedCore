@@ -12,19 +12,11 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 import java.util.List;
 
-public record SyncContainerStacksPayload(int windowId, int stateId, List<ItemStack> itemStacks,
-										 ItemStack carriedStack) implements CustomPacketPayload {
+public record SyncContainerStacksPayload(int windowId, int stateId, List<ItemStack> itemStacks, ItemStack carriedStack) implements CustomPacketPayload {
 	public static final Type<SyncContainerStacksPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_container_stacks"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SyncContainerStacksPayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT,
-			SyncContainerStacksPayload::windowId,
-			ByteBufCodecs.INT,
-			SyncContainerStacksPayload::stateId,
-			ItemStack.OPTIONAL_LIST_STREAM_CODEC,
-			SyncContainerStacksPayload::itemStacks,
-			ItemStack.OPTIONAL_STREAM_CODEC,
-			SyncContainerStacksPayload::carriedStack,
-			SyncContainerStacksPayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SyncContainerStacksPayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.INT,
+			SyncContainerStacksPayload::windowId, ByteBufCodecs.INT, SyncContainerStacksPayload::stateId, ItemStack.OPTIONAL_LIST_STREAM_CODEC,
+			SyncContainerStacksPayload::itemStacks, ItemStack.OPTIONAL_STREAM_CODEC, SyncContainerStacksPayload::carriedStack, SyncContainerStacksPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

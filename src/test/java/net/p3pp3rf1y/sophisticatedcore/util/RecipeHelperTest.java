@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
@@ -39,7 +38,8 @@ public class RecipeHelperTest {
 		SharedConstants.tryDetectVersion();
 		Bootstrap.bootStrap();
 		Bootstrap.validate();
-		bindTestComponents(Items.GOLD_BLOCK, Items.GOLD_INGOT, Items.GOLD_NUGGET, Items.DIORITE, Items.GRANITE, Items.STONE, Items.DIAMOND, Items.IRON_NUGGET, Items.TORCH, Items.COAL, Items.CHARCOAL);
+		bindTestComponents(Items.GOLD_BLOCK, Items.GOLD_INGOT, Items.GOLD_NUGGET, Items.DIORITE, Items.GRANITE, Items.STONE, Items.DIAMOND, Items.IRON_NUGGET,
+				Items.TORCH, Items.COAL, Items.CHARCOAL);
 	}
 
 	private static Level regularOrderRecipesLevel;
@@ -48,31 +48,70 @@ public class RecipeHelperTest {
 	private static List<RecipeHolder<CraftingRecipe>> getCraftingRecipes() {
 		List<RecipeHolder<CraftingRecipe>> craftingRecipes = new ArrayList<>();
 		Recipe.CommonInfo commonInfo = new Recipe.CommonInfo(true);
-		//stones
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_to_diorite")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.GRANITE), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.DIORITE)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_from_diorite")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GRANITE, 9)), List.of(Ingredient.of(Items.DIORITE)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("stone_to_granite")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.STONE), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.GRANITE)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("stone_from_granite")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.STONE, 9)), List.of(Ingredient.of(Items.GRANITE)))));
+		// stones
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_to_diorite")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, ingredients(Items.GRANITE), Optional.empty()),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.DIORITE)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_from_diorite")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GRANITE, 9)), List.of(Ingredient.of(Items.DIORITE)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("stone_to_granite")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, ingredients(Items.STONE), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.GRANITE)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("stone_from_granite")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.STONE, 9)), List.of(Ingredient.of(Items.GRANITE)))));
 
-		//gold
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_ingot_to_gold_block")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_INGOT), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_BLOCK)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_ingot_from_gold_block")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_INGOT, 9)), List.of(Ingredient.of(Items.GOLD_BLOCK)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_to_gold_ingot")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_NUGGET), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_INGOT)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_from_gold_ingot")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_NUGGET, 9)), List.of(Ingredient.of(Items.GOLD_INGOT)))));
+		// gold
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_ingot_to_gold_block")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_INGOT), Optional.empty()),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_BLOCK)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_ingot_from_gold_block")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_INGOT, 9)), List.of(Ingredient.of(Items.GOLD_BLOCK)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_to_gold_ingot")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_NUGGET), Optional.empty()),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_INGOT)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_from_gold_ingot")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_NUGGET, 9)), List.of(Ingredient.of(Items.GOLD_INGOT)))));
 
-		//hollow 3x3 reversible compression
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("charcoal_to_coal_hollow")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, hollowIngredients(Items.CHARCOAL), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.COAL)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("charcoal_from_coal")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.CHARCOAL, 8)), List.of(Ingredient.of(Items.COAL)))));
+		// hollow 3x3 reversible compression
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("charcoal_to_coal_hollow")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, hollowIngredients(Items.CHARCOAL), Optional.empty()),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.COAL)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("charcoal_from_coal")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.CHARCOAL, 8)), List.of(Ingredient.of(Items.COAL)))));
 
-
-		//confusion recipes
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_to_diorite")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_NUGGET), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.DIORITE)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_to_gold_block")), new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), new ShapedRecipePattern(3, 3, ingredients(Items.GRANITE), Optional.empty()), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_BLOCK)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_from_granite")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_NUGGET, 9)), List.of(Ingredient.of(Items.GRANITE)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_from_diamond")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.GRANITE, 9)), List.of(Ingredient.of(Items.DIAMOND)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("iron_nugget_from_granite")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.IRON_NUGGET, 9)), List.of(Ingredient.of(Items.GRANITE)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("stone_from_gold_ingot")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.STONE, 9)), List.of(Ingredient.of(Items.GOLD_INGOT)))));
-		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("torches_from_gold_block")), new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(stack(Items.TORCH, 9)), List.of(Ingredient.of(Items.GOLD_BLOCK)))));
+		// confusion recipes
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_to_diorite")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, ingredients(Items.GOLD_NUGGET), Optional.empty()),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.DIORITE)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_to_gold_block")),
+				new ShapedRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						new ShapedRecipePattern(3, 3, ingredients(Items.GRANITE), Optional.empty()),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_BLOCK)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("gold_nugget_from_granite")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GOLD_NUGGET, 9)), List.of(Ingredient.of(Items.GRANITE)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("granite_from_diamond")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.GRANITE, 9)), List.of(Ingredient.of(Items.DIAMOND)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("iron_nugget_from_granite")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.IRON_NUGGET, 9)), List.of(Ingredient.of(Items.GRANITE)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("stone_from_gold_ingot")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.STONE, 9)), List.of(Ingredient.of(Items.GOLD_INGOT)))));
+		craftingRecipes.add(new RecipeHolder<>(ResourceKey.create(Registries.RECIPE, Identifier.parse("torches_from_gold_block")),
+				new ShapelessRecipe(commonInfo, new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""),
+						ItemStackTemplate.fromNonEmptyStack(stack(Items.TORCH, 9)), List.of(Ingredient.of(Items.GOLD_BLOCK)))));
 
 		return craftingRecipes;
 	}
@@ -130,11 +169,9 @@ public class RecipeHelperTest {
 	}
 
 	private static NonNullList<Optional<Ingredient>> ingredients(Item item) {
-		return NonNullList.of(Optional.empty(),
-				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
-				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
-				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item))
-		);
+		return NonNullList.of(Optional.empty(), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
+				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
+				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)));
 	}
 
 	private static ItemStack stack(Item item) {
@@ -153,11 +190,9 @@ public class RecipeHelperTest {
 	}
 
 	private static NonNullList<Optional<Ingredient>> hollowIngredients(Item item) {
-		return NonNullList.of(Optional.empty(),
-				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
-				Optional.of(Ingredient.of(item)), Optional.empty(), Optional.of(Ingredient.of(item)),
-				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item))
-		);
+		return NonNullList.of(Optional.empty(), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
+				Optional.of(Ingredient.of(item)), Optional.empty(), Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)),
+				Optional.of(Ingredient.of(item)), Optional.of(Ingredient.of(item)));
 	}
 
 	@AfterEach
@@ -176,14 +211,10 @@ public class RecipeHelperTest {
 	}
 
 	static Stream<Arguments> getCompactingResultReturnsResultForFullThreeByThreeShape() {
-		return withClassParams(
-				List.of(
-						Arguments.of(Items.GOLD_INGOT, new RecipeHelper.CompactingResult(stack(Items.GOLD_BLOCK), Collections.emptyList())),
-						Arguments.of(Items.GOLD_NUGGET, new RecipeHelper.CompactingResult(stack(Items.GOLD_INGOT), Collections.emptyList())),
-						Arguments.of(Items.GRANITE, new RecipeHelper.CompactingResult(stack(Items.DIORITE), Collections.emptyList())),
-						Arguments.of(Items.STONE, new RecipeHelper.CompactingResult(stack(Items.GRANITE), Collections.emptyList()))
-				)
-		);
+		return withClassParams(List.of(Arguments.of(Items.GOLD_INGOT, new RecipeHelper.CompactingResult(stack(Items.GOLD_BLOCK), Collections.emptyList())),
+				Arguments.of(Items.GOLD_NUGGET, new RecipeHelper.CompactingResult(stack(Items.GOLD_INGOT), Collections.emptyList())),
+				Arguments.of(Items.GRANITE, new RecipeHelper.CompactingResult(stack(Items.DIORITE), Collections.emptyList())),
+				Arguments.of(Items.STONE, new RecipeHelper.CompactingResult(stack(Items.GRANITE), Collections.emptyList()))));
 	}
 
 	@ParameterizedTest
@@ -193,7 +224,8 @@ public class RecipeHelperTest {
 
 		RecipeHelper.CompactingResult actualResult = RecipeHelper.getCompactingResult(new ItemStack(Items.CHARCOAL), getHollowThreeByThreeShape());
 
-		assertCompactingResultEquals(new RecipeHelper.CompactingResult(new ItemStack(Items.COAL), Collections.emptyList()), actualResult, "getCompactingResult returned wrong result for masked shape");
+		assertCompactingResultEquals(new RecipeHelper.CompactingResult(new ItemStack(Items.COAL), Collections.emptyList()), actualResult,
+				"getCompactingResult returned wrong result for masked shape");
 	}
 
 	static Stream<Arguments> getCompactingResultReturnsResultForDonutShape() {
@@ -238,7 +270,6 @@ public class RecipeHelperTest {
 		return RecipeHelper.CompactingRecipeShape.parse("111/101/111").orElseThrow();
 	}
 
-
 	@ParameterizedTest
 	@MethodSource
 	void getUncompactingResultReturnsExpectedResult(Level level, Item item, RecipeHelper.UncompactingResult expectedResult) {
@@ -250,14 +281,13 @@ public class RecipeHelperTest {
 	}
 
 	static Stream<Arguments> getUncompactingResultReturnsExpectedResult() {
-		return withClassParams(
-				List.of(
-						Arguments.of(Items.GOLD_BLOCK, new RecipeHelper.UncompactingResult(stack(Items.GOLD_INGOT), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
-						Arguments.of(Items.GOLD_INGOT, new RecipeHelper.UncompactingResult(stack(Items.GOLD_NUGGET), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
-						Arguments.of(Items.DIORITE, new RecipeHelper.UncompactingResult(stack(Items.GRANITE), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
-						Arguments.of(Items.GRANITE, new RecipeHelper.UncompactingResult(stack(Items.STONE), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE))
-				)
-		);
+		return withClassParams(List.of(
+				Arguments.of(Items.GOLD_BLOCK,
+						new RecipeHelper.UncompactingResult(stack(Items.GOLD_INGOT), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
+				Arguments.of(Items.GOLD_INGOT,
+						new RecipeHelper.UncompactingResult(stack(Items.GOLD_NUGGET), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
+				Arguments.of(Items.DIORITE, new RecipeHelper.UncompactingResult(stack(Items.GRANITE), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
+				Arguments.of(Items.GRANITE, new RecipeHelper.UncompactingResult(stack(Items.STONE), RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE))));
 	}
 
 	@ParameterizedTest
@@ -268,36 +298,25 @@ public class RecipeHelperTest {
 		Set<RecipeHelper.CompactingShape> actualShapes = RecipeHelper.getItemCompactingShapes(stack(item));
 
 		if (!Objects.equals(shapes, actualShapes)) {
-			assertionFailure().message("getItemCompactingShapes returned wrong result")
-					.expected(shapes)
-					.actual(actualShapes)
-					.buildAndThrow();
+			assertionFailure().message("getItemCompactingShapes returned wrong result").expected(shapes).actual(actualShapes).buildAndThrow();
 		}
 	}
 
 	static Stream<Arguments> getItemCompactingShapesReturnsExpectedShapes() {
-		return withClassParams(
-				List.of(
-						Arguments.of(Items.GOLD_INGOT, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
-						Arguments.of(Items.GOLD_NUGGET, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
-						Arguments.of(Items.GRANITE, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
-						Arguments.of(Items.STONE, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE))
-				)
-		);
+		return withClassParams(List.of(Arguments.of(Items.GOLD_INGOT, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
+				Arguments.of(Items.GOLD_NUGGET, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
+				Arguments.of(Items.GRANITE, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE)),
+				Arguments.of(Items.STONE, Set.of(RecipeHelper.CompactingShape.THREE_BY_THREE_UNCRAFTABLE))));
 	}
 
 	private static void assertCompactingResultEquals(RecipeHelper.CompactingResult expected, RecipeHelper.CompactingResult actual, Object message) {
-		if (ItemStack.matches(expected.getResult(), actual.getResult())
-				&& areItemListsEqual(expected.getRemainingItems(), actual.getRemainingItems())) {
+		if (ItemStack.matches(expected.getResult(), actual.getResult()) && areItemListsEqual(expected.getRemainingItems(), actual.getRemainingItems())) {
 			return;
 		}
 
-		assertionFailure().message(message)
-				.expected(expected.getResult() + ":" + expected.getRemainingItems())
-				.actual(actual.getResult() + ":" + actual.getRemainingItems())
-				.buildAndThrow();
+		assertionFailure().message(message).expected(expected.getResult() + ":" + expected.getRemainingItems())
+				.actual(actual.getResult() + ":" + actual.getRemainingItems()).buildAndThrow();
 	}
-
 
 	private static boolean areItemListsEqual(List<ItemStack> expected, List<ItemStack> actual) {
 		if (expected.size() != actual.size()) {
@@ -314,9 +333,7 @@ public class RecipeHelperTest {
 		if (ItemStack.isSameItemSameComponents(expected.getResult(), actual.getResult()) && expected.getCompactUsingShape() == actual.getCompactUsingShape()) {
 			return;
 		}
-		assertionFailure().message(message)
-				.expected(expected.getResult() + ":" + expected.getCompactUsingShape())
-				.actual(actual.getResult() + ":" + actual.getCompactUsingShape())
-				.buildAndThrow();
+		assertionFailure().message(message).expected(expected.getResult() + ":" + expected.getCompactUsingShape())
+				.actual(actual.getResult() + ":" + actual.getCompactUsingShape()).buildAndThrow();
 	}
 }

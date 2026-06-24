@@ -11,11 +11,8 @@ import java.util.UUID;
 
 public record StopDiscPlaybackPayload(UUID storageUuid) implements CustomPacketPayload {
 	public static final Type<StopDiscPlaybackPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("stop_disc_playback"));
-	public static final StreamCodec<ByteBuf, StopDiscPlaybackPayload> STREAM_CODEC = StreamCodec.composite(
-			UUIDUtil.STREAM_CODEC,
-			StopDiscPlaybackPayload::storageUuid,
-			StopDiscPlaybackPayload::new);
-
+	public static final StreamCodec<ByteBuf, StopDiscPlaybackPayload> STREAM_CODEC = StreamCodec.composite(UUIDUtil.STREAM_CODEC,
+			StopDiscPlaybackPayload::storageUuid, StopDiscPlaybackPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

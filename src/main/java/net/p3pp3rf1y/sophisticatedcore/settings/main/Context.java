@@ -7,8 +7,7 @@ import net.minecraft.util.StringRepresentable;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 
 public enum Context implements StringRepresentable {
-	PLAYER("player"),
-	CONTAINER("container");
+	PLAYER("player"), CONTAINER("container");
 
 	public static final Codec<Context> CODEC = StringRepresentable.fromEnum(Context::values);
 	public static final StreamCodec<FriendlyByteBuf, Context> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(Context.class);

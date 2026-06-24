@@ -8,17 +8,19 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.*;
 
 public class CraftingContainerRecipeTransferHandlerServer {
-	private CraftingContainerRecipeTransferHandlerServer() {}
+	private CraftingContainerRecipeTransferHandlerServer() {
+	}
 
 	/**
 	 * Called server-side to actually put the items in place.
 	 */
-	public static void setItemsWithSlotIDMap(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, Map<Integer, Integer> slotIdMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+	public static void setItemsWithSlotIDMap(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, Map<Integer, Integer> slotIdMap,
+			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
 			return;
 		}
@@ -42,7 +44,8 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	/**
 	 * Called server-side to actually put the items in place.
 	 */
-	public static void setItemsWithStacks(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<ItemStack> stacks, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+	public static void setItemsWithStacks(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<ItemStack> stacks,
+			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
 			return;
 		}
@@ -60,7 +63,8 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		setItems(container, player, recipeId, recipeType, slotMap, craftingSlots, inventorySlots, maxTransfer);
 	}
 
-	private static void setItems(StorageContainerMenuBase<?> container, Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, Map<Integer, ItemStack> slotMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
+	private static void setItems(StorageContainerMenuBase<?> container, Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType,
+			Map<Integer, ItemStack> slotMap, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		Map<Integer, ItemStack> toTransfer = removeItemsFromInventory(player, container, slotMap, craftingSlots, inventorySlots, maxTransfer);
 
 		if (toTransfer.isEmpty()) {
@@ -75,7 +79,8 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		container.broadcastChanges();
 	}
 
-	private static void putIntoInventory(Player player, List<Integer> inventorySlots, StorageContainerMenuBase<?> container, List<ItemStack> clearedCraftingItems) {
+	private static void putIntoInventory(Player player, List<Integer> inventorySlots, StorageContainerMenuBase<?> container,
+			List<ItemStack> clearedCraftingItems) {
 		for (ItemStack oldCraftingItem : clearedCraftingItems) {
 			int added = addStack(container, inventorySlots, oldCraftingItem);
 			if (added < oldCraftingItem.getCount()) {
@@ -87,7 +92,8 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		}
 	}
 
-	private static List<ItemStack> clearAndPutItemsIntoGrid(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<Integer> craftingSlots, AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer) {
+	private static List<ItemStack> clearAndPutItemsIntoGrid(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType,
+			List<Integer> craftingSlots, AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer) {
 		List<ItemStack> clearedCraftingItems = new ArrayList<>();
 		int minSlotStackLimit = Integer.MAX_VALUE;
 		for (int craftingSlotNumberIndex = 0; craftingSlotNumberIndex < craftingSlots.size(); craftingSlotNumberIndex++) {
@@ -115,7 +121,8 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		return clearedCraftingItems;
 	}
 
-	private static void putItemIntoGrid(AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer, List<ItemStack> clearedCraftingItems, int minSlotStackLimit) {
+	private static void putItemIntoGrid(AbstractContainerMenu container, Map<Integer, ItemStack> toTransfer, List<ItemStack> clearedCraftingItems,
+			int minSlotStackLimit) {
 		for (Map.Entry<Integer, ItemStack> entry : toTransfer.entrySet()) {
 			Integer craftingSlotIndex = entry.getKey();
 			Slot slot = container.getSlot(craftingSlotIndex);
@@ -133,20 +140,13 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		}
 	}
 
-	private static Map<Integer, ItemStack> removeItemsFromInventory(
-			Player player,
-			StorageContainerMenuBase<?> container,
-			Map<Integer, ItemStack> required,
-			List<Integer> craftingSlots,
-			List<Integer> inventorySlots,
-			boolean maxTransfer
-	) {
+	private static Map<Integer, ItemStack> removeItemsFromInventory(Player player, StorageContainerMenuBase<?> container, Map<Integer, ItemStack> required,
+			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 
 		// This map becomes populated with the resulting items to transfer and is returned by this method.
 		final Map<Integer, ItemStack> result = new HashMap<>(required.size());
 
-		loopSets:
-		while (true) { // for each set
+		loopSets : while (true) { // for each set
 
 			// This map holds the original contents of a slot we have removed items from. This is used if we don't
 			// have enough items to complete a whole set, we can roll back the items that were removed.
@@ -239,9 +239,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				final Slot slot = container.getSlot(slotIndex);
 				final ItemStack inventoryStack = slot.getItem();
 				// Check that the slot's contents are stackable with this stack
-				if (!inventoryStack.isEmpty() &&
-						inventoryStack.isStackable() &&
-						ItemStack.isSameItemSameComponents(inventoryStack, stack)) {
+				if (!inventoryStack.isEmpty() && inventoryStack.isStackable() && ItemStack.isSameItemSameComponents(inventoryStack, stack)) {
 					final int remain = stack.getCount() - added;
 					final int maxStackSize = slot.getMaxStackSize(inventoryStack);
 					final int space = maxStackSize - inventoryStack.getCount();
@@ -285,9 +283,12 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	/**
 	 * Get the slot which contains a specific itemStack.
 	 *
-	 * @param container   the container to search
-	 * @param slotNumbers the slots in the container to search
-	 * @param itemStack   the itemStack to find
+	 * @param container
+	 *            the container to search
+	 * @param slotNumbers
+	 *            the slots in the container to search
+	 * @param itemStack
+	 *            the itemStack to find
 	 * @return the slot that contains the itemStack. returns null if no slot contains the itemStack.
 	 */
 	@Nullable

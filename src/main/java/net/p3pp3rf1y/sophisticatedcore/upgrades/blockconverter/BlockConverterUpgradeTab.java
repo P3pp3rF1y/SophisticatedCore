@@ -8,15 +8,18 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinition;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ToggleButton;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
-public abstract class BlockConverterUpgradeTab<R extends SingleItemRecipe, RC extends BlockConverterRecipeContainer<R, ?, RC, C>, C extends BlockConverterUpgradeContainer<R, ?, C, RC>> extends UpgradeSettingsTab<C> {
+public abstract class BlockConverterUpgradeTab<R extends SingleItemRecipe, RC extends BlockConverterRecipeContainer<R, ?, RC, C>, C extends BlockConverterUpgradeContainer<R, ?, C, RC>>
+		extends
+			UpgradeSettingsTab<C> {
 	private final BlockConverterRecipeControl<R, RC> recipeControl;
 
-	public BlockConverterUpgradeTab(C upgradeContainer, Position position, StorageScreenBase<?> screen, Component tabLabel, Component closedTooltip, ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillInputButton) {
+	public BlockConverterUpgradeTab(C upgradeContainer, Position position, StorageScreenBase<?> screen, Component tabLabel, Component closedTooltip,
+			ButtonDefinition.Toggle<Boolean> shiftClickTargetButton, ButtonDefinition.Toggle<Boolean> refillInputButton) {
 		super(upgradeContainer, position, screen, tabLabel, closedTooltip);
-		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton, button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()),
-				getContainer()::shouldShiftClickIntoStorage));
-		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), refillInputButton, button -> getContainer().setRefillInput(!getContainer().shouldRefillInput()),
-				getContainer()::shouldRefillInput));
+		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), shiftClickTargetButton,
+				button -> getContainer().setShiftClickIntoStorage(!getContainer().shouldShiftClickIntoStorage()), getContainer()::shouldShiftClickIntoStorage));
+		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), refillInputButton,
+				button -> getContainer().setRefillInput(!getContainer().shouldRefillInput()), getContainer()::shouldRefillInput));
 		recipeControl = createRecipeControl(screen, upgradeContainer.getRecipeContainer(), new Position(x + 3, y + 46));
 		addHideableChild(recipeControl);
 	}

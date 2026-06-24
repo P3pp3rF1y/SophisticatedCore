@@ -41,37 +41,20 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public record ContainerContents(InventoryData inventory, PartitionerData partitioner, UpgradeData upgrades,
-								SettingsData settings) {
+public record ContainerContents(InventoryData inventory, PartitionerData partitioner, UpgradeData upgrades, SettingsData settings) {
 	public static Codec<ContainerContents> CODEC = Codec.withAlternative(
-			RecordCodecBuilder.create(
-					instance -> instance.group(
-							InventoryData.CODEC.fieldOf("inventory").forGetter(ContainerContents::inventory),
-							PartitionerData.CODEC.fieldOf("partitioner").forGetter(ContainerContents::partitioner),
-							UpgradeData.CODEC.fieldOf("upgrades").forGetter(ContainerContents::upgrades),
-							SettingsData.CODEC.fieldOf("settings").forGetter(ContainerContents::settings)
-					).apply(instance, ContainerContents::new)),
-			CompoundTag.CODEC, LegacyDeserialization::legacyDeserialize
-	);
+			RecordCodecBuilder.create(instance -> instance.group(InventoryData.CODEC.fieldOf("inventory").forGetter(ContainerContents::inventory),
+					PartitionerData.CODEC.fieldOf("partitioner").forGetter(ContainerContents::partitioner),
+					UpgradeData.CODEC.fieldOf("upgrades").forGetter(ContainerContents::upgrades),
+					SettingsData.CODEC.fieldOf("settings").forGetter(ContainerContents::settings)).apply(instance, ContainerContents::new)),
+			CompoundTag.CODEC, LegacyDeserialization::legacyDeserialize);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf, ContainerContents> STREAM_CODEC = StreamCodec.composite(
-			InventoryData.STREAM_CODEC,
-			ContainerContents::inventory,
-			PartitionerData.STREAM_CODEC,
-			ContainerContents::partitioner,
-			UpgradeData.STREAM_CODEC,
-			ContainerContents::upgrades,
-			SettingsData.STREAM_CODEC,
-			ContainerContents::settings,
-			ContainerContents::new
-	);
+	public static final StreamCodec<RegistryFriendlyByteBuf, ContainerContents> STREAM_CODEC = StreamCodec.composite(InventoryData.STREAM_CODEC,
+			ContainerContents::inventory, PartitionerData.STREAM_CODEC, ContainerContents::partitioner, UpgradeData.STREAM_CODEC, ContainerContents::upgrades,
+			SettingsData.STREAM_CODEC, ContainerContents::settings, ContainerContents::new);
 
 	public ContainerContents() {
-		this(new InventoryData(),
-				new PartitionerData(),
-				new UpgradeData(),
-				new SettingsData()
-		);
+		this(new InventoryData(), new PartitionerData(), new UpgradeData(), new SettingsData());
 	}
 
 	public ContainerContents copy() {
@@ -108,12 +91,9 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 			private <T> ItemStack decodeStack(T value, DynamicOps<T> ops, int slot) {
 				try {
 					return CodecHelper.OPTIONAL_OVERSIZED_ITEM_STACK_CODEC.decode(ops, value)
-							.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER.error(
-									"Failed to deserialize stored item in slot {} - {}. Raw item data: {}",
-									slot, errorMessage, value
-							))
-							.map(Pair::getFirst)
-							.orElse(ItemStack.EMPTY);
+							.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER
+									.error("Failed to deserialize stored item in slot {} - {}. Raw item data: {}", slot, errorMessage, value))
+							.map(Pair::getFirst).orElse(ItemStack.EMPTY);
 				} catch (Exception e) {
 					SophisticatedCore.LOGGER.error("Error deserializing stored item in slot {}. Raw item data: {}", slot, value, e);
 					return ItemStack.EMPTY;
@@ -122,14 +102,10 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		};
 
 		public static final Codec<InventoryData> CODEC = RecordCodecBuilder.create(
-				instance -> instance.group(
-						LENIENT_STACKS_CODEC.fieldOf("stacks").forGetter(InventoryData::stacks)
-				).apply(instance, InventoryData::new));
+				instance -> instance.group(LENIENT_STACKS_CODEC.fieldOf("stacks").forGetter(InventoryData::stacks)).apply(instance, InventoryData::new));
 		public static final StreamCodec<RegistryFriendlyByteBuf, InventoryData> STREAM_CODEC = StreamCodec.composite(
 				ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()).map(CodecHelper::toMutableNonnullItemStackList, Function.identity()),
-				InventoryData::stacks,
-				InventoryData::new
-		);
+				InventoryData::stacks, InventoryData::new);
 
 		private NonNullList<ItemStack> stacks;
 
@@ -163,23 +139,15 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 	}
 
 	public static final class PartitionerData {
-		private static final Codec<PartitionerData> CODEC = RecordCodecBuilder.create(
-				instance -> instance.group(
-						Codec.INT.listOf().fieldOf("baseIndexes").forGetter(data -> Arrays.stream(data.baseIndexes).boxed().toList()),
-						Codec.STRING.listOf().fieldOf("partNames").forGetter(data -> data.partNames)
-				).apply(instance, (baseIndexesList, partNames) -> new PartitionerData(
-						baseIndexesList.stream().mapToInt(Integer::intValue).toArray(),
-						partNames
-				))
-		);
-		private static final StreamCodec<RegistryFriendlyByteBuf, PartitionerData> STREAM_CODEC =
-				StreamCodec.composite(
-						ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()).map(list -> list.stream().mapToInt(Integer::intValue).toArray(), arr -> Arrays.stream(arr).boxed().toList()),
-						PartitionerData::baseIndexes,
-						ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()),
-						PartitionerData::partNames,
-						PartitionerData::new
-				);
+		private static final Codec<PartitionerData> CODEC = RecordCodecBuilder.create(instance -> instance
+				.group(Codec.INT.listOf().fieldOf("baseIndexes").forGetter(data -> Arrays.stream(data.baseIndexes).boxed().toList()),
+						Codec.STRING.listOf().fieldOf("partNames").forGetter(data -> data.partNames))
+				.apply(instance,
+						(baseIndexesList, partNames) -> new PartitionerData(baseIndexesList.stream().mapToInt(Integer::intValue).toArray(), partNames)));
+		private static final StreamCodec<RegistryFriendlyByteBuf, PartitionerData> STREAM_CODEC = StreamCodec.composite(
+				ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()).map(list -> list.stream().mapToInt(Integer::intValue).toArray(),
+						arr -> Arrays.stream(arr).boxed().toList()),
+				PartitionerData::baseIndexes, ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), PartitionerData::partNames, PartitionerData::new);
 
 		private int[] baseIndexes;
 		private List<String> partNames;
@@ -218,15 +186,12 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 	}
 
 	public static class UpgradeData {
-		public static final Codec<UpgradeData> CODEC = RecordCodecBuilder.create(
-				instance -> instance.group(
-						ItemStack.OPTIONAL_CODEC.listOf().xmap(CodecHelper::toMutableNonnullItemStackList, Function.identity()).fieldOf("stacks").forGetter(UpgradeData::stacks)
-				).apply(instance, UpgradeData::new));
+		public static final Codec<UpgradeData> CODEC = RecordCodecBuilder
+				.create(instance -> instance.group(ItemStack.OPTIONAL_CODEC.listOf().xmap(CodecHelper::toMutableNonnullItemStackList, Function.identity())
+						.fieldOf("stacks").forGetter(UpgradeData::stacks)).apply(instance, UpgradeData::new));
 		public static final StreamCodec<RegistryFriendlyByteBuf, UpgradeData> STREAM_CODEC = StreamCodec.composite(
 				ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()).map(CodecHelper::toMutableNonnullItemStackList, Function.identity()),
-				UpgradeData::stacks,
-				UpgradeData::new
-		);
+				UpgradeData::stacks, UpgradeData::new);
 
 		private NonNullList<ItemStack> stacks;
 
@@ -256,42 +221,28 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 	}
 
 	public static class SettingsData {
-		public static final Codec<SettingsData> CODEC = RecordCodecBuilder.create(
-				instance -> instance.group(
-						Codec.dispatchedMap(Codec.STRING, SettingsCategoryDataRegistry::<ISettingsCategoryData<?>>getCodecOrThrow)
-								.xmap(CodecHelper::toMutable, Function.identity()).fieldOf("categories").forGetter(SettingsData::categories),
-						Context.CODEC.fieldOf("mainSettingsContext").forGetter(SettingsData::mainSettingsContext),
-						Codec.STRING.fieldOf("searchPhrase").forGetter(data -> data.searchPhrase)
-				).apply(instance, SettingsData::new)
-		);
+		public static final Codec<SettingsData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+				Codec.dispatchedMap(Codec.STRING, SettingsCategoryDataRegistry::<ISettingsCategoryData<?>>getCodecOrThrow)
+						.xmap(CodecHelper::toMutable, Function.identity()).fieldOf("categories").forGetter(SettingsData::categories),
+				Context.CODEC.fieldOf("mainSettingsContext").forGetter(SettingsData::mainSettingsContext),
+				Codec.STRING.fieldOf("searchPhrase").forGetter(data -> data.searchPhrase)).apply(instance, SettingsData::new));
 
-		public static final StreamCodec<RegistryFriendlyByteBuf, SettingsData> STREAM_CODEC =
-				StreamCodec.composite(
-						StreamCodec.of(
-								(buf, categories) -> {
-									buf.writeVarInt(categories.size());
-									for (Map.Entry<String, ISettingsCategoryData<?>> entry : categories.entrySet()) {
-										buf.writeUtf(entry.getKey());
-										SettingsCategoryDataRegistry.getStreamCodecOrThrow(entry.getKey()).encode(buf, entry.getValue());
-									}
-								},
-								buf -> {
-									int size = buf.readVarInt();
-									Map<String, ISettingsCategoryData<?>> categories = new HashMap<>();
-									for (int i = 0; i < size; i++) {
-										String id = buf.readUtf();
-										categories.put(id, SettingsCategoryDataRegistry.getStreamCodecOrThrow(id).decode(buf));
-									}
-									return categories;
-								}
-						),
-						SettingsData::categories,
-						Context.STREAM_CODEC,
-						SettingsData::mainSettingsContext,
-						ByteBufCodecs.STRING_UTF8,
-						SettingsData::searchPhrase,
-						SettingsData::new
-				);
+		public static final StreamCodec<RegistryFriendlyByteBuf, SettingsData> STREAM_CODEC = StreamCodec.composite(StreamCodec.of((buf, categories) -> {
+			buf.writeVarInt(categories.size());
+			for (Map.Entry<String, ISettingsCategoryData<?>> entry : categories.entrySet()) {
+				buf.writeUtf(entry.getKey());
+				SettingsCategoryDataRegistry.getStreamCodecOrThrow(entry.getKey()).encode(buf, entry.getValue());
+			}
+		}, buf -> {
+			int size = buf.readVarInt();
+			Map<String, ISettingsCategoryData<?>> categories = new HashMap<>();
+			for (int i = 0; i < size; i++) {
+				String id = buf.readUtf();
+				categories.put(id, SettingsCategoryDataRegistry.getStreamCodecOrThrow(id).decode(buf));
+			}
+			return categories;
+		}), SettingsData::categories, Context.STREAM_CODEC, SettingsData::mainSettingsContext, ByteBufCodecs.STRING_UTF8, SettingsData::searchPhrase,
+				SettingsData::new);
 
 		private final Map<String, ISettingsCategoryData<?>> categories;
 		private Context mainSettingsContext = Context.PLAYER;
@@ -312,7 +263,7 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		}
 
 		public <D extends ISettingsCategoryData<D>> D getCategoryData(String id) {
-			//noinspection unchecked
+			// noinspection unchecked
 			return (D) categories.get(id);
 		}
 
@@ -389,7 +340,8 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		private SettingsCategoryDataRegistry() {
 		}
 
-		public static void register(Codec<? extends ISettingsCategoryData<?>> codec, StreamCodec<RegistryFriendlyByteBuf, ? extends ISettingsCategoryData<?>> streamCodec, String id) {
+		public static void register(Codec<? extends ISettingsCategoryData<?>> codec,
+				StreamCodec<RegistryFriendlyByteBuf, ? extends ISettingsCategoryData<?>> streamCodec, String id) {
 			CODECS.put(id, codec);
 			STREAM_CODECS.put(id, streamCodec);
 		}
@@ -399,7 +351,7 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 				throw new IllegalArgumentException("SettingsCategoryData codec not found for id: " + id);
 			}
 
-			//noinspection unchecked
+			// noinspection unchecked
 			return (Codec<T>) CODECS.get(id);
 		}
 
@@ -407,11 +359,10 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 			if (!STREAM_CODECS.containsKey(id)) {
 				throw new IllegalArgumentException("SettingsCategoryData stream codec not found for id: " + id);
 			}
-			//noinspection unchecked
+			// noinspection unchecked
 			return (StreamCodec<RegistryFriendlyByteBuf, T>) STREAM_CODECS.get(id);
 		}
 	}
-
 
 	public static class LegacyDeserialization {
 		private static final String INVENTORY_TAG = "inventory";
@@ -429,22 +380,18 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		private static final String DISPLAY_SIDE_TAG = "displaySide";
 
 		private static ContainerContents legacyDeserialize(CompoundTag contentsNbt) {
-			return new ContainerContents(
-					deserializeInventoryData(contentsNbt.getCompoundOrEmpty(INVENTORY_TAG)),
+			return new ContainerContents(deserializeInventoryData(contentsNbt.getCompoundOrEmpty(INVENTORY_TAG)),
 					deserializePartitionerData(contentsNbt.getCompoundOrEmpty(PARTITIONER_TAG)),
 					deserializeUpgradeData(contentsNbt.getCompoundOrEmpty(UPGRADE_INVENTORY_TAG)),
-					deserializeSettingsData(contentsNbt.getCompoundOrEmpty(SETTINGS_TAG))
-			);
+					deserializeSettingsData(contentsNbt.getCompoundOrEmpty(SETTINGS_TAG)));
 		}
 
 		public static SettingsData deserializeSettingsData(CompoundTag settingsNbt) {
 			Map<String, ISettingsCategoryData<?>> categories = new HashMap<>();
-			settingsNbt.getCompound(NoSortSettingsCategory.NAME).ifPresent(categoryNbt ->
-					categories.put(NoSortSettingsCategory.NAME, deserializeNoSort(categoryNbt))
-			);
-			settingsNbt.getCompound(MemorySettingsCategory.NAME).ifPresent(categoryNbt ->
-					categories.put(MemorySettingsCategory.NAME, deserializeMemory(categoryNbt))
-			);
+			settingsNbt.getCompound(NoSortSettingsCategory.NAME)
+					.ifPresent(categoryNbt -> categories.put(NoSortSettingsCategory.NAME, deserializeNoSort(categoryNbt)));
+			settingsNbt.getCompound(MemorySettingsCategory.NAME)
+					.ifPresent(categoryNbt -> categories.put(MemorySettingsCategory.NAME, deserializeMemory(categoryNbt)));
 			settingsNbt.getCompound(ItemDisplaySettingsCategory.NAME).ifPresent(categoryNbt -> {
 				categories.put(ItemDisplaySettingsCategory.NAME, deserializeItemDisplay(categoryNbt));
 			});
@@ -453,7 +400,8 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		}
 
 		private static ItemDisplaySettingsCategoryData deserializeItemDisplay(CompoundTag categoryNbt) {
-			List<Integer> slotIndexes = NBTHelper.getIntArray(categoryNbt, SLOTS_TAG).map(arr -> Arrays.stream(arr).boxed().collect(Collectors.toCollection(ArrayList::new))).orElseGet(ArrayList::new);
+			List<Integer> slotIndexes = NBTHelper.getIntArray(categoryNbt, SLOTS_TAG)
+					.map(arr -> Arrays.stream(arr).boxed().collect(Collectors.toCollection(ArrayList::new))).orElseGet(ArrayList::new);
 			Map<Integer, Integer> slotRotations = NBTHelper.getMap(categoryNbt, ROTATIONS_TAG, Integer::valueOf, (k, v) -> v.asInt()).orElseGet(HashMap::new);
 			DyeColor color = NBTHelper.getInt(categoryNbt, COLOR_TAG).map(DyeColor::byId).orElse(DyeColor.RED);
 			DisplaySide displaySide = NBTHelper.getEnumConstant(categoryNbt, DISPLAY_SIDE_TAG, DisplaySide::fromName).orElse(DisplaySide.FRONT);
@@ -472,13 +420,13 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		}
 
 		private static MemorySettingsCategoryData deserializeMemory(CompoundTag categoryNbt) {
-			Map<Integer, Item> slotFilterItems = NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG,
-					Integer::valueOf,
+			Map<Integer, Item> slotFilterItems = NBTHelper.getMap(categoryNbt, SLOT_FILTER_ITEMS_TAG, Integer::valueOf,
 					(k, v) -> BuiltInRegistries.ITEM.getOptional(v.asString().map(Identifier::parse).orElse(null))).orElseGet(HashMap::new);
 
-			Map<Integer, ItemStackKey> slotFilterStacks = NBTHelper.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG,
-					Integer::valueOf,
-					(k, v) -> v instanceof CompoundTag tag ? NBTHelper.deserializeStackFromTag(tag).map(ItemStackKey::of) : Optional.empty()).orElseGet(HashMap::new);
+			Map<Integer, ItemStackKey> slotFilterStacks = NBTHelper
+					.getMap(categoryNbt, SLOT_FILTER_STACKS_TAG, Integer::valueOf,
+							(k, v) -> v instanceof CompoundTag tag ? NBTHelper.deserializeStackFromTag(tag).map(ItemStackKey::of) : Optional.empty())
+					.orElseGet(HashMap::new);
 			boolean ignoreNbt = NBTHelper.getBoolean(categoryNbt, IGNORE_NBT_TAG).orElse(true);
 			return new MemorySettingsCategoryData(slotFilterItems, slotFilterStacks, ignoreNbt);
 		}
@@ -499,13 +447,13 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 
 		private static PartitionerData deserializePartitionerData(CompoundTag partitionerNbt) {
 			int[] baseIndexes = partitionerNbt.getIntArray(BASE_INDEXES_TAG).orElse(new int[]{0});
-			List<String> partNames = partitionerNbt.getList("inventoryPartNames")
-					.map(names -> names.stream().map(Tag::asString).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toCollection(ArrayList::new)))
-							.orElseGet(() -> {
-								ArrayList<String> list = new ArrayList<>();
-								list.add(IInventoryPartHandler.Default.NAME);
-								return list;
-							});
+			List<String> partNames = partitionerNbt.getList("inventoryPartNames").map(
+					names -> names.stream().map(Tag::asString).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toCollection(ArrayList::new)))
+					.orElseGet(() -> {
+						ArrayList<String> list = new ArrayList<>();
+						list.add(IInventoryPartHandler.Default.NAME);
+						return list;
+					});
 			return new PartitionerData(baseIndexes, partNames);
 		}
 
@@ -517,27 +465,22 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 				for (int i = 0; i < tagList.size(); i++) {
 					tagList.getCompound(i).ifPresent(itemTag -> {
 						int slot = itemTag.getIntOr("Slot", 0);
-					if (slot >= 0 && slot < stacks.size()) {
-						getStackFromNbt(slot, itemTag, registryAccess).ifPresent(stack -> stacks.set(slot, stack));
-					}
-				});
-			}
-		});
+						if (slot >= 0 && slot < stacks.size()) {
+							getStackFromNbt(slot, itemTag, registryAccess).ifPresent(stack -> stacks.set(slot, stack));
+						}
+					});
+				}
+			});
 			return new InventoryData(stacks);
 		}
 
 		private static Optional<ItemStack> getStackFromNbt(int slot, Tag itemTag, RegistryAccess registryAccess) {
 			try {
 				return CodecHelper.OVERSIZED_ITEM_STACK_CODEC.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), itemTag)
-						.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER.error(
-								"Failed to deserialize legacy stored item in slot {} - {}. Raw item data: {}",
-								slot, errorMessage, itemTag
-						));
+						.resultOrPartial(errorMessage -> SophisticatedCore.LOGGER
+								.error("Failed to deserialize legacy stored item in slot {} - {}. Raw item data: {}", slot, errorMessage, itemTag));
 			} catch (Exception e) {
-				SophisticatedCore.LOGGER.error(
-						"Error deserializing legacy stored item in slot {}. Raw item data: {}",
-						slot, itemTag, e
-				);
+				SophisticatedCore.LOGGER.error("Error deserializing legacy stored item in slot {}. Raw item data: {}", slot, itemTag, e);
 				return Optional.empty();
 			}
 		}

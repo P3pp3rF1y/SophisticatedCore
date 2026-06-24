@@ -27,14 +27,14 @@ public class TextBox extends WidgetBase {
 
 	@Override
 	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
-		//noop
+		// noop
 	}
 
 	@Override
 	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		editBox.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 		if (editBox.getValue().isEmpty() && unfocusedEmptyHint != null && !editBox.isFocused()) {
-			int x = editBox.getX() + editBox.getWidth() / 2 + 2/* editBox.isBordered() ? editBox.getX() + 4 : editBox.getX()*/;
+			int x = editBox.getX() + editBox.getWidth() / 2 + 2/* editBox.isBordered() ? editBox.getX() + 4 : editBox.getX() */;
 			int y = editBox.isBordered() ? editBox.getY() + (editBox.getHeight() - 8) / 2 : editBox.getY();
 			guiGraphics.centeredText(font, unfocusedEmptyHint, x, y, ARGB.opaque(editBox.textColor));
 		}
@@ -61,7 +61,7 @@ public class TextBox extends WidgetBase {
 	}
 
 	protected void onEnterPressed() {
-		//noop
+		// noop
 	}
 
 	public String getValue() {

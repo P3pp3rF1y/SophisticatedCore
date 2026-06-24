@@ -2,13 +2,11 @@ package net.p3pp3rf1y.sophisticatedcore.common.gui;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.IndexModifier;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ISlotStackAccessor;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +58,7 @@ public class SlotSuppliedHandler extends Slot {
 		if (itemHandlerSupplier.get() instanceof ISlotStackAccessor slotStackAccessor) {
 			slotStackAccessor.setStackInSlot(slot, stack);
 		} else if (itemHandlerSupplier.get() instanceof IndexModifier<?> indexModifier) {
-			//noinspection unchecked
+			// noinspection unchecked
 			((IndexModifier<ItemResource>) indexModifier).set(slot, ItemResource.of(stack), stack.getCount());
 		} else {
 			InventoryHelper.set(itemHandlerSupplier.get(), slot, ItemResource.of(stack), stack.getCount());

@@ -33,7 +33,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class VoidUpgradeWrapperTest {
-	private static final FilterAttributes BLOCK_LIST_FILTER_ATTRIBUTES = new FilterAttributes(Collections.emptySet(), false, false, false, PrimaryMatch.ITEM, true, ItemContainerContents.EMPTY, false, false);
+	private static final FilterAttributes BLOCK_LIST_FILTER_ATTRIBUTES = new FilterAttributes(Collections.emptySet(), false, false, false, PrimaryMatch.ITEM,
+			true, ItemContainerContents.EMPTY, false, false);
 
 	@BeforeAll
 	static void setup() {
@@ -54,11 +55,7 @@ class VoidUpgradeWrapperTest {
 	void overflowMatchIncludesPartialStackWhenComponentsAreIgnored() {
 		Object partiallyFilledStack = new Object();
 
-		Assertions.assertTrue(VoidUpgradeWrapper.hasOverflowMatch(
-				Set.of(),
-				Set.of(partiallyFilledStack),
-				stackKey -> stackKey == partiallyFilledStack
-		));
+		Assertions.assertTrue(VoidUpgradeWrapper.hasOverflowMatch(Set.of(), Set.of(partiallyFilledStack), stackKey -> stackKey == partiallyFilledStack));
 	}
 
 	@Test
@@ -111,7 +108,8 @@ class VoidUpgradeWrapperTest {
 			return invocation.getArgument(1);
 		});
 
-		return new VoidUpgradeWrapper(storageWrapper, upgrade, stack -> {});
+		return new VoidUpgradeWrapper(storageWrapper, upgrade, stack -> {
+		});
 	}
 
 	@SuppressWarnings("unchecked")

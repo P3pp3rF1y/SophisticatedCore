@@ -12,16 +12,21 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.function.Consumer;
 
 public abstract class CookingUpgradeWrapper<W extends CookingUpgradeWrapper<W, U, R>, U extends UpgradeItemBase<W> & ICookingUpgradeItem, R extends AbstractCookingRecipe>
-		extends UpgradeWrapperBase<W, U> implements ITickableUpgrade, ICookingUpgrade<R> {
+		extends
+			UpgradeWrapperBase<W, U>
+		implements
+			ITickableUpgrade,
+			ICookingUpgrade<R> {
 	private static final int NOTHING_TO_DO_COOLDOWN = 10;
 	protected final CookingLogic<R> cookingLogic;
 
-	protected CookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType, ResourceKey<RecipePropertySet> acceptedInputs, float burnTimeModifier) {
+	protected CookingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler, RecipeType<R> recipeType,
+			ResourceKey<RecipePropertySet> acceptedInputs, float burnTimeModifier) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		RecipePropertySet validInput = RecipeHelper.getPropertySet(acceptedInputs);
 		cookingLogic = new CookingLogic<>(upgrade, upgradeSaveHandler, upgradeItem.getCookingUpgradeConfig(), recipeType, validInput::test, burnTimeModifier);

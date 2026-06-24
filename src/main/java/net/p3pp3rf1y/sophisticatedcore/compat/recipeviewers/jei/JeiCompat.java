@@ -15,13 +15,13 @@ public class JeiCompat implements ICompat {
 
 	@Override
 	public void setup() {
-		//noop
+		// noop
 	}
 
 	private void registerPackets(final RegisterPayloadHandlersEvent event) {
 		final PayloadRegistrar registrar = event.registrar(SophisticatedCore.MOD_ID).versioned(SophisticatedCore.getNetworkProtocolVersion());
 		registrar.optional().playToServer(JeiTransferRecipePayload.TYPE, JeiTransferRecipePayload.STREAM_CODEC, JeiTransferRecipePayload::handlePayload);
-		
+
 		CommonPayloads.registerPackets(registrar);
 	}
 }

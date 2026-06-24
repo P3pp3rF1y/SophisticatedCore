@@ -31,12 +31,8 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerTopsUpNoSortSlots() {
-		InventoryHandler inventoryHandler = initInventoryHandler(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 100),
-				1, stack(Items.IRON_INGOT, 10),
-				5, stack(Items.IRON_NUGGET, 10),
-				6, stack(Items.COBBLESTONE, 1)
-		));
+		InventoryHandler inventoryHandler = initInventoryHandler(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 100), 1, stack(Items.IRON_INGOT, 10), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
 
@@ -52,11 +48,8 @@ class InventorySorterTest {
 	@Test
 	void sortHandlerTopsUpNoSortSlotsUsingVisibleCount() {
 		Map<Integer, ItemStack> visibleStacks = new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, 100)));
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 5),
-				5, stack(Items.IRON_NUGGET, 10),
-				6, stack(Items.COBBLESTONE, 1)
-		), visibleStacks);
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 5), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)), visibleStacks);
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
 
@@ -68,11 +61,9 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerTopsUpInfiniteNoSortSlotsUsingInternalCount() {
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 5),
-				5, stack(Items.IRON_NUGGET, 10),
-				6, stack(Items.COBBLESTONE, 1)
-		), new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0));
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 5), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)),
+				new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
 
@@ -83,13 +74,8 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerSortsInfiniteSlotsWithoutLeavingOriginalStacks() {
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3, Map.of(
-				0, stack(Items.COBBLESTONE, 1),
-				1, stack(Items.IRON_NUGGET, 10)
-		), new HashMap<>(Map.of(
-				0, stack(Items.COBBLESTONE, Integer.MAX_VALUE),
-				1, stack(Items.IRON_NUGGET, Integer.MAX_VALUE)
-		)), Set.of(0, 1));
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3, Map.of(0, stack(Items.COBBLESTONE, 1), 1, stack(Items.IRON_NUGGET, 10)),
+				new HashMap<>(Map.of(0, stack(Items.COBBLESTONE, Integer.MAX_VALUE), 1, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0, 1));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of());
 
@@ -100,12 +86,8 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerDoesNotMergeStacksIntoIgnoredSlots() {
-		InventoryHandler inventoryHandler = initInventoryHandler(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 100),
-				1, stack(Items.IRON_INGOT, 10),
-				5, stack(Items.IRON_NUGGET, 10),
-				6, stack(Items.COBBLESTONE, 1)
-		));
+		InventoryHandler inventoryHandler = initInventoryHandler(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 100), 1, stack(Items.IRON_INGOT, 10), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(), Set.of(0, 1, 2, 3, 4));
 
@@ -120,11 +102,8 @@ class InventorySorterTest {
 
 	@Test
 	void sortHandlerDoesNotMoveStacksIntoInaccessibleSlots() {
-		InventoryHandler inventoryHandler = initInventoryHandler(7, Map.of(
-				0, stack(Items.IRON_NUGGET, 100),
-				5, stack(Items.COBBLESTONE, 1),
-				6, stack(Items.IRON_INGOT, 10)
-		), Set.of(0, 1, 2, 3, 4));
+		InventoryHandler inventoryHandler = initInventoryHandler(7,
+				Map.of(0, stack(Items.IRON_NUGGET, 100), 5, stack(Items.COBBLESTONE, 1), 6, stack(Items.IRON_INGOT, 10)), Set.of(0, 1, 2, 3, 4));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of());
 
@@ -144,7 +123,8 @@ class InventorySorterTest {
 	private static InventoryHandler initInventoryHandler(int slots, Map<Integer, ItemStack> initialState, Set<Integer> inaccessibleSlots) {
 		StackUpgradeConfig stackUpgradeConfigMock = Mockito.mock(StackUpgradeConfig.class);
 		when(stackUpgradeConfigMock.canStackItem(any(Item.class))).thenReturn(true);
-		return new InventoryHandler(slots, NoopStorageWrapper.INSTANCE, getContainerContents(slots, initialState), () -> {}, 256, stackUpgradeConfigMock) {
+		return new InventoryHandler(slots, NoopStorageWrapper.INSTANCE, getContainerContents(slots, initialState), () -> {
+		}, 256, stackUpgradeConfigMock) {
 			@Override
 			protected boolean isAllowed(ItemResource resource) {
 				return true;
@@ -157,14 +137,17 @@ class InventorySorterTest {
 		};
 	}
 
-	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState, Map<Integer, ItemStack> visibleStacks) {
+	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState,
+			Map<Integer, ItemStack> visibleStacks) {
 		return initInventoryHandlerWithVisibleStacks(slots, initialState, visibleStacks, Set.of());
 	}
 
-	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState, Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots) {
+	private static InventoryHandler initInventoryHandlerWithVisibleStacks(int slots, Map<Integer, ItemStack> initialState,
+			Map<Integer, ItemStack> visibleStacks, Set<Integer> infiniteSlots) {
 		StackUpgradeConfig stackUpgradeConfigMock = Mockito.mock(StackUpgradeConfig.class);
 		when(stackUpgradeConfigMock.canStackItem(any(Item.class))).thenReturn(true);
-		return new InventoryHandler(slots, NoopStorageWrapper.INSTANCE, getContainerContents(slots, initialState), () -> {}, 256, stackUpgradeConfigMock) {
+		return new InventoryHandler(slots, NoopStorageWrapper.INSTANCE, getContainerContents(slots, initialState), () -> {
+		}, 256, stackUpgradeConfigMock) {
 			@Override
 			protected boolean isAllowed(ItemResource resource) {
 				return true;

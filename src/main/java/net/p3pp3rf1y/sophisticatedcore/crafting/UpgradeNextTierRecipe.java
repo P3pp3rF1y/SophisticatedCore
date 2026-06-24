@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class UpgradeNextTierRecipe implements CraftingRecipe, IWrapperRecipe<ShapedRecipe> {
-	public static final RecipeSerializer<UpgradeNextTierRecipe> SERIALIZER = RecipeWrapperSerializer.create(UpgradeNextTierRecipe::new, ShapedRecipe.SERIALIZER);
+	public static final RecipeSerializer<UpgradeNextTierRecipe> SERIALIZER = RecipeWrapperSerializer.create(UpgradeNextTierRecipe::new,
+			ShapedRecipe.SERIALIZER);
 	private final ShapedRecipe compose;
 
 	public UpgradeNextTierRecipe(ShapedRecipe compose) {

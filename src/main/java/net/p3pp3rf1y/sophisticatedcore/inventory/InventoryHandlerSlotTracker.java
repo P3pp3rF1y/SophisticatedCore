@@ -14,7 +14,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class InventoryHandlerSlotTracker implements ISlotTracker {
-	private record SlotTrackerSlotSnapshot(int slot, @Nullable ItemStackKey fullSlotStack, @Nullable ItemStackKey partiallyFilledSlotStack, boolean emptySlot) implements Snapshot {
+	private record SlotTrackerSlotSnapshot(int slot, @Nullable ItemStackKey fullSlotStack, @Nullable ItemStackKey partiallyFilledSlotStack,
+			boolean emptySlot) implements Snapshot {
 	}
 
 	private final Map<ItemStackKey, Set<Integer>> fullStackSlots = new HashMap<>();
@@ -123,7 +124,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			@Nullable
 			Set<Integer> partialSlots = partiallyFilledStackSlots.get(stackKey);
 			if (partialSlots == null) {
-				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}", () -> stackKey != null ? stackKey.stack().toString() : "null");
+				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}",
+						() -> stackKey != null ? stackKey.stack().toString() : "null");
 			} else {
 				partialSlots.remove(slot);
 			}
@@ -142,7 +144,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			@Nullable
 			Set<Integer> fullSlots = fullStackSlots.get(stackKey);
 			if (fullSlots == null) {
-				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}", () -> stackKey != null ? stackKey.stack().toString() : "null");
+				SophisticatedCore.LOGGER.error("Unstable ItemStack detected in slot tracking: {}",
+						() -> stackKey != null ? stackKey.stack().toString() : "null");
 			} else {
 				fullSlots.remove(slot);
 			}
@@ -253,10 +256,10 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 
 	@Override
 	public void refreshSlotIndexesFrom(InventoryHandler itemHandler) {
-		fullStackSlots.keySet().forEach(sk -> onRemoveStackKey.accept(sk));
+		fullStackSlots.keySet().forEach(onRemoveStackKey::accept);
 		fullStackSlots.clear();
 		fullSlotStacks.clear();
-		partiallyFilledStackSlots.keySet().forEach(sk -> onRemoveStackKey.accept(sk));
+		partiallyFilledStackSlots.keySet().forEach(onRemoveStackKey::accept);
 		partiallyFilledStackSlots.clear();
 		partiallyFilledSlotStacks.clear();
 		itemStackKeys.clear();
@@ -367,7 +370,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	@Override
-	public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+	public void registerListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot) {
 		this.onAddStackKey = onAddStackKey;
 		this.onRemoveStackKey = onRemoveStackKey;
 		this.onAddFirstEmptySlot = onAddFirstEmptySlot;

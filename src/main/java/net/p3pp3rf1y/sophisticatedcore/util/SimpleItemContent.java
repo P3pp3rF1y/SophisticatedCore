@@ -19,20 +19,14 @@ import java.util.function.Predicate;
 
 public class SimpleItemContent implements DataComponentHolder {
 	public static final SimpleItemContent EMPTY = new SimpleItemContent(Items.AIR.builtInRegistryHolder(), 0, DataComponentPatch.EMPTY);
-	public static final Codec<SimpleItemContent> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			Item.CODEC.optionalFieldOf("id", Items.AIR.builtInRegistryHolder()).forGetter(SimpleItemContent::itemHolder),
-			Codec.intRange(0, 99).optionalFieldOf("count", 0).forGetter(SimpleItemContent::getCount),
-			DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(SimpleItemContent::componentsPatch)
-	).apply(instance, SimpleItemContent::fromSerialized));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SimpleItemContent> STREAM_CODEC = StreamCodec.composite(
-			Item.STREAM_CODEC,
-			SimpleItemContent::itemHolder,
-			ByteBufCodecs.VAR_INT,
-			SimpleItemContent::getCount,
-			DataComponentPatch.STREAM_CODEC,
-			SimpleItemContent::componentsPatch,
-			SimpleItemContent::fromSerialized
-	);
+	public static final Codec<SimpleItemContent> CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Item.CODEC.optionalFieldOf("id", Items.AIR.builtInRegistryHolder()).forGetter(SimpleItemContent::itemHolder),
+					Codec.intRange(0, 99).optionalFieldOf("count", 0).forGetter(SimpleItemContent::getCount),
+					DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(SimpleItemContent::componentsPatch))
+			.apply(instance, SimpleItemContent::fromSerialized));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SimpleItemContent> STREAM_CODEC = StreamCodec.composite(Item.STREAM_CODEC,
+			SimpleItemContent::itemHolder, ByteBufCodecs.VAR_INT, SimpleItemContent::getCount, DataComponentPatch.STREAM_CODEC,
+			SimpleItemContent::componentsPatch, SimpleItemContent::fromSerialized);
 
 	private final Holder<Item> item;
 	private final int count;
@@ -57,7 +51,9 @@ public class SimpleItemContent implements DataComponentHolder {
 	}
 
 	public static SimpleItemContent copyOf(ItemStack itemStack) {
-		return itemStack.isEmpty() ? EMPTY : new SimpleItemContent(itemStack.getItem().builtInRegistryHolder(), itemStack.getCount(), itemStack.getComponentsPatch());
+		return itemStack.isEmpty()
+				? EMPTY
+				: new SimpleItemContent(itemStack.getItem().builtInRegistryHolder(), itemStack.getCount(), itemStack.getComponentsPatch());
 	}
 
 	public static SimpleItemContent of(Item item, int count, DataComponentPatch components) {

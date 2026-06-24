@@ -36,7 +36,8 @@ public class StorageWrapperRepository {
 			storageWrapper = instantiateWrapper(stack, factory);
 			wrappers.put(stack, storageWrapper);
 		} else if (!wrapperClass.isInstance(storageWrapper)) {
-			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...", stack, wrapperClass);
+			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...",
+					stack, wrapperClass);
 			wrappers.invalidate(stack);
 			storageWrapper = instantiateWrapper(stack, factory);
 			wrappers.put(stack, storageWrapper);
@@ -49,7 +50,8 @@ public class StorageWrapperRepository {
 	}
 
 	public static void registerStorageWrapper(UUID storageUuid, IStorageWrapper storageWrapper) {
-		getStorageWrappersByUuid().asMap().computeIfAbsent(storageUuid, uuid -> Collections.newSetFromMap(new MapMaker().weakKeys().makeMap())).add(storageWrapper);
+		getStorageWrappersByUuid().asMap().computeIfAbsent(storageUuid, uuid -> Collections.newSetFromMap(new MapMaker().weakKeys().makeMap()))
+				.add(storageWrapper);
 	}
 
 	public static void invalidateStorageWrapperContents(UUID storageUuid, IStorageWrapper sourceWrapper) {
@@ -65,19 +67,14 @@ public class StorageWrapperRepository {
 		});
 	}
 
-/*    public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) { //TODO future UUID based caching and retrieval
-        IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid);
-        if (storageWrapper == null) {
-            storageWrapper = instantiateWrapper(factory);
-            uuidStorageWrappers.put(uuid, storageWrapper);
-        } else if (!wrapperClass.isInstance(storageWrapper)) {
-            SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with UUID {} is not an instance of {}. Replacing with new instance...", uuid, wrapperClass);
-            uuidStorageWrappers.invalidate(uuid);
-            storageWrapper = instantiateWrapper(factory);
-            uuidStorageWrappers.put(uuid, storageWrapper);
-        }
-        return wrapperClass.cast(storageWrapper);
-    }*/
+	/*
+	 * public static <T extends IStorageWrapper> T getStorageWrapper(UUID uuid, Class<T> wrapperClass, BiFunction<ItemStack, RegistryAccess, T> factory) {
+	 * //TODO future UUID based caching and retrieval IStorageWrapper storageWrapper = uuidStorageWrappers.getIfPresent(uuid); if (storageWrapper == null) {
+	 * storageWrapper = instantiateWrapper(factory); uuidStorageWrappers.put(uuid, storageWrapper); } else if (!wrapperClass.isInstance(storageWrapper)) {
+	 * SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with UUID {} is not an instance of {}. Replacing with new instance...", uuid,
+	 * wrapperClass); uuidStorageWrappers.invalidate(uuid); storageWrapper = instantiateWrapper(factory); uuidStorageWrappers.put(uuid, storageWrapper); }
+	 * return wrapperClass.cast(storageWrapper); }
+	 */
 
 	private static <T extends IStorageWrapper> T instantiateWrapper(ItemStack stack, Function<ItemStack, T> instantiate) {
 		return instantiate.apply(stack);
@@ -99,14 +96,17 @@ public class StorageWrapperRepository {
 	}
 
 	private static Cache<ItemStack, IStorageWrapper> getStackStorageWrappers() {
-		return stackStorageWrappers.computeIfAbsent(Thread.currentThread().getThreadGroup(), threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
+		return stackStorageWrappers.computeIfAbsent(Thread.currentThread().getThreadGroup(),
+				threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
 	}
 
 	private static Cache<UUID, IStorageWrapper> getUuidStorageWrappers() {
-		return uuidStorageWrappers.computeIfAbsent(Thread.currentThread().getThreadGroup(), threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
+		return uuidStorageWrappers.computeIfAbsent(Thread.currentThread().getThreadGroup(),
+				threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
 	}
 
 	private static Cache<UUID, Set<IStorageWrapper>> getStorageWrappersByUuid() {
-		return storageWrappersByUuid.computeIfAbsent(Thread.currentThread().getThreadGroup(), threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
+		return storageWrappersByUuid.computeIfAbsent(Thread.currentThread().getThreadGroup(),
+				threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
 	}
 }

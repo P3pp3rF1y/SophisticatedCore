@@ -58,10 +58,8 @@ class IStorageWrapperInventoryLayoutTest {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(1, new ItemStack(Items.DIAMOND), 3, ItemStack.EMPTY), Set.of(3), 5);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler);
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("stack:1", 1, 1, 1, Set.of(1)),
-				new InventoryLayoutPart("fixed:3", 3, 1, 1, Set.of(3))
-		), storageWrapper.getInventoryLayoutParts(5));
+		assertEquals(List.of(new InventoryLayoutPart("stack:1", 1, 1, 1, Set.of(1)), new InventoryLayoutPart("fixed:3", 3, 1, 1, Set.of(3))),
+				storageWrapper.getInventoryLayoutParts(5));
 	}
 
 	@Test
@@ -69,9 +67,7 @@ class IStorageWrapperInventoryLayoutTest {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(20, new ItemStack(Items.COBBLESTONE)), Set.of(), 42);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler);
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("stack:20", 20, 1, 1, Set.of(20))
-		), storageWrapper.getInventoryLayoutParts(9, 7));
+		assertEquals(List.of(new InventoryLayoutPart("stack:20", 20, 1, 1, Set.of(20))), storageWrapper.getInventoryLayoutParts(9, 7));
 	}
 
 	@Test
@@ -88,13 +84,12 @@ class IStorageWrapperInventoryLayoutTest {
 	@Test
 	void defaultLayoutPartsTreatNoSortSlotsAsFixed() {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(2, new ItemStack(Items.COBBLESTONE)), Set.of(), 9);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {
+		});
 		noSortSettings.selectSlot(2);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("fixed:2", 2, 1, 1, Set.of(2))
-		), storageWrapper.getInventoryLayoutParts(9));
+		assertEquals(List.of(new InventoryLayoutPart("fixed:2", 2, 1, 1, Set.of(2))), storageWrapper.getInventoryLayoutParts(9));
 	}
 
 	@Test
@@ -104,15 +99,14 @@ class IStorageWrapperInventoryLayoutTest {
 		memorySettings.selectSlot(4);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, emptyNoSortSettings(), memorySettings);
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("fixed:4", 4, 1, 1, Set.of(4))
-		), storageWrapper.getInventoryLayoutParts(9));
+		assertEquals(List.of(new InventoryLayoutPart("fixed:4", 4, 1, 1, Set.of(4))), storageWrapper.getInventoryLayoutParts(9));
 	}
 
 	@Test
 	void emptyNoSortSlotDoesNotContributeLayoutPart() {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(), Set.of(), 18);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {
+		});
 		noSortSettings.selectSlot(17);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 
@@ -140,7 +134,8 @@ class IStorageWrapperInventoryLayoutTest {
 	@Test
 	void noSortSlotOutsideReducedInventoryBlocksLayoutFit() {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(15, new ItemStack(Items.COBBLESTONE)), Set.of(), 18);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {
+		});
 		noSortSettings.selectSlot(15);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 
@@ -167,7 +162,8 @@ class IStorageWrapperInventoryLayoutTest {
 	void noSortSlotStackKeepsSameSlotIndexWhenColumnsChange() {
 		Map<Integer, ItemStack> stacks = new HashMap<>(Map.of(10, new ItemStack(Items.COBBLESTONE)));
 		InventoryHandler inventoryHandler = mockInventoryHandler(stacks, Set.of(), 18);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {
+		});
 		noSortSettings.selectSlot(10);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 		InventoryLayoutFitResult fitResult = InventoryLayoutFitter.fit(storageWrapper.getInventoryLayoutParts(9, 7), 14, 7);
@@ -270,15 +266,16 @@ class IStorageWrapperInventoryLayoutTest {
 		IInventoryLayoutContributor layoutContributor = new IInventoryLayoutContributor() {
 			@Override
 			public boolean isInventoryLayoutSlotHandled(int slot, int columns) {
-				return mobSlots.values().stream().anyMatch(mobSlot -> mobSlot == slot || occupiedSlots(mobSlot, 4, 3, columns, inventoryHandler.size()).contains(slot));
+				return mobSlots.values().stream()
+						.anyMatch(mobSlot -> mobSlot == slot || occupiedSlots(mobSlot, 4, 3, columns, inventoryHandler.size()).contains(slot));
 			}
 
 			@Override
 			public Optional<InventoryLayoutPart> getInventoryLayoutPart(int slot, int columns, int targetColumns) {
-				return mobSlots.entrySet().stream()
-						.filter(entry -> entry.getValue() == slot)
-						.findFirst()
-						.map(entry -> new InventoryLayoutPart("mob:" + entry.getKey(), targetSlot(entry.getValue(), 4, 3, columns, targetColumns, inventoryHandler.size()), 4, 3, occupiedSlots(entry.getValue(), 4, 3, columns, inventoryHandler.size())));
+				return mobSlots.entrySet().stream().filter(entry -> entry.getValue() == slot).findFirst()
+						.map(entry -> new InventoryLayoutPart("mob:" + entry.getKey(),
+								targetSlot(entry.getValue(), 4, 3, columns, targetColumns, inventoryHandler.size()), 4, 3,
+								occupiedSlots(entry.getValue(), 4, 3, columns, inventoryHandler.size())));
 			}
 
 			@Override
@@ -298,7 +295,9 @@ class IStorageWrapperInventoryLayoutTest {
 		assertFalse(mobSlots.get("middle") == 24, "middle mob stayed at a 7-column slot that crosses a 9-column row");
 		assertFalse(mobSlots.get("bottom") == 42, "bottom mob stayed at a 7-column slot that crosses a 9-column row");
 		assertContributorPartsFit(mobSlots, 4, 3, 9, 81);
-		mobSlots.values().forEach(slot -> occupiedSlots(slot, 4, 3, 9, 81).forEach(occupiedSlot -> assertTrue(stacks.getOrDefault(occupiedSlot, ItemStack.EMPTY).isEmpty(), "stack remained in mob footprint at slot " + occupiedSlot)));
+		mobSlots.values().forEach(
+				slot -> occupiedSlots(slot, 4, 3, 9, 81).forEach(occupiedSlot -> assertTrue(stacks.getOrDefault(occupiedSlot, ItemStack.EMPTY).isEmpty(),
+						"stack remained in mob footprint at slot " + occupiedSlot)));
 		assertEquals(27, stacks.values().stream().filter(stack -> !stack.isEmpty()).count());
 	}
 
@@ -314,15 +313,16 @@ class IStorageWrapperInventoryLayoutTest {
 		IInventoryLayoutContributor layoutContributor = new IInventoryLayoutContributor() {
 			@Override
 			public boolean isInventoryLayoutSlotHandled(int slot, int columns) {
-				return mobSlots.values().stream().anyMatch(mobSlot -> mobSlot == slot || occupiedSlots(mobSlot, 4, 3, columns, inventoryHandler.size()).contains(slot));
+				return mobSlots.values().stream()
+						.anyMatch(mobSlot -> mobSlot == slot || occupiedSlots(mobSlot, 4, 3, columns, inventoryHandler.size()).contains(slot));
 			}
 
 			@Override
 			public Optional<InventoryLayoutPart> getInventoryLayoutPart(int slot, int columns, int targetColumns) {
-				return mobSlots.entrySet().stream()
-						.filter(entry -> entry.getValue() == slot)
-						.findFirst()
-						.map(entry -> new InventoryLayoutPart("mob:" + entry.getKey(), targetSlot(entry.getValue(), 4, 3, columns, targetColumns, inventoryHandler.size()), 4, 3, occupiedSlots(entry.getValue(), 4, 3, columns, inventoryHandler.size())));
+				return mobSlots.entrySet().stream().filter(entry -> entry.getValue() == slot).findFirst()
+						.map(entry -> new InventoryLayoutPart("mob:" + entry.getKey(),
+								targetSlot(entry.getValue(), 4, 3, columns, targetColumns, inventoryHandler.size()), 4, 3,
+								occupiedSlots(entry.getValue(), 4, 3, columns, inventoryHandler.size())));
 			}
 
 			@Override
@@ -351,15 +351,16 @@ class IStorageWrapperInventoryLayoutTest {
 		IInventoryLayoutContributor layoutContributor = new IInventoryLayoutContributor() {
 			@Override
 			public boolean isInventoryLayoutSlotHandled(int slot, int columns) {
-				return mobSlots.values().stream().anyMatch(mobSlot -> mobSlot == slot || occupiedSlots(mobSlot, 4, 3, columns, inventoryHandler.size()).contains(slot));
+				return mobSlots.values().stream()
+						.anyMatch(mobSlot -> mobSlot == slot || occupiedSlots(mobSlot, 4, 3, columns, inventoryHandler.size()).contains(slot));
 			}
 
 			@Override
 			public Optional<InventoryLayoutPart> getInventoryLayoutPart(int slot, int columns, int targetColumns) {
-				return mobSlots.entrySet().stream()
-						.filter(entry -> entry.getValue() == slot)
-						.findFirst()
-						.map(entry -> new InventoryLayoutPart("mob:" + entry.getKey(), targetSlot(entry.getValue(), 4, 3, columns, targetColumns, inventoryHandler.size()), 4, 3, occupiedSlots(entry.getValue(), 4, 3, columns, inventoryHandler.size())));
+				return mobSlots.entrySet().stream().filter(entry -> entry.getValue() == slot).findFirst()
+						.map(entry -> new InventoryLayoutPart("mob:" + entry.getKey(),
+								targetSlot(entry.getValue(), 4, 3, columns, targetColumns, inventoryHandler.size()), 4, 3,
+								occupiedSlots(entry.getValue(), 4, 3, columns, inventoryHandler.size())));
 			}
 
 			@Override
@@ -377,7 +378,9 @@ class IStorageWrapperInventoryLayoutTest {
 
 		assertEquals(Map.of("top", 0, "middle", 21, "bottom", 42), mobSlots);
 		assertContributorPartsFit(mobSlots, 4, 3, 7, 63);
-		mobSlots.values().forEach(slot -> occupiedSlots(slot, 4, 3, 7, 63).forEach(occupiedSlot -> assertTrue(stacks.getOrDefault(occupiedSlot, ItemStack.EMPTY).isEmpty(), "stack remained in mob footprint at slot " + occupiedSlot)));
+		mobSlots.values().forEach(
+				slot -> occupiedSlots(slot, 4, 3, 7, 63).forEach(occupiedSlot -> assertTrue(stacks.getOrDefault(occupiedSlot, ItemStack.EMPTY).isEmpty(),
+						"stack remained in mob footprint at slot " + occupiedSlot)));
 		assertEquals(27, stacks.values().stream().filter(stack -> !stack.isEmpty()).count());
 	}
 
@@ -419,7 +422,8 @@ class IStorageWrapperInventoryLayoutTest {
 		return storageWrapper;
 	}
 
-	private IStorageWrapper mockStorageWrapper(InventoryHandler inventoryHandler, NoSortSettingsCategory noSortSettings, MemorySettingsCategory memorySettings) {
+	private IStorageWrapper mockStorageWrapper(InventoryHandler inventoryHandler, NoSortSettingsCategory noSortSettings,
+			MemorySettingsCategory memorySettings) {
 		SettingsHandler settingsHandler = mock(SettingsHandler.class);
 		when(settingsHandler.getTypeCategory(NoSortSettingsCategory.class)).thenReturn(noSortSettings);
 		when(settingsHandler.getTypeCategory(MemorySettingsCategory.class)).thenReturn(memorySettings);
@@ -433,11 +437,13 @@ class IStorageWrapperInventoryLayoutTest {
 	}
 
 	private NoSortSettingsCategory emptyNoSortSettings() {
-		return new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {});
+		return new NoSortSettingsCategory(new NoSortSettingsCategoryData(), () -> {
+		});
 	}
 
 	private MemorySettingsCategory emptyMemorySettings(InventoryHandler inventoryHandler) {
-		return new MemorySettingsCategory(() -> inventoryHandler, new MemorySettingsCategoryData(), () -> {});
+		return new MemorySettingsCategory(() -> inventoryHandler, new MemorySettingsCategoryData(), () -> {
+		});
 	}
 
 	private Set<Integer> occupiedSlots(int firstSlot, int width, int height, int columns, int slots) {

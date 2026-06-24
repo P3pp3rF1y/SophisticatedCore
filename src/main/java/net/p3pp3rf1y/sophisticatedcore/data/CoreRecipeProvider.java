@@ -7,7 +7,6 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.Item;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeClearRecipe;
 
@@ -20,7 +19,8 @@ public class CoreRecipeProvider extends RecipeProvider {
 
 	@Override
 	protected void buildRecipes() {
-		SpecialRecipeBuilder.special(() -> UpgradeClearRecipe.INSTANCE).save(output, ResourceKey.create(Registries.RECIPE, SophisticatedCore.getIdentifier("upgrade_clear")));
+		SpecialRecipeBuilder.special(() -> UpgradeClearRecipe.INSTANCE).save(output,
+				ResourceKey.create(Registries.RECIPE, SophisticatedCore.getIdentifier("upgrade_clear")));
 	}
 
 	public static class Runner extends RecipeProvider.Runner {

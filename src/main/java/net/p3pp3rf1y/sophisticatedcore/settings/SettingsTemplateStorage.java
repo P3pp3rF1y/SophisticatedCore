@@ -2,9 +2,9 @@ package net.p3pp3rf1y.sophisticatedcore.settings;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,15 +23,14 @@ import java.util.TreeMap;
 import java.util.UUID;
 //TODO after 1.22 remove support for legacy UUID deserialization via strings
 public class SettingsTemplateStorage extends SavedData {
-	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "settings_templates"), SettingsTemplateStorage::new,
-			RecordCodecBuilder.create(
-					builder -> builder.group(
-							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, ContainerContents.SettingsData.CODEC))
-									.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
-							Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, ContainerContents.SettingsData.CODEC))
-									.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates)
-					).apply(builder, SettingsTemplateStorage::new)
-			));
+	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(
+			Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "settings_templates"), SettingsTemplateStorage::new,
+			RecordCodecBuilder.create(builder -> builder.group(
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, ContainerContents.SettingsData.CODEC))
+							.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, ContainerContents.SettingsData.CODEC))
+							.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates))
+					.apply(builder, SettingsTemplateStorage::new)));
 
 	private Map<UUID, Map<Integer, ContainerContents.SettingsData>> playerTemplates = new HashMap<>();
 	private Map<UUID, Map<String, ContainerContents.SettingsData>> playerNamedTemplates = new HashMap<>();
@@ -40,7 +39,8 @@ public class SettingsTemplateStorage extends SavedData {
 	private SettingsTemplateStorage() {
 	}
 
-	private SettingsTemplateStorage(Map<UUID, Map<Integer, ContainerContents.SettingsData>> playerTemplates, Map<UUID, Map<String, ContainerContents.SettingsData>> playerNamedTemplates) {
+	private SettingsTemplateStorage(Map<UUID, Map<Integer, ContainerContents.SettingsData>> playerTemplates,
+			Map<UUID, Map<String, ContainerContents.SettingsData>> playerNamedTemplates) {
 		this.playerTemplates = playerTemplates;
 		this.playerNamedTemplates = playerNamedTemplates;
 	}
@@ -68,7 +68,7 @@ public class SettingsTemplateStorage extends SavedData {
 			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
-				//noinspection ConstantConditions - by this time overworld is loaded
+				// noinspection ConstantConditions - by this time overworld is loaded
 				SavedDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}

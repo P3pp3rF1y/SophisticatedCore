@@ -32,7 +32,7 @@ public class MainSettingsCategory implements ISettingsCategory<MainSettingsCateg
 
 	@Override
 	public void overwriteWith(MainSettingsCategory otherCategory) {
-		//noop for now
+		// noop for now
 	}
 
 	public void toggleContext() {
@@ -42,17 +42,17 @@ public class MainSettingsCategory implements ISettingsCategory<MainSettingsCateg
 
 	@Override
 	public boolean isLargerThanNumberOfSlots(int slots) {
-		return false; //no slots in this category so it can't be too large
+		return false; // no slots in this category so it can't be too large
 	}
 
 	@Override
 	public void copyTo(MainSettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		//noop just letting the other retain its state
+		// noop just letting the other retain its state
 	}
 
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
-		//noop no slots to delete
+		// noop no slots to delete
 	}
 
 	public Context getContext() {

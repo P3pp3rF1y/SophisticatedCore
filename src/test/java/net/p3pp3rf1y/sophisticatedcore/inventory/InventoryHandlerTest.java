@@ -1,7 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.inventory;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
@@ -48,17 +47,13 @@ public class InventoryHandlerTest {
 
 	private InventoryHandler initInventoryHandler(Map<Integer, ItemStack> initialState, int slotLimit, Set<Integer> inaccessibleSlots) {
 		ContainerContents containerContents = new ContainerContents();
-		containerContents.inventory().reloadFrom(
-				new ContainerContents.InventoryData(initialState.entrySet().stream()
-						.sorted(Map.Entry.comparingByKey())
-						.map(Map.Entry::getValue)
-						.collect(Collectors.toCollection(NonNullList::create))));
+		containerContents.inventory().reloadFrom(new ContainerContents.InventoryData(initialState.entrySet().stream().sorted(Map.Entry.comparingByKey())
+				.map(Map.Entry::getValue).collect(Collectors.toCollection(NonNullList::create))));
 
 		StackUpgradeConfig stackUpgradeConfigMock = Mockito.mock(StackUpgradeConfig.class);
 		when(stackUpgradeConfigMock.canStackItem(any(Item.class))).thenReturn(true);
-		return new InventoryHandler(
-				initialState.size(), NoopStorageWrapper.INSTANCE, containerContents, () -> {}, slotLimit,
-				stackUpgradeConfigMock) {
+		return new InventoryHandler(initialState.size(), NoopStorageWrapper.INSTANCE, containerContents, () -> {
+		}, slotLimit, stackUpgradeConfigMock) {
 			@Override
 			protected boolean isAllowed(ItemResource resource) {
 				return true;
@@ -103,7 +98,6 @@ public class InventoryHandlerTest {
 		slotTrackerField.set(inventoryHandler, slotTracker);
 	}
 
-
 	@ParameterizedTest
 	@MethodSource("realInsertAffectsTrackedStacksData")
 	void realInsertAffectsTrackedStacks(RealInsertAffectsTrackedStacksParams params) {
@@ -123,27 +117,13 @@ public class InventoryHandlerTest {
 		Assertions.assertNotEquals(snapshotBefore, snapshotAfter, "Slot tracker state didn't change after real insert");
 	}
 
-	private record RealInsertAffectsTrackedStacksParams(int slotLimit,
-														Map<Integer, ItemStack> initialState,
-														ItemStack stackBeingInserted,
-														int expectedInsertedAmount) {
+	private record RealInsertAffectsTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, ItemStack stackBeingInserted,
+			int expectedInsertedAmount) {
 	}
 
 	private static List<RealInsertAffectsTrackedStacksParams> realInsertAffectsTrackedStacksData() {
-		return List.of(
-				new RealInsertAffectsTrackedStacksParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 5),
-						5
-				),
-				new RealInsertAffectsTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 4),
-						4
-				)
-		);
+		return List.of(new RealInsertAffectsTrackedStacksParams(64, Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)), stack(Items.DIAMOND, 5), 5),
+				new RealInsertAffectsTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)), stack(Items.DIAMOND, 4), 4));
 	}
 
 	@ParameterizedTest
@@ -155,7 +135,8 @@ public class InventoryHandlerTest {
 		int insertedAmount;
 		SlotTrackerSnapshot snapshotBefore = new SlotTrackerSnapshot(slotTracker);
 		try (Transaction tx = Transaction.openRoot()) {
-			insertedAmount = inventoryHandler.insert(params.slotToInsertInto(), ItemResource.of(params.stackBeingInserted()), params.stackBeingInserted().getCount(), tx);
+			insertedAmount = inventoryHandler.insert(params.slotToInsertInto(), ItemResource.of(params.stackBeingInserted()),
+					params.stackBeingInserted().getCount(), tx);
 			tx.commit();
 		}
 		SlotTrackerSnapshot snapshotAfter = new SlotTrackerSnapshot(slotTracker);
@@ -164,30 +145,16 @@ public class InventoryHandlerTest {
 		Assertions.assertNotEquals(snapshotBefore, snapshotAfter, "Slot tracker state didn't change after real insert");
 	}
 
-	private record RealSpecificSlotInsertAffectsTrackedStacksParams(int slotLimit,
-																	Map<Integer, ItemStack> initialState,
-																	int slotToInsertInto,
-																	ItemStack stackBeingInserted,
-																	int expectedInsertedAmount) {
+	private record RealSpecificSlotInsertAffectsTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotToInsertInto,
+			ItemStack stackBeingInserted, int expectedInsertedAmount) {
 	}
 
 	private static List<RealSpecificSlotInsertAffectsTrackedStacksParams> realSpecificSlotInsertAffectsTrackedStacksData() {
 		return List.of(
-				new RealSpecificSlotInsertAffectsTrackedStacksParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 10),
-						10
-				),
-				new RealSpecificSlotInsertAffectsTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 4),
-						4
-				)
-		);
+				new RealSpecificSlotInsertAffectsTrackedStacksParams(64, Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)), 0, stack(Items.DIAMOND, 10),
+						10),
+				new RealSpecificSlotInsertAffectsTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)), 0,
+						stack(Items.DIAMOND, 4), 4));
 	}
 
 	@ParameterizedTest
@@ -208,27 +175,15 @@ public class InventoryHandlerTest {
 		Assertions.assertNotEquals(snapshotBefore, snapshotAfter, "Slot tracker state didn't change after real extract");
 	}
 
-	private record RealExtractAffectsTrackedStacksParams(int slotLimit,
-															Map<Integer, ItemStack> initialState,
-															ItemStack stackBeingExtracted,
-															int expectedResult) {
+	private record RealExtractAffectsTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, ItemStack stackBeingExtracted,
+			int expectedResult) {
 	}
 
 	private static List<RealExtractAffectsTrackedStacksParams> realExtractAffectsTrackedStacksData() {
 		return List.of(
-				new RealExtractAffectsTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 10),
-						10
-				),
-				new RealExtractAffectsTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
-						stack(Items.GOLD_INGOT, 64),
-						64
-				)
-		);
+				new RealExtractAffectsTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)), stack(Items.DIAMOND, 10), 10),
+				new RealExtractAffectsTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)), stack(Items.GOLD_INGOT, 64),
+						64));
 	}
 
 	@ParameterizedTest
@@ -240,7 +195,8 @@ public class InventoryHandlerTest {
 		int result;
 		SlotTrackerSnapshot snapshotBefore = new SlotTrackerSnapshot(slotTracker);
 		try (Transaction tx = Transaction.openRoot()) {
-			result = inventoryHandler.extract(params.slotToExtractFrom(), ItemResource.of(params.stackBeingExtracted()), params.stackBeingExtracted().getCount(), tx);
+			result = inventoryHandler.extract(params.slotToExtractFrom(), ItemResource.of(params.stackBeingExtracted()),
+					params.stackBeingExtracted().getCount(), tx);
 			tx.commit();
 		}
 		SlotTrackerSnapshot snapshotAfter = new SlotTrackerSnapshot(slotTracker);
@@ -249,30 +205,16 @@ public class InventoryHandlerTest {
 		Assertions.assertNotEquals(snapshotBefore, snapshotAfter, "Slot tracker state didn't change after real extract");
 	}
 
-	private record RealSpecificSlotExtractAffectsTrackedStacksParams(int slotLimit,
-																		Map<Integer, ItemStack> initialState,
-																		int slotToExtractFrom,
-																		ItemStack stackBeingExtracted,
-																		int expectedResult) {
+	private record RealSpecificSlotExtractAffectsTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotToExtractFrom,
+			ItemStack stackBeingExtracted, int expectedResult) {
 	}
 
 	private static List<RealSpecificSlotExtractAffectsTrackedStacksParams> realSpecificSlotExtractAffectsTrackedStacksData() {
 		return List.of(
-				new RealSpecificSlotExtractAffectsTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 10),
-						10
-				),
-				new RealSpecificSlotExtractAffectsTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
-						1,
-						stack(Items.GOLD_INGOT, 64),
-						64
-				)
-		);
+				new RealSpecificSlotExtractAffectsTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)), 0,
+						stack(Items.DIAMOND, 10), 10),
+				new RealSpecificSlotExtractAffectsTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)), 1,
+						stack(Items.GOLD_INGOT, 64), 64));
 	}
 
 	@ParameterizedTest
@@ -293,33 +235,17 @@ public class InventoryHandlerTest {
 		Assertions.assertEquals(snapshotBefore, snapshotAfter, "Slot tracker state changed after simulated insert");
 	}
 
-	private record SimulatedInsertDoesntAffectTrackedStacksParams(int slotLimit,
-																   Map<Integer, ItemStack> initialState,
-																   ItemStack stackBeingInserted,
-																   int expectedInsertedAmount) {
+	private record SimulatedInsertDoesntAffectTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, ItemStack stackBeingInserted,
+			int expectedInsertedAmount) {
 	}
 
 	private static List<SimulatedInsertDoesntAffectTrackedStacksParams> simulatedInsertDoesntAffectTrackedStacksData() {
 		return List.of(
-				new SimulatedInsertDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 5),
-						5
-				),
-				new SimulatedInsertDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 10),
-						4
-				),
-				new SimulatedInsertDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 64), 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 1),
-						0
-				)
-		);
+				new SimulatedInsertDoesntAffectTrackedStacksParams(64, Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)), stack(Items.DIAMOND, 5), 5),
+				new SimulatedInsertDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 10), 4),
+				new SimulatedInsertDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 64), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 1), 0));
 	}
 
 	@ParameterizedTest
@@ -331,7 +257,8 @@ public class InventoryHandlerTest {
 		int insertedAmount;
 		SlotTrackerSnapshot snapshotBefore = new SlotTrackerSnapshot(slotTracker);
 		try (Transaction tx = Transaction.openRoot()) {
-			insertedAmount = inventoryHandler.insert(params.slotToInsertInto(), ItemResource.of(params.stackBeingInserted()), params.stackBeingInserted().getCount(), tx);
+			insertedAmount = inventoryHandler.insert(params.slotToInsertInto(), ItemResource.of(params.stackBeingInserted()),
+					params.stackBeingInserted().getCount(), tx);
 		}
 		SlotTrackerSnapshot snapshotAfter = new SlotTrackerSnapshot(slotTracker);
 
@@ -339,37 +266,18 @@ public class InventoryHandlerTest {
 		Assertions.assertEquals(snapshotBefore, snapshotAfter, "Slot tracker state changed after simulated insert");
 	}
 
-	private record SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(int slotLimit,
-																			   Map<Integer, ItemStack> initialState,
-																			   int slotToInsertInto,
-																			   ItemStack stackBeingInserted,
-																			   int expectedInsertedAmount) {
+	private record SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotToInsertInto,
+			ItemStack stackBeingInserted, int expectedInsertedAmount) {
 	}
 
 	private static List<SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams> simulatedSpecificSlotInsertDoesntAffectTrackedStacksData() {
 		return List.of(
-				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 10),
-						10
-				),
-				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 10),
-						4
-				),
-				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 32), 1, stack(Items.GOLD_INGOT, 5)),
-						1,
-						stack(Items.DIAMOND, 1),
-						0
-				)
-		);
+				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(64, Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)), 0,
+						stack(Items.DIAMOND, 10), 10),
+				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 60), 1, stack(Items.GOLD_INGOT, 5)), 0,
+						stack(Items.DIAMOND, 10), 4),
+				new SimulatedSpecificSlotInsertDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 32), 1, stack(Items.GOLD_INGOT, 5)), 1,
+						stack(Items.DIAMOND, 1), 0));
 	}
 
 	@ParameterizedTest
@@ -389,33 +297,17 @@ public class InventoryHandlerTest {
 		Assertions.assertEquals(snapshotBefore, snapshotAfter, "Slot tracker state changed after simulated extract");
 	}
 
-	private record SimulatedExtractDoesntAffectTrackedStacksParams(int slotLimit,
-																   Map<Integer, ItemStack> initialState,
-																   ItemStack stackBeingExtracted,
-																   int expectedResult) {
+	private record SimulatedExtractDoesntAffectTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, ItemStack stackBeingExtracted,
+			int expectedResult) {
 	}
 
 	private static List<SimulatedExtractDoesntAffectTrackedStacksParams> simulatedExtractDoesntAffectTrackedStacksData() {
 		return List.of(
-				new SimulatedExtractDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 10),
-						10
-				),
-				new SimulatedExtractDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
-						stack(Items.GOLD_INGOT, 64),
-						64
-				),
-				new SimulatedExtractDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
-						stack(Items.DIAMOND, 1),
-						0
-				)
-		);
+				new SimulatedExtractDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
+						stack(Items.DIAMOND, 10), 10),
+				new SimulatedExtractDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
+						stack(Items.GOLD_INGOT, 64), 64),
+				new SimulatedExtractDoesntAffectTrackedStacksParams(64, Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)), stack(Items.DIAMOND, 1), 0));
 	}
 
 	@ParameterizedTest
@@ -427,7 +319,8 @@ public class InventoryHandlerTest {
 		int result;
 		SlotTrackerSnapshot snapshotBefore = new SlotTrackerSnapshot(slotTracker);
 		try (Transaction tx = Transaction.openRoot()) {
-			result = inventoryHandler.extract(params.slotToExtractFrom(), ItemResource.of(params.stackBeingExtracted()), params.stackBeingExtracted().getCount(), tx);
+			result = inventoryHandler.extract(params.slotToExtractFrom(), ItemResource.of(params.stackBeingExtracted()),
+					params.stackBeingExtracted().getCount(), tx);
 		}
 		SlotTrackerSnapshot snapshotAfter = new SlotTrackerSnapshot(slotTracker);
 
@@ -435,11 +328,8 @@ public class InventoryHandlerTest {
 		Assertions.assertEquals(snapshotBefore, snapshotAfter, "Slot tracker state changed after simulated extract");
 	}
 
-	private record SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(int slotLimit,
-																			   Map<Integer, ItemStack> initialState,
-																			   int slotToExtractFrom,
-																			   ItemStack stackBeingExtracted,
-																			   int expectedResult) {
+	private record SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(int slotLimit, Map<Integer, ItemStack> initialState, int slotToExtractFrom,
+			ItemStack stackBeingExtracted, int expectedResult) {
 	}
 
 	private record SlotTrackerSnapshot(Set<Integer> emptySlots, Map<ItemStackKey, Set<Integer>> partialStacks, Map<ItemStackKey, Set<Integer>> fullStacks) {
@@ -448,25 +338,22 @@ public class InventoryHandlerTest {
 		}
 
 		private static Map<ItemStackKey, Set<Integer>> copyFullStacks(ISlotTracker slotTracker) {
-			return slotTracker.getFullStacks().stream()
-					.map(key -> Map.entry(key, new HashSet<>(slotTracker.getFullSlots(key))))
+			return slotTracker.getFullStacks().stream().map(key -> Map.entry(key, new HashSet<>(slotTracker.getFullSlots(key))))
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 
 		private static Map<ItemStackKey, Set<Integer>> copyPartialStacks(ISlotTracker slotTracker) {
-			return slotTracker.getPartialStacks().stream()
-					.map(key -> Map.entry(key, new HashSet<>(slotTracker.getPartialSlots(key))))
+			return slotTracker.getPartialStacks().stream().map(key -> Map.entry(key, new HashSet<>(slotTracker.getPartialSlots(key))))
 					.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 
 		@Override
 		public boolean equals(Object o) {
-			if (!(o instanceof SlotTrackerSnapshot(
-					Set<Integer> otherEmptySlots, Map<ItemStackKey, Set<Integer>> otherPartialStacks, Map<ItemStackKey, Set<Integer>> otherFullStacks
-			))) {
+			if (!(o instanceof SlotTrackerSnapshot(Set<Integer> otherEmptySlots, Map<ItemStackKey, Set<Integer>> otherPartialStacks, Map<ItemStackKey, Set<Integer>> otherFullStacks))) {
 				return false;
 			}
-			return Objects.equals(emptySlots, otherEmptySlots) && Objects.equals(partialStacks, otherPartialStacks) && Objects.equals(fullStacks, otherFullStacks);
+			return Objects.equals(emptySlots, otherEmptySlots) && Objects.equals(partialStacks, otherPartialStacks)
+					&& Objects.equals(fullStacks, otherFullStacks);
 		}
 
 		@Override
@@ -477,38 +364,19 @@ public class InventoryHandlerTest {
 
 	private static List<SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams> simulatedSpecificSlotExtractDoesntAffectTrackedStacksData() {
 		return List.of(
-				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 10),
-						10
-				),
-				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)),
-						1,
-						stack(Items.GOLD_INGOT, 64),
-						64
-				),
-				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(
-						64,
-						Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)),
-						0,
-						stack(Items.DIAMOND, 1),
-						0
-				)
-		);
+				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 5)), 0,
+						stack(Items.DIAMOND, 10), 10),
+				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(64, Map.of(0, stack(Items.DIAMOND, 10), 1, stack(Items.GOLD_INGOT, 64)), 1,
+						stack(Items.GOLD_INGOT, 64), 64),
+				new SimulatedSpecificSlotExtractDoesntAffectTrackedStacksParams(64, Map.of(0, ItemStack.EMPTY, 1, stack(Items.GOLD_INGOT, 5)), 0,
+						stack(Items.DIAMOND, 1), 0));
 	}
 
 	private static void assertSlotTrackerSnapshotEquals(SlotTrackerSnapshot expected, ISlotTracker slotTracker) {
 		SlotTrackerSnapshot actual = new SlotTrackerSnapshot(slotTracker);
 
 		if (!expected.equals(actual)) {
-			assertionFailure().message("Slot tracker snapshot doesn't equal")
-					.expected(expected)
-					.actual(actual)
-					.buildAndThrow();
+			assertionFailure().message("Slot tracker snapshot doesn't equal").expected(expected).actual(actual).buildAndThrow();
 		}
 	}
 

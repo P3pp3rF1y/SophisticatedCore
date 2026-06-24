@@ -9,8 +9,8 @@ import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.util.RecipeMatcher;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +65,9 @@ public abstract class CustomShapelessRecipe implements CraftingRecipe {
 
 			return RecipeMatcher.findMatches(nonEmptyItems, ingredients) != null;
 		} else {
-			return craftingInput.size() == 1 && ingredients.size() == 1 ? ingredients.getFirst().test(craftingInput.getItem(0)) : craftingInput.stackedContents().canCraft(this, null);
+			return craftingInput.size() == 1 && ingredients.size() == 1
+					? ingredients.getFirst().test(craftingInput.getItem(0))
+					: craftingInput.stackedContents().canCraft(this, null);
 		}
 	}
 
@@ -78,6 +80,7 @@ public abstract class CustomShapelessRecipe implements CraftingRecipe {
 	}
 
 	public List<RecipeDisplay> display() {
-		return List.of(new ShapelessCraftingRecipeDisplay(ingredients.stream().map(Ingredient::display).toList(), new SlotDisplay.ItemStackSlotDisplay(result), new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
+		return List.of(new ShapelessCraftingRecipeDisplay(ingredients.stream().map(Ingredient::display).toList(), new SlotDisplay.ItemStackSlotDisplay(result),
+				new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)));
 	}
 }

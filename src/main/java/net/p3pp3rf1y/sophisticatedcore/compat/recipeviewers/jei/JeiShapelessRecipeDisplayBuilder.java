@@ -25,7 +25,6 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 	private final List<Ingredient> ingredients = new ArrayList<>();
 	private final ItemStack result;
 
-
 	public JeiShapelessRecipeDisplayBuilder(HolderGetter<Item> items, JeiRecipeDisplayGenerator generator, ItemStack result) {
 		this.items = items;
 		this.generator = generator;
@@ -44,13 +43,14 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 
 	@Override
 	public ShapelessRecipeDisplayBuilder<CraftingRecipe> requires(ItemStack itemStack) {
-		return requires(CustomDisplayIngredient.of(DataComponentIngredient.of(true, itemStack), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack))));
+		return requires(CustomDisplayIngredient.of(DataComponentIngredient.of(true, itemStack),
+				new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack))));
 	}
 
 	@Override
 	protected ShapelessRecipeDisplayBuilder<CraftingRecipe> requiresItemStacks(List<ItemStack> itemStacks) {
-		return requires(CustomDisplayIngredient.of(getDisplayIngredient(itemStacks),
-				new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())));
+		return requires(CustomDisplayIngredient.of(getDisplayIngredient(itemStacks), new SlotDisplay.Composite(itemStacks.stream()
+				.map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())));
 	}
 
 	private static Ingredient getDisplayIngredient(List<ItemStack> itemStacks) {
@@ -78,6 +78,7 @@ public class JeiShapelessRecipeDisplayBuilder extends ShapelessRecipeDisplayBuil
 
 	@Override
 	public void save(ResourceKey<Recipe<?>> id) {
-		generator.acceptCrafting(new RecipeHolder<>(id, new ShapelessRecipe(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(result), ingredients)));
+		generator.acceptCrafting(new RecipeHolder<>(id, new ShapelessRecipe(new Recipe.CommonInfo(true),
+				new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, ""), ItemStackTemplate.fromNonEmptyStack(result), ingredients)));
 	}
 }

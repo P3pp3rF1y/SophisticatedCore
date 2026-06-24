@@ -168,21 +168,17 @@ public class FilteredItemHandler<T extends ResourceHandler<ItemResource>> implem
 		}
 
 		@Override
-		public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
-			inventoryHandler.registerTrackingListeners(
-					isk -> {
-						if (matchesFilters(isk.stack(), inputFilters)) {
-							onAddStackKey.accept(isk);
-						}
-					},
-					isk -> {
-						if (matchesFilters(isk.stack(), inputFilters)) {
-							onRemoveStackKey.accept(isk);
-						}
-					},
-					onAddFirstEmptySlot,
-					onRemoveLastEmptySlot
-			);
+		public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+				Runnable onRemoveLastEmptySlot) {
+			inventoryHandler.registerTrackingListeners(isk -> {
+				if (matchesFilters(isk.stack(), inputFilters)) {
+					onAddStackKey.accept(isk);
+				}
+			}, isk -> {
+				if (matchesFilters(isk.stack(), inputFilters)) {
+					onRemoveStackKey.accept(isk);
+				}
+			}, onAddFirstEmptySlot, onRemoveLastEmptySlot);
 		}
 
 		@Override

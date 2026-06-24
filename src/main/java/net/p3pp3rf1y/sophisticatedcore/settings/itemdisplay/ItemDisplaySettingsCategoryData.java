@@ -13,32 +13,25 @@ import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import java.util.*;
 
 public class ItemDisplaySettingsCategoryData implements ContainerContents.ISettingsCategoryData<ItemDisplaySettingsCategoryData> {
-	public static Codec<ItemDisplaySettingsCategoryData> CODEC = RecordCodecBuilder.create(
-			instance -> instance.group(
-					DyeColor.CODEC.fieldOf("color").forGetter(data -> data.color),
-					Codec.list(Codec.INT).fieldOf("slotIndexes").forGetter(data -> data.slotIndexes),
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Codec.INT).fieldOf("slotRotations").forGetter(data -> data.slotRotations),
-					DisplaySide.CODEC.fieldOf("displaySide").forGetter(data -> data.displaySide)
-			).apply(instance, ItemDisplaySettingsCategoryData::new)
-	);
-	public static StreamCodec<RegistryFriendlyByteBuf, ItemDisplaySettingsCategoryData> STREAM_CODEC = StreamCodec.composite(
-			DyeColor.STREAM_CODEC,
-			ItemDisplaySettingsCategoryData::color,
-			ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()),
-			ItemDisplaySettingsCategoryData::slotIndexes,
-			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ByteBufCodecs.VAR_INT),
-			data -> data.slotRotations,
-			DisplaySide.STREAM_CODEC,
-			data -> data.displaySide,
-			ItemDisplaySettingsCategoryData::new
-	);
+	public static Codec<ItemDisplaySettingsCategoryData> CODEC = RecordCodecBuilder
+			.create(instance -> instance
+					.group(DyeColor.CODEC.fieldOf("color").forGetter(data -> data.color),
+							Codec.list(Codec.INT).fieldOf("slotIndexes").forGetter(data -> data.slotIndexes),
+							Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Codec.INT).fieldOf("slotRotations").forGetter(data -> data.slotRotations),
+							DisplaySide.CODEC.fieldOf("displaySide").forGetter(data -> data.displaySide))
+					.apply(instance, ItemDisplaySettingsCategoryData::new));
+	public static StreamCodec<RegistryFriendlyByteBuf, ItemDisplaySettingsCategoryData> STREAM_CODEC = StreamCodec.composite(DyeColor.STREAM_CODEC,
+			ItemDisplaySettingsCategoryData::color, ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()), ItemDisplaySettingsCategoryData::slotIndexes,
+			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ByteBufCodecs.VAR_INT), data -> data.slotRotations, DisplaySide.STREAM_CODEC,
+			data -> data.displaySide, ItemDisplaySettingsCategoryData::new);
 
 	private DyeColor color = DyeColor.RED;
 	private List<Integer> slotIndexes = new LinkedList<>();
 	private Map<Integer, Integer> slotRotations = new HashMap<>();
 	private DisplaySide displaySide = DisplaySide.FRONT;
 
-	public ItemDisplaySettingsCategoryData() {}
+	public ItemDisplaySettingsCategoryData() {
+	}
 
 	public ItemDisplaySettingsCategoryData(DyeColor color, List<Integer> slotIndexes, Map<Integer, Integer> slotRotations, DisplaySide displaySide) {
 		this.color = color;
@@ -108,8 +101,10 @@ public class ItemDisplaySettingsCategoryData implements ContainerContents.ISetti
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof ItemDisplaySettingsCategoryData that)) return false;
-		return color == that.color && Objects.equals(slotIndexes, that.slotIndexes) && Objects.equals(slotRotations, that.slotRotations) && displaySide == that.displaySide;
+		if (!(o instanceof ItemDisplaySettingsCategoryData that))
+			return false;
+		return color == that.color && Objects.equals(slotIndexes, that.slotIndexes) && Objects.equals(slotRotations, that.slotRotations)
+				&& displaySide == that.displaySide;
 	}
 
 	@Override

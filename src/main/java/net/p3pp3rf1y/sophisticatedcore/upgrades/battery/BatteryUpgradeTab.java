@@ -14,7 +14,8 @@ import java.util.List;
 
 public class BatteryUpgradeTab extends UpgradeSettingsTab<BatteryUpgradeContainer> {
 	public BatteryUpgradeTab(BatteryUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen) {
-		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("battery"), TranslationHelper.INSTANCE.translUpgradeTooltip("battery"));
+		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("battery"),
+				TranslationHelper.INSTANCE.translUpgradeTooltip("battery"));
 		openTabDimension = new Dimension(48, 48);
 	}
 

@@ -8,9 +8,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 
 public class ItemStackHelper {
-	private ItemStackHelper() {}
+	private ItemStackHelper() {
+	}
 
-	public static boolean areItemStackComponentsEqualIgnoreDurability(boolean aIsEmpty, DataComponentMap componentsA, boolean bIsEmpty, DataComponentMap componentsB) {
+	public static boolean areItemStackComponentsEqualIgnoreDurability(boolean aIsEmpty, DataComponentMap componentsA, boolean bIsEmpty,
+			DataComponentMap componentsB) {
 		if (aIsEmpty && bIsEmpty) {
 			return true;
 		} else if (!aIsEmpty && !bIsEmpty) {

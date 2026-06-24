@@ -51,15 +51,14 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 
 	@Override
 	public JeiShapedRecipeDisplayBuilder define(Character symbol, ItemStack itemStack) {
-		return define(symbol, DataComponentIngredient.of(true, itemStack), new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
+		return define(symbol, DataComponentIngredient.of(true, itemStack),
+				new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(itemStack)));
 	}
 
 	@Override
 	public ShapedRecipeDisplayBuilder<CraftingRecipe> define(Character symbol, List<ItemStack> itemStacks) {
-		return define(symbol,
-				getDisplayIngredient(itemStacks),
-				new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList())
-		);
+		return define(symbol, getDisplayIngredient(itemStacks), new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack)
+				.map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList()));
 	}
 
 	@Override
@@ -69,7 +68,8 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 			displays.add(SlotDisplay.Empty.INSTANCE);
 		} else {
 			ingredients.add(Optional.of(getDisplayIngredient(itemStacks)));
-			displays.add(new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new).map(SlotDisplay.class::cast).toList()));
+			displays.add(new SlotDisplay.Composite(itemStacks.stream().map(ItemStackTemplate::fromNonEmptyStack).map(SlotDisplay.ItemStackSlotDisplay::new)
+					.map(SlotDisplay.class::cast).toList()));
 		}
 		return this;
 	}

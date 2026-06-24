@@ -46,7 +46,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	protected final Map<ItemStackKey, Set<BlockPos>> stackStorages = new HashMap<>();
 	private final Map<BlockPos, Set<ItemStackKey>> storageStacks = new HashMap<>();
 	protected final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
-	private final Comparator<BlockPos> distanceComparator = Comparator.<BlockPos>comparingDouble(p -> p.distSqr(getBlockPos())).thenComparing(Comparator.naturalOrder());
+	private final Comparator<BlockPos> distanceComparator = Comparator.<BlockPos>comparingDouble(p -> p.distSqr(getBlockPos()))
+			.thenComparing(Comparator.naturalOrder());
 	protected final Set<BlockPos> emptySlotsStorages = new TreeSet<>(distanceComparator);
 	protected final Set<BlockPos> filteredInputStorages = new TreeSet<>(distanceComparator);
 
@@ -169,15 +170,15 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			it.remove();
 
 			final boolean finalFirst = first;
-			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllerBoundable.class).ifPresentOrElse(boundable ->
-							tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked, posToCheck, finalFirst, boundable),
-					() -> positionsChecked.add(posToCheck)
-			);
+			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllerBoundable.class)
+					.ifPresentOrElse(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked,
+							posToCheck, finalFirst, boundable), () -> positionsChecked.add(posToCheck));
 			first = false;
 		}
 	}
 
-	private void tryToConnectStorageAndAddPositionsToCheckAround(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf, Set<BlockPos> positionsChecked, BlockPos posToCheck, boolean finalFirst, IControllerBoundable boundable) {
+	private void tryToConnectStorageAndAddPositionsToCheckAround(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf, Set<BlockPos> positionsChecked,
+			BlockPos posToCheck, boolean finalFirst, IControllerBoundable boundable) {
 		if (boundable.canBeConnected() || (addingLinkedSelf && finalFirst)) {
 			if (boundable instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
 				linkedBlocks.remove(posToCheck);
@@ -216,12 +217,13 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			return;
 		}
 
-		getWrapperValueFromHolder(storagePos, this::hasInputFilter)
-				.ifPresentOrElse(hasInputFilter -> setStorageInputFilter(storagePos, hasInputFilter), () -> filteredInputStorages.remove(storagePos));
+		getWrapperValueFromHolder(storagePos, this::hasInputFilter).ifPresentOrElse(hasInputFilter -> setStorageInputFilter(storagePos, hasInputFilter),
+				() -> filteredInputStorages.remove(storagePos));
 	}
 
 	private boolean hasInputFilter(IStorageWrapper storageWrapper) {
-		return storageWrapper.getUpgradeHandler().getWrappersThatImplement(IIOFilterUpgrade.class).stream().anyMatch(wrapper -> wrapper.getInputFilter().isPresent());
+		return storageWrapper.getUpgradeHandler().getWrappersThatImplement(IIOFilterUpgrade.class).stream()
+				.anyMatch(wrapper -> wrapper.getInputFilter().isPresent());
 	}
 
 	private void setStorageInputFilter(BlockPos storagePos, boolean hasInputFilter) {
@@ -235,14 +237,16 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	private void addUncheckedPositionsAround(Set<BlockPos> positionsToCheck, Set<BlockPos> positionsChecked, BlockPos currentPos) {
 		for (Direction dir : Direction.values()) {
 			BlockPos pos = currentPos.offset(dir.getUnitVec3i());
-			if (!positionsChecked.contains(pos) && ((!storagePositions.contains(pos) && !connectingBlocks.contains(pos) && !nonConnectingBlocks.contains(pos)) || linkedBlocks.contains(pos)) && isWithinRange(pos)) {
+			if (!positionsChecked.contains(pos) && ((!storagePositions.contains(pos) && !connectingBlocks.contains(pos) && !nonConnectingBlocks.contains(pos))
+					|| linkedBlocks.contains(pos)) && isWithinRange(pos)) {
 				positionsToCheck.add(pos);
 			}
 		}
 	}
 
 	private boolean isWithinRange(BlockPos pos) {
-		return Math.abs(pos.getX() - getBlockPos().getX()) <= getSearchRange() && Math.abs(pos.getY() - getBlockPos().getY()) <= getSearchRange() && Math.abs(pos.getZ() - getBlockPos().getZ()) <= getSearchRange();
+		return Math.abs(pos.getX() - getBlockPos().getX()) <= getSearchRange() && Math.abs(pos.getY() - getBlockPos().getY()) <= getSearchRange()
+				&& Math.abs(pos.getZ() - getBlockPos().getZ()) <= getSearchRange();
 	}
 
 	protected abstract int getSearchRange();
@@ -250,11 +254,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	public void addStorage(BlockPos storagePos) {
 		if (storagePositions.contains(storagePos)) {
 			if (level != null) {
-				WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(storage ->
-						storage.getControllerPos()
-								.filter(getBlockPos()::equals)
-								.ifPresent(pos -> storage.unregisterController())
-				);
+				WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class)
+						.ifPresent(storage -> storage.getControllerPos().filter(getBlockPos()::equals).ifPresent(pos -> storage.unregisterController()));
 			}
 			removeStorageInventoryData(storagePos);
 			clearCachedHandlers();
@@ -461,7 +462,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 
 	private void removeStoragePositionIndex(BlockPos storagePos) {
 		Integer removedIndex = storagePositionIndexes.remove(storagePos);
-		if (removedIndex == null) return;
+		if (removedIndex == null)
+			return;
 
 		for (Map.Entry<BlockPos, Integer> entry : storagePositionIndexes.entrySet()) {
 			int index = entry.getValue();
@@ -626,7 +628,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			}
 		}
 
-		ResourceHandler<ItemResource> handler = getWrapperValueFromHolder(storagePositions.get(index), storageWrapper -> (ResourceHandler<ItemResource>) storageWrapper.getInventoryForInputOutput()).orElse(EmptyResourceHandler.instance());
+		ResourceHandler<ItemResource> handler = getWrapperValueFromHolder(storagePositions.get(index),
+				storageWrapper -> (ResourceHandler<ItemResource>) storageWrapper.getInventoryForInputOutput()).orElse(EmptyResourceHandler.instance());
 		cachedHandlers[index] = new WeakReference<>(handler);
 
 		return handler;
@@ -693,15 +696,21 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		lastInvalidSlotLogTime = gameTime;
 		invalidSlotIncidentCount++;
 		if (handlerIndex < 0 || handlerIndex >= storagePositions.size()) {
-			SophisticatedCore.LOGGER.debug("Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}", () -> handlerIndex, () -> methodName, () -> getBlockPos().toShortString());
+			SophisticatedCore.LOGGER.debug(
+					"Invalid handler index calculated {} in controller's {} method. If you see many of these messages try replacing controller at {}",
+					() -> handlerIndex, () -> methodName, () -> getBlockPos().toShortString());
 		} else {
-			SophisticatedCore.LOGGER.debug("Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}", () -> slot, () -> methodName, () -> storagePositions.get(handlerIndex).toShortString(), () -> getBlockPos().toShortString());
+			SophisticatedCore.LOGGER.debug(
+					"Invalid slot {} passed into controller's {} method for storage at {}. If you see many of these messages try replacing controller at {}",
+					() -> slot, () -> methodName, () -> storagePositions.get(handlerIndex).toShortString(), () -> getBlockPos().toShortString());
 		}
 
-		if (!refreshingAfterInvalidSlots && invalidSlotIncidentCount >= INVALID_SLOT_REFRESH_THRESHOLD && gameTime - lastInvalidSlotRefreshTime >= INVALID_SLOT_REFRESH_COOLDOWN_TICKS) {
+		if (!refreshingAfterInvalidSlots && invalidSlotIncidentCount >= INVALID_SLOT_REFRESH_THRESHOLD
+				&& gameTime - lastInvalidSlotRefreshTime >= INVALID_SLOT_REFRESH_COOLDOWN_TICKS) {
 			lastInvalidSlotRefreshTime = gameTime;
 			refreshingAfterInvalidSlots = true;
-			SophisticatedCore.LOGGER.debug("Refreshing controller at {} after {} invalid slot incidents were logged", () -> getBlockPos().toShortString(), () -> invalidSlotIncidentCount);
+			SophisticatedCore.LOGGER.debug("Refreshing controller at {} after {} invalid slot incidents were logged", () -> getBlockPos().toShortString(),
+					() -> invalidSlotIncidentCount);
 			refreshConnectedStoragesAfterRepeatedInvalidSlots();
 			invalidSlotIncidentCount = 0;
 			refreshingAfterInvalidSlots = false;
@@ -718,9 +727,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	private void unregisterCurrentConnections() {
-		storagePositions.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
-		connectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
-		nonConnectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
+		storagePositions
+				.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
+		connectingBlocks
+				.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
+		nonConnectingBlocks
+				.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
 	}
 
 	private void clearControllerStateForRefresh() {
@@ -766,7 +778,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		int handlerIndex = getIndexForSlot(index);
 		ResourceHandler<ItemResource> handler = getHandlerFromIndex(handlerIndex);
 		index = getSlotFromIndex(index, handlerIndex);
-		if (validateHandlerSlotIndex(handler, handlerIndex, index, "insert(int index, ItemResource resource, int amount, TransactionContext transactionContext)")) {
+		if (validateHandlerSlotIndex(handler, handlerIndex, index,
+				"insert(int index, ItemResource resource, int amount, TransactionContext transactionContext)")) {
 			return handler.insert(index, resource, amount, transactionContext);
 		}
 		return 0;
@@ -838,13 +851,14 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		if (!emptySlotsStorages.isEmpty() && itemStackKeys.containsKey(resource.getItem())) {
 			Set<ItemStackKey> matchingStackKeys = itemStackKeys.get(resource.getItem());
 			if (amount > resource.getMaxStackSize()) {
-				matchingStackKeys = new LinkedHashSet<>(matchingStackKeys); //to prevent CME when larger than maxStackSize stack causes new key to be added to set which then continues to be iterated on
+				matchingStackKeys = new LinkedHashSet<>(matchingStackKeys); // to prevent CME when larger than maxStackSize stack causes new key to be added to
+																			// set which then continues to be iterated on
 			}
 
 			for (ItemStackKey key : matchingStackKeys) {
 				if (stackStorages.containsKey(key)) {
 					Set<BlockPos> positions = stackStorages.get(key);
-					inserted  += insertIntoStorages(positions, resource, amount - inserted, tx, true);
+					inserted += insertIntoStorages(positions, resource, amount - inserted, tx, true);
 					if (inserted >= amount) {
 						break;
 					}
@@ -858,9 +872,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		return insertIntoStorages(positions, Collections.emptySet(), resource, amount, tx, checkHasEmptySlotFirst);
 	}
 
-	private int insertIntoStorages(Set<BlockPos> positions, Set<BlockPos> positionsToSkip, ItemResource resource, int amount, TransactionContext tx, boolean checkHasEmptySlotFirst) {
+	private int insertIntoStorages(Set<BlockPos> positions, Set<BlockPos> positionsToSkip, ItemResource resource, int amount, TransactionContext tx,
+			boolean checkHasEmptySlotFirst) {
 		int inserted = 0;
-		Set<BlockPos> positionsCopy = new LinkedHashSet<>(positions); //to prevent CME if stack insertion actually causes set of positions to change
+		Set<BlockPos> positionsCopy = new LinkedHashSet<>(positions); // to prevent CME if stack insertion actually causes set of positions to change
 		for (BlockPos storagePos : positionsCopy) {
 			if (positionsToSkip.contains(storagePos)) {
 				continue;
@@ -919,7 +934,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 
 	private int extractFromStorages(ItemStackKey stackKey, ItemResource resource, int amount, TransactionContext tx) {
 		int extracted = 0;
-		Set<BlockPos> positionsCopy = new LinkedHashSet<>(stackStorages.get(stackKey)); //to prevent CME if stack extraction actually causes set of positions to change
+		Set<BlockPos> positionsCopy = new LinkedHashSet<>(stackStorages.get(stackKey)); // to prevent CME if stack extraction actually causes set of positions
+																						// to change
 		for (BlockPos storagePos : positionsCopy) {
 			extracted += extractFromStorage(storagePos, resource, amount - extracted, tx);
 			if (extracted >= amount) {
@@ -972,10 +988,24 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	public void detachFromStoragesAndUnlinkBlocks() {
-		storagePositions.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
-		connectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
-		nonConnectingBlocks.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
-		new HashSet<>(linkedBlocks).forEach(linkedPos -> WorldHelper.getLoadedBlockEntity(level, linkedPos, ILinkable.class).ifPresent(ILinkable::unlinkFromController)); //copying into new hashset to prevent CME when these are removed
+		storagePositions
+				.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterController));
+		connectingBlocks
+				.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
+		nonConnectingBlocks
+				.forEach(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllerBoundable.class).ifPresent(IControllerBoundable::unregisterController));
+		new HashSet<>(linkedBlocks)
+				.forEach(linkedPos -> WorldHelper.getLoadedBlockEntity(level, linkedPos, ILinkable.class).ifPresent(ILinkable::unlinkFromController)); // copying
+																																						// into
+																																						// new
+																																						// hashset
+																																						// to
+																																						// prevent
+																																						// CME
+																																						// when
+																																						// these
+																																						// are
+																																						// removed
 	}
 
 	@Override
@@ -1085,6 +1115,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 
 	@Override
 	public boolean isInsertBlocked() {
-		return storagePositions.stream().allMatch(pos -> getWrapperValueFromHolder(pos, storageWrapper -> storageWrapper.getInventoryHandler().isInsertBlocked()).orElse(true));
+		return storagePositions.stream()
+				.allMatch(pos -> getWrapperValueFromHolder(pos, storageWrapper -> storageWrapper.getInventoryHandler().isInsertBlocked()).orElse(true));
 	}
 }

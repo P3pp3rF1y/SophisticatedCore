@@ -21,7 +21,8 @@ import java.util.Optional;
 import java.util.function.BiPredicate;
 
 public class WorldHelper {
-	private WorldHelper() {}
+	private WorldHelper() {
+	}
 
 	private static final List<BiPredicate<Player, BlockPos>> ADDITIONAL_INTERACTION_CHECKS = new ArrayList<>();
 
@@ -109,7 +110,8 @@ public class WorldHelper {
 					}
 					BlockPos pos = be.getBlockPos();
 					int y = pos.getY();
-					if (y < minY || y > maxY) continue;
+					if (y < minY || y > maxY)
+						continue;
 
 					long dx = (long) pos.getX() - origin.getX();
 					long dz = (long) pos.getZ() - origin.getZ();
@@ -124,6 +126,7 @@ public class WorldHelper {
 	}
 
 	public static boolean playerMayInteract(Player player, BlockPos pos) {
-		return !(player.level() instanceof ServerLevel serverLevel) || (player.mayInteract(serverLevel, pos) && ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos)));
+		return !(player.level() instanceof ServerLevel serverLevel)
+				|| (player.mayInteract(serverLevel, pos) && ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos)));
 	}
 }

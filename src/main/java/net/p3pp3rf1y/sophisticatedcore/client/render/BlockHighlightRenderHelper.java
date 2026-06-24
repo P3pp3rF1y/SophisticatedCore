@@ -23,28 +23,21 @@ import java.util.List;
 public class BlockHighlightRenderHelper {
 
 	public static final RenderPipeline THICK_HIGHLIGHT_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
-			.withVertexShader("core/position_color")
-			.withFragmentShader("core/position_color")
-			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
-			.withCull(false)
+			.withVertexShader("core/position_color").withFragmentShader("core/position_color")
+			.withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS).withCull(false)
 			.withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, true))
-			.withLocation(SophisticatedCore.getIdentifier("pipeline/outline_quads"))
-			.build();
+			.withLocation(SophisticatedCore.getIdentifier("pipeline/outline_quads")).build();
 
-	public static final RenderType THICK_HIGHLIGHT_QUADS = RenderType
-			.create("storage_outline_quads",
-					RenderSetup.builder(THICK_HIGHLIGHT_PIPELINE)
-							.bufferSize(1536)
-							.setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-							.setOutputTarget(OutputTarget.MAIN_TARGET)
-							.createRenderSetup()
-			);
+	public static final RenderType THICK_HIGHLIGHT_QUADS = RenderType.create("storage_outline_quads", RenderSetup.builder(THICK_HIGHLIGHT_PIPELINE)
+			.bufferSize(1536).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).setOutputTarget(OutputTarget.MAIN_TARGET).createRenderSetup());
 
-	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges, BlockPos originPos) {
+	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges,
+			BlockPos originPos) {
 		submitThickEdges(submitNodeCollector, poseStack, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());
 	}
 
-	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges, double originX, double originY, double originZ) {
+	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges, double originX,
+			double originY, double originZ) {
 		if (edges.isEmpty()) {
 			return;
 		}
@@ -59,11 +52,8 @@ public class BlockHighlightRenderHelper {
 		});
 	}
 
-	public static void emitThickLineOrtho(
-			VertexConsumer vc, PoseStack.Pose pose,
-			Vec3 a, Vec3 b, float thickness,
-			int r, int g, int bl, int alpha, double originX, double originY, double originZ
-	) {
+	public static void emitThickLineOrtho(VertexConsumer vc, PoseStack.Pose pose, Vec3 a, Vec3 b, float thickness, int r, int g, int bl, int alpha,
+			double originX, double originY, double originZ) {
 		final float rh = thickness * 0.5f;
 
 		Vec3 d = b.subtract(a);
@@ -104,23 +94,15 @@ public class BlockHighlightRenderHelper {
 		emitQuad(vc, pose, aVpWm, aVmWm, bVmWm, bVpWm, r, g, bl, alpha, originX, originY, originZ);
 	}
 
-	private static void emitQuad(
-			VertexConsumer vc, PoseStack.Pose pose,
-			Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3,
-			int r, int g, int b, int a, double originX, double originY, double originZ
-	) {
+	private static void emitQuad(VertexConsumer vc, PoseStack.Pose pose, Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3, int r, int g, int b, int a, double originX,
+			double originY, double originZ) {
 		add(vc, pose, p0, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p1, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p2, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p3, r, g, b, a, originX, originY, originZ);
 	}
 
-	private static void add(VertexConsumer vc, PoseStack.Pose pose,
-							Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
-		vc.addVertex(pose,
-						(float) (p.x - originX),
-						(float) (p.y - originY),
-						(float) (p.z - originZ))
-				.setColor(r, g, b, a);
+	private static void add(VertexConsumer vc, PoseStack.Pose pose, Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
+		vc.addVertex(pose, (float) (p.x - originX), (float) (p.y - originY), (float) (p.z - originZ)).setColor(r, g, b, a);
 	}
 }

@@ -24,16 +24,26 @@ import java.util.ArrayList;
 import java.util.List;
 public class BlockTransformationRecipeControl extends WidgetBase {
 	private static final TextureBlitData SLIDER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 131), Dimension.RECTANGLE_12_15);
-	private static final TextureBlitData DISABLED_SLIDER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 131), Dimension.RECTANGLE_12_15);
-	private static final TextureBlitData RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 148), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData SELECTED_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 166), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData RECIPE_BACKGROUND_HOVERED = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 184), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData RECENT_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(63, 60), Dimension.RECTANGLE_16_18);
-	private static final TextureBlitData LIST_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 146), new Dimension(81, 56));
-	private static final TextureBlitData RESULT_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 146), new Dimension(66, 56));
-	private static final TextureBlitData SCROLLBAR_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(96, 146), new Dimension(14, 56));
-	private static final TextureBlitData BROWSE_BUTTON_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(2, 2), Dimension.SQUARE_256, new UV(49, 157), Dimension.SQUARE_12);
-	private static final ButtonDefinition BROWSE_RESULTS = new ButtonDefinition(new Dimension(14, 14), GuiHelper.DEFAULT_BUTTON_BACKGROUND, GuiHelper.DEFAULT_BUTTON_HOVERED_BACKGROUND, BROWSE_BUTTON_FOREGROUND,
+	private static final TextureBlitData DISABLED_SLIDER = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(41, 131),
+			Dimension.RECTANGLE_12_15);
+	private static final TextureBlitData RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 148),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData SELECTED_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 166),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData RECIPE_BACKGROUND_HOVERED = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(110, 184),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData RECENT_RECIPE_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(63, 60),
+			Dimension.RECTANGLE_16_18);
+	private static final TextureBlitData LIST_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 146),
+			new Dimension(81, 56));
+	private static final TextureBlitData RESULT_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(29, 146),
+			new Dimension(66, 56));
+	private static final TextureBlitData SCROLLBAR_BACKGROUND = new TextureBlitData(GuiHelper.GUI_CONTROLS, Dimension.SQUARE_256, new UV(96, 146),
+			new Dimension(14, 56));
+	private static final TextureBlitData BROWSE_BUTTON_FOREGROUND = new TextureBlitData(GuiHelper.ICONS, new Position(2, 2), Dimension.SQUARE_256,
+			new UV(49, 157), Dimension.SQUARE_12);
+	private static final ButtonDefinition BROWSE_RESULTS = new ButtonDefinition(new Dimension(14, 14), GuiHelper.DEFAULT_BUTTON_BACKGROUND,
+			GuiHelper.DEFAULT_BUTTON_HOVERED_BACKGROUND, BROWSE_BUTTON_FOREGROUND,
 			Component.translatable(TranslationHelper.INSTANCE.translButton("browse_results")));
 
 	private static final int LIST_Y_OFFSET = 22;
@@ -93,9 +103,13 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 	@Override
 	protected void extractBg(GuiGraphicsExtractor guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		GuiHelper.renderSlotsBackground(guiGraphics, x + getResultAreaCenteredX(18), y, 1, 1);
-		GuiHelper.renderTiledControlBackground(guiGraphics, x, y + LIST_Y_OFFSET, RESULT_BACKGROUND.getWidth(), RESULT_BACKGROUND.getHeight(), RESULT_BACKGROUND.getU(), RESULT_BACKGROUND.getV(), RESULT_BACKGROUND.getWidth(), RESULT_BACKGROUND.getHeight());
-		GuiHelper.renderTiledControlBackground(guiGraphics, getScrollbarBackgroundX(), getScrollbarBackgroundY(), SCROLLBAR_BACKGROUND.getWidth(), getScrollbarBackgroundHeight(), SCROLLBAR_BACKGROUND.getU(), SCROLLBAR_BACKGROUND.getV(), SCROLLBAR_BACKGROUND.getWidth(), SCROLLBAR_BACKGROUND.getHeight());
-		GuiHelper.blit(guiGraphics, x + getResultAreaCenteredX(26), y + INPUT_SLOT_HEIGHT + SPACING + LIST_BACKGROUND.getHeight() + SPACING, GuiHelper.CRAFTING_RESULT_SLOT);
+		GuiHelper.renderTiledControlBackground(guiGraphics, x, y + LIST_Y_OFFSET, RESULT_BACKGROUND.getWidth(), RESULT_BACKGROUND.getHeight(),
+				RESULT_BACKGROUND.getU(), RESULT_BACKGROUND.getV(), RESULT_BACKGROUND.getWidth(), RESULT_BACKGROUND.getHeight());
+		GuiHelper.renderTiledControlBackground(guiGraphics, getScrollbarBackgroundX(), getScrollbarBackgroundY(), SCROLLBAR_BACKGROUND.getWidth(),
+				getScrollbarBackgroundHeight(), SCROLLBAR_BACKGROUND.getU(), SCROLLBAR_BACKGROUND.getV(), SCROLLBAR_BACKGROUND.getWidth(),
+				SCROLLBAR_BACKGROUND.getHeight());
+		GuiHelper.blit(guiGraphics, x + getResultAreaCenteredX(26), y + INPUT_SLOT_HEIGHT + SPACING + LIST_BACKGROUND.getHeight() + SPACING,
+				GuiHelper.CRAFTING_RESULT_SLOT);
 		browseButton.extractRenderState(guiGraphics, mouseX, mouseY, 0);
 		int sliderYOffset = (int) (getSliderTravel() * sliderProgress);
 		GuiHelper.blit(guiGraphics, getSliderX(), getScrollbarY() + sliderYOffset, canScroll() ? SLIDER : DISABLED_SLIDER);
@@ -200,7 +214,7 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 
 	@Override
 	protected void extractWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-		//noop - everything is rendered in background or after screen render is done
+		// noop - everything is rendered in background or after screen render is done
 	}
 
 	@Override
@@ -290,7 +304,8 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 		for (int i : getSortedRecipeIndexes()) {
 			results.add(new LargeResultSelector.ResultEntry(i, containerResults.get(i), container.isRecentResult(i)));
 		}
-		screen.setModalOverlay(new LargeResultSelector(screen, results, container.getSelectedRecipe(), this::selectRecipeFromLargeResultSelector, SoundEvents.UI_STONECUTTER_SELECT_RECIPE));
+		screen.setModalOverlay(new LargeResultSelector(screen, results, container.getSelectedRecipe(), this::selectRecipeFromLargeResultSelector,
+				SoundEvents.UI_STONECUTTER_SELECT_RECIPE));
 	}
 
 	private void selectRecipeFromLargeResultSelector(int recipeIndex) {
@@ -371,6 +386,6 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO narration - probably just copy from stonecutter screen
+		// TODO narration - probably just copy from stonecutter screen
 	}
 }

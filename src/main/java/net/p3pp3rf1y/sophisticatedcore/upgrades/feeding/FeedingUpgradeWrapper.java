@@ -54,7 +54,8 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		boolean hungryPlayer = false;
 		if (!(entity instanceof Player)) {
 			AtomicBoolean stillHungryPlayer = new AtomicBoolean(false);
-			level.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true).forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, level)));
+			level.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true)
+					.forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, level)));
 			hungryPlayer = stillHungryPlayer.get();
 		} else {
 			if (feedPlayerAndGetHungry((Player) entity, level)) {
@@ -79,12 +80,14 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	private boolean tryFeedingFoodFromStorage(Level level, int hungerLevel, Player player) {
 		ITrackedContentsItemResourceHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
-		return InventoryHelper.iterate(inventory, (slot, stack) -> tryFeedingStack(level, hungerLevel, player, slot, stack, inventory), () -> false, ret -> ret);
+		return InventoryHelper.iterate(inventory, (slot, stack) -> tryFeedingStack(level, hungerLevel, player, slot, stack, inventory), () -> false,
+				ret -> ret);
 	}
 
 	private boolean tryFeedingStack(Level level, int hungerLevel, Player player, Integer slot, ItemStack stack, ITrackedContentsItemResourceHandler inventory) {
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
-		if (isEdible(stack) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
+		if (isEdible(stack) && filterLogic.matchesFilter(stack)
+				&& (isHungryEnoughForFood(hungerLevel, stack) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 			ItemStack mainHandItem = player.getMainHandItem();
 			player.getInventory().getNonEquipmentItems().set(player.getInventory().getSelectedSlot(), stack);
 
@@ -95,13 +98,14 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 				stack.shrink(1);
 				inventory.setStackInSlot(slot, stack);
 
-				ItemStack resultItem = EventHooks.onItemUseFinish(player, singleItemCopy.copy(), 0, singleItemCopy.getItem().finishUsingItem(singleItemCopy, level, player));
+				ItemStack resultItem = EventHooks.onItemUseFinish(player, singleItemCopy.copy(), 0,
+						singleItemCopy.getItem().finishUsingItem(singleItemCopy, level, player));
 				if (!resultItem.isEmpty()) {
 					int inserted = InventoryHelper.insert(inventory, ItemResource.of(resultItem), resultItem.getCount());
 					if (inserted < resultItem.getCount()) {
 						ItemStack remaining = resultItem.copyWithCount(resultItem.getCount() - inserted);
-						CapabilityHelper.runOnCapability(player, Capabilities.Item.ENTITY, null, playerInventory ->
-								InventoryHelper.insertOrDropItem(player, remaining, playerInventory));
+						CapabilityHelper.runOnCapability(player, Capabilities.Item.ENTITY, null,
+								playerInventory -> InventoryHelper.insertOrDropItem(player, remaining, playerInventory));
 					}
 				}
 

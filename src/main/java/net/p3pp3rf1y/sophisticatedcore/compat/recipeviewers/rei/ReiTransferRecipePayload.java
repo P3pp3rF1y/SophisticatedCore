@@ -29,21 +29,13 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingConta
 import java.util.ArrayList;
 import java.util.List;
 
-public record ReiTransferRecipePayload(Identifier recipeId, Identifier recipeTypeId, CompoundTag tag, List<Integer> inputSlots, List<Integer> inventorySlots, boolean maxTransfer) implements CustomPacketPayload {
+public record ReiTransferRecipePayload(Identifier recipeId, Identifier recipeTypeId, CompoundTag tag, List<Integer> inputSlots, List<Integer> inventorySlots,
+		boolean maxTransfer) implements CustomPacketPayload {
 	public static final Type<ReiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("rei_move_items"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
-			Identifier.STREAM_CODEC,
-			ReiTransferRecipePayload::recipeId,
-			Identifier.STREAM_CODEC,
-			ReiTransferRecipePayload::recipeTypeId,
-			ByteBufCodecs.COMPOUND_TAG,
-			ReiTransferRecipePayload::tag,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			ReiTransferRecipePayload::inputSlots,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			ReiTransferRecipePayload::inventorySlots,
-			ByteBufCodecs.BOOL,
-			ReiTransferRecipePayload::maxTransfer,
+	public static final StreamCodec<RegistryFriendlyByteBuf, ReiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(Identifier.STREAM_CODEC,
+			ReiTransferRecipePayload::recipeId, Identifier.STREAM_CODEC, ReiTransferRecipePayload::recipeTypeId, ByteBufCodecs.COMPOUND_TAG,
+			ReiTransferRecipePayload::tag, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), ReiTransferRecipePayload::inputSlots,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), ReiTransferRecipePayload::inventorySlots, ByteBufCodecs.BOOL, ReiTransferRecipePayload::maxTransfer,
 			ReiTransferRecipePayload::new);
 
 	@Override
@@ -74,15 +66,8 @@ public record ReiTransferRecipePayload(Identifier recipeId, Identifier recipeTyp
 
 		List<ItemStack> stacks = new ArrayList<>();
 		if (recipeFinder.findRecipe(ingredients, 1, stacks::add)) {
-			CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(
-					player,
-					ResourceKey.create(Registries.RECIPE, payload.recipeId),
-					recipeType,
-					stacks,
-					payload.inputSlots,
-					payload.inventorySlots,
-					payload.maxTransfer
-			);
+			CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(player, ResourceKey.create(Registries.RECIPE, payload.recipeId), recipeType, stacks,
+					payload.inputSlots, payload.inventorySlots, payload.maxTransfer);
 		}
 	}
 
@@ -90,8 +75,8 @@ public record ReiTransferRecipePayload(Identifier recipeId, Identifier recipeTyp
 		List<InputIngredient<ItemStack>> inputs = new ArrayList<>();
 		for (Tag t : tag) {
 			CompoundTag compoundTag = (CompoundTag) t;
-			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getIntOr("Index", 0),
-					EntryIngredient.codec().parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), compoundTag.getListOrEmpty("Ingredient")).getOrThrow());
+			InputIngredient<EntryStack<?>> stacks = InputIngredient.of(compoundTag.getIntOr("Index", 0), EntryIngredient.codec()
+					.parse(registryAccess.createSerializationContext(NbtOps.INSTANCE), compoundTag.getListOrEmpty("Ingredient")).getOrThrow());
 			inputs.add(InputIngredient.withType(stacks, VanillaEntryTypes.ITEM));
 		}
 		return inputs;

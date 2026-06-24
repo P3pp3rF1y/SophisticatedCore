@@ -13,8 +13,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.p3pp3rf1y.sophisticatedcore.util.Easing;
 import net.p3pp3rf1y.sophisticatedcore.util.VoxelOutliner;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,9 +33,7 @@ public class BlockHighlightRenderer {
 	}
 
 	public static void addHighlightedPositions(Map<Integer, List<List<BlockPos>>> highlightPositions, int durationTicks) {
-		highlightPositions.forEach((color, positions) ->
-				highlightedPositions.computeIfAbsent(color, k -> new ArrayList<>()).addAll(positions)
-		);
+		highlightPositions.forEach((color, positions) -> highlightedPositions.computeIfAbsent(color, k -> new ArrayList<>()).addAll(positions));
 		highlightExpireTime = Minecraft.getInstance().level.getGameTime() + durationTicks;
 		cachedHighlightedBlocks = null;
 	}
@@ -54,7 +52,8 @@ public class BlockHighlightRenderer {
 		if (cachedHighlightedBlocks == null) {
 			cachedHighlightedBlocks = new HashMap<>();
 			highlightedPositions.forEach((color, positionGroups) -> {
-				cachedHighlightedBlocks.put(color, positionGroups.stream().map(positions -> getHighlightedGroup(mc, positions)).filter(Objects::nonNull).toList());
+				cachedHighlightedBlocks.put(color,
+						positionGroups.stream().map(positions -> getHighlightedGroup(mc, positions)).filter(Objects::nonNull).toList());
 			});
 		}
 
@@ -63,7 +62,8 @@ public class BlockHighlightRenderer {
 		});
 	}
 
-	private static void submitHighlightedBlock(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos, HighlightedGroup bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
+	private static void submitHighlightedBlock(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, float partialTick, Vec3 cameraPos,
+			HighlightedGroup bh, Minecraft mc, MultiBufferSource.BufferSource buffer, int color) {
 		poseStack.pushPose();
 		poseStack.translate(-cameraPos.x(), -cameraPos.y(), -cameraPos.z());
 		poseStack.translate(bh.pivot.x, bh.pivot.y, bh.pivot.z);
@@ -91,7 +91,8 @@ public class BlockHighlightRenderer {
 	}
 
 	public static double tri01(double ticks, double periodTicks, double phaseOffsetTicks) {
-		if (periodTicks <= 0.0) return 0.0;
+		if (periodTicks <= 0.0)
+			return 0.0;
 		double phase = ((ticks + phaseOffsetTicks) % periodTicks) / (periodTicks - 1);
 		return 1.0 - Math.abs(2.0 * phase - 1.0);
 	}
