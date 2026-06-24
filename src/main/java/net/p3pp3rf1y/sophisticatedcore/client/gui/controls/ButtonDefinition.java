@@ -22,8 +22,8 @@ public class ButtonDefinition {
 		this(dimension, backgroundTexture, hoveredBackgroundTexture, null, Component.literal(""));
 	}
 
-	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture,
-			@Nullable TextureBlitData hoveredBackgroundTexture, @Nullable TextureBlitData foregroundTexture, Component... tooltip) {
+	public ButtonDefinition(Dimension dimension, @Nullable TextureBlitData backgroundTexture, @Nullable TextureBlitData hoveredBackgroundTexture,
+			@Nullable TextureBlitData foregroundTexture, Component... tooltip) {
 		this.dimension = dimension;
 		this.backgroundTexture = backgroundTexture;
 		this.hoveredBackgroundTexture = hoveredBackgroundTexture;

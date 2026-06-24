@@ -74,7 +74,8 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	}
 
 	@Override
-	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot, @Nullable IUpgradeItem<?> upgradeInSlot) {
+	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide, int upgradeSlot,
+			@Nullable IUpgradeItem<?> upgradeInSlot) {
 		if (isClientSide) {
 			return UpgradeSlotChangeResult.success();
 		}
@@ -136,14 +137,16 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			if (slot == ignoreUpgradeSlot) {
 				continue;
 			}
-			if (wrapper instanceof IStackableContentsUpgrade stackableContentsUpgrade && stackableContentsUpgrade.getMinimumMultiplierRequired() > effectiveMultiplier) {
+			if (wrapper instanceof IStackableContentsUpgrade stackableContentsUpgrade
+					&& stackableContentsUpgrade.getMinimumMultiplierRequired() > effectiveMultiplier) {
 				errorUpgradeSlots.add(slot);
 				errorInventoryParts.add(slot);
 			}
 		}
 
 		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty()) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", inventorySlotLimit), errorUpgradeSlots, slotsOverMultiplier, errorInventoryParts);
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", inventorySlotLimit), errorUpgradeSlots,
+					slotsOverMultiplier, errorInventoryParts);
 		}
 
 		return UpgradeSlotChangeResult.success();

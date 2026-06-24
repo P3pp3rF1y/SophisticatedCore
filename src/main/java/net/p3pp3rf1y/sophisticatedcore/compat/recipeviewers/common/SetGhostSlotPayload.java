@@ -11,12 +11,8 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 public record SetGhostSlotPayload(ItemStack stack, int slotNumber) implements CustomPacketPayload {
 	public static final Type<SetGhostSlotPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("set_ghost_slot"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SetGhostSlotPayload> STREAM_CODEC = StreamCodec.composite(
-			ItemStack.STREAM_CODEC,
-			SetGhostSlotPayload::stack,
-			ByteBufCodecs.INT,
-			SetGhostSlotPayload::slotNumber,
-			SetGhostSlotPayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SetGhostSlotPayload> STREAM_CODEC = StreamCodec.composite(ItemStack.STREAM_CODEC,
+			SetGhostSlotPayload::stack, ByteBufCodecs.INT, SetGhostSlotPayload::slotNumber, SetGhostSlotPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

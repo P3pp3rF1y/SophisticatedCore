@@ -32,6 +32,6 @@ public class InventorySorterCompat implements ICompat {
 
 	@Override
 	public void setup() {
-		//noop
+		// noop
 	}
 }

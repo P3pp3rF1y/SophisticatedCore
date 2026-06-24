@@ -8,11 +8,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 final class SyntheticDisplayComponents {
-	private static final List<Supplier<? extends DataComponentType<?>>> COMPONENTS = List.of(
-			ModCoreDataComponents.MAIN_COLOR,
-			ModCoreDataComponents.ACCENT_COLOR,
-			ModCoreDataComponents.RENDER_DATA
-	);
+	private static final List<Supplier<? extends DataComponentType<?>>> COMPONENTS = List.of(ModCoreDataComponents.MAIN_COLOR,
+			ModCoreDataComponents.ACCENT_COLOR, ModCoreDataComponents.RENDER_DATA);
 
 	private SyntheticDisplayComponents() {
 	}

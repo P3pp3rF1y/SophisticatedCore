@@ -57,7 +57,8 @@ public class BlockTransformationRecipeContainer {
 	private final List<Identifier> recentResultItems = new ArrayList<>();
 	private long lastOnTake = -1;
 
-	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
+	public BlockTransformationRecipeContainer(BlockTransformationUpgradeContainer upgradeContainer, RecipeType<ChippedRecipe> recipeType,
+			Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable) {
 		this.upgradeContainer = upgradeContainer;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
 			@Override
@@ -191,14 +192,12 @@ public class BlockTransformationRecipeContainer {
 
 	private List<Identifier> getClientRecentResults(ItemStack ingredient) {
 		List<Identifier> recentResults = getMatchingIngredientKey(ingredient)
-				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
-				.orElse(List.of());
+				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key)).orElse(List.of());
 		if (!recentResults.isEmpty()) {
 			return recentResults;
 		}
 
-		recentResults = getRecipeNamespaceIngredientKey(ingredient)
-				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
+		recentResults = getRecipeNamespaceIngredientKey(ingredient).map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
 				.orElse(List.of());
 		if (!recentResults.isEmpty()) {
 			return recentResults;
@@ -209,9 +208,7 @@ public class BlockTransformationRecipeContainer {
 			return recentResults;
 		}
 
-		return getResultGroupKey()
-				.map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key))
-				.orElse(List.of());
+		return getResultGroupKey().map(key -> RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), key)).orElse(List.of());
 	}
 
 	private void updateRecentResultItems(List<Identifier> recentResults) {
@@ -265,7 +262,8 @@ public class BlockTransformationRecipeContainer {
 
 	private Optional<Identifier> getIngredientGroupKey(Ingredient ingredient) {
 		if (ingredient.getValues().size() > 0) {
-			return Optional.of(Identifier.fromNamespaceAndPath(recipe.id().identifier().getNamespace(), BuiltInRegistries.ITEM.getKey(ingredient.getValues().get(0).value()).getPath()));
+			return Optional.of(Identifier.fromNamespaceAndPath(recipe.id().identifier().getNamespace(),
+					BuiltInRegistries.ITEM.getKey(ingredient.getValues().get(0).value()).getPath()));
 		}
 
 		return getIngredientKey(ingredient);
@@ -308,7 +306,8 @@ public class BlockTransformationRecipeContainer {
 
 		@Override
 		public void onTake(Player thePlayer, ItemStack stack) {
-			if (upgradeContainer.getPlayer().level() instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(thePlayer, getRecipeScope(), getRecentResultsKey(inputSlot.getItem()), getItemRegistryName(stack))) {
+			if (upgradeContainer.getPlayer().level() instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel)
+					.recordCraftedResult(thePlayer, getRecipeScope(), getRecentResultsKey(inputSlot.getItem()), getItemRegistryName(stack))) {
 				if (thePlayer instanceof ServerPlayer serverPlayer) {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}

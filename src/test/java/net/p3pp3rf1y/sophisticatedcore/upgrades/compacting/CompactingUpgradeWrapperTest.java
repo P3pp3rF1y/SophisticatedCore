@@ -45,7 +45,8 @@ class CompactingUpgradeWrapperTest {
 		ItemStack stack = new ItemStack(Items.CHARCOAL);
 		CompactingUpgradeItem upgradeItem = getUpgradeItemWithConfiguredShape(false, 2, 4);
 
-		Optional<CompactingUpgradeWrapper.CompactingDefinition> compactingDefinition = CompactingUpgradeWrapper.getCompactingDefinition(stack, upgradeItem, false);
+		Optional<CompactingUpgradeWrapper.CompactingDefinition> compactingDefinition = CompactingUpgradeWrapper.getCompactingDefinition(stack, upgradeItem,
+				false);
 
 		verify(upgradeItem).getConfiguredCompactingResult(any(ItemStack.class), eq(2), eq(2));
 		assertTrue(compactingDefinition.isPresent(), "Basic compacting upgrade should compact configured 2x2-compatible shape");
@@ -59,7 +60,8 @@ class CompactingUpgradeWrapperTest {
 		ItemStack stack = new ItemStack(Items.CHARCOAL);
 		CompactingUpgradeItem upgradeItem = getUpgradeItemWithConfiguredShape(false, 3, 8);
 
-		Optional<CompactingUpgradeWrapper.CompactingDefinition> compactingDefinition = CompactingUpgradeWrapper.getCompactingDefinition(stack, upgradeItem, false);
+		Optional<CompactingUpgradeWrapper.CompactingDefinition> compactingDefinition = CompactingUpgradeWrapper.getCompactingDefinition(stack, upgradeItem,
+				false);
 
 		verify(upgradeItem).getConfiguredCompactingResult(any(ItemStack.class), eq(2), eq(2));
 		assertFalse(compactingDefinition.isPresent(), "Basic compacting upgrade should not compact configured 3x3 shape");
@@ -70,7 +72,8 @@ class CompactingUpgradeWrapperTest {
 		ItemStack stack = new ItemStack(Items.CHARCOAL);
 		CompactingUpgradeItem upgradeItem = getUpgradeItemWithConfiguredShape(true, 3, 8);
 
-		Optional<CompactingUpgradeWrapper.CompactingDefinition> compactingDefinition = CompactingUpgradeWrapper.getCompactingDefinition(stack, upgradeItem, false);
+		Optional<CompactingUpgradeWrapper.CompactingDefinition> compactingDefinition = CompactingUpgradeWrapper.getCompactingDefinition(stack, upgradeItem,
+				false);
 
 		verify(upgradeItem).getConfiguredCompactingResult(any(ItemStack.class), eq(3), eq(3));
 		assertTrue(compactingDefinition.isPresent(), "Advanced compacting upgrade should compact configured 3x3 shape");
@@ -81,19 +84,11 @@ class CompactingUpgradeWrapperTest {
 
 	@Test
 	void onAfterInsertProcessesReentrantInsertCallbacksWithoutNestedCompacting() {
-		Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions = Map.of(
-				Items.DIAMOND, getConfiguredCompactingDefinition(new ItemStack(Items.DIAMOND_BLOCK), 9),
-				Items.DIAMOND_BLOCK, getConfiguredCompactingDefinition(new ItemStack(Items.NETHERITE_BLOCK), 9)
-		);
-		Map<Integer, ItemStack> initialSlotStacks = Map.of(
-				0, new ItemStack(Items.DIAMOND, 91),
-				1, ItemStack.EMPTY,
-				2, ItemStack.EMPTY
-		);
-		Map<Item, Integer> insertSlots = Map.of(
-				Items.DIAMOND_BLOCK, 1,
-				Items.NETHERITE_BLOCK, 2
-		);
+		Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions = Map.of(Items.DIAMOND,
+				getConfiguredCompactingDefinition(new ItemStack(Items.DIAMOND_BLOCK), 9), Items.DIAMOND_BLOCK,
+				getConfiguredCompactingDefinition(new ItemStack(Items.NETHERITE_BLOCK), 9));
+		Map<Integer, ItemStack> initialSlotStacks = Map.of(0, new ItemStack(Items.DIAMOND, 91), 1, ItemStack.EMPTY, 2, ItemStack.EMPTY);
+		Map<Item, Integer> insertSlots = Map.of(Items.DIAMOND_BLOCK, 1, Items.NETHERITE_BLOCK, 2);
 		CompactingUpgradeWrapper wrapper = getCompactingWrapperWithConfiguredCompacting(compactingDefinitions);
 		ReentrantCompactingInventory inventory = getReentrantCompactingInventory(wrapper, initialSlotStacks, insertSlots);
 
@@ -110,7 +105,8 @@ class CompactingUpgradeWrapperTest {
 		assertEquals(1, inventory.maxInsertDepth().get(), "Compaction recursively inserted results from insert callbacks");
 	}
 
-	private static CompactingUpgradeWrapper getCompactingWrapperWithConfiguredCompacting(Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions) {
+	private static CompactingUpgradeWrapper getCompactingWrapperWithConfiguredCompacting(
+			Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions) {
 		CompactingUpgradeItem upgradeItem = mock(CompactingUpgradeItem.class);
 		when(upgradeItem.getFilterSlotCount()).thenReturn(0);
 		when(upgradeItem.shouldCompactThreeByThree()).thenReturn(true);
@@ -120,10 +116,12 @@ class CompactingUpgradeWrapperTest {
 		when(upgrade.getItem()).thenReturn(upgradeItem);
 		when(upgrade.getOrDefault(anyDataComponentSupplier(), any())).thenAnswer(invocation -> invocation.getArgument(1));
 
-		return new CompactingUpgradeWrapper(mock(IStorageWrapper.class), upgrade, stack -> {});
+		return new CompactingUpgradeWrapper(mock(IStorageWrapper.class), upgrade, stack -> {
+		});
 	}
 
-	private static ReentrantCompactingInventory getReentrantCompactingInventory(CompactingUpgradeWrapper wrapper, Map<Integer, ItemStack> initialSlotStacks, Map<Item, Integer> insertSlots) {
+	private static ReentrantCompactingInventory getReentrantCompactingInventory(CompactingUpgradeWrapper wrapper, Map<Integer, ItemStack> initialSlotStacks,
+			Map<Item, Integer> insertSlots) {
 		Map<Integer, ItemStack> slotStacks = new HashMap<>();
 		initialSlotStacks.forEach((slot, stack) -> slotStacks.put(slot, stack.copy()));
 		Map<Item, AtomicInteger> insertions = new HashMap<>();
@@ -133,8 +131,10 @@ class CompactingUpgradeWrapperTest {
 
 		when(inventoryHandler.size()).thenReturn(slotStacks.size());
 		when(inventoryHandler.getStackInSlot(anyInt())).thenAnswer(invocation -> slotStacks.getOrDefault(invocation.getArgument(0), ItemStack.EMPTY));
-		when(inventoryHandler.extract(any(ItemResource.class), anyInt(), any(TransactionContext.class))).thenAnswer(invocation -> extractFromFirstMatchingSlot(slotStacks, invocation.getArgument(0), invocation.getArgument(1)));
-		when(inventoryHandler.extract(anyInt(), any(ItemResource.class), anyInt(), any(TransactionContext.class))).thenAnswer(invocation -> extractFromSlot(slotStacks, invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
+		when(inventoryHandler.extract(any(ItemResource.class), anyInt(), any(TransactionContext.class)))
+				.thenAnswer(invocation -> extractFromFirstMatchingSlot(slotStacks, invocation.getArgument(0), invocation.getArgument(1)));
+		when(inventoryHandler.extract(anyInt(), any(ItemResource.class), anyInt(), any(TransactionContext.class)))
+				.thenAnswer(invocation -> extractFromSlot(slotStacks, invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2)));
 		when(inventoryHandler.insert(any(ItemResource.class), anyInt(), any(TransactionContext.class))).thenAnswer(invocation -> {
 			ItemResource resource = invocation.getArgument(0);
 			int amount = invocation.getArgument(1);
@@ -188,10 +188,7 @@ class CompactingUpgradeWrapperTest {
 		return count;
 	}
 
-	private record ReentrantCompactingInventory(
-			InventoryHandler handler,
-			Map<Integer, ItemStack> slotStacks,
-			Map<Item, AtomicInteger> insertions,
+	private record ReentrantCompactingInventory(InventoryHandler handler, Map<Integer, ItemStack> slotStacks, Map<Item, AtomicInteger> insertions,
 			AtomicInteger maxInsertDepth) {
 		int getInsertions(Item item) {
 			return insertions.getOrDefault(item, new AtomicInteger()).get();

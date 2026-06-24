@@ -44,7 +44,8 @@ import java.util.function.Supplier;
 
 public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends AbstractContainerMenu implements ISyncedContainer, IAdditionalSlotInfoMenu {
 	private static final Map<String, ISettingsContainerFactory<?, ?>> SETTINGS_CONTAINER_FACTORIES = new HashMap<>();
-	private static Consumer<SettingsContainerMenu<?>> constructCallback = menu -> {};
+	private static Consumer<SettingsContainerMenu<?>> constructCallback = menu -> {
+	};
 
 	static {
 		addFactory(MainSettingsCategory.NAME, MainSettingsContainer::new);
@@ -81,7 +82,8 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	}
 
 	public static void setConstructCallback(@Nullable Consumer<SettingsContainerMenu<?>> constructCallback) {
-		SettingsContainerMenu.constructCallback = constructCallback == null ? menu -> {} : constructCallback;
+		SettingsContainerMenu.constructCallback = constructCallback == null ? menu -> {
+		} : constructCallback;
 	}
 
 	public Slot addInternalCompatibilitySlot(Slot slot) {
@@ -202,7 +204,8 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 		if (player instanceof ServerPlayer serverPlayer) {
 			SettingsTemplateStorage settingsTemplateStorage = SettingsTemplateStorage.get();
-			PacketDistributor.sendToPlayer(serverPlayer, new SyncTemplateSettingsPayload(settingsTemplateStorage.getPlayerTemplates(serverPlayer), settingsTemplateStorage.getPlayerNamedTemplates(serverPlayer)));
+			PacketDistributor.sendToPlayer(serverPlayer, new SyncTemplateSettingsPayload(settingsTemplateStorage.getPlayerTemplates(serverPlayer),
+					settingsTemplateStorage.getPlayerNamedTemplates(serverPlayer)));
 		}
 
 		sendEmptySlotIcons();
@@ -263,7 +266,7 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 
 	@Override
 	public void clicked(int slotId, int dragType, ClickType clickTypeIn, Player player) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -282,7 +285,6 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 	public BlockPos getBlockPosition() {
 		return BlockPos.ZERO;
 	}
-
 
 	public <T extends ISettingsCategory<?, ?>> Optional<T> getSelectedTemplatesCategory(Class<T> categoryClass) {
 		return templatePersistanceContainer.getSelectedTemplate().map(selectedTemplate -> selectedTemplate.getTypeCategory(categoryClass));
@@ -304,7 +306,8 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		private final int slotIndex;
 
 		public ViewOnlyStorageInventorySlot(ResourceHandler<ItemResource> inventoryHandler, int slotIndex) {
-			super(inventoryHandler, (index, resource, amount) -> {/* noop */}, slotIndex, 0, 0);
+			super(inventoryHandler, (index, resource, amount) -> {
+				/* noop */}, slotIndex, 0, 0);
 			this.slotIndex = slotIndex;
 		}
 
@@ -321,7 +324,9 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		@Nullable
 		@Override
 		public Identifier getNoItemIcon() {
-			return inaccessibleSlots.contains(getSlotIndex()) && !inaccessibleSlotsWithoutOverlay.contains(getSlotIndex()) ? StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(getSlotIndex(), null);
+			return inaccessibleSlots.contains(getSlotIndex()) && !inaccessibleSlotsWithoutOverlay.contains(getSlotIndex())
+					? StorageContainerMenuBase.INACCESSIBLE_SLOT_BACKGROUND
+					: emptySlotIcons.getOrDefault(getSlotIndex(), null);
 		}
 	}
 
@@ -329,7 +334,8 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return storageWrapper.getNumberOfSlotRows();
 	}
 
-	protected static <C extends ISettingsCategory<?, ?>, T extends SettingsContainerBase<C>> void addFactory(String categoryName, ISettingsContainerFactory<C, T> factory) {
+	protected static <C extends ISettingsCategory<?, ?>, T extends SettingsContainerBase<C>> void addFactory(String categoryName,
+			ISettingsContainerFactory<C, T> factory) {
 		SETTINGS_CONTAINER_FACTORIES.put(categoryName, factory);
 	}
 
@@ -337,13 +343,14 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		T create(SettingsContainerMenu<?> settingsContainer, String categoryName, C category);
 	}
 
-	private <C extends ISettingsCategory<?, ?>> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name, C category) {
-		//noinspection unchecked
+	private <C extends ISettingsCategory<?, ?>> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name,
+			C category) {
+		// noinspection unchecked
 		return (SettingsContainerBase<C>) getSettingsContainerFactory(name).create(settingsContainer, name, category);
 	}
 
 	protected <C extends ISettingsCategory<?, ?>, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
-		//noinspection unchecked
+		// noinspection unchecked
 		return (ISettingsContainerFactory<C, T>) SETTINGS_CONTAINER_FACTORIES.get(name);
 	}
 
@@ -379,11 +386,13 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot).builtInRegistryHolder());
 			}
 		}
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncAdditionalSlotInfoPayload(inaccessibleSlots, inaccessibleSlotsWithoutOverlay, Map.of(), Set.of(), slotFilterItems));
+		PacketDistributor.sendToPlayer(serverPlayer,
+				new SyncAdditionalSlotInfoPayload(inaccessibleSlots, inaccessibleSlotsWithoutOverlay, Map.of(), Set.of(), slotFilterItems));
 	}
 
 	@Override
-	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) {
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides,
+			Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) {
 		this.inaccessibleSlots.clear();
 		this.inaccessibleSlots.addAll(inaccessibleSlots);
 

@@ -64,7 +64,8 @@ public class JukeboxUpgradeNoteParticle extends SingleQuadParticle {
 
 		@Nullable
 		@Override
-		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, RandomSource randomSource) {
+		public Particle createParticle(JukeboxUpgradeNoteParticleData type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed,
+				double zSpeed, RandomSource randomSource) {
 			return new JukeboxUpgradeNoteParticle(level, x, y, z, spriteSet.get(randomSource));
 		}
 	}

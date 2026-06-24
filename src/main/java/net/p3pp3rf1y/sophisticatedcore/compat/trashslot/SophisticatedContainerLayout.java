@@ -98,7 +98,8 @@ public class SophisticatedContainerLayout extends SimpleGuiContainerLayout {
 			}
 
 			if (isWiderScreen(storageScreen)) {
-				int stickingOut = slotY + SlotRenderStyle.ATTACH_LEFT_BOTTOM.getRenderHeight() - (screenAccessor.getTopPos() + screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT - 1);
+				int stickingOut = slotY + SlotRenderStyle.ATTACH_LEFT_BOTTOM.getRenderHeight()
+						- (screenAccessor.getTopPos() + screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT - 1);
 				if (stickingOut > 0) {
 					if (slotX + SlotRenderStyle.LONE.getWidth() == screenAccessor.getLeftPos()) {
 						if (stickingOut < 5) {
@@ -114,7 +115,8 @@ public class SophisticatedContainerLayout extends SimpleGuiContainerLayout {
 						}
 					} else if (slotX == leftSnap && slotY == screenAccessor.getTopPos() + screenAccessor.getImageHeight()) {
 						return SlotRenderStyle.ATTACH_BOTTOM_LEFT;
-					} else if (slotX + SlotRenderStyle.ATTACH_BOTTOM_CENTER.getRenderWidth() >= rightSnap && slotY == screenAccessor.getTopPos() + screenAccessor.getImageHeight()) {
+					} else if (slotX + SlotRenderStyle.ATTACH_BOTTOM_CENTER.getRenderWidth() >= rightSnap
+							&& slotY == screenAccessor.getTopPos() + screenAccessor.getImageHeight()) {
 						if (slotX + SlotRenderStyle.ATTACH_BOTTOM_CENTER.getRenderWidth() - rightSnap < 6) {
 							return SlotRenderStyle.ATTACH_BOTTOM_RIGHT;
 						} else {
@@ -137,8 +139,10 @@ public class SophisticatedContainerLayout extends SimpleGuiContainerLayout {
 			List<Rect2i> collisionAreas = new ArrayList<>();
 
 			AbstractContainerScreenAccessor screenAccessor = (AbstractContainerScreenAccessor) screen;
-			collisionAreas.add(new Rect2i(screenAccessor.getLeftPos(), screenAccessor.getTopPos(), screenAccessor.getImageWidth(), screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
-			collisionAreas.add(new Rect2i(getPlayerInventoryLeftSnap(storageScreen, screenAccessor), screenAccessor.getTopPos(), PLAYER_INVENTORY_WIDTH, screenAccessor.getImageHeight()));
+			collisionAreas.add(new Rect2i(screenAccessor.getLeftPos(), screenAccessor.getTopPos(), screenAccessor.getImageWidth(),
+					screenAccessor.getImageHeight() - HEIGHT_OF_PLAYER_INVENTORY_STICKING_OUT));
+			collisionAreas.add(new Rect2i(getPlayerInventoryLeftSnap(storageScreen, screenAccessor), screenAccessor.getTopPos(), PLAYER_INVENTORY_WIDTH,
+					screenAccessor.getImageHeight()));
 			storageScreen.getUpgradeSlotsRectangle().ifPresent(collisionAreas::add);
 			collisionAreas.addAll(storageScreen.getUpgradeSettingsControl().getTabRectangles());
 			storageScreen.getSortButtonsRectangle().ifPresent(collisionAreas::add);
@@ -156,9 +160,8 @@ public class SophisticatedContainerLayout extends SimpleGuiContainerLayout {
 	@Override
 	public String getContainerId(AbstractContainerScreen<?> screen) {
 		if (screen.getMenu() instanceof StorageContainerMenuBase<?> storageContainerMenu) {
-			return "sophisticated_" + storageContainerMenu.getStorageWrapper().getStorageType() + "_"
-					+ storageContainerMenu.getNumberOfStorageInventorySlots() + "_"
-					+ storageContainerMenu.getColumnsTaken();
+			return "sophisticated_" + storageContainerMenu.getStorageWrapper().getStorageType() + "_" + storageContainerMenu.getNumberOfStorageInventorySlots()
+					+ "_" + storageContainerMenu.getColumnsTaken();
 		}
 		return super.getContainerId(screen);
 	}

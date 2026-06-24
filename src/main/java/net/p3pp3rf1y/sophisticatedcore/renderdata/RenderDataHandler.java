@@ -15,10 +15,8 @@ public class RenderDataHandler {
 	private static final Map<String, UpgradeClientDataType<?>> CLIENT_DATA_TYPES;
 
 	static {
-		CLIENT_DATA_TYPES = Map.of(
-				CookingUpgradeClientData.TYPE.getName(), CookingUpgradeClientData.TYPE,
-				JukeboxUpgradeClientData.TYPE.getName(), JukeboxUpgradeClientData.TYPE
-		);
+		CLIENT_DATA_TYPES = Map.of(CookingUpgradeClientData.TYPE.getName(), CookingUpgradeClientData.TYPE, JukeboxUpgradeClientData.TYPE.getName(),
+				JukeboxUpgradeClientData.TYPE);
 	}
 
 	private final Consumer<RenderData> saveHandler;
@@ -58,7 +56,8 @@ public class RenderDataHandler {
 		return upgradeClientDataType.cast(renderData.upgradeData().get(upgradeClientDataType));
 	}
 
-	public void refreshDisplayData(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots, List<Integer> slotCounts, List<Float> slotFillRatios) {
+	public void refreshDisplayData(List<RenderData.DisplayItemData> displayItems, List<Integer> inaccessibleSlots, List<Integer> infiniteSlots,
+			List<Integer> slotCounts, List<Float> slotFillRatios) {
 		update(renderData.withDisplayData(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios), true);
 	}
 

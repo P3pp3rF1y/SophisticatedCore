@@ -19,10 +19,7 @@ public record SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> high
 	public static final Type<SyncBlockHighlightsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_block_highlights"));
 	public static final StreamCodec<ByteBuf, SyncBlockHighlightsPayload> STREAM_CODEC = StreamCodec.composite(
 			StreamCodecHelper.ofMap(ByteBufCodecs.INT, BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()).apply(ByteBufCodecs.list()), HashMap::new),
-			SyncBlockHighlightsPayload::highlightPositions,
-			ByteBufCodecs.INT,
-			SyncBlockHighlightsPayload::durationTicks,
-			SyncBlockHighlightsPayload::new);
+			SyncBlockHighlightsPayload::highlightPositions, ByteBufCodecs.INT, SyncBlockHighlightsPayload::durationTicks, SyncBlockHighlightsPayload::new);
 
 	public SyncBlockHighlightsPayload(Map<Integer, List<List<BlockPos>>> highlightPositions) {
 		this(highlightPositions, BlockHighlightRenderer.HIGHLIGHT_DURATION);

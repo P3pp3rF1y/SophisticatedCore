@@ -9,8 +9,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.level.LevelEvent;
-
 import org.jspecify.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,17 +45,17 @@ public class CoreFakePlayer extends FakePlayer {
 
 	@Override
 	protected void onEffectAdded(MobEffectInstance effect, @Nullable Entity entity) {
-		//noop
+		// noop
 	}
 
 	@Override
 	protected void onEffectUpdated(MobEffectInstance effect, boolean updateAttributes, @Nullable Entity entity) {
-		//noop
+		// noop
 	}
 
 	@Override
 	protected void onEffectsRemoved(Collection<MobEffectInstance> effects) {
-		//noop
+		// noop
 	}
 
 	@Override
@@ -75,6 +75,6 @@ public class CoreFakePlayer extends FakePlayer {
 
 	@Override
 	public void syncData(Supplier<? extends AttachmentType<?>> type) {
-		//noop
+		// noop
 	}
 }

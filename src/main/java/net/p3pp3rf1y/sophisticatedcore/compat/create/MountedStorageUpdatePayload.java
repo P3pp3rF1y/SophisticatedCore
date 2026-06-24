@@ -13,18 +13,12 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import org.jspecify.annotations.Nullable;
 
-public record MountedStorageUpdatePayload(int contraptionEntityId, BlockPos localPos, ItemStack storageStack, boolean refreshBlockRender) implements CustomPacketPayload {
+public record MountedStorageUpdatePayload(int contraptionEntityId, BlockPos localPos, ItemStack storageStack,
+		boolean refreshBlockRender) implements CustomPacketPayload {
 	public static final Type<MountedStorageUpdatePayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("mounted_storage_update"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, MountedStorageUpdatePayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT,
-			MountedStorageUpdatePayload::contraptionEntityId,
-			BlockPos.STREAM_CODEC,
-			MountedStorageUpdatePayload::localPos,
-			ItemStack.STREAM_CODEC,
-			MountedStorageUpdatePayload::storageStack,
-			ByteBufCodecs.BOOL,
-			MountedStorageUpdatePayload::refreshBlockRender,
-			MountedStorageUpdatePayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, MountedStorageUpdatePayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.INT,
+			MountedStorageUpdatePayload::contraptionEntityId, BlockPos.STREAM_CODEC, MountedStorageUpdatePayload::localPos, ItemStack.STREAM_CODEC,
+			MountedStorageUpdatePayload::storageStack, ByteBufCodecs.BOOL, MountedStorageUpdatePayload::refreshBlockRender, MountedStorageUpdatePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
@@ -35,7 +29,8 @@ public record MountedStorageUpdatePayload(int contraptionEntityId, BlockPos loca
 		Player player = context.player();
 		Entity entity = player.level().getEntity(payload.contraptionEntityId());
 		if (entity instanceof AbstractContraptionEntity contraptionEntity) {
-			@Nullable MountedStorageBase mountedStorage = ContraptionHelper.getMountedStorage(contraptionEntity, payload.localPos());
+			@Nullable
+			MountedStorageBase mountedStorage = ContraptionHelper.getMountedStorage(contraptionEntity, payload.localPos());
 			if (mountedStorage == null) {
 				return;
 			}

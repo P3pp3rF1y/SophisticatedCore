@@ -8,11 +8,12 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 import java.util.List;
 
 public class AutoSmokingUpgradeItem extends UpgradeItemBase<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> implements IAutoCookingUpgradeItem {
-	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> TYPE = new UpgradeType<>(AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper::new);
+	public static final UpgradeType<AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper> TYPE = new UpgradeType<>(
+			AutoCookingUpgradeWrapper.AutoSmokingUpgradeWrapper::new);
 	private final AutoCookingUpgradeConfig autoSmokingUpgradeConfig;
 
 	public AutoSmokingUpgradeItem(AutoCookingUpgradeConfig autoSmokingUpgradeConfig, IUpgradeCountLimitConfig upgradeTypeLimitConfig, Properties properties) {
-        super(upgradeTypeLimitConfig, properties);
+		super(upgradeTypeLimitConfig, properties);
 		this.autoSmokingUpgradeConfig = autoSmokingUpgradeConfig;
 	}
 

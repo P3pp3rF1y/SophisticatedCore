@@ -10,9 +10,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum PrimaryMatch implements StringRepresentable {
-	ITEM("item"),
-	MOD("mod"),
-	TAGS("tags");
+	ITEM("item"), MOD("mod"), TAGS("tags");
 
 	private final String name;
 
@@ -37,7 +35,7 @@ public enum PrimaryMatch implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, PrimaryMatch> builder = new ImmutableMap.Builder<>();
-		for (PrimaryMatch value : PrimaryMatch.values()) {
+		for (PrimaryMatch value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

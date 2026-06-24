@@ -28,7 +28,11 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 
-public abstract class InventoryHandler extends ItemStacksResourceHandler implements ITrackedContentsItemResourceHandler, IndexModifier<ItemResource>, IInsertBlockOverride {
+public abstract class InventoryHandler extends ItemStacksResourceHandler
+		implements
+			ITrackedContentsItemResourceHandler,
+			IndexModifier<ItemResource>,
+			IInsertBlockOverride {
 	protected final IStorageWrapper storageWrapper;
 	private final ContainerContents.InventoryData inventoryData;
 	private final Runnable saveHandler;
@@ -52,7 +56,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	private boolean hasVoidUpgrade = false;
 	private final List<SlotTrackerJournal> slotTrackerJournals = new ArrayList<>();
 
-	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable saveHandler, int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
+	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable saveHandler,
+			int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
 		super(numberOfInventorySlots);
 		this.stackUpgradeConfig = stackUpgradeConfig;
 		isInitializing = true;
@@ -62,7 +67,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 		setBaseSlotLimit(baseSlotLimit);
 		loadStacksFromData();
 		ensureSlotTrackerJournals();
-		inventoryPartitioner = new InventoryPartitioner(containerContents.partitioner(), this, () -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
+		inventoryPartitioner = new InventoryPartitioner(containerContents.partitioner(), this,
+				() -> storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class));
 		getSlotTracker().refreshSlotIndexesFrom(this);
 
 		isInitializing = false;
@@ -100,9 +106,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	private void runOnAfterInsert(int index, TransactionContext tx) {
-		storageWrapper.getUpgradeHandler()
-				.getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class)
-				.forEach(u -> u.onAfterInsert(this, index, tx));
+		storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class).forEach(u -> u.onAfterInsert(this, index, tx));
 	}
 
 	public void triggerOnChangeListeners(int slot) {
@@ -112,10 +116,11 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	@SuppressWarnings("java:S3824")
-	//compute use here would be difficult as then there's no way of telling that value was newly created vs different from the one that needs to be set
+	// compute use here would be difficult as then there's no way of telling that value was newly created vs different from the one that needs to be set
 	private boolean updateSlotStack(int slot) {
 		ItemStack slotStack = getInternalStack(slot);
-		if (inventoryData.stacks().size() > slot && (!ItemStack.isSameItemSameComponents(inventoryData.stacks().get(slot), slotStack) || inventoryData.stacks().get(slot).getCount() != slotStack.getCount())) {
+		if (inventoryData.stacks().size() > slot && (!ItemStack.isSameItemSameComponents(inventoryData.stacks().get(slot), slotStack)
+				|| inventoryData.stacks().get(slot).getCount() != slotStack.getCount())) {
 			inventoryData.stacks().set(slot, slotStack.copy());
 			return true;
 		}
@@ -187,7 +192,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	public void setBaseSlotLimit(int baseSlotLimit) {
-		voidUpgradeInfoInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot limit needs to be reinitialized as well
+		voidUpgradeInfoInitialized = false; // not the most ideal of places to do this, but base slot limit is set when upgrades change and that's when slot
+											// limit needs to be reinitialized as well
 		this.baseSlotLimit = baseSlotLimit;
 		maxStackSizeMultiplier = baseSlotLimit / 64f;
 
@@ -465,7 +471,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 
 	private int triggerStorageOverflowUpgrades(ItemResource resource, int amount) {
 		int ret = 0;
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			ret = overflowUpgrade.onStorageOverflow(resource, amount);
 			if (ret >= amount) {
 				break;
@@ -539,8 +546,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	public boolean isItemValid(int slot, ItemResource resource, @Nullable Player player) {
-		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isValid(slot, resource, player, super::isValid)
-				&& isAllowed(resource) && storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, resource);
+		return !isSlotBlocked.test(slot) && inventoryPartitioner.getPartBySlot(slot).isValid(slot, resource, player, super::isValid) && isAllowed(resource)
+				&& storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).matchesFilter(slot, resource);
 	}
 
 	@Override
@@ -584,7 +591,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 	}
 
 	@Override
-	public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot, Runnable onRemoveLastEmptySlot) {
+	public void registerTrackingListeners(Consumer<ItemStackKey> onAddStackKey, Consumer<ItemStackKey> onRemoveStackKey, Runnable onAddFirstEmptySlot,
+			Runnable onRemoveLastEmptySlot) {
 		getSlotTracker().registerListeners(onAddStackKey, onRemoveStackKey, onAddFirstEmptySlot, onRemoveLastEmptySlot);
 	}
 
@@ -675,7 +683,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 
 	public ItemStack getStackInSlot(int index) {
 		Objects.checkIndex(index, this.size());
-		return inventoryPartitioner.getPartBySlot(index).getStackInSlot(index, slot -> stacks.get(slot));
+		return inventoryPartitioner.getPartBySlot(index).getStackInSlot(index, stacks::get);
 	}
 
 	private boolean hasVoidUpgrade() {
@@ -692,7 +700,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler impleme
 			return false;
 		}
 
-		for(int i = 0; i < stacks.size(); ++i) {
+		for (int i = 0; i < stacks.size(); ++i) {
 			ItemStack stack = stacks.get(i);
 			ItemResource resource = ItemResource.of(stack);
 			if (stack.getCount() < getCapacity(i, resource)) {

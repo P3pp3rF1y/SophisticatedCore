@@ -20,8 +20,7 @@ public record SyncEmptySlotIconsPayload(Map<Identifier, Set<Integer>> emptySlotI
 	public static final Type<SyncEmptySlotIconsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_empty_slot_icons"));
 	public static final StreamCodec<ByteBuf, SyncEmptySlotIconsPayload> STREAM_CODEC = StreamCodec.composite(
 			StreamCodecHelper.ofMap(Identifier.STREAM_CODEC, StreamCodecHelper.ofCollection(ByteBufCodecs.INT, HashSet::new), HashMap::new),
-			SyncEmptySlotIconsPayload::emptySlotIcons,
-			SyncEmptySlotIconsPayload::new);
+			SyncEmptySlotIconsPayload::emptySlotIcons, SyncEmptySlotIconsPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

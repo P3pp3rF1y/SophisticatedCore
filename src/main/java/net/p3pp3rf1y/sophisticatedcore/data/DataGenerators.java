@@ -28,21 +28,12 @@ public class DataGenerators {
 
 		@Override
 		protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
-			itemModels.itemModelOutput.accept(
-					ModFluids.XP_BUCKET.get(),
+			itemModels.itemModelOutput.accept(ModFluids.XP_BUCKET.get(),
 					new DynamicFluidContainerModel.Unbaked(
-							new DynamicFluidContainerModel.Textures(
+							new DynamicFluidContainerModel.Textures(Optional.of(Identifier.withDefaultNamespace("item/bucket")),
 									Optional.of(Identifier.withDefaultNamespace("item/bucket")),
-									Optional.of(Identifier.withDefaultNamespace("item/bucket")),
-									Optional.of(Identifier.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid")),
-									Optional.empty()
-							),
-							ModFluids.XP_STILL.get(),
-							false,
-							false,
-							false
-					)
-			);
+									Optional.of(Identifier.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid")), Optional.empty()),
+							ModFluids.XP_STILL.get(), false, false, false));
 		}
 	}
 }

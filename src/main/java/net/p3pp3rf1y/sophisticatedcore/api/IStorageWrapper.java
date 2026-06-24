@@ -31,7 +31,7 @@ public interface IStorageWrapper extends ITintable {
 	void setContentsChangeHandler(Runnable contentsChangeHandler);
 
 	default void setInventorySlotChangeHandler(Runnable slotChangeHandler) {
-		//noop
+		// noop
 	}
 
 	ITrackedContentsItemResourceHandler getInventoryForUpgradeProcessing();
@@ -41,7 +41,7 @@ public interface IStorageWrapper extends ITintable {
 	ITrackedContentsItemResourceHandler getInventoryForInputOutput();
 
 	default void setUpgradeCachesInvalidatedHandler(Runnable handler) {
-		//noop
+		// noop
 	}
 
 	SettingsHandler getSettingsHandler();
@@ -173,13 +173,12 @@ public interface IStorageWrapper extends ITintable {
 	default void attachInventorySlotBlockers() {
 		UpgradeHandler upgradeHandler = getUpgradeHandler();
 		List<IInventorySlotBlocker> slotBlockers = upgradeHandler.getWrappersThatImplementFromMainStorage(IInventorySlotBlocker.class);
-		getInventoryHandler().setSlotBlockedPredicate(
-				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot)),
-				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot) && slotBlocker.shouldRenderBlockedSlotOverlay(slot))
-		);
+		getInventoryHandler().setSlotBlockedPredicate(slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot)),
+				slot -> slotBlockers.stream().anyMatch(slotBlocker -> slotBlocker.isSlotBlocked(slot) && slotBlocker.shouldRenderBlockedSlotOverlay(slot)));
 	}
 
-	record StackMove(int sourceSlot, int targetSlot, ItemStack stack) {}
+	record StackMove(int sourceSlot, int targetSlot, ItemStack stack) {
+	}
 
 	default Optional<IStorageFluidHandler> getFluidHandler() {
 		return Optional.empty();
@@ -210,6 +209,6 @@ public interface IStorageWrapper extends ITintable {
 	}
 
 	default void registerOnInventoryInputOutputHandlerRefreshListener(Runnable onInventoryForInputOutputHandlerRefresh) {
-		//noop
+		// noop
 	}
 }

@@ -10,12 +10,12 @@ import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.GroupedCrafti
 import java.util.List;
 import java.util.Optional;
 
-
 public class GroupedCraftingReiDisplay extends DefaultCraftingDisplay {
 	private final GroupedCraftingRecipe recipe;
 
 	public GroupedCraftingReiDisplay(RecipeHolder<GroupedCraftingRecipe> recipeHolder) {
-		super(recipeHolder.value().getInputSlots().stream().map(EntryIngredients::ofItemStacks).toList(), List.of(EntryIngredients.ofItemStacks(recipeHolder.value().getResultStacks())), Optional.of(recipeHolder.id().identifier()));
+		super(recipeHolder.value().getInputSlots().stream().map(EntryIngredients::ofItemStacks).toList(),
+				List.of(EntryIngredients.ofItemStacks(recipeHolder.value().getResultStacks())), Optional.of(recipeHolder.id().identifier()));
 		this.recipe = recipeHolder.value();
 	}
 

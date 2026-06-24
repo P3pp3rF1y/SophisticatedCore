@@ -21,8 +21,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.fml.util.ObfuscationReflectionHelper;
-import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -48,6 +48,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -101,11 +102,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private int columnsChange = 0;
 	private int inventorySlotsBeforeClickHandled;
 
-	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
+	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper,
+			int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
 		this(menuType, containerId, player, storageWrapper, parentStorageWrapper, storageItemSlotIndex, shouldLockStorageItemSlot, Collections.emptyList());
 	}
 
-	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, List<Slot> extraSlots) {
+	protected StorageContainerMenuBase(MenuType<?> menuType, int containerId, Player player, S storageWrapper, IStorageWrapper parentStorageWrapper,
+			int storageItemSlotIndex, boolean shouldLockStorageItemSlot, List<Slot> extraSlots) {
 		super(menuType, containerId);
 		this.player = player;
 		this.storageWrapper = storageWrapper;
@@ -212,7 +215,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected void sendStorageSettingsToClient() {
-		//noop by default
+		// noop by default
 	}
 
 	protected void addUpgradeSlot(Slot slot) {
@@ -253,7 +256,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				@Nullable
 				@Override
 				public Identifier getNoItemIcon() {
-					return inaccessibleSlots.contains(finalSlotIndex) && !inaccessibleSlotsWithoutOverlay.contains(finalSlotIndex) ? INACCESSIBLE_SLOT_BACKGROUND : emptySlotIcons.getOrDefault(finalSlotIndex, null);
+					return inaccessibleSlots.contains(finalSlotIndex) && !inaccessibleSlotsWithoutOverlay.contains(finalSlotIndex)
+							? INACCESSIBLE_SLOT_BACKGROUND
+							: emptySlotIcons.getOrDefault(finalSlotIndex, null);
 				}
 
 				@Override
@@ -284,7 +289,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected void onStorageInventorySlotSet(int slotIndex) {
-		//noop by default
+		// noop by default
 	}
 
 	protected void addPlayerInventorySlots(Inventory playerInventory, int storageItemSlotIndex, boolean shouldLockStorageItemSlot) {
@@ -319,7 +324,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public boolean hasSomethingMessedWithStorage() {
-		return !isClientSide() && (storageItemHasChanged() || slots.size() != storageWrapper.getInventoryHandler().size() + NUMBER_OF_PLAYER_SLOTS + extraSlotsSize);
+		return !isClientSide()
+				&& (storageItemHasChanged() || slots.size() != storageWrapper.getInventoryHandler().size() + NUMBER_OF_PLAYER_SLOTS + extraSlotsSize);
 	}
 
 	protected boolean isClientSide() {
@@ -356,7 +362,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected boolean isUpgradeSettingsSlot(int index) {
-		return index >= getNumberOfStorageInventorySlots() + getNumberOfUpgradeSlots() + StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS && index < getTotalSlotsNumber();
+		return index >= getNumberOfStorageInventorySlots() + getNumberOfUpgradeSlots() + NUMBER_OF_PLAYER_SLOTS && index < getTotalSlotsNumber();
 	}
 
 	public boolean isStorageInventorySlot(int slotIndex) {
@@ -375,7 +381,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	public void clicked(int slotId, int dragType, ClickType clickType, Player player) {
 		inventorySlotsBeforeClickHandled = getInventorySlotsSize();
 		if (isUpgradeSettingsSlot(slotId) && getSlot(slotId) instanceof IFilterSlot && getSlot(slotId).mayPlace(getCarried())) {
-			if (!player.level().isClientSide()) { // don't do slot updates on client to not prevent upgrade stacks from being synced from server when they are updated with these
+			if (!player.level().isClientSide()) { // don't do slot updates on client to not prevent upgrade stacks from being synced from server when they are
+													// updated with these
 				Slot slot = getSlot(slotId);
 				ItemStack cursorStack = getCarried().copy();
 				if (cursorStack.getCount() > 1) {
@@ -413,10 +420,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				updateColumnsTaken(columnsToRemove);
 				slot.setChanged();
 				if (columnsToRemove != 0 && player.level().isClientSide()) {
-					onUpgradesChanged(); // need to trigger onUpgradesChanged again so that screen can react to this with updating slot positions after slots were refreshed as part of columns update
+					onUpgradesChanged(); // need to trigger onUpgradesChanged again so that screen can react to this with updating slot positions after slots
+											// were refreshed as part of columns update
 				}
 			} else if (getCarried().isEmpty() && !slotStack.isEmpty() && slot.mayPickup(player)) {
-				int k2 = dragType == 0 ? Math.min(slotStack.getCount(), slotStack.getMaxStackSize()) : Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
+				int k2 = dragType == 0
+						? Math.min(slotStack.getCount(), slotStack.getMaxStackSize())
+						: Math.min(slotStack.getMaxStackSize() + 1, slotStack.getCount() + 1) / 2;
 				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) slotStack.getItem();
 				int columnsTaken = upgradeItem.getInventoryColumnsTaken();
 				if (clickType == ClickType.QUICK_MOVE) {
@@ -448,7 +458,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return false;
 		}
 		ItemStack slotStack = slot.getItem();
-		if (slotStack.isEmpty() || (slot.mayPickup(player) && slotStack.getItem() != cursorStack.getItem() && cursorStack.getCount() <= slot.getMaxStackSize(cursorStack) && slotStack.getCount() <= slotStack.getMaxStackSize())) {
+		if (slotStack.isEmpty() || (slot.mayPickup(player) && slotStack.getItem() != cursorStack.getItem()
+				&& cursorStack.getCount() <= slot.getMaxStackSize(cursorStack) && slotStack.getCount() <= slotStack.getMaxStackSize())) {
 			return processOverflowIfSlotWithSameItemFound(cursorStack, updateCursorStack);
 		} else if (slotStack.getItem() == cursorStack.getItem()) {
 			return processOverflowForAnythingOverSlotMaxSize(cursorStack, updateCursorStack, slot, slotStack);
@@ -477,7 +488,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private boolean processOverflowIfSlotWithSameItemFound(ItemStack cursorStack, Consumer<ItemStack> updateCursorStack) {
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			if (overflowUpgrade.stackMatchesFilter(cursorStack) && overflowUpgrade.worksInGui()
 					&& findSlotWithMatchingStack(cursorStack, updateCursorStack, overflowUpgrade)) {
 				return true;
@@ -512,7 +524,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	private void actuallyUpdateColumnsTaken(int columnsChange) {
 		if (columnsChange != 0) {
-			//when these get changed recalculate columns taken to fix columnsTaken out of sync issues
+			// when these get changed recalculate columns taken to fix columnsTaken out of sync issues
 			AtomicInteger columnsTaken = new AtomicInteger(0);
 			InventoryHelper.iterate(storageWrapper.getUpgradeHandler(), (slot, resource, amount) -> {
 				if (resource.getItem() instanceof UpgradeItemBase<?> upgradeItem) {
@@ -547,7 +559,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		Set<Integer> errorSlots = fitResult.errorSlots();
 
 		if (!errorSlots.isEmpty()) {
-			updateSlotChangeError(UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.needs_occupied_inventory_slots", slotsToCheck, cursorStack.getHoverName()), Collections.emptySet(), errorSlots, Collections.emptySet()));
+			updateSlotChangeError(UpgradeSlotChangeResult.fail(
+					TranslationHelper.INSTANCE.translError("add.needs_occupied_inventory_slots", slotsToCheck, cursorStack.getHoverName()),
+					Collections.emptySet(), errorSlots, Collections.emptySet()));
 			return true;
 		}
 		return false;
@@ -560,7 +574,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	private InventoryLayoutFitResult getInventoryLayoutFitResult(int targetColumnsTaken) {
 		int currentColumns = getCurrentColumns();
 		int targetColumns = getColumnsForColumnsTaken(targetColumnsTaken);
-		return InventoryLayoutFitter.fit(storageWrapper.getInventoryLayoutParts(currentColumns, targetColumns), getTargetSlots(targetColumnsTaken), targetColumns, targetColumnsTaken < storageWrapper.getColumnsTaken());
+		return InventoryLayoutFitter.fit(storageWrapper.getInventoryLayoutParts(currentColumns, targetColumns), getTargetSlots(targetColumnsTaken),
+				targetColumns, targetColumnsTaken < storageWrapper.getColumnsTaken());
 	}
 
 	private int getTargetSlots(int targetColumnsTaken) {
@@ -679,13 +694,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	public void handlePacket(CompoundTag data) {
-		data.getInt("containerId").ifPresent(containerId ->
-				{
-					if (upgradeContainers.containsKey(containerId)) {
-						upgradeContainers.get(containerId).handlePacket(data);
-					}
-				}
-		);
+		data.getInt("containerId").ifPresent(containerId -> {
+			if (upgradeContainers.containsKey(containerId)) {
+				upgradeContainers.get(containerId).handlePacket(data);
+			}
+		});
 		data.getInt(OPEN_TAB_ID_TAG).ifPresent(this::setOpenTabId);
 		data.getString(SORT_BY_TAG).ifPresent(sortByName -> setSortBy(SortBy.fromName(sortByName)));
 		data.getString(SEARCH_PHRASE_TAG).ifPresent(this::setSearchPhrase);
@@ -694,11 +707,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				case "sort" -> sort();
 				case "openSettings" -> openSettings();
 				default -> {
-					//noop
+					// noop
 				}
 			}
 		});
-		data.getBoolean(UPGRADE_ENABLED_TAG).ifPresent(enabled -> data.getInt(UPGRADE_SLOT_TAG).ifPresent(upgradeSlot -> setUpgradeEnabled(upgradeSlot, enabled)));
+		data.getBoolean(UPGRADE_ENABLED_TAG)
+				.ifPresent(enabled -> data.getInt(UPGRADE_SLOT_TAG).ifPresent(upgradeSlot -> setUpgradeEnabled(upgradeSlot, enabled)));
 	}
 
 	public Optional<UpgradeContainerBase<?, ?>> getSlotUpgradeContainer(Slot slot) {
@@ -721,7 +735,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			ItemStack slotStack = upgradeContainer.map(c -> c.getSlotStackToTransfer(slot)).orElse(slot.getItem());
 			itemstack = slotStack.copy();
 
-			ItemStack stackToMerge = isUpgradeSlot(index) && slotStack.getItem() instanceof IUpgradeItem<?> upgradeItem ? upgradeItem.getCleanedUpgradeStack(slotStack.copy()) : slotStack;
+			ItemStack stackToMerge = isUpgradeSlot(index) && slotStack.getItem() instanceof IUpgradeItem<?> upgradeItem
+					? upgradeItem.getCleanedUpgradeStack(slotStack.copy())
+					: slotStack;
 			if (!mergeSlotStack(slot, index, stackToMerge)) {
 				return ItemStack.EMPTY;
 			}
@@ -760,9 +776,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return mergeStackToPlayersInventory(slot, slotStack) || mergeStackToStorage(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
 		} else {
 			if (shouldShiftClickIntoOpenTabFirst()) {
-				return mergeStackToExtraSlots(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack);
+				return mergeStackToExtraSlots(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack)
+						|| mergeStackToStorage(slot, slotStack);
 			}
-			return mergeStackToExtraSlots(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack) || mergeStackToOpenUpgradeTab(slot, slotStack);
+			return mergeStackToExtraSlots(slot, slotStack) || mergeStackToUpgradeSlots(slot, slotStack) || mergeStackToStorage(slot, slotStack)
+					|| mergeStackToOpenUpgradeTab(slot, slotStack);
 		}
 	}
 
@@ -802,7 +820,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 		clearErrorUpgradeSlotChangeResult();
 		tryingToMergeUpgrade = true;
-		boolean result = !upgradeSlots.isEmpty() && moveItemStackTo(sourceSlot, slotStack, getInventorySlotsSize(), getInventorySlotsSize() + getNumberOfUpgradeSlots(), false);
+		boolean result = !upgradeSlots.isEmpty()
+				&& moveItemStackTo(sourceSlot, slotStack, getInventorySlotsSize(), getInventorySlotsSize() + getNumberOfUpgradeSlots(), false);
 		tryingToMergeUpgrade = false;
 		if (columnsChange != 0) {
 			if (player.level().isClientSide()) {
@@ -902,7 +921,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
-	protected void triggerSlotListeners(int stackIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy, NonNullList<ItemStack> lastSlotsCollection, int slotIndexOffset, Slot slot) {
+	protected void triggerSlotListeners(int stackIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy, NonNullList<ItemStack> lastSlotsCollection,
+			int slotIndexOffset, Slot slot) {
 		ItemStack itemstack = lastSlotsCollection.get(stackIndex);
 		if (!ItemStack.matches(itemstack, slotStack)) {
 			ItemStack stackCopy = slotStackCopy.get();
@@ -913,7 +933,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			}
 
 			if (!initialBroadcast && isUpgradeSettingsSlot(slot.index)) {
-				slot.setChanged(); //updating slots in upgrade tabs to trigger related logic like updating recipe result on another player's screen
+				slot.setChanged(); // updating slots in upgrade tabs to trigger related logic like updating recipe result on another player's screen
 			}
 		}
 	}
@@ -995,7 +1015,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				slotFilterItems.put(slot, inventoryHandler.getFilterItem(slot).builtInRegistryHolder());
 			}
 		}
-		PacketDistributor.sendToPlayer(serverPlayer, new SyncAdditionalSlotInfoPayload(inaccessibleSlots, inaccessibleSlotsWithoutOverlay, slotLimitOverrides, infiniteSlots, slotFilterItems));
+		PacketDistributor.sendToPlayer(serverPlayer,
+				new SyncAdditionalSlotInfoPayload(inaccessibleSlots, inaccessibleSlotsWithoutOverlay, slotLimitOverrides, infiniteSlots, slotFilterItems));
 	}
 
 	@Override
@@ -1053,7 +1074,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	protected ItemStack processOverflowLogic(ItemStack stack) {
 		ItemStack result = stack;
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			if (overflowUpgrade.worksInGui()) {
 				result = overflowUpgrade.onSlotOverflow(result);
 				if (result.isEmpty()) {
@@ -1083,9 +1105,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return Math.min(slot.getMaxStackSize(carriedStack), placeCount);
 	}
 
-	//copy of Container's doClick with the replacement of inventorySlots.get to getSlot, call to onswapcraft as that's protected in vanilla and an addition of upgradeSlots to pickup all
+	// copy of Container's doClick with the replacement of inventorySlots.get to getSlot, call to onswapcraft as that's protected in vanilla and an addition of
+	// upgradeSlots to pickup all
 	@SuppressWarnings("java:S3776")
-	//complexity here is brutal, but it's something that's in vanilla and need to keep this as close to it as possible for easier ports
+	// complexity here is brutal, but it's something that's in vanilla and need to keep this as close to it as possible for easier ports
 	@Override
 	protected void doClick(int slotId, int dragType, ClickType clickType, Player player) {
 		if (slotId >= getTotalSlotsNumber()) {
@@ -1111,7 +1134,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			} else if (quickcraftStatus == 1) {
 				Slot slot = getSlot(slotId);
 				ItemStack itemstack = getCarried();
-				if (StorageContainerMenuBase.canItemQuickReplace(slot, itemstack) && slot.mayPlace(itemstack) && (quickcraftType == 2 || itemstack.getCount() > quickcraftSlots.size()) && canDragTo(slot)) {
+				if (canItemQuickReplace(slot, itemstack) && slot.mayPlace(itemstack) && (quickcraftType == 2 || itemstack.getCount() > quickcraftSlots.size())
+						&& canDragTo(slot)) {
 					quickcraftSlots.add(slot);
 				}
 			} else if (quickcraftStatus == 2) {
@@ -1128,7 +1152,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 					for (Slot slot1 : quickcraftSlots) {
 						ItemStack itemstack1 = getCarried();
-						if (slot1 != null && StorageContainerMenuBase.canItemQuickReplace(slot1, itemstack1) && slot1.mayPlace(itemstack1) && (quickcraftType == 2 || itemstack1.getCount() >= quickcraftSlots.size()) && canDragTo(slot1)) {
+						if (slot1 != null && canItemQuickReplace(slot1, itemstack1) && slot1.mayPlace(itemstack1)
+								&& (quickcraftType == 2 || itemstack1.getCount() >= quickcraftSlots.size()) && canDragTo(slot1)) {
 							ItemStack carriedCopy = carried.copy();
 
 							int j = slot1.hasItem() ? slot1.getItem().getCount() : 0;
@@ -1137,7 +1162,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								slotStackLimit = carriedCopy.getMaxStackSize();
 							}
 
-							int l = Math.min(MathHelper.intMaxCappedAddition(getQuickCraftPlaceCount(slot1, quickcraftSlots.size(), quickcraftType, carriedCopy), j), slotStackLimit);
+							int l = Math.min(
+									MathHelper.intMaxCappedAddition(getQuickCraftPlaceCount(slot1, quickcraftSlots.size(), quickcraftType, carriedCopy), j),
+									slotStackLimit);
 							j1 -= l - j;
 							slot1.setByPlayer(carriedCopy.copyWithCount(l));
 						}
@@ -1179,7 +1206,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				} else {
 					Optional<UpgradeContainerBase<?, ?>> upgradeContainer = getSlotUpgradeContainer(slot6);
 					ItemStack itemstack8 = quickMoveStack(this.player, slotId);
-					int repeatedQuickMoveLimit = itemstack8.isEmpty() || upgradeContainer.isEmpty() ? 0 : upgradeContainer.get().getRepeatedQuickMoveLimit(slot6, itemstack8);
+					int repeatedQuickMoveLimit = itemstack8.isEmpty() || upgradeContainer.isEmpty()
+							? 0
+							: upgradeContainer.get().getRepeatedQuickMoveLimit(slot6, itemstack8);
 					if (repeatedQuickMoveLimit > 0) {
 						int i = 1;
 						while (!itemstack8.isEmpty() && ItemStack.isSameItemSameComponents(slot6.getItem(), itemstack8) && i < repeatedQuickMoveLimit) {
@@ -1230,7 +1259,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 								setCarried(slotStack);
 							}
 						} else if (ItemStack.isSameItemSameComponents(slotStack, carriedStack)) {
-							Optional<ItemStack> optional = slot7.tryRemove(slotStack.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(), player);
+							Optional<ItemStack> optional = slot7.tryRemove(slotStack.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(),
+									player);
 							optional.ifPresent((p_150428_) -> {
 								carriedStack.grow(p_150428_.getCount());
 								slot7.onTake(player, p_150428_);
@@ -1306,10 +1336,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				for (int k2 = 0; k2 < 2; ++k2) {
 					for (int k3 = k1; k3 >= 0 && k3 < getInventorySlotsSize() && carriedStack.getCount() < carriedStack.getMaxStackSize(); k3 += j2) {
 						Slot slot8 = getSlot(k3);
-						if (slot8.hasItem() && StorageContainerMenuBase.canItemQuickReplace(slot8, carriedStack) && slot8.mayPickup(player) && canTakeItemForPickAll(carriedStack, slot8)) {
+						if (slot8.hasItem() && canItemQuickReplace(slot8, carriedStack) && slot8.mayPickup(player)
+								&& canTakeItemForPickAll(carriedStack, slot8)) {
 							ItemStack itemstack12 = slot8.getItem();
 							if (k2 != 0 || itemstack12.getCount() != itemstack12.getMaxStackSize()) {
-								ItemStack itemstack13 = slot8.safeTake(itemstack12.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(), player);
+								ItemStack itemstack13 = slot8.safeTake(itemstack12.getCount(), carriedStack.getMaxStackSize() - carriedStack.getCount(),
+										player);
 								carriedStack.grow(itemstack13.getCount());
 							}
 						}
@@ -1319,9 +1351,11 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				k1 = dragType == 0 ? 0 : upgradeSlots.size() - 1;
 
 				for (int j = 0; j < 2; ++j) {
-					for (int upgradeSlotId = k1; upgradeSlotId >= 0 && upgradeSlotId < upgradeSlots.size() && carriedStack.getCount() < carriedStack.getMaxStackSize(); upgradeSlotId += j2) {
+					for (int upgradeSlotId = k1; upgradeSlotId >= 0 && upgradeSlotId < upgradeSlots.size()
+							&& carriedStack.getCount() < carriedStack.getMaxStackSize(); upgradeSlotId += j2) {
 						Slot upgradeSlot = upgradeSlots.get(upgradeSlotId);
-						if (upgradeSlot.hasItem() && StorageContainerMenuBase.canItemQuickReplace(upgradeSlot, carriedStack) && upgradeSlot.mayPickup(this.player) && canTakeItemForPickAll(carriedStack, upgradeSlot)) {
+						if (upgradeSlot.hasItem() && canItemQuickReplace(upgradeSlot, carriedStack) && upgradeSlot.mayPickup(this.player)
+								&& canTakeItemForPickAll(carriedStack, upgradeSlot)) {
 							ItemStack itemstack3 = upgradeSlot.getItem();
 							if (j != 0 || itemstack3.getCount() != itemstack3.getMaxStackSize()) {
 								int l = Math.min(carriedStack.getMaxStackSize() - carriedStack.getCount(), itemstack3.getCount());
@@ -1352,7 +1386,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public void removed(Player player) {
 		for (Slot slot : upgradeSlots) {
-			if (!(slot instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot) && isInventorySlotInUpgradeTab(player, slot) && shouldSlotItemBeDroppedFromStorage(slot)) {
+			if (!(slot instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot) && isInventorySlotInUpgradeTab(player, slot)
+					&& shouldSlotItemBeDroppedFromStorage(slot)) {
 				ItemStack slotStack = slot.getItem();
 				slot.set(ItemStack.EMPTY);
 				if (!player.addItem(slotStack)) {
@@ -1367,15 +1402,22 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	/**
-	 * @param sourceStack                    stack to merge
-	 * @param startIndex                     index to start at inclusive
-	 * @param endIndex                       index to end at exclusive
-	 * @param reverseDirection               whether to insert into slots in reverse direction
-	 * @param transferMaxStackSizeFromSource Whether to transfer max stack size even when stack size is expanded by stack upgrades
-	 * @param runOverflowLogic               whether to run overflow logic
+	 * @param sourceStack
+	 *            stack to merge
+	 * @param startIndex
+	 *            index to start at inclusive
+	 * @param endIndex
+	 *            index to end at exclusive
+	 * @param reverseDirection
+	 *            whether to insert into slots in reverse direction
+	 * @param transferMaxStackSizeFromSource
+	 *            Whether to transfer max stack size even when stack size is expanded by stack upgrades
+	 * @param runOverflowLogic
+	 *            whether to run overflow logic
 	 * @return remaining sourceStack after merge
 	 */
-	protected ItemStack mergeItemStack(ItemStack sourceStack, int startIndex, int endIndex, boolean reverseDirection, boolean transferMaxStackSizeFromSource, boolean runOverflowLogic) {
+	protected ItemStack mergeItemStack(ItemStack sourceStack, int startIndex, int endIndex, boolean reverseDirection, boolean transferMaxStackSizeFromSource,
+			boolean runOverflowLogic) {
 		int i = startIndex;
 		if (reverseDirection) {
 			i = endIndex - 1;
@@ -1396,31 +1438,39 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 				Slot slot = getSlot(i);
 				ItemStack destStack = slot.getItem();
-				if (!isUpgradeSlot(i) && !destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack)
-						&& slot.mayPlace(result)) { //Added to vanilla logic as some slots may not want anything to be added to them
-						int maxSize = slot.getMaxStackSize(result);
-						if (destStack.getCount() <= maxSize - toTransfer) {
-							result.shrink(toTransfer);
-							ItemStack copy = destStack.copy();
-							copy.setCount(destStack.getCount() + toTransfer);
-							slot.set(copy);
-							toTransfer = 0;
-							slot.setChanged();
-						} else if (destStack.getCount() < maxSize) {
-							result.shrink(maxSize - destStack.getCount());
-							toTransfer -= maxSize - destStack.getCount();
-							ItemStack copy = destStack.copy();
-							copy.setCount(maxSize);
-							slot.set(copy);
-							slot.setChanged();
-						}
+				if (!isUpgradeSlot(i) && !destStack.isEmpty() && ItemStack.isSameItemSameComponents(result, destStack) && slot.mayPlace(result)) { // Added to
+																																					// vanilla
+																																					// logic as
+																																					// some
+																																					// slots may
+																																					// not want
+																																					// anything
+																																					// to be
+																																					// added to
+																																					// them
+					int maxSize = slot.getMaxStackSize(result);
+					if (destStack.getCount() <= maxSize - toTransfer) {
+						result.shrink(toTransfer);
+						ItemStack copy = destStack.copy();
+						copy.setCount(destStack.getCount() + toTransfer);
+						slot.set(copy);
+						toTransfer = 0;
+						slot.setChanged();
+					} else if (destStack.getCount() < maxSize) {
+						result.shrink(maxSize - destStack.getCount());
+						toTransfer -= maxSize - destStack.getCount();
+						ItemStack copy = destStack.copy();
+						copy.setCount(maxSize);
+						slot.set(copy);
+						slot.setChanged();
+					}
 
-						if (runOverflowLogic && !result.isEmpty()) {
-							ItemStack overflowResult = processOverflowLogic(result);
-							if (overflowResult != result) {
-								result.setCount(overflowResult.getCount());
-							}
+					if (runOverflowLogic && !result.isEmpty()) {
+						ItemStack overflowResult = processOverflowLogic(result);
+						if (overflowResult != result) {
+							result.setCount(overflowResult.getCount());
 						}
+					}
 				}
 
 				if (reverseDirection) {
@@ -1533,7 +1583,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return mergeItemStack(sourceSlot, stack, startIndex, endIndex, reverseDirection, false);
 	}
 
-	protected boolean mergeItemStack(Slot sourceSlot, ItemStack sourceStack, int startIndex, int endIndex, boolean reverseDirection, boolean transferMaxStackSizeFromSource) {
+	protected boolean mergeItemStack(Slot sourceSlot, ItemStack sourceStack, int startIndex, int endIndex, boolean reverseDirection,
+			boolean transferMaxStackSizeFromSource) {
 		ItemStack remaining = mergeItemStack(sourceStack, startIndex, endIndex, reverseDirection, transferMaxStackSizeFromSource, false);
 		if (remaining.getCount() != sourceStack.getCount()) {
 			sourceSlot.set(remaining);
@@ -1615,12 +1666,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		initialBroadcast = false;
 	}
 
-
 	public Optional<ItemStack> getVisibleStorageItem() {
 		return storageItemSlotNumber != -1 ? Optional.of(getSlot(storageItemSlotNumber).getItem()) : Optional.empty();
 	}
 
-	private void broadcastChangesIn(NonNullList<ItemStack> lastSlotsCollection, NonNullList<RemoteSlot> remoteSlotsCollection, List<Slot> slotsCollection, int slotIndexOffset) {
+	private void broadcastChangesIn(NonNullList<ItemStack> lastSlotsCollection, NonNullList<RemoteSlot> remoteSlotsCollection, List<Slot> slotsCollection,
+			int slotIndexOffset) {
 		for (int i = 0; i < slotsCollection.size(); ++i) {
 			Slot slot = slotsCollection.get(i);
 			ItemStack itemstack = slot.getItem();
@@ -1630,7 +1681,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		}
 	}
 
-	private void synchronizeSlotToRemote(int slotIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy, NonNullList<RemoteSlot> remoteSlotsCollection, int slotIndexOffset) {
+	private void synchronizeSlotToRemote(int slotIndex, ItemStack slotStack, Supplier<ItemStack> slotStackCopy, NonNullList<RemoteSlot> remoteSlotsCollection,
+			int slotIndexOffset) {
 		if (!suppressRemoteUpdates) {
 			RemoteSlot remoteSlot = remoteSlotsCollection.get(slotIndex);
 			if (!remoteSlot.matches(slotStack)) {
@@ -1709,12 +1761,13 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	protected void onUpgradesChanged() {
 		if (upgradeChangeListener != null) {
-			upgradeChangeListener.accept(StorageContainerMenuBase.this);
+			upgradeChangeListener.accept(this);
 		}
 	}
 
 	@Override
-	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) {
+	public void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides,
+			Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems) {
 		this.inaccessibleSlots.clear();
 		this.inaccessibleSlots.addAll(inaccessibleSlots);
 
@@ -1788,7 +1841,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected void onUpgradeChanged() {
-		//noop by default
+		// noop by default
 	}
 
 	public class StorageUpgradeSlot extends StackCopySlot {
@@ -1829,13 +1882,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 			}
 
-			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.level().isClientSide(), player);
+			UpgradeSlotChangeResult result = ((IUpgradeItem<?>) getItem().getItem()).canRemoveUpgradeFrom(storageWrapper, player.level().isClientSide(),
+					player);
 			if (result.successful() && upgradeContainers.containsKey(slotIndex)) {
-				Set<Integer> errorUpgradeSlots = upgradeContainers.get(slotIndex).getSlots()
-						.stream().filter(slot -> !(slot instanceof IFilterSlot) && shouldSlotItemBeDroppedFromStorage(slot))
+				Set<Integer> errorUpgradeSlots = upgradeContainers.get(slotIndex).getSlots().stream()
+						.filter(slot -> !(slot instanceof IFilterSlot) && shouldSlotItemBeDroppedFromStorage(slot))
 						.map(slot -> slot.getSlotIndex() + getNumberOfUpgradeSlots()).collect(Collectors.toSet());
 				if (!errorUpgradeSlots.isEmpty()) {
-					result = UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.banned_item"), errorUpgradeSlots, Collections.emptySet(), Collections.emptySet());
+					result = UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("remove.banned_item"), errorUpgradeSlots,
+							Collections.emptySet(), Collections.emptySet());
 				}
 			}
 			updateSlotChangeError(result);
@@ -1845,7 +1900,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		@Nullable
 		@Override
 		public Identifier getNoItemIcon() {
-			return StorageContainerMenuBase.EMPTY_UPGRADE_SLOT_BACKGROUND;
+			return EMPTY_UPGRADE_SLOT_BACKGROUND;
 		}
 
 		@Override
@@ -1886,7 +1941,8 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				} else if (container == null || container.getUpgradeWrapper().isEnabled() != slotWrapper.getValue().isEnabled()) {
 					return ReloadCheckResult.RELOAD_NEEDED;
 				} else if (container.getUpgradeWrapper() != slotWrapper.getValue()) {
-					if (!player.level().isClientSide() || container.getUpgradeWrapper().getUpgradeStack().getItem() != slotWrapper.getValue().getUpgradeStack().getItem()) {
+					if (!player.level().isClientSide()
+							|| container.getUpgradeWrapper().getUpgradeStack().getItem() != slotWrapper.getValue().getUpgradeStack().getItem()) {
 						if (container.getUpgradeWrapper().getUpgradeStack().getItem() == slotWrapper.getValue().getUpgradeStack().getItem()) {
 							return ReloadCheckResult.RELOAD_NEEDED_KEEP_TAB;
 						} else {
@@ -1928,8 +1984,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 		@Override
 		public boolean isSameInventory(Slot other) {
-			return other instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot otherSlot
-					&& otherSlot.getResourceHandler() == getResourceHandler();
+			return other instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot otherSlot && otherSlot.getResourceHandler() == getResourceHandler();
 		}
 	}
 }

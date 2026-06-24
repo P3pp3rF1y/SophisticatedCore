@@ -8,7 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 public interface IAdditionalSlotInfoMenu {
-	void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides, Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems);
+	void updateAdditionalSlotInfo(Set<Integer> inaccessibleSlots, Set<Integer> inaccessibleSlotsWithoutOverlay, Map<Integer, Integer> slotLimitOverrides,
+			Set<Integer> infiniteSlots, Map<Integer, Holder<Item>> slotFilterItems);
 
 	void updateEmptySlotIcons(Map<Identifier, Set<Integer>> emptySlotIcons);
 }

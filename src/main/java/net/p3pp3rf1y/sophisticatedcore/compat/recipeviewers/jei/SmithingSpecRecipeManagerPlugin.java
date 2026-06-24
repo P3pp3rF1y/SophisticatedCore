@@ -36,17 +36,13 @@ public class SmithingSpecRecipeManagerPlugin implements ISimpleRecipeManagerPlug
 	@Override
 	public List<RecipeHolder<SmithingRecipe>> getRecipesForInput(ITypedIngredient<?> input) {
 		ItemStack stack = input.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-		return catalogSupplier.get().getSmithingUsagesFor(stack).stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
-				.toList();
+		return catalogSupplier.get().getSmithingUsagesFor(stack).stream().flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder)).toList();
 	}
 
 	@Override
 	public List<RecipeHolder<SmithingRecipe>> getRecipesForOutput(ITypedIngredient<?> output) {
 		ItemStack stack = output.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY);
-		return catalogSupplier.get().getSmithingRecipesFor(stack).stream()
-				.flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder))
-				.toList();
+		return catalogSupplier.get().getSmithingRecipesFor(stack).stream().flatMap(view -> view.variants().stream().map(view.spec()::recipeHolder)).toList();
 	}
 
 	@Override

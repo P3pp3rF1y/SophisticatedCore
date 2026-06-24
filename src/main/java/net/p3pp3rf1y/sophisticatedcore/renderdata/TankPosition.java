@@ -9,8 +9,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Locale;
 
 public enum TankPosition implements StringRepresentable {
-	LEFT,
-	RIGHT;
+	LEFT, RIGHT;
 
 	public static final Codec<TankPosition> CODEC = StringRepresentable.fromEnum(TankPosition::values);
 	public static final StreamCodec<FriendlyByteBuf, TankPosition> STREAM_CODEC = NeoForgeStreamCodecs.enumCodec(TankPosition.class);

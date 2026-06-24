@@ -29,7 +29,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.function.Consumer;
 
 public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrapper, BatteryUpgradeItem>
-		implements IRenderedBatteryUpgrade, EnergyHandler, ITickableUpgrade, IStackableContentsUpgrade {
+		implements
+			IRenderedBatteryUpgrade,
+			EnergyHandler,
+			ITickableUpgrade,
+			IStackableContentsUpgrade {
 	public static final int INPUT_SLOT = 0;
 	public static final int OUTPUT_SLOT = 1;
 	private Consumer<RenderData.BatteryRenderData> updateBatteryRenderDataCallback;

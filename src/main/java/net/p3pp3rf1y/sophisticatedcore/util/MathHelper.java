@@ -1,7 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 public class MathHelper {
-	private MathHelper() {}
+	private MathHelper() {
+	}
 
 	private static final float EPSILON = 1e-6f;
 

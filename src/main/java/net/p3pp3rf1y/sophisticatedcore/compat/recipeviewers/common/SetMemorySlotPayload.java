@@ -14,12 +14,8 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 
 public record SetMemorySlotPayload(ItemStack stack, int slotNumber) implements CustomPacketPayload {
 	public static final Type<SetMemorySlotPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("set_memory_slot"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, SetMemorySlotPayload> STREAM_CODEC = StreamCodec.composite(
-			ItemStack.STREAM_CODEC,
-			SetMemorySlotPayload::stack,
-			ByteBufCodecs.INT,
-			SetMemorySlotPayload::slotNumber,
-			SetMemorySlotPayload::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, SetMemorySlotPayload> STREAM_CODEC = StreamCodec.composite(ItemStack.STREAM_CODEC,
+			SetMemorySlotPayload::stack, ByteBufCodecs.INT, SetMemorySlotPayload::slotNumber, SetMemorySlotPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

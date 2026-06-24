@@ -37,15 +37,9 @@ public class ReiRecipeDisplayGenerator implements IRecipeDisplayGenerator<Displa
 	public IRecipeDisplayBuilder smithing(Optional<Ingredient> template, Ingredient base, Optional<Ingredient> addition, ItemStack result) {
 		return id -> {
 			registry.add(new DefaultSmithingDisplay(
-					List.of(
-							template.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty()),
-							EntryIngredients.ofIngredient(base),
-							addition.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty())
-					),
-					List.of(EntryIngredients.of(result)),
-					Optional.of(SmithingDisplay.SmithingRecipeType.TRANSFORM),
-					Optional.of(id.identifier())
-			));
+					List.of(template.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty()), EntryIngredients.ofIngredient(base),
+							addition.map(EntryIngredients::ofIngredient).orElse(EntryIngredient.empty())),
+					List.of(EntryIngredients.of(result)), Optional.of(SmithingDisplay.SmithingRecipeType.TRANSFORM), Optional.of(id.identifier())));
 		};
 	}
 }

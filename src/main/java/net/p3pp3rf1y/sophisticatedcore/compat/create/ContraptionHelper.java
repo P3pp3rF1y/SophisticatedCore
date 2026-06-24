@@ -7,8 +7,8 @@ import com.simibubi.create.content.contraptions.MountedStorageManager;
 import com.simibubi.create.content.trains.entity.CarriageContraption;
 import net.minecraft.core.BlockPos;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
-
 import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,7 +20,8 @@ public class ContraptionHelper {
 		}
 
 		Map<BlockPos, MountedItemStorage> primaryStorages = contraptionEntity.getContraption().getStorage().getAllItemStorages();
-		if (!contraptionEntity.level().isClientSide() || !(contraptionEntity.getContraption() instanceof CarriageContraption carriageContraption) || CONTRAPTION_STORAGE == null) {
+		if (!contraptionEntity.level().isClientSide() || !(contraptionEntity.getContraption() instanceof CarriageContraption carriageContraption)
+				|| CONTRAPTION_STORAGE == null) {
 			return primaryStorages;
 		}
 
@@ -48,7 +49,8 @@ public class ContraptionHelper {
 			return mountedStorage;
 		}
 
-		if (contraptionEntity.level().isClientSide() && contraptionEntity.getContraption() instanceof CarriageContraption carriageContraption && CONTRAPTION_STORAGE != null) {
+		if (contraptionEntity.level().isClientSide() && contraptionEntity.getContraption() instanceof CarriageContraption carriageContraption
+				&& CONTRAPTION_STORAGE != null) {
 			MountedItemStorage fallbackStorage = getContraptionStorageFromField(carriageContraption).getAllItemStorages().get(localPos);
 			if (fallbackStorage instanceof MountedStorageBase mountedStorage) {
 				return mountedStorage;

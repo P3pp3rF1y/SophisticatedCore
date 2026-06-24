@@ -46,7 +46,7 @@ class StackUpgradeItemTest {
 
 		Assertions.assertFalse(result.successful());
 		TranslatableContents contents = Assertions.assertInstanceOf(TranslatableContents.class, result.errorMessage().getContents());
-		Assertions.assertArrayEquals(new Object[] {1}, contents.getArgs());
+		Assertions.assertArrayEquals(new Object[]{1}, contents.getArgs());
 	}
 
 	private static StackUpgradeItem.Wrapper stackUpgradeWrapper(double stackSizeMultiplier) {

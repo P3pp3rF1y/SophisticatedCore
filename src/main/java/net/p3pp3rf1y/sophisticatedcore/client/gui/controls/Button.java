@@ -65,7 +65,7 @@ public class Button extends ButtonBase {
 
 	@Override
 	public void updateNarration(NarrationElementOutput narrationElementOutput) {
-		//TODO add narration
+		// TODO add narration
 	}
 
 	public void setTooltip(List<Component> tooltip) {

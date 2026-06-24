@@ -12,9 +12,8 @@ public class OpenPACCompat implements ICompat {
 	public void setup() {
 		WorldHelper.addAdditionalInteractionCheck((player, pos) -> {
 			if (player.level() instanceof ServerLevel serverLevel) {
-				return !OpenPACServerAPI.get(serverLevel.getServer())
-						.getChunkProtection()
-						.onBlockInteraction(player, InteractionHand.MAIN_HAND, null, serverLevel, pos, Direction.UP, false, false, false);
+				return !OpenPACServerAPI.get(serverLevel.getServer()).getChunkProtection().onBlockInteraction(player, InteractionHand.MAIN_HAND, null,
+						serverLevel, pos, Direction.UP, false, false, false);
 			}
 			return true;
 		});

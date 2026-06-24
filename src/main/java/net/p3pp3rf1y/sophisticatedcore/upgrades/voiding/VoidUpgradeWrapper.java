@@ -22,7 +22,12 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, VoidUpgradeItem>
-		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade, IOverflowResponseUpgrade {
+		implements
+			IInsertResponseUpgrade,
+			IFilteredUpgrade,
+			ISlotChangeResponseUpgrade,
+			ITickableUpgrade,
+			IOverflowResponseUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
 	private VoidType voidType;
@@ -37,7 +42,7 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 		setVoidOverflowDefaultOrLoadFromNbt(VoidType.ALWAYS);
 	}
 
-	//TODO remove in or after 26.1
+	// TODO remove in or after 26.1
 	private void setFromLegacyComponent() {
 		if (upgrade.has(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW)) {
 			VoidType migratedVoidType = upgrade.get(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW) ? VoidType.SLOT_OVERFLOW : VoidType.ALWAYS;
@@ -170,7 +175,8 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, stack);
 		}
 
-		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(), stackKey -> stacksMatchForOverflow(stack, stackKey.stack()));
+		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(),
+				stackKey -> stacksMatchForOverflow(stack, stackKey.stack()));
 	}
 
 	@Override
@@ -179,7 +185,8 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return IOverflowResponseUpgrade.super.hasSlotOverflowMatch(inventoryHandler, resource);
 		}
 
-		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(), stackKey -> stacksMatchForOverflow(resource, stackKey.stack()));
+		return hasOverflowMatch(inventoryHandler.getSlotTracker().getFullStacks(), inventoryHandler.getSlotTracker().getPartialStacks(),
+				stackKey -> stacksMatchForOverflow(resource, stackKey.stack()));
 	}
 
 	static boolean hasOverflowMatch(Set<ItemStackKey> fullStacks, Set<ItemStackKey> partialStacks, Predicate<ItemStackKey> stackMatcher) {
@@ -207,7 +214,8 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return false;
 		}
 
-		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack.isEmpty(), stack.getComponents(), matchingStack.isEmpty(), matchingStack.getComponents());
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(stack.isEmpty(), stack.getComponents(),
+				matchingStack.isEmpty(), matchingStack.getComponents());
 	}
 
 	private boolean stacksMatchForOverflow(ItemResource resource, ItemStack matchingStack) {
@@ -219,7 +227,8 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			return false;
 		}
 
-		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(resource.isEmpty(), resource.getComponents(), matchingStack.isEmpty(), matchingStack.getComponents());
+		return !filterLogic.shouldMatchComponents() || ItemStackHelper.areItemStackComponentsEqualIgnoreDurability(resource.isEmpty(), resource.getComponents(),
+				matchingStack.isEmpty(), matchingStack.getComponents());
 	}
 
 	public boolean isVoidAlwaysEnabled() {

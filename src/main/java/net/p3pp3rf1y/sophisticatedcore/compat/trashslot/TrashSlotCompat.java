@@ -17,11 +17,11 @@ public class TrashSlotCompat implements ICompat {
 
 	@Override
 	public void setup() {
-		//noop
+		// noop
 	}
 
 	private void onLoadComplete(FMLLoadCompleteEvent event) {
-		event.enqueueWork(() ->	TrashSlotScreenRegistry.getRegisteredScreens()
+		event.enqueueWork(() -> TrashSlotScreenRegistry.getRegisteredScreens()
 				.forEach(screenClass -> TrashSlotAPI.registerLayout(screenClass, SophisticatedContainerLayout.INSTANCE)));
 	}
 }

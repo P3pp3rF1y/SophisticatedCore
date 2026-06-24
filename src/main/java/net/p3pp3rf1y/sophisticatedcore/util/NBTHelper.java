@@ -18,9 +18,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class NBTHelper {
-		private NBTHelper() {
+	private NBTHelper() {
 	}
-
 
 	public static Optional<Integer> getInt(CompoundTag tag, String key) {
 		return getTagValue(tag, key, CompoundTag::getInt);
@@ -46,7 +45,8 @@ public class NBTHelper {
 		return getValue.apply(tag, key);
 	}
 
-	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, Function<Tag, Optional<E>> getElement,
+			Supplier<C> initCollection) {
 		return getTagValue(tag, key, CompoundTag::getList).map(listNbt -> {
 			C ret = initCollection.get();
 			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
@@ -90,7 +90,8 @@ public class NBTHelper {
 		return getMap(tag, key, getKey, getValue, HashMap::new);
 	}
 
-	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue, Supplier<Map<K, V>> initMap) {
+	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue,
+			Supplier<Map<K, V>> initMap) {
 		return tag.getCompound(key).map(mapNbt -> {
 			Map<K, V> map = initMap.get();
 
@@ -118,10 +119,9 @@ public class NBTHelper {
 
 	public static Optional<Tag> serializeStackToTag(ItemStack stack) {
 		return RegistryHelper.getRegistryAccess().map(registries -> {
-					RegistryOps<Tag> registryops = registries.createSerializationContext(NbtOps.INSTANCE);
-					return ItemStack.OPTIONAL_CODEC.encodeStart(registryops, stack).getOrThrow();
-				}
-		);
+			RegistryOps<Tag> registryops = registries.createSerializationContext(NbtOps.INSTANCE);
+			return ItemStack.OPTIONAL_CODEC.encodeStart(registryops, stack).getOrThrow();
+		});
 	}
 
 	public static Optional<ItemStack> deserializeStackFromTag(Tag tag) {

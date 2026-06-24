@@ -13,10 +13,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.RecentCraftedResu
 
 public record SyncRecentCraftedResultsPayload(CompoundTag recentResults) implements CustomPacketPayload {
 	public static final Type<SyncRecentCraftedResultsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("sync_recent_crafted_results"));
-	public static final StreamCodec<ByteBuf, SyncRecentCraftedResultsPayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.COMPOUND_TAG,
-			SyncRecentCraftedResultsPayload::recentResults,
-			SyncRecentCraftedResultsPayload::new);
+	public static final StreamCodec<ByteBuf, SyncRecentCraftedResultsPayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.COMPOUND_TAG,
+			SyncRecentCraftedResultsPayload::recentResults, SyncRecentCraftedResultsPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

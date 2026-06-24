@@ -23,10 +23,10 @@ public class ModCompat {
 
 	public static void register() {
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.JEI), () -> modBus -> new JeiCompat());
-		//TODO reenable when emi updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
-		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.EMI), () -> modBus -> new EmiCompat());
-		//TODO reenable when rei updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
-		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.REI), () -> modBus -> new ReiCompat());
+		// TODO reenable when emi updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
+		// CompatRegistry.registerCompat(new CompatInfo(CompatModIds.EMI), () -> modBus -> new EmiCompat());
+		// TODO reenable when rei updates, also uncomment in Chipped and Sawmill compats, also reenable in all other mods
+		// CompatRegistry.registerCompat(new CompatInfo(CompatModIds.REI), () -> modBus -> new ReiCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.CRAFTING_TWEAKS), () -> modBus -> new CraftingTweaksCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.INVENTORY_SORTER), () -> modBus -> new InventorySorterCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.ITEM_BORDERS), () -> mobBus -> new ItemBordersCompat());
@@ -39,6 +39,6 @@ public class ModCompat {
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.OPEN_PARTIES_AND_CLAIMS_CHUNKS), () -> mobBus -> new OpenPACCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.IRIS), () -> mobBus -> new IrisCompat());
 		CompatRegistry.registerCompat(new CompatInfo(CompatModIds.ACCESSORIES), () -> mobBus -> new AccessoriesCompat());
-		//CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
+		// CompatRegistry.registerCompat(new CompatInfo(CompatModIds.QUARK, null), QuarkCompat::new); //TODO readd quark compat
 	}
 }

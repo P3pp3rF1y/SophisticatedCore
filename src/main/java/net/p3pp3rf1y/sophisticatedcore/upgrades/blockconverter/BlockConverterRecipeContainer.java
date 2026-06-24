@@ -3,8 +3,8 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter;
 import com.google.common.collect.Lists;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -53,7 +53,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	private long lastOnTake = -1;
 	private final SoundEvent craftSound;
 
-	public BlockConverterRecipeContainer(C upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level, SoundEvent craftSound) {
+	public BlockConverterRecipeContainer(C upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable,
+			Level level, SoundEvent craftSound) {
 		this.upgradeContainer = upgradeContainer;
 		this.level = level;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
@@ -185,7 +186,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 
 	private void updateClientRecentResults(ItemStack ingredient) {
 		if (level.isClientSide()) {
-			updateRecentResultItems(ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
+			updateRecentResultItems(
+					ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
 		}
 	}
 
@@ -229,7 +231,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 
 		@Override
 		public void onTake(Player player, ItemStack stack) {
-			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(), getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
+			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(),
+					getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
 				if (player instanceof ServerPlayer serverPlayer) {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}

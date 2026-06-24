@@ -79,7 +79,8 @@ public class BlockTransformationUpgradeWrapper extends UpgradeWrapperBase<BlockT
 	}
 
 	public ItemStack extractFromStorage(ItemStack stack, boolean simulate) {
-		int extracted = simulate ? InventoryHelper.simulateExtractExact(storageWrapper.getInventoryHandler(), ItemResource.of(stack), stack.getCount())
+		int extracted = simulate
+				? InventoryHelper.simulateExtractExact(storageWrapper.getInventoryHandler(), ItemResource.of(stack), stack.getCount())
 				: InventoryHelper.extract(storageWrapper.getInventoryHandler(), ItemResource.of(stack), stack.getCount());
 		return extracted == 0 ? ItemStack.EMPTY : stack.copyWithCount(extracted);
 	}

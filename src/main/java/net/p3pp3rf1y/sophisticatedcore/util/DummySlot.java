@@ -18,11 +18,11 @@ public class DummySlot extends Slot {
 
 	@Override
 	public void set(ItemStack p_40240_) {
-		//noop
+		// noop
 	}
 
 	@Override
 	public void setChanged() {
-		//noop
+		// noop
 	}
 }

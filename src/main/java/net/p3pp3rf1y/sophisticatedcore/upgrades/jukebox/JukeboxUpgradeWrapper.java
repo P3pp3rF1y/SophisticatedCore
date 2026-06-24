@@ -133,16 +133,15 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 			return;
 		}
 
-		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-				DiscHandlerRegistry.findHandler(disc).ifPresent(handler -> {
-					if (entityPlaying != null) {
-						handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
-					} else {
-						handler.playDisc(serverLevel, posPlaying, storageUuid, disc, onFinishedCallback);
-					}
-            		handler.getMusicLengthInTicks(disc, level).ifPresent(lengthInTicks -> upgrade.set(ModCoreDataComponents.DISC_FINISH_TIME, level.getGameTime() + lengthInTicks));
-				})
-		);
+		storageWrapper.getContentsUuid().ifPresent(storageUuid -> DiscHandlerRegistry.findHandler(disc).ifPresent(handler -> {
+			if (entityPlaying != null) {
+				handler.playDisc(serverLevel, entityPlaying.position(), storageUuid, disc, entityPlaying.getId(), onFinishedCallback);
+			} else {
+				handler.playDisc(serverLevel, posPlaying, storageUuid, disc, onFinishedCallback);
+			}
+			handler.getMusicLengthInTicks(disc, level)
+					.ifPresent(lengthInTicks -> upgrade.set(ModCoreDataComponents.DISC_FINISH_TIME, level.getGameTime() + lengthInTicks));
+		}));
 		setIsPlaying(true);
 	}
 
@@ -176,9 +175,7 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (!(entity.level() instanceof ServerLevel)) {
 			return;
 		}
-		storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-				ServerStorageSoundHandler.stopPlayingDisc(entity.level(), entity.position(), storageUuid)
-		);
+		storageWrapper.getContentsUuid().ifPresent(storageUuid -> ServerStorageSoundHandler.stopPlayingDisc(entity.level(), entity.position(), storageUuid));
 		setIsPlaying(false);
 		upgrade.remove(ModCoreDataComponents.DISC_FINISH_TIME);
 		setDiscSlotActive(-1);
@@ -208,9 +205,8 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 
 		if (isPlaying && lastKeepAliveSendTime < level.getGameTime() - KEEP_ALIVE_SEND_INTERVAL) {
 			Vec3 soundPosition = entity != null ? entity.position() : Vec3.atCenterOf(pos);
-			storageWrapper.getContentsUuid().ifPresent(storageUuid ->
-					ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, soundPosition, () -> setIsPlaying(false))
-			);
+			storageWrapper.getContentsUuid()
+					.ifPresent(storageUuid -> ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, soundPosition, () -> setIsPlaying(false)));
 			lastKeepAliveSendTime = level.getGameTime();
 		}
 	}

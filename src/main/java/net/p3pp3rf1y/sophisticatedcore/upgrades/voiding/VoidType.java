@@ -10,9 +10,7 @@ import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import java.util.Map;
 
 public enum VoidType implements StringRepresentable {
-	ALWAYS("always"),
-	SLOT_OVERFLOW("slot_overflow"),
-	STORAGE_OVERFLOW("storage_overflow");
+	ALWAYS("always"), SLOT_OVERFLOW("slot_overflow"), STORAGE_OVERFLOW("storage_overflow");
 
 	private final String name;
 	VoidType(String name) {
@@ -36,7 +34,7 @@ public enum VoidType implements StringRepresentable {
 
 	static {
 		ImmutableMap.Builder<String, VoidType> builder = new ImmutableMap.Builder<>();
-		for (VoidType value : VoidType.values()) {
+		for (VoidType value : values()) {
 			builder.put(value.getSerializedName(), value);
 		}
 		NAME_VALUES = builder.build();

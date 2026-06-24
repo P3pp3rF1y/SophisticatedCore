@@ -22,14 +22,12 @@ import java.util.function.Function;
 public final class PlayerMainSettingsSavedData extends SavedData {
 	public static final String FILE_ID = SophisticatedCore.MOD_ID + "-player-main-settings";
 	private static final SavedDataType<PlayerMainSettingsSavedData> TYPE = new SavedDataType<>(FILE_ID, PlayerMainSettingsSavedData::new,
-			RecordCodecBuilder.create(instance ->
-					instance.group(
-							Codec.unboundedMap(
-									CodecHelper.STRING_ENCODED_UUID,
-									Codec.unboundedMap(Codec.STRING, MainSettingsCategoryData.CODEC).xmap(CodecHelper::toMutable, Function.identity())
-							).xmap(CodecHelper::toMutable, Function.identity()).fieldOf("data").forGetter(savedData -> savedData.data)
-					).apply(instance, PlayerMainSettingsSavedData::new))
-	);
+			RecordCodecBuilder.create(instance -> instance
+					.group(Codec
+							.unboundedMap(CodecHelper.STRING_ENCODED_UUID,
+									Codec.unboundedMap(Codec.STRING, MainSettingsCategoryData.CODEC).xmap(CodecHelper::toMutable, Function.identity()))
+							.xmap(CodecHelper::toMutable, Function.identity()).fieldOf("data").forGetter(savedData -> savedData.data))
+					.apply(instance, PlayerMainSettingsSavedData::new)));
 	private static final PlayerMainSettingsSavedData clientDataCopy = new PlayerMainSettingsSavedData();
 
 	private final Map<UUID, Map<String, MainSettingsCategoryData>> data;
@@ -47,7 +45,7 @@ public final class PlayerMainSettingsSavedData extends SavedData {
 			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 			if (server != null) {
 				ServerLevel overworld = server.getLevel(Level.OVERWORLD);
-				//noinspection ConstantConditions - by this time overworld is loaded
+				// noinspection ConstantConditions - by this time overworld is loaded
 				DimensionDataStorage storage = overworld.getDataStorage();
 				return storage.computeIfAbsent(TYPE);
 			}

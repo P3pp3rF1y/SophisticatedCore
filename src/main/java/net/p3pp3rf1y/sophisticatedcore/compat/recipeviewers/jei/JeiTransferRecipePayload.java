@@ -20,23 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 public record JeiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, Identifier recipeTypeId, Map<Integer, Integer> matchingItems,
-									   List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes,
-									   boolean maxTransfer) implements CustomPacketPayload {
+		List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes, boolean maxTransfer) implements CustomPacketPayload {
 	public static final Type<JeiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("jei_transfer_recipe"));
-	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(
-			ResourceKey.streamCodec(Registries.RECIPE),
-			JeiTransferRecipePayload::recipeId,
-			Identifier.STREAM_CODEC,
-			JeiTransferRecipePayload::recipeTypeId,
-			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new),
-			JeiTransferRecipePayload::matchingItems,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			JeiTransferRecipePayload::craftingSlotIndexes,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			JeiTransferRecipePayload::inventorySlotIndexes,
-			ByteBufCodecs.BOOL,
-			JeiTransferRecipePayload::maxTransfer,
-			JeiTransferRecipePayload::new);
+	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(ResourceKey.streamCodec(Registries.RECIPE),
+			JeiTransferRecipePayload::recipeId, Identifier.STREAM_CODEC, JeiTransferRecipePayload::recipeTypeId,
+			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new), JeiTransferRecipePayload::matchingItems,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
+			JeiTransferRecipePayload::inventorySlotIndexes, ByteBufCodecs.BOOL, JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

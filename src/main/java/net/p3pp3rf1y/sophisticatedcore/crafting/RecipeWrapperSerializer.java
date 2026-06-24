@@ -51,4 +51,3 @@ public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & 
 		return this.streamCodec;
 	}
 }
-

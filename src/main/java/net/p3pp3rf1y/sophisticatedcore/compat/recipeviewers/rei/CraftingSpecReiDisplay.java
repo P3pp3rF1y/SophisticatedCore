@@ -36,7 +36,9 @@ public class CraftingSpecReiDisplay extends DefaultCraftingDisplay {
 
 	@Override
 	public int getInputWidth(int craftingWidth, int craftingHeight) {
-		return spec.shapeless() ? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3) : spec.width();
+		return spec.shapeless()
+				? craftingWidth * craftingHeight <= getInputEntries().size() ? craftingWidth : Math.min(getInputEntries().size(), 3)
+				: spec.width();
 	}
 
 	@Override

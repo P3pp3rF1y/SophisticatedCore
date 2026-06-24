@@ -6,9 +6,11 @@ import java.util.function.Function;
 
 public class Easing {
 	public static final Easing EASE_IN_CUBIC = new Easing(number -> number * number * number);
-	public static final Easing EASE_IN_OUT_CUBIC = new Easing(number -> (float) (number < 0.5 ? 4 * number * number * number : (1 - Math.pow(-2 * number + 2, 3) / 2)));
+	public static final Easing EASE_IN_OUT_CUBIC = new Easing(
+			number -> (float) (number < 0.5 ? 4 * number * number * number : (1 - Math.pow(-2 * number + 2, 3) / 2)));
 	public static final Easing EASE_OUT_CUBIC = new Easing(number -> (float) (1f - Math.pow(1 - number, 3)));
-	public static final Easing EASE_IN_OUT_QUINT = new Easing(number -> (float) (number < 0.5 ? 16 * Math.pow(number, 5) : (1 - Math.pow(-2 * number + 2, 5) / 2)));
+	public static final Easing EASE_IN_OUT_QUINT = new Easing(
+			number -> (float) (number < 0.5 ? 16 * Math.pow(number, 5) : (1 - Math.pow(-2 * number + 2, 5) / 2)));
 	public static final Easing EASE_IN_CUBIC_OUT_QUINT = new Easing(number -> {
 		number = Mth.clamp(number, 0f, 1f);
 
