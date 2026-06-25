@@ -1043,9 +1043,16 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public void setRemoteSlot(int slotIndex, ItemStack stack) {
 		if (slotIndex < getInventorySlotsSize()) {
+			if (slotIndex < 0 || slotIndex >= remoteSlots.size()) {
+				return;
+			}
 			remoteSlots.set(slotIndex, stack.copy());
 		} else {
-			remoteUpgradeSlots.set(slotIndex - getInventorySlotsSize(), stack.copy());
+			int upgradeSlotIndex = slotIndex - getInventorySlotsSize();
+			if (upgradeSlotIndex < 0 || upgradeSlotIndex >= remoteUpgradeSlots.size()) {
+				return;
+			}
+			remoteUpgradeSlots.set(upgradeSlotIndex, stack.copy());
 		}
 	}
 
