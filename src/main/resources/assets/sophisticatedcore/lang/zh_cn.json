@@ -263,7 +263,7 @@
   "gui.sophisticatedcore.settings.message.export_template": "已导出设置至%s",
   "gui.sophisticatedcore.settings.message.export_template.empty_name": "文件名不能为空",
   "gui.sophisticatedcore.settings.message.export_template.invalid_characters": "文件名包含无效字符：%s",
-  "gui.sophisticatedcore.error.remove.stack_low_multiplier": "堆叠倍数必须大于%s",
+  "gui.sophisticatedcore.error.remove.stack_low_multiplier": "至少有一个槽位或升级需要的堆叠上限大于%s",
   "gui.sophisticatedcore.error.add.needs_occupied_inventory_slots": "物品至多在最后%s格，需要给%s预留空间",
   "gui.sophisticatedcore.error.add.two_tank_upgrades_present": "其他升级插槽中已存在2个储罐升级",
   "gui.sophisticatedcore.error.add.tank_capacity_high": "背包没有空间加装储罐升级，升级背包或提高堆叠倍数至%s",
