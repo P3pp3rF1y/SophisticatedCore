@@ -1098,14 +1098,20 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	public boolean hasMatchingFilter(ItemStack stack) {
+		try (Transaction tx = Transaction.openRoot()) {
+			return hasMatchingFilter(stack, tx);
+		}
+	}
+
+	public boolean hasMatchingFilter(ItemStack stack, TransactionContext tx) {
 		ItemResource resource = ItemResource.of(stack);
 		Set<BlockPos> positionsCopy = new LinkedHashSet<>(filteredInputStorages);
 		for (BlockPos storagePos : positionsCopy) {
 			if (!emptySlotsStorages.contains(storagePos)) {
 				continue;
 			}
-			try (Transaction tx = Transaction.openRoot()) {
-				if (insertIntoStorage(storagePos, resource, 1, tx) == 1) {
+			try (Transaction nestedTx = Transaction.open(tx)) {
+				if (insertIntoStorage(storagePos, resource, 1, nestedTx) == 1) {
 					return true;
 				}
 			}
