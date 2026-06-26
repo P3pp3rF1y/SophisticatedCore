@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
@@ -33,6 +34,24 @@ public class BlockHighlightRenderHelper {
 	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges,
 			BlockPos originPos) {
 		submitThickEdges(submitNodeCollector, poseStack, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());
+	}
+
+	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, BlockPos originPos) {
+		renderThickEdges(poseStack, bufferSource, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());
+	}
+
+	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, double originX,
+			double originY, double originZ) {
+		if (edges.isEmpty()) {
+			return;
+		}
+
+		VertexConsumer vertexConsumer = bufferSource.getBuffer(THICK_HIGHLIGHT_QUADS);
+		PoseStack.Pose pose = poseStack.last();
+		int red = color >> 16 & 255;
+		int green = color >> 8 & 255;
+		int blue = color & 255;
+		edges.forEach(edge -> emitThickLineOrtho(vertexConsumer, pose, edge.a(), edge.b(), 1 / 32f, red, green, blue, 255, originX, originY, originZ));
 	}
 
 	public static void submitThickEdges(SubmitNodeCollector submitNodeCollector, PoseStack poseStack, int color, List<VoxelOutliner.Edge> edges, double originX,
