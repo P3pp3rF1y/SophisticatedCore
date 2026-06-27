@@ -322,7 +322,8 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	private ItemStack triggerSlotOverflowUpgrades(ItemStack ret) {
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			ret = overflowUpgrade.onSlotOverflow(ret);
 			if (ret.isEmpty()) {
 				break;
@@ -350,7 +351,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	private ItemStack runOnBeforeInsert(ItemStack stack, boolean simulate) {
-		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplement(IInsertResponseUpgrade.class);
+		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class);
 		ItemStack remaining = stack;
 		for (IInsertResponseUpgrade upgrade : wrappers) {
 			remaining = upgrade.onBeforeInsert(storageWrapper.getInventoryHandler(), remaining, simulate);
