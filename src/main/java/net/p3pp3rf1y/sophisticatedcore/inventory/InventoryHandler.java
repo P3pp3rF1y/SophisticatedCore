@@ -479,7 +479,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 	}
 
 	private ItemStack triggerSlotOverflowUpgrades(ItemStack ret) {
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			ret = overflowUpgrade.onSlotOverflow(ret);
 			if (ret.isEmpty()) {
 				break;
@@ -490,7 +491,8 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 
 	private int triggerSlotOverflowUpgrades(ItemResource resource, int amount) {
 		int ret = 0;
-		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler().getWrappersThatImplement(IOverflowResponseUpgrade.class)) {
+		for (IOverflowResponseUpgrade overflowUpgrade : storageWrapper.getUpgradeHandler()
+				.getWrappersThatImplementFromMainStorage(IOverflowResponseUpgrade.class)) {
 			ret = overflowUpgrade.onSlotOverflow(resource, amount);
 			if (ret >= amount) {
 				break;
@@ -500,7 +502,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 	}
 
 	private int runOnBeforeInsert(ItemResource resource, int amount, IStorageWrapper storageWrapper) {
-		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplement(IInsertResponseUpgrade.class);
+		List<IInsertResponseUpgrade> wrappers = storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class);
 		int moved = 0;
 		for (IInsertResponseUpgrade upgrade : wrappers) {
 			moved += upgrade.onBeforeInsert(this, resource, amount - moved);
