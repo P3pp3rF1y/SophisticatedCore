@@ -63,6 +63,7 @@ public class ClientEventHandler {
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
+		eventBus.addListener(ClientEventHandler::onContainerScreenForeground);
 		eventBus.addListener(ClientEventHandler::recipesReceived);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
@@ -157,34 +158,40 @@ public class ClientEventHandler {
 		if (!(gui instanceof AbstractContainerScreen<?> containerGui) || gui instanceof CreativeModeInventoryScreen || mc.player == null) {
 			return;
 		}
-		AbstractContainerMenu menu = containerGui.getMenu();
-		ItemStack held = menu.getCarried();
-		if (!held.isEmpty()) {
-			Slot under = containerGui.getSlotUnderMouse();
-
-			for (Slot s : menu.slots) {
-				ItemStack stack = s.getItem();
-				if (!s.mayPickup(mc.player) || stack.isEmpty()) {
-					continue;
-				}
-				Optional<StashResultAndTooltip> stashResultAndTooltip = getStashResultAndTooltip(stack, held);
-				if (stashResultAndTooltip.isEmpty()) {
-					continue;
-				}
-
-				if (s == under) {
-					renderSpecialTooltip(event, mc, event.getGuiGraphics(), stashResultAndTooltip.get());
-				} else {
-					renderStashSign(mc, containerGui, event.getGuiGraphics(), s, stack, stashResultAndTooltip.get().stashResult());
-				}
-			}
+		ItemStack held = containerGui.getMenu().getCarried();
+		Slot under = containerGui.getSlotUnderMouse();
+		if (!held.isEmpty() && under != null && under.mayPickup(mc.player) && !under.getItem().isEmpty()) {
+			getStashResultAndTooltip(under.getItem(), held)
+					.ifPresent(stashResultAndTooltip -> renderSpecialTooltip(event, mc, event.getGuiGraphics(), stashResultAndTooltip));
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack,
-			IStashStorageItem.StashResult stashResult) {
-		int x = containerGui.getGuiLeft() + s.x;
-		int y = containerGui.getGuiTop() + s.y;
+	private static void onContainerScreenForeground(ContainerScreenEvent.Render.Foreground event) {
+		Minecraft mc = Minecraft.getInstance();
+		AbstractContainerScreen<?> containerGui = event.getContainerScreen();
+		if (containerGui instanceof CreativeModeInventoryScreen || mc.player == null) {
+			return;
+		}
+		AbstractContainerMenu menu = containerGui.getMenu();
+		ItemStack held = menu.getCarried();
+		if (held.isEmpty()) {
+			return;
+		}
+
+		Slot under = containerGui.getSlotUnderMouse();
+		for (Slot s : menu.slots) {
+			ItemStack stack = s.getItem();
+			if (s == under || !s.mayPickup(mc.player) || stack.isEmpty()) {
+				continue;
+			}
+			getStashResultAndTooltip(stack, held)
+					.ifPresent(stashResultAndTooltip -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResultAndTooltip.stashResult()));
+		}
+	}
+
+	private static void renderStashSign(Minecraft mc, GuiGraphics guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
+		int x = s.x;
+		int y = s.y;
 
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
