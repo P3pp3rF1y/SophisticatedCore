@@ -13,7 +13,7 @@ public class ContentsFilteredUpgradeContainer<W extends IUpgradeWrapper & IConte
 	public ContentsFilteredUpgradeContainer(Player player, int containerId, W wrapper, UpgradeContainerType<W, ContentsFilteredUpgradeContainer<W>> type) {
 		super(player, containerId, wrapper, type);
 
-		filterLogicContainer = new ContentsFilterLogicContainer(upgradeWrapper::getFilterLogic, this, slots::add);
+		filterLogicContainer = new ContentsFilterLogicContainer(supplyFromWrapper(IContentsFilteredUpgrade::getFilterLogic), this, slots::add);
 	}
 
 	public ContentsFilterLogicContainer getFilterLogicContainer() {
