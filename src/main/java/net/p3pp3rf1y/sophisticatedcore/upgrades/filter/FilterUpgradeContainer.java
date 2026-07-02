@@ -17,7 +17,7 @@ public class FilterUpgradeContainer extends UpgradeContainerBase<FilterUpgradeWr
 	private FilterUpgradeContainer(Player player, int containerId, FilterUpgradeWrapper wrapper,
 			UpgradeContainerType<FilterUpgradeWrapper, FilterUpgradeContainer> type) {
 		super(player, containerId, wrapper, type);
-		filterLogicContainer = new ContentsFilterLogicContainer(upgradeWrapper::getFilterLogic, this, slots::add);
+		filterLogicContainer = new ContentsFilterLogicContainer(supplyFromWrapper(FilterUpgradeWrapper::getFilterLogic), this, slots::add);
 	}
 
 	public ContentsFilterLogicContainer getFilterLogicContainer() {
