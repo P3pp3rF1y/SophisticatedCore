@@ -25,7 +25,7 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 			UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(),
-				(slot, stack) -> slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
+				(slot, stack) -> slots.add(new FilterSlotItemHandler(supplyFromWrapper(AlchemyUpgradeWrapper::getFilterHandler), slot, 0, 0) {
 					@Override
 					public boolean mayPlace(ItemStack stack) {
 						return stack.isEmpty() || getItemHandler().isItemValid(slot, stack);
