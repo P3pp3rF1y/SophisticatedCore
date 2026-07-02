@@ -13,7 +13,7 @@ public class CookingUpgradeContainer<R extends AbstractCookingRecipe, W extends 
 
 	public CookingUpgradeContainer(Player player, int containerId, W wrapper, UpgradeContainerType<W, CookingUpgradeContainer<R, W>> type) {
 		super(player, containerId, wrapper, type);
-		cookingLogicContainer = new CookingLogicContainer<>(player, upgradeWrapper::getCookingLogic, slots::add);
+		cookingLogicContainer = new CookingLogicContainer<>(player, supplyFromWrapper(CookingUpgradeWrapper::getCookingLogic), slots::add);
 	}
 
 	@Override
