@@ -23,12 +23,12 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper,
 			UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		slots.add(new TankIOSlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.INPUT_SLOT, -100, -100,
+		slots.add(new TankIOSlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.INPUT_SLOT, -100, -100,
 				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input")).setBackground(EMPTY_TANK_INPUT_SLOT_BACKGROUND));
-		slots.add(new TankIOSlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.OUTPUT_SLOT, -100, -100,
+		slots.add(new TankIOSlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100,
 				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output")).setBackground(EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
-		slots.add(new TakeOnlySlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100));
-		slots.add(new TakeOnlySlot(this.upgradeWrapper::getInventory, TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
+		slots.add(new TakeOnlySlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100));
+		slots.add(new TakeOnlySlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
 	}
 
 	@Override
