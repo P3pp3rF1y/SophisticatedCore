@@ -16,7 +16,7 @@ public class CompactingUpgradeContainer extends UpgradeContainerBase<CompactingU
 	public CompactingUpgradeContainer(Player player, int containerId, CompactingUpgradeWrapper wrapper,
 			UpgradeContainerType<CompactingUpgradeWrapper, CompactingUpgradeContainer> type) {
 		super(player, containerId, wrapper, type);
-		filterLogicContainer = new FilterLogicContainer<>(upgradeWrapper::getFilterLogic, this, slots::add);
+		filterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(CompactingUpgradeWrapper::getFilterLogic), this, slots::add);
 	}
 
 	public FilterLogicContainer<FilterLogic> getFilterLogicContainer() {

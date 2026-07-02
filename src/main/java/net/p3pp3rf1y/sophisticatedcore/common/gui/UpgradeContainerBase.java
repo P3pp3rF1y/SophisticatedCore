@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends UpgradeContainerBase<W, C>> implements IServerUpdater {
@@ -76,6 +77,11 @@ public abstract class UpgradeContainerBase<W extends IUpgradeWrapper, C extends 
 
 	public W getUpgradeWrapper() {
 		return upgradeWrapper;
+	}
+
+	protected <T> Supplier<T> supplyFromWrapper(Function<W, T> valueGetter) {
+		// Upgrade wrapper instances can be replaced after slot sync, so resolve the wrapper when the supplier is invoked.
+		return () -> valueGetter.apply(upgradeWrapper);
 	}
 
 	public Player getPlayer() {

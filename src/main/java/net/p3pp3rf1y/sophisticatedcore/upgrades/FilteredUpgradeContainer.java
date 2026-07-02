@@ -10,7 +10,7 @@ public class FilteredUpgradeContainer<W extends IUpgradeWrapper & IFilteredUpgra
 
 	public FilteredUpgradeContainer(Player player, int containerId, W wrapper, UpgradeContainerType<W, FilteredUpgradeContainer<W>> type) {
 		super(player, containerId, wrapper, type);
-		filterLogicContainer = new FilterLogicContainer<>(() -> upgradeWrapper.getFilterLogic(), this, slots::add);
+		filterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(IFilteredUpgrade::getFilterLogic), this, slots::add);
 	}
 
 	public FilterLogicContainer<FilterLogic> getFilterLogicContainer() {

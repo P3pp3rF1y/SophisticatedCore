@@ -16,7 +16,7 @@ public class PumpUpgradeContainer extends UpgradeContainerBase<PumpUpgradeWrappe
 			UpgradeContainerType<PumpUpgradeWrapper, PumpUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 
-		fluidFilterContainer = new FluidFilterContainer(player, this, upgradeWrapper::getFluidFilterLogic);
+		fluidFilterContainer = new FluidFilterContainer(player, this, supplyFromWrapper(PumpUpgradeWrapper::getFluidFilterLogic));
 	}
 
 	public void setIsInput(boolean input) {
