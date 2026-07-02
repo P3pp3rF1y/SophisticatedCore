@@ -133,7 +133,7 @@ public class TankInventoryControl extends UpgradeInventoryControlBase {
 		IClientFluidTypeExtensions renderProperties = IClientFluidTypeExtensions.of(fluid);
 		ResourceLocation texture = renderProperties.getStillTexture(contents);
 		TextureAtlasSprite still = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
-		GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10,
-				pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		int fluidY = contents.getFluidType().isLighterThanAir() ? pos.y() + 1 : pos.y() + 1 + height - 2 - displayLevel;
+		GuiHelper.renderTiledFluidTextureAtlas(guiGraphics, still, renderProperties.getTintColor(contents), pos.x() + 10, fluidY, displayLevel);
 	}
 }
