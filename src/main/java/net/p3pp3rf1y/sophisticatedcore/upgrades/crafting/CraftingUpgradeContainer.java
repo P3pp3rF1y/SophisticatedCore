@@ -47,7 +47,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 
 		int slot;
 		for (slot = 0; slot < upgradeWrapper.getInventory().size(); slot++) {
-			slots.add(new SlotSuppliedHandler(upgradeWrapper::getInventory, slot, -100, -100) {
+			slots.add(new SlotSuppliedHandler(supplyFromWrapper(CraftingUpgradeWrapper::getInventory), slot, -100, -100) {
 				@Override
 				public void set(ItemStack stack) {
 					super.set(stack);
@@ -62,7 +62,7 @@ public class CraftingUpgradeContainer extends UpgradeContainerBase<CraftingUpgra
 				}
 			});
 		}
-		craftMatrix = new CraftingItemHandler(upgradeWrapper::getInventory, this::onCraftMatrixChanged);
+		craftMatrix = new CraftingItemHandler(supplyFromWrapper(CraftingUpgradeWrapper::getInventory), this::onCraftMatrixChanged);
 		craftingResultSlot = new ResultSlot(player, craftMatrix, craftResult, slot, -100, -100) {
 			@Override
 			public void onTake(Player thePlayer, ItemStack stack) {
