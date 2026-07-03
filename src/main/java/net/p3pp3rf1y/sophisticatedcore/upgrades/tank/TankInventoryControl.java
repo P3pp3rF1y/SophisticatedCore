@@ -134,6 +134,7 @@ public class TankInventoryControl extends UpgradeInventoryControlBase {
 		int color = fluidModel.tintSource() instanceof FluidTintSource fluidTintSource
 				? fluidTintSource.colorAsStack(contents)
 				: fluidModel.tintSource() != null ? fluidModel.tintSource().color(fluidState.createLegacyBlock()) : -1;
-		GuiHelper.renderTiledSprite(guiGraphics, still, color, pos.x() + 10, pos.y() + 1 + height - 2 - displayLevel, displayLevel);
+		int fluidY = fluid.getFluidType().isLighterThanAir() ? pos.y() + 1 : pos.y() + 1 + height - 2 - displayLevel;
+		GuiHelper.renderTiledSprite(guiGraphics, still, color, pos.x() + 10, fluidY, displayLevel);
 	}
 }
