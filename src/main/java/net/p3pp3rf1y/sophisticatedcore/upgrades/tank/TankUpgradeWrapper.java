@@ -93,12 +93,17 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 	}
 
 	private boolean hasNoMatchingFluid(IFluidHandlerItem fluidHandler) {
-		boolean tankEmpty = contents.isEmpty();
+		if (contents.isEmpty()) {
+			for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
+				if (!fluidHandler.getFluidInTank(tank).isEmpty()) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		for (int tank = 0; tank < fluidHandler.getTanks(); tank++) {
-			FluidStack fluidInTank = fluidHandler.getFluidInTank(tank);
-			if (!tankEmpty && fluidInTank.isFluidEqual(contents)) {
-				return false;
-			} else if (!fluidInTank.isEmpty()) {
+			if (fluidHandler.getFluidInTank(tank).isFluidEqual(contents)) {
 				return false;
 			}
 		}
