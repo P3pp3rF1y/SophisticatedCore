@@ -298,7 +298,17 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			}
 
 			if (simulateIncludingFullFill) {
-				return fluidHandler.getTanks() > 0 && drain(filled, IFluidHandler.FluidAction.SIMULATE, false).getAmount() == fluidHandler.getTankCapacity(0);
+				FluidStack drained = drain(filled, IFluidHandler.FluidAction.SIMULATE, false);
+				if (drained.getAmount() != filled) {
+					return false;
+				}
+
+				return getFluidHandler(fluidHandler.getContainer().copy()).map(copyFluidHandler -> {
+					if (copyFluidHandler.fill(drained, IFluidHandler.FluidAction.EXECUTE) != filled) {
+						return false;
+					}
+					return getFluidHandler(copyFluidHandler.getContainer()).map(this::matchingTankIsFull).orElse(false);
+				}).orElse(false);
 			}
 
 			FluidStack drained = drain(filled, IFluidHandler.FluidAction.EXECUTE, false);
