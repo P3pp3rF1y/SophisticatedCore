@@ -24,7 +24,7 @@ import java.util.Optional;
 
 public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<CraftingRecipe> {
 	private final JeiRecipeDisplayGenerator generator;
-	private final SlotDisplay result;
+	private final ItemStackTemplate result;
 	private final Map<Character, Ingredient> key = Maps.newLinkedHashMap();
 	private final Map<Character, SlotDisplay> displayKey = Maps.newLinkedHashMap();
 	private List<Optional<Ingredient>> ingredients = new ArrayList<>();
@@ -34,7 +34,7 @@ public class JeiShapedRecipeDisplayBuilder extends ShapedRecipeDisplayBuilder<Cr
 	public JeiShapedRecipeDisplayBuilder(HolderGetter<Item> items, JeiRecipeDisplayGenerator generator, ItemStack result) {
 		this.items = items;
 		this.generator = generator;
-		this.result = new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(result));
+		this.result = ItemStackTemplate.fromNonEmptyStack(result);
 	}
 
 	@Override
