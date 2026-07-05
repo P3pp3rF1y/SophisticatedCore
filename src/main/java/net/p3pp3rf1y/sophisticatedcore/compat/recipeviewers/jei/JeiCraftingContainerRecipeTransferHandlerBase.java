@@ -59,7 +59,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 
 		List<Slot> craftingSlots = Collections
 				.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
-		List<Slot> inventorySlots = container.slots.stream().filter(s -> s.mayPickup(player)).toList();
+		List<Slot> inventorySlots = container.slots.stream().filter(s -> s.mayPickup(player) && !craftingSlots.contains(s)).toList();
 		if (!validateTransferInfo(container, craftingSlots, inventorySlots)) {
 			return handlerHelper.createInternalError();
 		}
