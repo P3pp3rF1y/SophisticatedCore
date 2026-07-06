@@ -106,7 +106,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				ItemStack craftingItem = craftingSlot.remove(craftingSlot.getItem().getCount());
 				clearedCraftingItems.add(craftingItem);
 			}
-			ItemStack transferItem = toTransfer.get(craftingSlotNumberIndex);
+			ItemStack transferItem = toTransfer.get(craftingSlotNumber);
 			if (transferItem != null) {
 				int slotStackLimit = craftingSlot.getMaxStackSize(transferItem);
 				minSlotStackLimit = Math.min(slotStackLimit, minSlotStackLimit);
