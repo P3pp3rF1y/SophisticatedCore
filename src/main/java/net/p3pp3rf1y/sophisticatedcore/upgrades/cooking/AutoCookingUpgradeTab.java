@@ -23,11 +23,14 @@ public abstract class AutoCookingUpgradeTab<R extends AbstractCookingRecipe, W e
 			String closedTooltip, int inputFilterSlotsPerRow, int fuelFilterSlotsPerRow) {
 		super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade(tabLabel),
 				TranslationHelper.INSTANCE.translUpgradeTooltip(closedTooltip));
-		inputFilterLogicControl = addHideableChild(
-				new FilterLogicControl.Advanced(screen, new Position(x + 3, y + 24), getContainer().getInputFilterLogicContainer(), inputFilterSlotsPerRow));
-		cookingLogicControl = addHideableChild(new CookingLogicControl<>(new Position(x + 3, y + 84), getContainer().getCookingLogicContainer()));
-		fuelFilterLogicControl = addHideableChild(
-				new FilterLogicControl<>(screen, new Position(x + 3, y + 142), getContainer().getFuelFilterLogicContainer(), fuelFilterSlotsPerRow));
+		int controlsX = x + 3;
+		int inputFilterY = y + 24;
+		inputFilterLogicControl = addHideableChild(new FilterLogicControl.Advanced(screen, new Position(controlsX, inputFilterY),
+				getContainer().getInputFilterLogicContainer(), inputFilterSlotsPerRow));
+		int cookingY = inputFilterY + inputFilterLogicControl.getHeight() + 3;
+		cookingLogicControl = addHideableChild(new CookingLogicControl<>(new Position(controlsX, cookingY), getContainer().getCookingLogicContainer()));
+		fuelFilterLogicControl = addHideableChild(new FilterLogicControl<>(screen, new Position(controlsX, cookingY + cookingLogicControl.getHeight() + 4),
+				getContainer().getFuelFilterLogicContainer(), fuelFilterSlotsPerRow));
 	}
 
 	@Override
