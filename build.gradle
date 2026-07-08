@@ -181,6 +181,7 @@ dependencies {
     }
     compileOnly "mezz.jei:jei-${jei_mc_version}:${jei_version}"
     localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
+    testImplementation "mezz.jei:jei-${jei_mc_version}:${jei_version}"
     compileOnly "dev.emi:emi-neoforge:${emi_version}"
     localRuntime "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"

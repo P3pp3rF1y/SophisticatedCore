@@ -1,5 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -19,23 +22,35 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	/**
 	 * Called server-side to actually put the items in place.
 	 */
-	public static void setItemsWithSlotIDMap(Player player, ResourceLocation recipeId, RecipeType<?> recipeType, Map<Integer, Integer> slotIdMap,
+	public static void setItemsWithSlotTransfers(Player player, ResourceLocation recipeId, RecipeType<?> recipeType, List<SlotTransfer> slotTransfers,
 			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
 			return;
 		}
 
 		// grab items from slots
-		Map<Integer, ItemStack> slotMap = new HashMap<>(slotIdMap.size());
-		for (Map.Entry<Integer, Integer> entry : slotIdMap.entrySet()) {
-			Slot slot = container.getSlot(entry.getValue());
+		Map<Integer, ItemStack> slotMap = new HashMap<>(slotTransfers.size());
+		for (SlotTransfer slotTransfer : slotTransfers) {
+			if (slotTransfer.count() < 1) {
+				return;
+			}
+
+			Slot slot = container.getSlot(slotTransfer.inventorySlotId());
 			final ItemStack slotStack = slot.getItem();
 			if (slotStack.isEmpty()) {
 				return;
 			}
 			ItemStack stack = slotStack.copy();
-			stack.setCount(1);
-			slotMap.put(entry.getKey(), stack);
+			stack.setCount(slotTransfer.count());
+
+			ItemStack existingStack = slotMap.get(slotTransfer.craftingSlotId());
+			if (existingStack == null) {
+				slotMap.put(slotTransfer.craftingSlotId(), stack);
+			} else if (ItemStack.isSameItemSameComponents(existingStack, stack)) {
+				existingStack.grow(stack.getCount());
+			} else {
+				return;
+			}
 		}
 
 		setItems(container, player, recipeId, recipeType, slotMap, craftingSlots, inventorySlots, maxTransfer);
@@ -164,15 +179,14 @@ public class CraftingContainerRecipeTransferHandlerServer {
 
 			for (Map.Entry<Integer, ItemStack> entry : required.entrySet()) { // for each item in set
 				final ItemStack requiredStack = entry.getValue().copy();
+				int requiredCount = Math.max(1, requiredStack.getCount());
 
-				// Locate a slot that has what we need.
-				final Slot slot = getSlotWithStack(container, requiredStack, craftingSlots, inventorySlots);
-
-				boolean itemFound = (slot != null) && !slot.getItem().isEmpty() && slot.mayPickup(player);
 				ItemStack resultItemStack = result.get(entry.getKey());
-				boolean resultItemStackLimitReached = (resultItemStack != null) && (resultItemStack.getCount() == resultItemStack.getMaxStackSize());
+				int resultItemStackCount = resultItemStack == null ? 0 : resultItemStack.getCount();
+				int resultItemStackLimit = resultItemStack == null ? requiredStack.getMaxStackSize() : resultItemStack.getMaxStackSize();
+				boolean resultItemStackLimitReached = resultItemStackCount + requiredCount > resultItemStackLimit;
 
-				if (!itemFound || resultItemStackLimitReached) {
+				if (resultItemStackLimitReached) {
 					// We can't find any more items to fulfill the requirements or the maximum stack size for this item
 					// has been reached.
 
@@ -185,15 +199,34 @@ public class CraftingContainerRecipeTransferHandlerServer {
 					break loopSets;
 
 				} else { // the item was found and the stack limit has not been reached
+					ItemStack foundItems = ItemStack.EMPTY;
+					for (int i = 0; i < requiredCount; i++) {
+						// Locate a slot that has what we need.
+						final Slot slot = getSlotWithStack(container, requiredStack, craftingSlots, inventorySlots);
 
-					// Keep a copy of the slot's original contents in case we need to roll back.
-					if (!originalSlotContents.containsKey(slot)) {
-						originalSlotContents.put(slot, slot.getItem().copy());
+						boolean itemFound = (slot != null) && !slot.getItem().isEmpty() && slot.mayPickup(player);
+						if (!itemFound) {
+							for (Map.Entry<Slot, ItemStack> slotEntry : originalSlotContents.entrySet()) {
+								ItemStack stack = slotEntry.getValue();
+								slotEntry.getKey().set(stack);
+							}
+							break loopSets;
+						}
+
+						// Keep a copy of the slot's original contents in case we need to roll back.
+						if (!originalSlotContents.containsKey(slot)) {
+							originalSlotContents.put(slot, slot.getItem().copy());
+						}
+
+						// Reduce the size of the found slot.
+						ItemStack removedItemStack = slot.remove(1);
+						if (foundItems.isEmpty()) {
+							foundItems = removedItemStack;
+						} else {
+							foundItems.grow(removedItemStack.getCount());
+						}
 					}
-
-					// Reduce the size of the found slot.
-					ItemStack removedItemStack = slot.remove(1);
-					foundItemsInSet.put(entry.getKey(), removedItemStack);
+					foundItemsInSet.put(entry.getKey(), foundItems);
 
 					noItemsFound = false;
 				}
@@ -207,7 +240,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 					result.put(entry.getKey(), entry.getValue());
 
 				} else {
-					resultItemStack.grow(1);
+					resultItemStack.grow(entry.getValue().getCount());
 				}
 			}
 
@@ -307,5 +340,10 @@ public class CraftingContainerRecipeTransferHandlerServer {
 
 	private static int getTotalSlotsSize(StorageContainerMenuBase<?> container) {
 		return container.getTotalSlotsNumber();
+	}
+
+	public record SlotTransfer(int inventorySlotId, int craftingSlotId, int count) {
+		public static final StreamCodec<ByteBuf, SlotTransfer> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.INT, SlotTransfer::inventorySlotId,
+				ByteBufCodecs.INT, SlotTransfer::craftingSlotId, ByteBufCodecs.INT, SlotTransfer::count, SlotTransfer::new);
 	}
 }
