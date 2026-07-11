@@ -25,9 +25,9 @@ import java.util.UUID;
 public class SettingsTemplateStorage extends SavedData {
 	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(
 			Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "settings_templates"), SettingsTemplateStorage::new,
-			RecordCodecBuilder.create(builder -> builder.group(
-					Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, ContainerContents.SettingsData.CODEC))
-							.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
+			RecordCodecBuilder.create(builder -> builder.group(Codec
+					.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, ContainerContents.SettingsData.CODEC))
+					.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
 					Codec.unboundedMap(CodecHelper.STRING_ENCODED_UUID, Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, ContainerContents.SettingsData.CODEC))
 							.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates))
 					.apply(builder, SettingsTemplateStorage::new)));
@@ -41,16 +41,40 @@ public class SettingsTemplateStorage extends SavedData {
 
 	private SettingsTemplateStorage(Map<UUID, Map<Integer, ContainerContents.SettingsData>> playerTemplates,
 			Map<UUID, Map<String, ContainerContents.SettingsData>> playerNamedTemplates) {
-		this.playerTemplates = playerTemplates;
-		this.playerNamedTemplates = playerNamedTemplates;
+		this.playerTemplates = new HashMap<>();
+		playerTemplates.forEach((playerId, templates) -> {
+			Map<Integer, ContainerContents.SettingsData> copiedTemplates = new HashMap<>();
+			templates.forEach((slot, data) -> {
+				if (slot > 0) {
+					copiedTemplates.put(slot, data);
+				}
+			});
+			this.playerTemplates.put(playerId, copiedTemplates);
+		});
+		this.playerNamedTemplates = new HashMap<>();
+		playerNamedTemplates.forEach((playerId, templates) -> {
+			Map<String, ContainerContents.SettingsData> copiedTemplates = new TreeMap<>();
+			templates.forEach((name, data) -> {
+				if (!name.isEmpty()) {
+					copiedTemplates.put(name, data);
+				}
+			});
+			this.playerNamedTemplates.put(playerId, copiedTemplates);
+		});
 	}
 
 	public void putPlayerTemplate(Player player, int slot, ContainerContents.SettingsData data) {
+		if (slot <= 0) {
+			return;
+		}
 		playerTemplates.computeIfAbsent(player.getUUID(), u -> new HashMap<>()).put(slot, data);
 		setDirty();
 	}
 
 	public void putPlayerNamedTemplate(Player player, String name, ContainerContents.SettingsData data) {
+		if (name.isEmpty()) {
+			return;
+		}
 		playerNamedTemplates.computeIfAbsent(player.getUUID(), u -> new TreeMap<>()).put(name, data);
 		setDirty();
 	}
