@@ -20,9 +20,9 @@ public record SetGhostSlotPayload(ItemStack stack, int slotNumber) implements Cu
 	}
 
 	public static void handlePayload(SetGhostSlotPayload payload, IPayloadContext context) {
-		if (!(context.player().containerMenu instanceof StorageContainerMenuBase<?>)) {
+		if (!(context.player().containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu)) {
 			return;
 		}
-		context.player().containerMenu.getSlot(payload.slotNumber).set(payload.stack);
+		storageContainerMenu.setGhostSlot(payload.slotNumber, payload.stack);
 	}
 }
