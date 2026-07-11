@@ -70,6 +70,11 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		return getChildAt(mouseX, mouseY).map(l -> l.mouseScrolled(mouseX, mouseY, scrollX, scrollY)).orElse(false);
+	}
+
+	@Override
 	public void setDragging(boolean dragging) {
 		this.dragging = dragging;
 	}
