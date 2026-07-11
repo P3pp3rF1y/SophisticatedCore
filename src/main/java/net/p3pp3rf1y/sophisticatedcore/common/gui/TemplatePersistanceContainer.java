@@ -129,9 +129,12 @@ public class TemplatePersistanceContainer {
 		if (selectedTemplate == null) {
 			return;
 		}
+		TemplateSettingsHandler templateToLoad = createTemplateSettingsHandler(selectedTemplate.getNbt().copy());
+		templateToLoad.getSettingsCategories().values()
+				.forEach(category -> category.deleteSlotSettingsFrom(settingsContainer.getStorageWrapper().getInventoryHandler().getSlots()));
 		settingsContainer.getStorageWrapper().getSettingsHandler().getSettingsCategories().values().forEach(category -> {
 			// noinspection unchecked
-			overwriteCategory(category.getClass(), category, selectedTemplate.getTypeCategory(category.getClass()));
+			overwriteCategory(category.getClass(), category, templateToLoad.getTypeCategory(category.getClass()));
 		});
 
 		sendDataToServer(() -> NBTHelper.putString(new CompoundTag(), ACTION_TAG, "loadTemplate"));
@@ -154,6 +157,11 @@ public class TemplatePersistanceContainer {
 
 		IPersistanceSlot saveSlot = saveSlots.get(saveSlotIndex);
 		saveSlot.setSlotName(slotName);
+		if (saveSlot.showsTextbox() && slotName.isBlank()) {
+			getPlayer().displayClientMessage(
+					Component.translatable(TranslationHelper.INSTANCE.translSettingsMessage("save_template.empty_name")).withStyle(ChatFormatting.RED), false);
+			return;
+		}
 		saveSlot.persistTo(getPlayer(), settingsTemplateStorage, settingsContainer.getStorageWrapper().getSettingsHandler().getNbt().copy());
 
 		sendDataToServer(() -> NBTHelper.putString(NBTHelper.putString(new CompoundTag(), ACTION_TAG, "saveTemplate"), "slotName", slotName));
@@ -212,13 +220,17 @@ public class TemplatePersistanceContainer {
 	private void updateSelectedTemplate() {
 		if (loadSlotIndex > -1 && loadSlotIndex < loadSlots.size()) {
 			CompoundTag settingsTag = loadSlots.get(loadSlotIndex).getSettingsNbt(getPlayer(), SettingsTemplateStorage.get());
-			selectedTemplate = new TemplateSettingsHandler(settingsTag, registryAccess) {
-				@Override
-				protected SettingsHandler getCurrentSettingsHandler() {
-					return settingsContainer.getStorageWrapper().getSettingsHandler();
-				}
-			};
+			selectedTemplate = createTemplateSettingsHandler(settingsTag);
 		}
+	}
+
+	private TemplateSettingsHandler createTemplateSettingsHandler(CompoundTag settingsTag) {
+		return new TemplateSettingsHandler(settingsTag, registryAccess) {
+			@Override
+			protected SettingsHandler getCurrentSettingsHandler() {
+				return settingsContainer.getStorageWrapper().getSettingsHandler();
+			}
+		};
 	}
 
 	public MutableComponent getSaveSlotTooltipName() {

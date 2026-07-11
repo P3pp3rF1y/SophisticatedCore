@@ -292,6 +292,16 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
 	}
 
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+		for (GuiEventListener child : children()) {
+			if (child.isMouseOver(mouseX, mouseY) && child.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+				return true;
+			}
+		}
+		return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+	}
+
 	@Nullable
 	@Override
 	protected Slot getHoveredSlot(double mouseX, double mouseY) {
