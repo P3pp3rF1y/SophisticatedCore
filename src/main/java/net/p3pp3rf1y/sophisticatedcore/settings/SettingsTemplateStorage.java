@@ -14,6 +14,7 @@ import net.minecraft.world.level.storage.DimensionDataStorage;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,9 +24,9 @@ import java.util.UUID;
 public class SettingsTemplateStorage extends SavedData {
 	private static final SavedDataType<SettingsTemplateStorage> TYPE = new SavedDataType<>(SophisticatedCore.MOD_ID + "_settings_templates",
 			SettingsTemplateStorage::new,
-			RecordCodecBuilder.create(builder -> builder.group(
-					Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.POSITIVE_INT, CompoundTag.CODEC))
-							.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
+			RecordCodecBuilder.create(builder -> builder.group(Codec
+					.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, CompoundTag.CODEC))
+					.fieldOf("playerTemplates").forGetter(storage -> storage.playerTemplates),
 					Codec.unboundedMap(Codec.STRING.xmap(UUID::fromString, UUID::toString), Codec.unboundedMap(ExtraCodecs.NON_EMPTY_STRING, CompoundTag.CODEC))
 							.fieldOf("playerNamedTemplates").forGetter(storage -> storage.playerNamedTemplates))
 					.apply(builder, SettingsTemplateStorage::new)));
@@ -38,16 +39,40 @@ public class SettingsTemplateStorage extends SavedData {
 	}
 
 	private SettingsTemplateStorage(Map<UUID, Map<Integer, CompoundTag>> playerTemplates, Map<UUID, Map<String, CompoundTag>> playerNamedTemplates) {
-		this.playerTemplates = playerTemplates;
-		this.playerNamedTemplates = playerNamedTemplates;
+		this.playerTemplates = new HashMap<>();
+		playerTemplates.forEach((playerId, templates) -> {
+			Map<Integer, CompoundTag> copiedTemplates = new HashMap<>();
+			templates.forEach((slot, settingsTag) -> {
+				if (slot > 0) {
+					copiedTemplates.put(slot, settingsTag);
+				}
+			});
+			this.playerTemplates.put(playerId, copiedTemplates);
+		});
+		this.playerNamedTemplates = new HashMap<>();
+		playerNamedTemplates.forEach((playerId, templates) -> {
+			Map<String, CompoundTag> copiedTemplates = new TreeMap<>();
+			templates.forEach((name, settingsTag) -> {
+				if (!name.isEmpty()) {
+					copiedTemplates.put(name, settingsTag);
+				}
+			});
+			this.playerNamedTemplates.put(playerId, copiedTemplates);
+		});
 	}
 
 	public void putPlayerTemplate(Player player, int slot, CompoundTag settingsTag) {
+		if (slot <= 0) {
+			return;
+		}
 		playerTemplates.computeIfAbsent(player.getUUID(), u -> new HashMap<>()).put(slot, settingsTag);
 		setDirty();
 	}
 
 	public void putPlayerNamedTemplate(Player player, String name, CompoundTag settingsTag) {
+		if (name.isEmpty()) {
+			return;
+		}
 		playerNamedTemplates.computeIfAbsent(player.getUUID(), u -> new TreeMap<>()).put(name, settingsTag);
 		setDirty();
 	}

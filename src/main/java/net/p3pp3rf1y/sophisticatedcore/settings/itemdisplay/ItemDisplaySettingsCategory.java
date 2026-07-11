@@ -366,7 +366,9 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
 		slotIndexes.removeIf(slot -> slot >= slotIndex);
+		slotRotations.keySet().removeIf(slot -> slot >= slotIndex);
 		serializeSlotIndexes();
+		serializeRotations();
 	}
 
 }
