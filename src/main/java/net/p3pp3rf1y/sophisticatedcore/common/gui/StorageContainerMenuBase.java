@@ -886,6 +886,29 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		return slotNumber < getNumberOfStorageInventorySlots() || slotNumber >= getInventorySlotsSize();
 	}
 
+	public boolean canSetGhostSlot(int slotNumber, ItemStack stack) {
+		if (slotNumber < 0 || slotNumber >= getTotalSlotsNumber()) {
+			return false;
+		}
+
+		Slot slot = getSlot(slotNumber);
+		return slot instanceof IFilterSlot && slot.isActive() && slot.mayPlace(stack)
+				&& getOpenContainer().map(container -> container.containsSlot(slot)).orElse(false);
+	}
+
+	public void setGhostSlot(int slotNumber, ItemStack stack) {
+		if (!canSetGhostSlot(slotNumber, stack)) {
+			return;
+		}
+
+		Slot slot = getSlot(slotNumber);
+		ItemStack stackToSet = stack.copy();
+		if (stackToSet.getCount() > slot.getMaxStackSize(stackToSet)) {
+			stackToSet.setCount(slot.getMaxStackSize(stackToSet));
+		}
+		slot.set(stackToSet);
+	}
+
 	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
 		return storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).getSlotFilterStack(slotId, false);
 	}
