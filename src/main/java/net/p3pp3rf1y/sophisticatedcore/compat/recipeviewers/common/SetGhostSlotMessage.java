@@ -35,9 +35,9 @@ public class SetGhostSlotMessage {
 	}
 
 	private static void handleMessage(SetGhostSlotMessage msg, @Nullable ServerPlayer sender) {
-		if (sender == null || !(sender.containerMenu instanceof StorageContainerMenuBase<?>)) {
+		if (sender == null || !(sender.containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu)) {
 			return;
 		}
-		sender.containerMenu.getSlot(msg.slotNumber).set(msg.stack);
+		storageContainerMenu.setGhostSlot(msg.slotNumber, msg.stack);
 	}
 }
