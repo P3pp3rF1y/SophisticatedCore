@@ -97,6 +97,7 @@ public class ItemDisplaySettingsCategoryData implements ContainerContents.ISetti
 
 	public void removeSlot(int slotIndex) {
 		slotIndexes.removeIf(slot -> slot >= slotIndex);
+		slotRotations.keySet().removeIf(slot -> slot >= slotIndex);
 	}
 
 	@Override
