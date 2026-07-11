@@ -24,6 +24,13 @@ config = "sophisticatedcore.mixins.json"
 config = "sophisticatedcore.create.mixins.json"
 requiredMods = ["create"]
 
+[[dependencies.${mod_id}]]
+modId="jei"
+type="optional"
+versionRange="${jei_version_range}"
+ordering="NONE"
+side="CLIENT"
+
 [[dependencies.${mod_id}]] #optional
 modId="neoforge" #mandatory
 type="required" #mandatory

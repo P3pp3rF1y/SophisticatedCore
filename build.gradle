@@ -238,7 +238,8 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_id              : mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_issue_tracker_url: mod_issue_tracker_url, mod_logo_file: mod_logo_file, mod_credits: mod_credits,
             mod_authors         : mod_authors, mod_description: mod_description, mod_display_url: mod_display_url,
-            mod_full_version    : "${project.mod_version}.${getBuildNumber()}${getStable()}"
+            mod_full_version    : "${project.mod_version}.${getBuildNumber()}${getStable()}",
+            jei_version_range   : jei_version_range
 
     ]
     inputs.properties replaceProperties
