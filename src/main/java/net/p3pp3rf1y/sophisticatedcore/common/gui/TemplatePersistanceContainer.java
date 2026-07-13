@@ -385,9 +385,10 @@ public class TemplatePersistanceContainer {
 		protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
 				ContainerContents.SettingsData settingsData) {
 			int itemNumberLimit = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).getItemNumberLimit();
+			boolean canDeselectSlots = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).canDeselectSlots();
 			this.addSettingsCategory(settingsData, ItemDisplaySettingsCategory.NAME, markContentsDirty,
 					(categoryData, saveNbt) -> new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, categoryData, saveNbt,
-							itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)),
+							itemNumberLimit, canDeselectSlots, () -> getTypeCategory(MemorySettingsCategory.class)),
 					ItemDisplaySettingsCategoryData::new);
 		}
 	}

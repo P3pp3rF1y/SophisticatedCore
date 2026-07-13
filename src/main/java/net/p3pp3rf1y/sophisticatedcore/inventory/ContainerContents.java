@@ -405,7 +405,7 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 			Map<Integer, Integer> slotRotations = NBTHelper.getMap(categoryNbt, ROTATIONS_TAG, Integer::valueOf, (k, v) -> v.asInt()).orElseGet(HashMap::new);
 			DyeColor color = NBTHelper.getInt(categoryNbt, COLOR_TAG).map(DyeColor::byId).orElse(DyeColor.RED);
 			DisplaySide displaySide = NBTHelper.getEnumConstant(categoryNbt, DISPLAY_SIDE_TAG, DisplaySide::fromName).orElse(DisplaySide.FRONT);
-			return new ItemDisplaySettingsCategoryData(color, slotIndexes, slotRotations, displaySide);
+			return new ItemDisplaySettingsCategoryData(color, slotIndexes, slotRotations, Map.of(), displaySide);
 		}
 
 		private static NoSortSettingsCategoryData deserializeNoSort(CompoundTag categoryNbt) {

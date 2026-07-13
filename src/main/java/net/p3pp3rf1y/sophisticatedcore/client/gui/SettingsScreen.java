@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageBackgroundProperties;
 import net.p3pp3rf1y.sophisticatedcore.settings.StorageSettingsTabControlBase;
+import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.IItemDisplaySettingsPreviewProvider;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -151,6 +152,8 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	protected abstract StorageSettingsTabControlBase initializeTabControl();
+
+	public abstract IItemDisplaySettingsPreviewProvider getItemDisplaySettingsPreviewProvider();
 
 	protected void extractBg(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
 		int x = (width - imageWidth) / 2;
