@@ -391,7 +391,7 @@ public class TemplatePersistanceContainer {
 			int itemNumberLimit = getCurrentSettingsHandler().getTypeCategory(ItemDisplaySettingsCategory.class).getItemNumberLimit();
 			this.addSettingsCategory(settingsData, ItemDisplaySettingsCategory.NAME, markContentsDirty,
 					(categoryData, saveNbt) -> new ItemDisplaySettingsCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, categoryData, saveNbt,
-							itemNumberLimit, () -> getTypeCategory(MemorySettingsCategory.class)),
+							itemNumberLimit, true, () -> getTypeCategory(MemorySettingsCategory.class)),
 					ItemDisplaySettingsCategoryData::new);
 		}
 	}
