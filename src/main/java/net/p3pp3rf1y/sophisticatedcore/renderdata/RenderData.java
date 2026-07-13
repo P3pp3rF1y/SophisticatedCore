@@ -352,21 +352,24 @@ public final class RenderData {
 		}
 	}
 
-	public record DisplayItemData(@Nullable ItemStackTemplate item, int rotation, int slotIndex, DisplaySide displaySide) {
+	public record DisplayItemData(@Nullable ItemStackTemplate item, int rotation, int slotIndex, DisplaySide displaySide, int zOffset) {
 		public static final Codec<DisplayItemData> CODEC = RecordCodecBuilder.create(instance -> instance
 				.group(ItemStackTemplate.CODEC.optionalFieldOf("item").forGetter(data -> Optional.ofNullable(data.item())),
 						Codec.INT.fieldOf("rotation").forGetter(DisplayItemData::rotation),
 						Codec.INT.fieldOf("slotIndex").forGetter(DisplayItemData::slotIndex),
-						DisplaySide.CODEC.fieldOf("displaySide").forGetter(DisplayItemData::displaySide))
-				.apply(instance, (item, rotation, slotIndex, displaySide) -> new DisplayItemData(item.orElse(null), rotation, slotIndex, displaySide)));
+						DisplaySide.CODEC.fieldOf("displaySide").forGetter(DisplayItemData::displaySide),
+						Codec.INT.optionalFieldOf("zOffset", 0).forGetter(DisplayItemData::zOffset))
+				.apply(instance, (item, rotation, slotIndex, displaySide, zOffset) -> new DisplayItemData(item.orElse(null), rotation, slotIndex, displaySide,
+						zOffset)));
 
 		public static final StreamCodec<RegistryFriendlyByteBuf, DisplayItemData> STREAM_CODEC = StreamCodec.composite(
 				ByteBufCodecs.optional(ItemStackTemplate.STREAM_CODEC), data -> Optional.ofNullable(data.item()), ByteBufCodecs.VAR_INT,
 				DisplayItemData::rotation, ByteBufCodecs.VAR_INT, DisplayItemData::slotIndex, DisplaySide.STREAM_CODEC, DisplayItemData::displaySide,
-				(item, rotation, slotIndex, displaySide) -> new DisplayItemData(item.orElse(null), rotation, slotIndex, displaySide));
+				ByteBufCodecs.VAR_INT, DisplayItemData::zOffset,
+				(item, rotation, slotIndex, displaySide, zOffset) -> new DisplayItemData(item.orElse(null), rotation, slotIndex, displaySide, zOffset));
 
-		public DisplayItemData(ItemStack item, int rotation, int slotIndex, DisplaySide displaySide) {
-			this(item.isEmpty() ? null : ItemStackTemplate.fromNonEmptyStack(item), rotation, slotIndex, displaySide);
+		public DisplayItemData(ItemStack item, int rotation, int slotIndex, DisplaySide displaySide, int zOffset) {
+			this(item.isEmpty() ? null : ItemStackTemplate.fromNonEmptyStack(item), rotation, slotIndex, displaySide, zOffset);
 		}
 
 		public DisplayItemData copy() {
@@ -424,7 +427,7 @@ public final class RenderData {
 						.apply(instance, LegacyDisplayItemData::new));
 
 		private DisplayItemData toCurrent() {
-			return new DisplayItemData(item, rotation, slotIndex, displaySide);
+			return new DisplayItemData(item, rotation, slotIndex, displaySide, 0);
 		}
 	}
 
@@ -533,7 +536,7 @@ public final class RenderData {
 		private static DisplayItemData legacyDeserializeDisplayItem(CompoundTag tag) {
 			return new DisplayItemData(tag.getCompound(ITEM_TAG).flatMap(NBTHelper::deserializeStackFromTag).orElse(ItemStack.EMPTY),
 					tag.getIntOr(ROTATION_TAG, 0), tag.getIntOr(SLOT_INDEX_TAG, 0),
-					tag.getString(DISPLAY_SIDE_TAG).map(DisplaySide::fromName).orElse(DisplaySide.FRONT));
+					tag.getString(DISPLAY_SIDE_TAG).map(DisplaySide::fromName).orElse(DisplaySide.FRONT), 0);
 		}
 	}
 }

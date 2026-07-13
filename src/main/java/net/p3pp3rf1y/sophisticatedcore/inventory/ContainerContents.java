@@ -377,6 +377,7 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		private static final String IGNORE_NBT_TAG = "ignoreNbt";
 		private static final String SLOTS_TAG = "slots";
 		private static final String ROTATIONS_TAG = "rotations";
+		private static final String Z_OFFSETS_TAG = "zOffsets";
 		private static final String DISPLAY_SIDE_TAG = "displaySide";
 
 		private static ContainerContents legacyDeserialize(CompoundTag contentsNbt) {
@@ -403,9 +404,10 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 			List<Integer> slotIndexes = NBTHelper.getIntArray(categoryNbt, SLOTS_TAG)
 					.map(arr -> Arrays.stream(arr).boxed().collect(Collectors.toCollection(ArrayList::new))).orElseGet(ArrayList::new);
 			Map<Integer, Integer> slotRotations = NBTHelper.getMap(categoryNbt, ROTATIONS_TAG, Integer::valueOf, (k, v) -> v.asInt()).orElseGet(HashMap::new);
+			Map<Integer, Integer> slotZOffsets = NBTHelper.getMap(categoryNbt, Z_OFFSETS_TAG, Integer::valueOf, (k, v) -> v.asInt()).orElseGet(HashMap::new);
 			DyeColor color = NBTHelper.getInt(categoryNbt, COLOR_TAG).map(DyeColor::byId).orElse(DyeColor.RED);
 			DisplaySide displaySide = NBTHelper.getEnumConstant(categoryNbt, DISPLAY_SIDE_TAG, DisplaySide::fromName).orElse(DisplaySide.FRONT);
-			return new ItemDisplaySettingsCategoryData(color, slotIndexes, slotRotations, displaySide);
+			return new ItemDisplaySettingsCategoryData(color, slotIndexes, slotRotations, slotZOffsets, displaySide);
 		}
 
 		private static NoSortSettingsCategoryData deserializeNoSort(CompoundTag categoryNbt) {
