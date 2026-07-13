@@ -44,11 +44,11 @@ public abstract class SettingsHandler {
 		addSettingsCategory(settingsData, MainSettingsCategory.NAME, markContentsDirty,
 				(MainSettingsCategoryData data, Runnable save) -> new MainSettingsCategory(settingsData, data, save, playerSettingsName),
 				MainSettingsCategoryData::new);
+		addItemDisplayCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, settingsData);
 		addSettingsCategory(settingsData, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new, NoSortSettingsCategoryData::new);
 		addSettingsCategory(settingsData, MemorySettingsCategory.NAME, markContentsDirty,
 				(MemorySettingsCategoryData data, Runnable save) -> new MemorySettingsCategory(inventoryHandlerSupplier, data, save),
 				MemorySettingsCategoryData::new);
-		addItemDisplayCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, settingsData);
 	}
 
 	protected abstract void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,

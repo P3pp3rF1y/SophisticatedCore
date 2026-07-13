@@ -22,20 +22,25 @@ import java.util.function.Supplier;
 
 public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDisplaySettingsCategory, ItemDisplaySettingsCategoryData>, ISlotColorCategory {
 	public static final String NAME = "item_display";
+	public static final int MIN_Z_OFFSET = -16;
+	public static final int MAX_Z_OFFSET = 16;
 	private final Supplier<InventoryHandler> inventoryHandlerSupplier;
 	private final Supplier<RenderDataHandler> renderDataHandlerSupplier;
 	private final Runnable save;
 	private final int itemNumberLimit;
+	private final boolean canDeselectSlots;
 	private final Supplier<MemorySettingsCategory> getMemorySettings;
 	private ItemDisplaySettingsCategoryData data;
 
 	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
-			ItemDisplaySettingsCategoryData data, Runnable save, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
+			ItemDisplaySettingsCategoryData data, Runnable save, int itemNumberLimit, boolean canDeselectSlots,
+			Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.renderDataHandlerSupplier = renderDataHandlerSupplier;
 		this.data = data;
 		this.save = save;
 		this.itemNumberLimit = itemNumberLimit;
+		this.canDeselectSlots = canDeselectSlots;
 		this.getMemorySettings = getMemorySettings;
 	}
 
@@ -44,6 +49,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	}
 
 	public void unselectSlot(int slotIndex) {
+		if (!canDeselectSlots) {
+			return;
+		}
+
 		data.removeSlotIndex(slotIndex);
 		save();
 
@@ -62,9 +71,12 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		InventoryHandler inventoryHandler = inventoryHandlerSupplier.get();
 		for (int slotIndex : data.slotIndexes()) {
 			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
+			RenderData.DisplayItemData previousDisplayItem = previousDisplayItems.get(i);
 
-			ItemStack stack = previousDisplayItems.get(i).createItemStack();
-			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack)
+			ItemStack stack = previousDisplayItem.createItemStack();
+			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack) || previousDisplayItem.slotIndex() != slotIndex
+					|| previousDisplayItem.rotation() != getRotation(slotIndex) || previousDisplayItem.zOffset() != getZOffset(slotIndex)
+					|| previousDisplayItem.displaySide() != data.displaySide()
 					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandler.isSlotAccessible(slotIndex))) {
 				return true;
 			}
@@ -133,7 +145,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 			List<Integer> inaccessibleSlots) {
 		for (int slotIndex : data.slotIndexes()) {
 			displayItems.add(new RenderData.DisplayItemData(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), data.slotRotations().getOrDefault(slotIndex, 0),
-					slotIndex, data.displaySide()));
+					slotIndex, data.displaySide(), getZOffset(slotIndex)));
 			if (!inventoryHandler.isSlotAccessible(slotIndex)) {
 				inaccessibleSlots.add(slotIndex);
 			}
@@ -206,6 +218,28 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		int rotation = getRotation(slotIndex);
 		rotation = (rotation + ((clockwise ? 1 : -1) * 45) + 360) % 360;
 		data.setRotation(slotIndex, rotation);
+		save();
+		updateFullRenderData();
+	}
+
+	public int getZOffset(int slotIndex) {
+		return data.slotZOffsets().getOrDefault(slotIndex, 0);
+	}
+
+	public void changeZOffset(int slotIndex, int offsetChange) {
+		if (!data.slotIndexes().contains(slotIndex)) {
+			return;
+		}
+
+		setZOffset(slotIndex, getZOffset(slotIndex) + offsetChange);
+	}
+
+	public void setZOffset(int slotIndex, int zOffset) {
+		if (!data.slotIndexes().contains(slotIndex)) {
+			return;
+		}
+
+		data.setZOffset(slotIndex, Math.max(MIN_Z_OFFSET, Math.min(MAX_Z_OFFSET, zOffset)));
 		save();
 		updateFullRenderData();
 	}
@@ -306,6 +340,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	public void deleteSlotSettingsFrom(int slotIndex) {
 		data.removeSlot(slotIndex);
 		save();
+	}
+
+	public boolean canDeselectSlots() {
+		return canDeselectSlots;
 	}
 
 }
