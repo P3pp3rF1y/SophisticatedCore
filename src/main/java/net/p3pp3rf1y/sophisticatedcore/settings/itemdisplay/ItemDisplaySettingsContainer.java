@@ -15,6 +15,10 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 	private static final String UNSELECT_SLOT_TAG = "unselectSlot";
 	private static final String ROTATE_CLOCKWISE_TAG = "rotateClockwise";
 	private static final String ROTATE_COUNTER_CLOCKWISE_TAG = "rotateCounterClockwise";
+	private static final String CHANGE_Z_OFFSET_TAG = "changeZOffset";
+	private static final String RESET_Z_OFFSET_TAG = "resetZOffset";
+	private static final String SLOT_TAG = "slot";
+	private static final String OFFSET_CHANGE_TAG = "offsetChange";
 
 	public ItemDisplaySettingsContainer(SettingsContainerMenu<?> settingsContainer, String categoryName, ItemDisplaySettingsCategory category) {
 		super(settingsContainer, categoryName, category);
@@ -30,6 +34,10 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 			rotateClockwise(data.getInt(ROTATE_CLOCKWISE_TAG));
 		} else if (data.contains(ROTATE_COUNTER_CLOCKWISE_TAG)) {
 			rotateCounterClockwise(data.getInt(ROTATE_COUNTER_CLOCKWISE_TAG));
+		} else if (data.contains(CHANGE_Z_OFFSET_TAG)) {
+			changeZOffset(data.getInt(SLOT_TAG), data.getInt(OFFSET_CHANGE_TAG));
+		} else if (data.contains(RESET_Z_OFFSET_TAG)) {
+			resetZOffset(data.getInt(RESET_Z_OFFSET_TAG));
 		} else if (data.contains(COLOR_TAG)) {
 			setColor(DyeColor.byId(data.getInt(COLOR_TAG)));
 		} else if (data.contains(DISPLAY_SIDE_TAG)) {
@@ -38,7 +46,7 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 	}
 
 	public void unselectSlot(int slotIndex) {
-		if (!isSlotSelected(slotIndex)) {
+		if (!isSlotSelected(slotIndex) || !canDeselectSlots()) {
 			return;
 		}
 
@@ -68,6 +76,7 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		if (isServer()) {
 			getCategory().rotate(slotIndex, true);
 		} else {
+			getCategory().rotate(slotIndex, true);
 			sendIntToServer(ROTATE_CLOCKWISE_TAG, slotIndex);
 		}
 	}
@@ -76,7 +85,30 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		if (isServer()) {
 			getCategory().rotate(slotIndex, false);
 		} else {
+			getCategory().rotate(slotIndex, false);
 			sendIntToServer(ROTATE_COUNTER_CLOCKWISE_TAG, slotIndex);
+		}
+	}
+
+	public void changeZOffset(int slotIndex, int offsetChange) {
+		if (isServer()) {
+			getCategory().changeZOffset(slotIndex, offsetChange);
+		} else {
+			getCategory().changeZOffset(slotIndex, offsetChange);
+			CompoundTag tag = new CompoundTag();
+			tag.putBoolean(CHANGE_Z_OFFSET_TAG, true);
+			tag.putInt(SLOT_TAG, slotIndex);
+			tag.putInt(OFFSET_CHANGE_TAG, offsetChange);
+			sendDataToServer(() -> tag);
+		}
+	}
+
+	public void resetZOffset(int slotIndex) {
+		if (isServer()) {
+			getCategory().setZOffset(slotIndex, 0);
+		} else {
+			getCategory().setZOffset(slotIndex, 0);
+			sendIntToServer(RESET_Z_OFFSET_TAG, slotIndex);
 		}
 	}
 
@@ -92,6 +124,7 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		if (isServer()) {
 			getCategory().setDisplaySide(displaySide);
 		} else {
+			getCategory().setDisplaySide(displaySide);
 			sendStringToServer(DISPLAY_SIDE_TAG, displaySide.getSerializedName());
 		}
 	}
@@ -108,6 +141,10 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 		return getCategory().getRotation(slotIndex);
 	}
 
+	public int getZOffset(int slotIndex) {
+		return getCategory().getZOffset(slotIndex);
+	}
+
 	public int getFirstSelectedSlot() {
 		List<Integer> slots = getCategory().getSlots();
 
@@ -120,5 +157,9 @@ public class ItemDisplaySettingsContainer extends SettingsContainerBase<ItemDisp
 
 	public boolean supportsSideSelection() {
 		return getSettingsContainer().supportsItemDisplaySideSelection();
+	}
+
+	public boolean canDeselectSlots() {
+		return getCategory().canDeselectSlots();
 	}
 }
