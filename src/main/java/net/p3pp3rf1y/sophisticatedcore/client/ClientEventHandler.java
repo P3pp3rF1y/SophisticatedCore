@@ -31,6 +31,8 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
+import net.p3pp3rf1y.sophisticatedcore.client.render.ItemPreviewRenderState;
+import net.p3pp3rf1y.sophisticatedcore.client.render.ItemPreviewRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
@@ -62,6 +64,7 @@ public class ClientEventHandler {
 		modBus.addListener(ClientEventHandler::registerFluidClientExtension);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
 		modBus.addListener(ClientEventHandler::registerRenderPipelines);
+		modBus.addListener(ClientEventHandler::registerPictureInPictureRenderers);
 		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
@@ -85,6 +88,10 @@ public class ClientEventHandler {
 
 	private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
 		event.registerPipeline(BlockHighlightRenderHelper.THICK_HIGHLIGHT_PIPELINE);
+	}
+
+	private static void registerPictureInPictureRenderers(RegisterPictureInPictureRenderersEvent event) {
+		event.register(ItemPreviewRenderState.class, ItemPreviewRenderer::new);
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
