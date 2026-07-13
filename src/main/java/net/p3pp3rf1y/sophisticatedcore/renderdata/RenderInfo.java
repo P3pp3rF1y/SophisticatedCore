@@ -459,16 +459,19 @@ public abstract class RenderInfo {
 		private static final String ROTATION_TAG = "rotation";
 		private static final String SLOT_INDEX_TAG = "slotIndex";
 		private static final String DISPLAY_SIDE_TAG = "displaySide";
+		private static final String Z_OFFSET_TAG = "zOffset";
 		private ItemStack item;
 		private int rotation;
 		private int slotIndex;
 		private DisplaySide displaySide;
+		private int zOffset;
 
-		public DisplayItem(ItemStack item, int rotation, int slotIndex, DisplaySide displaySide) {
+		public DisplayItem(ItemStack item, int rotation, int slotIndex, DisplaySide displaySide, int zOffset) {
 			this.item = item;
 			this.rotation = rotation;
 			this.slotIndex = slotIndex;
 			this.displaySide = displaySide;
+			this.zOffset = zOffset;
 		}
 
 		private CompoundTag serialize(CompoundTag tag) {
@@ -476,12 +479,13 @@ public abstract class RenderInfo {
 			tag.putInt(ROTATION_TAG, rotation);
 			tag.putInt(SLOT_INDEX_TAG, slotIndex);
 			tag.putString(DISPLAY_SIDE_TAG, displaySide.getSerializedName());
+			tag.putInt(Z_OFFSET_TAG, zOffset);
 			return tag;
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
 			return new DisplayItem(ItemStack.of(tag.getCompound(ITEM_TAG)), tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG),
-					DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)));
+					DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)), tag.getInt(Z_OFFSET_TAG));
 		}
 
 		public ItemStack getItem() {
@@ -498,6 +502,10 @@ public abstract class RenderInfo {
 
 		public DisplaySide getDisplaySide() {
 			return displaySide;
+		}
+
+		public int getZOffset() {
+			return zOffset;
 		}
 	}
 }

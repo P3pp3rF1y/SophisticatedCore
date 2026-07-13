@@ -34,10 +34,10 @@ public abstract class SettingsHandler {
 
 	private void addSettingsCategories(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag settingsNbt) {
 		addSettingsCategory(settingsNbt, getGlobalSettingsCategoryName(), markContentsDirty, this::instantiateGlobalSettingsCategory);
+		addItemDisplayCategory(inventoryHandlerSupplier, renderInfoSupplier, settingsNbt);
 		addSettingsCategory(settingsNbt, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new);
 		addSettingsCategory(settingsNbt, MemorySettingsCategory.NAME, markContentsDirty,
 				(categoryNbt, saveNbt) -> new MemorySettingsCategory(inventoryHandlerSupplier, categoryNbt, saveNbt));
-		addItemDisplayCategory(inventoryHandlerSupplier, renderInfoSupplier, settingsNbt);
 	}
 
 	protected abstract void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier,
