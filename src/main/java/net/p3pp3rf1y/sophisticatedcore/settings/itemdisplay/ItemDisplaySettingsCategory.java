@@ -33,7 +33,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	private ItemDisplaySettingsCategoryData data;
 
 	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
-			ItemDisplaySettingsCategoryData data, Runnable save, int itemNumberLimit, boolean canDeselectSlots, Supplier<MemorySettingsCategory> getMemorySettings) {
+			ItemDisplaySettingsCategoryData data, Runnable save, int itemNumberLimit, boolean canDeselectSlots,
+			Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.renderDataHandlerSupplier = renderDataHandlerSupplier;
 		this.data = data;
@@ -73,10 +74,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 			RenderData.DisplayItemData previousDisplayItem = previousDisplayItems.get(i);
 
 			ItemStack stack = previousDisplayItem.createItemStack();
-			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack)
-					|| previousDisplayItem.slotIndex() != slotIndex
-					|| previousDisplayItem.rotation() != getRotation(slotIndex)
-					|| previousDisplayItem.zOffset() != getZOffset(slotIndex)
+			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack) || previousDisplayItem.slotIndex() != slotIndex
+					|| previousDisplayItem.rotation() != getRotation(slotIndex) || previousDisplayItem.zOffset() != getZOffset(slotIndex)
 					|| previousDisplayItem.displaySide() != data.displaySide()
 					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandler.isSlotAccessible(slotIndex))) {
 				return true;

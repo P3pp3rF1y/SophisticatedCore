@@ -13,14 +13,14 @@ import net.p3pp3rf1y.sophisticatedcore.util.CodecHelper;
 import java.util.*;
 
 public class ItemDisplaySettingsCategoryData implements ContainerContents.ISettingsCategoryData<ItemDisplaySettingsCategoryData> {
-	public static Codec<ItemDisplaySettingsCategoryData> CODEC = RecordCodecBuilder
-			.create(instance -> instance
-					.group(DyeColor.CODEC.fieldOf("color").forGetter(data -> data.color),
-							Codec.list(Codec.INT).fieldOf("slotIndexes").forGetter(data -> data.slotIndexes),
-							Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Codec.INT).fieldOf("slotRotations").forGetter(data -> data.slotRotations),
-							Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Codec.INT).optionalFieldOf("slotZOffsets", Map.of()).forGetter(data -> data.slotZOffsets),
-							DisplaySide.CODEC.fieldOf("displaySide").forGetter(data -> data.displaySide))
-					.apply(instance, ItemDisplaySettingsCategoryData::new));
+	public static Codec<ItemDisplaySettingsCategoryData> CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(DyeColor.CODEC.fieldOf("color").forGetter(data -> data.color),
+					Codec.list(Codec.INT).fieldOf("slotIndexes").forGetter(data -> data.slotIndexes),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Codec.INT).fieldOf("slotRotations").forGetter(data -> data.slotRotations),
+					Codec.unboundedMap(CodecHelper.STRING_ENCODED_INT, Codec.INT).optionalFieldOf("slotZOffsets", Map.of())
+							.forGetter(data -> data.slotZOffsets),
+					DisplaySide.CODEC.fieldOf("displaySide").forGetter(data -> data.displaySide))
+			.apply(instance, ItemDisplaySettingsCategoryData::new));
 	public static StreamCodec<RegistryFriendlyByteBuf, ItemDisplaySettingsCategoryData> STREAM_CODEC = StreamCodec.composite(DyeColor.STREAM_CODEC,
 			ItemDisplaySettingsCategoryData::color, ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list()), ItemDisplaySettingsCategoryData::slotIndexes,
 			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ByteBufCodecs.VAR_INT), data -> data.slotRotations,
@@ -52,7 +52,8 @@ public class ItemDisplaySettingsCategoryData implements ContainerContents.ISetti
 
 	@Override
 	public ItemDisplaySettingsCategoryData copy() {
-		return new ItemDisplaySettingsCategoryData(color, new LinkedList<>(slotIndexes), new HashMap<>(slotRotations), new HashMap<>(slotZOffsets), displaySide);
+		return new ItemDisplaySettingsCategoryData(color, new LinkedList<>(slotIndexes), new HashMap<>(slotRotations), new HashMap<>(slotZOffsets),
+				displaySide);
 	}
 
 	@Override
@@ -125,8 +126,7 @@ public class ItemDisplaySettingsCategoryData implements ContainerContents.ISetti
 		if (!(o instanceof ItemDisplaySettingsCategoryData that))
 			return false;
 		return color == that.color && Objects.equals(slotIndexes, that.slotIndexes) && Objects.equals(slotRotations, that.slotRotations)
-				&& Objects.equals(slotZOffsets, that.slotZOffsets)
-				&& displaySide == that.displaySide;
+				&& Objects.equals(slotZOffsets, that.slotZOffsets) && displaySide == that.displaySide;
 	}
 
 	@Override
