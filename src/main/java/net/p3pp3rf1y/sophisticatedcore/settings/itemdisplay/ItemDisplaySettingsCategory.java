@@ -103,10 +103,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
 			RenderInfo.DisplayItem previousDisplayItem = previousDisplayItems.get(i);
 
-			if (ItemStackKey.getHashCode(newItem) != ItemStackKey.getHashCode(previousDisplayItem.getItem())
-					|| previousDisplayItem.getSlotIndex() != slotIndex
-					|| previousDisplayItem.getRotation() != getRotation(slotIndex)
-					|| previousDisplayItem.getZOffset() != getZOffset(slotIndex)
+			if (ItemStackKey.getHashCode(newItem) != ItemStackKey.getHashCode(previousDisplayItem.getItem()) || previousDisplayItem.getSlotIndex() != slotIndex
+					|| previousDisplayItem.getRotation() != getRotation(slotIndex) || previousDisplayItem.getZOffset() != getZOffset(slotIndex)
 					|| previousDisplayItem.getDisplaySide() != displaySide
 					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandler.isSlotAccessible(slotIndex))) {
 				return true;
