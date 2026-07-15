@@ -9,12 +9,14 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 public class StorageWrapperRepository {
 
 	private static final Cache<ItemStack, IStorageWrapper> stackStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
 	private static final Cache<UUID, IStorageWrapper> uuidStorageWrappers = CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build();
+	private static final AtomicLong wrapperCacheChangeCounter = new AtomicLong();
 
 	public static <T extends IStorageWrapper> Optional<T> getExistingStorageWrapper(ItemStack stack, Class<T> wrapperClass) {
 		IStorageWrapper storageWrapper = stackStorageWrappers.getIfPresent(stack);
@@ -29,18 +31,25 @@ public class StorageWrapperRepository {
 		if (storageWrapper == null) {
 			storageWrapper = instantiateWrapper(stack, factory);
 			stackStorageWrappers.put(stack, storageWrapper);
+			wrapperCacheChangeCounter.incrementAndGet();
 		} else if (!wrapperClass.isInstance(storageWrapper)) {
 			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...",
 					stack, wrapperClass);
 			stackStorageWrappers.invalidate(stack);
 			storageWrapper = instantiateWrapper(stack, factory);
 			stackStorageWrappers.put(stack, storageWrapper);
+			wrapperCacheChangeCounter.incrementAndGet();
 		}
 		return wrapperClass.cast(storageWrapper);
 	}
 
 	public static void setStorageWrapper(ItemStack stack, IStorageWrapper storageWrapper) {
 		stackStorageWrappers.put(stack, storageWrapper);
+		wrapperCacheChangeCounter.incrementAndGet();
+	}
+
+	public static long getWrapperCacheChangeCounter() {
+		return wrapperCacheChangeCounter.get();
 	}
 
 	/*
@@ -59,10 +68,12 @@ public class StorageWrapperRepository {
 	public static void migrateToUuid(IStorageWrapper storageWrapper, ItemStack stack, UUID storageUuid) {
 		stackStorageWrappers.invalidate(stack);
 		uuidStorageWrappers.put(storageUuid, storageWrapper);
+		wrapperCacheChangeCounter.incrementAndGet();
 	}
 
 	public static void clearCache() {
 		stackStorageWrappers.invalidateAll();
 		uuidStorageWrappers.invalidateAll();
+		wrapperCacheChangeCounter.incrementAndGet();
 	}
 }
