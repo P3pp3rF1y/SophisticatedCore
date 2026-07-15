@@ -177,9 +177,8 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 	}
 
 	private List<Component> getZOffsetTooltip() {
-		return new ImmutableList.Builder<Component>()
-				.add(Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("z_offset")))
-				.addAll(TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("z_offset_detail"), null, ChatFormatting.GRAY))
+		return new ImmutableList.Builder<Component>().add(Component.translatable(TranslationHelper.INSTANCE.translSettingsButton("z_offset"))).addAll(
+				TranslationHelper.INSTANCE.getTranslatedLines(TranslationHelper.INSTANCE.translSettingsButton("z_offset_detail"), null, ChatFormatting.GRAY))
 				.build();
 	}
 
@@ -188,9 +187,8 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 		IItemDisplaySettingsPreviewProvider provider = getPreviewProvider();
 		provider.getItemDisplaySettingsPreviewStack(screen, container, selectedSlot).ifPresent(stack -> {
 			float previewYAxisRotation = provider.getItemDisplayPreviewYAxisRotation(yAxisRotation);
-			renderWithItemDisplayPreviewLighting(guiGraphics,
-					() -> renderItemDisplayPreviewItem(guiGraphics, stack, x, y, width, height, xAxisRotation, previewYAxisRotation,
-							provider.getItemDisplayPreviewScaleMultiplier()));
+			renderWithItemDisplayPreviewLighting(guiGraphics, () -> renderItemDisplayPreviewItem(guiGraphics, stack, x, y, width, height, xAxisRotation,
+					previewYAxisRotation, provider.getItemDisplayPreviewScaleMultiplier()));
 		});
 	}
 
@@ -241,11 +239,13 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 		}
 
 		@Override
-		protected void renderPreview(GuiGraphics guiGraphics, int x, int y, int width, int height, float xAxisRotation, float yAxisRotation, float partialTicks) {
+		protected void renderPreview(GuiGraphics guiGraphics, int x, int y, int width, int height, float xAxisRotation, float yAxisRotation,
+				float partialTicks) {
 			IItemDisplaySettingsPreviewProvider provider = getPreviewProvider();
-			if (!provider.renderItemDisplaySettingsPreview(ItemDisplaySettingsTab.this, screen, guiGraphics, x, y, width, height, getSettingsContainer(), currentSelectedSlot,
-					xAxisRotation, yAxisRotation, partialTicks)) {
-				renderDefaultItemDisplaySettingsPreview(guiGraphics, x, y, width, height, getSettingsContainer(), currentSelectedSlot, xAxisRotation, yAxisRotation);
+			if (!provider.renderItemDisplaySettingsPreview(ItemDisplaySettingsTab.this, screen, guiGraphics, x, y, width, height, getSettingsContainer(),
+					currentSelectedSlot, xAxisRotation, yAxisRotation, partialTicks)) {
+				renderDefaultItemDisplaySettingsPreview(guiGraphics, x, y, width, height, getSettingsContainer(), currentSelectedSlot, xAxisRotation,
+						yAxisRotation);
 			}
 		}
 	}

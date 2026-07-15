@@ -477,9 +477,10 @@ public abstract class RenderInfo {
 		}
 
 		private static DisplayItem deserialize(CompoundTag tag) {
-			return new DisplayItem(RegistryHelper.getRegistryAccess().map(registryAccess -> ItemStack.parseOptional(registryAccess, tag.getCompound(ITEM_TAG)))
-					.orElse(ItemStack.EMPTY), tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG), DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)),
-					tag.getInt(Z_OFFSET_TAG));
+			return new DisplayItem(
+					RegistryHelper.getRegistryAccess().map(registryAccess -> ItemStack.parseOptional(registryAccess, tag.getCompound(ITEM_TAG)))
+							.orElse(ItemStack.EMPTY),
+					tag.getInt(ROTATION_TAG), tag.getInt(SLOT_INDEX_TAG), DisplaySide.fromName(tag.getString(DISPLAY_SIDE_TAG)), tag.getInt(Z_OFFSET_TAG));
 		}
 
 		public ItemStack getItem() {
