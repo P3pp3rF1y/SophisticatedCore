@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 public class StorageWrapperRepository {
@@ -20,6 +21,7 @@ public class StorageWrapperRepository {
 	private static final Map<ThreadGroup, Cache<ItemStack, IStorageWrapper>> stackStorageWrappers = new MapMaker().weakKeys().makeMap();
 	private static final Map<ThreadGroup, Cache<UUID, IStorageWrapper>> uuidStorageWrappers = new MapMaker().weakKeys().makeMap();
 	private static final Map<ThreadGroup, Cache<UUID, Set<IStorageWrapper>>> storageWrappersByUuid = new MapMaker().weakKeys().makeMap();
+	private static final AtomicLong wrapperCacheChangeCounter = new AtomicLong();
 
 	public static <T extends IStorageWrapper> Optional<T> getExistingStorageWrapper(ItemStack stack, Class<T> wrapperClass) {
 		IStorageWrapper storageWrapper = getStackStorageWrappers().getIfPresent(stack);
@@ -35,18 +37,25 @@ public class StorageWrapperRepository {
 		if (storageWrapper == null) {
 			storageWrapper = instantiateWrapper(stack, factory);
 			wrappers.put(stack, storageWrapper);
+			wrapperCacheChangeCounter.incrementAndGet();
 		} else if (!wrapperClass.isInstance(storageWrapper)) {
 			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with ItemStack {} is not an instance of {}. Replacing with new instance...",
 					stack, wrapperClass);
 			wrappers.invalidate(stack);
 			storageWrapper = instantiateWrapper(stack, factory);
 			wrappers.put(stack, storageWrapper);
+			wrapperCacheChangeCounter.incrementAndGet();
 		}
 		return wrapperClass.cast(storageWrapper);
 	}
 
 	public static void setStorageWrapper(ItemStack stack, IStorageWrapper storageWrapper) {
 		getStackStorageWrappers().put(stack, storageWrapper);
+		wrapperCacheChangeCounter.incrementAndGet();
+	}
+
+	public static long getWrapperCacheChangeCounter() {
+		return wrapperCacheChangeCounter.get();
 	}
 
 	public static void registerStorageWrapper(UUID storageUuid, IStorageWrapper storageWrapper) {
@@ -84,6 +93,7 @@ public class StorageWrapperRepository {
 		getStackStorageWrappers().invalidate(stack);
 		getUuidStorageWrappers().put(storageUuid, storageWrapper);
 		registerStorageWrapper(storageUuid, storageWrapper);
+		wrapperCacheChangeCounter.incrementAndGet();
 	}
 
 	public static void clearCache() {
@@ -93,6 +103,7 @@ public class StorageWrapperRepository {
 		stackStorageWrappers.clear();
 		uuidStorageWrappers.clear();
 		storageWrappersByUuid.clear();
+		wrapperCacheChangeCounter.incrementAndGet();
 	}
 
 	private static Cache<ItemStack, IStorageWrapper> getStackStorageWrappers() {
