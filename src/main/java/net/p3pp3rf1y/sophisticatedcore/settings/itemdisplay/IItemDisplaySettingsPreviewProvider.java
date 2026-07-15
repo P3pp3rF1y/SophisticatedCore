@@ -7,8 +7,8 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.SettingsScreen;
 import java.util.Optional;
 
 public interface IItemDisplaySettingsPreviewProvider {
-	default boolean renderItemDisplaySettingsPreview(ItemDisplaySettingsTab tab, SettingsScreen screen, GuiGraphics guiGraphics, int x, int y, int width, int height,
-			ItemDisplaySettingsContainer container, int selectedSlot, float xAxisRotation, float yAxisRotation, float partialTicks) {
+	default boolean renderItemDisplaySettingsPreview(ItemDisplaySettingsTab tab, SettingsScreen screen, GuiGraphics guiGraphics, int x, int y, int width,
+			int height, ItemDisplaySettingsContainer container, int selectedSlot, float xAxisRotation, float yAxisRotation, float partialTicks) {
 		return false;
 	}
 
