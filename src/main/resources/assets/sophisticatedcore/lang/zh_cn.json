@@ -230,6 +230,8 @@
   "gui.sophisticatedcore.settings.buttons.unselect_all_slots": "取消全选槽位",
   "gui.sophisticatedcore.settings.buttons.rotate": "旋转",
   "gui.sophisticatedcore.settings.buttons.rotate_detail": "顺时针=左击\n逆时针=右击",
+  "gui.sophisticatedcore.settings.buttons.z_offset": "深度",
+  "gui.sophisticatedcore.settings.buttons.z_offset_detail": "向外=左击\n向内=左击",
   "gui.sophisticatedcore.settings.buttons.toggle_color": "更换颜色",
   "gui.sophisticatedcore.settings.buttons.toggle_color_detail": "上一种=左击\n下一种=右击",
   "gui.sophisticatedcore.settings.buttons.context_player": "玩家设置",
