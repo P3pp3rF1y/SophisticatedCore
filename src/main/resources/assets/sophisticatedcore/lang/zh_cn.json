@@ -1,7 +1,7 @@
 {
   "itemGroup.sophisticatedcore": "精妙核心",
   "item.sophisticatedcore.xp_bucket": "经验桶",
-  "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "右击添加",
+  "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "左击添加",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "堆叠倍数：%s",
   "item.sophisticatedcore.storage.tooltip.energy": "%s FE",
   "item.sophisticatedcore.storage.tooltip.fluid": "%s mB %s",
@@ -230,6 +230,8 @@
   "gui.sophisticatedcore.settings.buttons.unselect_all_slots": "取消全选槽位",
   "gui.sophisticatedcore.settings.buttons.rotate": "旋转",
   "gui.sophisticatedcore.settings.buttons.rotate_detail": "顺时针=左击\n逆时针=右击",
+  "gui.sophisticatedcore.settings.buttons.z_offset": "深度",
+  "gui.sophisticatedcore.settings.buttons.z_offset_detail": "向外=左击\n向内=左击",
   "gui.sophisticatedcore.settings.buttons.toggle_color": "更换颜色",
   "gui.sophisticatedcore.settings.buttons.toggle_color_detail": "上一种=左击\n下一种=右击",
   "gui.sophisticatedcore.settings.buttons.context_player": "玩家设置",
