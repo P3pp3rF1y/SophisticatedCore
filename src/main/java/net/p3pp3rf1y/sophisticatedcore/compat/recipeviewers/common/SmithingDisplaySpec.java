@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public record SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> template, Optional<Ingredient> addition, List<SmithingDisplayVariant> variants,
-								 List<SmithingDisplayVariant> globalVariants, Set<SmithingRecipe> replacedRecipes,
-								 IFocusBehavior<SmithingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<SmithingDisplayVariant> {
+		List<SmithingDisplayVariant> globalVariants, Set<SmithingRecipe> replacedRecipes,
+		IFocusBehavior<SmithingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<SmithingDisplayVariant> {
 	public SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> template, Optional<Ingredient> addition, List<SmithingDisplayVariant> variants,
 			List<SmithingDisplayVariant> globalVariants, IFocusBehavior<SmithingDisplayVariant> focusBehavior) {
 		this(id, template, addition, variants, globalVariants, Set.of(), focusBehavior);
@@ -58,6 +58,7 @@ public record SmithingDisplaySpec(ResourceLocation id, Optional<Ingredient> temp
 	}
 
 	public RecipeHolder<SmithingRecipe> recipeHolder(SmithingDisplayVariant variant) {
-		return new RecipeHolder<>(id, new SmithingTransformRecipe(template.orElse(Ingredient.EMPTY), Ingredient.of(variant.base()), addition.orElse(Ingredient.EMPTY), variant.result()));
+		return new RecipeHolder<>(id, new SmithingTransformRecipe(template.orElse(Ingredient.EMPTY), Ingredient.of(variant.base()),
+				addition.orElse(Ingredient.EMPTY), variant.result()));
 	}
 }

@@ -13,8 +13,8 @@ public class SawmillUpgradeItem extends BlockConverterUpgradeItem<SawmillUpgrade
 	private static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
 	public SawmillUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
-    }
+		super(upgradeTypeLimitConfig);
+	}
 
 	@Override
 	public UpgradeType<Wrapper> getType() {

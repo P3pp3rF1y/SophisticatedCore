@@ -33,10 +33,8 @@ class IStorageWrapperInventoryLayoutTest {
 		when(storageWrapper.getSettingsHandler()).thenReturn(mock(SettingsHandler.class));
 		when(storageWrapper.getUpgradeHandler()).thenAnswer(invocation -> emptyUpgradeHandler());
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("stack:1", 1, 1, 1, Set.of(1)),
-				new InventoryLayoutPart("fixed:3", 3, 1, 1, Set.of(3))
-		), storageWrapper.getInventoryLayoutParts(5));
+		assertEquals(List.of(new InventoryLayoutPart("stack:1", 1, 1, 1, Set.of(1)), new InventoryLayoutPart("fixed:3", 3, 1, 1, Set.of(3))),
+				storageWrapper.getInventoryLayoutParts(5));
 	}
 
 	@Test
@@ -47,9 +45,7 @@ class IStorageWrapperInventoryLayoutTest {
 		when(storageWrapper.getSettingsHandler()).thenReturn(mock(SettingsHandler.class));
 		when(storageWrapper.getUpgradeHandler()).thenAnswer(invocation -> emptyUpgradeHandler());
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("stack:20", 20, 1, 1, Set.of(20))
-		), storageWrapper.getInventoryLayoutParts(9, 7));
+		assertEquals(List.of(new InventoryLayoutPart("stack:20", 20, 1, 1, Set.of(20))), storageWrapper.getInventoryLayoutParts(9, 7));
 	}
 
 	@Test
@@ -69,13 +65,12 @@ class IStorageWrapperInventoryLayoutTest {
 	@Test
 	void defaultLayoutPartsTreatNoSortSlotsAsFixed() {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(2, new ItemStack(Items.COBBLESTONE)), Set.of(), 9);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {
+		});
 		noSortSettings.selectSlot(2);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("fixed:2", 2, 1, 1, Set.of(2))
-		), storageWrapper.getInventoryLayoutParts(9));
+		assertEquals(List.of(new InventoryLayoutPart("fixed:2", 2, 1, 1, Set.of(2))), storageWrapper.getInventoryLayoutParts(9));
 	}
 
 	@Test
@@ -85,15 +80,14 @@ class IStorageWrapperInventoryLayoutTest {
 		memorySettings.selectSlot(4);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, emptyNoSortSettings(), memorySettings);
 
-		assertEquals(List.of(
-				new InventoryLayoutPart("fixed:4", 4, 1, 1, Set.of(4))
-		), storageWrapper.getInventoryLayoutParts(9));
+		assertEquals(List.of(new InventoryLayoutPart("fixed:4", 4, 1, 1, Set.of(4))), storageWrapper.getInventoryLayoutParts(9));
 	}
 
 	@Test
 	void emptyNoSortSlotDoesNotContributeLayoutPart() {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(), Set.of(), 18);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {
+		});
 		noSortSettings.selectSlot(17);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 
@@ -121,7 +115,8 @@ class IStorageWrapperInventoryLayoutTest {
 	@Test
 	void noSortSlotOutsideReducedInventoryBlocksLayoutFit() {
 		InventoryHandler inventoryHandler = mockInventoryHandler(Map.of(15, new ItemStack(Items.COBBLESTONE)), Set.of(), 18);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {
+		});
 		noSortSettings.selectSlot(15);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 
@@ -148,7 +143,8 @@ class IStorageWrapperInventoryLayoutTest {
 	void noSortSlotStackKeepsSameSlotIndexWhenColumnsChange() {
 		Map<Integer, ItemStack> stacks = new HashMap<>(Map.of(10, new ItemStack(Items.COBBLESTONE)));
 		InventoryHandler inventoryHandler = mockInventoryHandler(stacks, Set.of(), 18);
-		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {});
+		NoSortSettingsCategory noSortSettings = new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {
+		});
 		noSortSettings.selectSlot(10);
 		IStorageWrapper storageWrapper = mockStorageWrapper(inventoryHandler, noSortSettings, emptyMemorySettings(inventoryHandler));
 		InventoryLayoutFitResult fitResult = InventoryLayoutFitter.fit(storageWrapper.getInventoryLayoutParts(9, 7), 14, 7);
@@ -264,7 +260,8 @@ class IStorageWrapperInventoryLayoutTest {
 		return inventoryHandler;
 	}
 
-	private IStorageWrapper mockStorageWrapper(InventoryHandler inventoryHandler, NoSortSettingsCategory noSortSettings, MemorySettingsCategory memorySettings) {
+	private IStorageWrapper mockStorageWrapper(InventoryHandler inventoryHandler, NoSortSettingsCategory noSortSettings,
+			MemorySettingsCategory memorySettings) {
 		SettingsHandler settingsHandler = mock(SettingsHandler.class);
 		when(settingsHandler.getTypeCategory(NoSortSettingsCategory.class)).thenReturn(noSortSettings);
 		when(settingsHandler.getTypeCategory(MemorySettingsCategory.class)).thenReturn(memorySettings);
@@ -282,10 +279,12 @@ class IStorageWrapperInventoryLayoutTest {
 	}
 
 	private NoSortSettingsCategory emptyNoSortSettings() {
-		return new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {});
+		return new NoSortSettingsCategory(new net.minecraft.nbt.CompoundTag(), tag -> {
+		});
 	}
 
 	private MemorySettingsCategory emptyMemorySettings(InventoryHandler inventoryHandler) {
-		return new MemorySettingsCategory(() -> inventoryHandler, new net.minecraft.nbt.CompoundTag(), tag -> {});
+		return new MemorySettingsCategory(() -> inventoryHandler, new net.minecraft.nbt.CompoundTag(), tag -> {
+		});
 	}
 }

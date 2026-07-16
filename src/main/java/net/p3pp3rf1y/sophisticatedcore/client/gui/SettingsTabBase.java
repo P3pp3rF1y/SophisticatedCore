@@ -25,13 +25,16 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	protected final T screen;
 	protected Dimension openTabDimension = new Dimension(0, 0);
 	protected boolean isOpen = false;
-	private Runnable onOpen = () -> {};
-	private Runnable onClose = () -> {};
+	private Runnable onOpen = () -> {
+	};
+	private Runnable onClose = () -> {
+	};
 	private final List<WidgetBase> hideableChildren = new ArrayList<>();
 	private final List<Component> openTooltip;
 	private Label titleLabel;
 
-	protected SettingsTabBase(Position position, T screen, Component tabLabel, List<Component> tooltip, List<Component> openTooltip, Function<IntConsumer, ButtonBase> getTabButton) {
+	protected SettingsTabBase(Position position, T screen, Component tabLabel, List<Component> tooltip, List<Component> openTooltip,
+			Function<IntConsumer, ButtonBase> getTabButton) {
 		super(position, tooltip, getTabButton);
 		this.screen = screen;
 		this.openTooltip = openTooltip;
@@ -63,7 +66,8 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 	private <U extends WidgetBase> void updateOpenTabDimension(U widget) {
 		int widgetMaxWidthExtension = widget.getX() + widget.getWidth() + RIGHT_BORDER_WIDTH - x;
 		int widgetMaxHeightExtension = widget.getY() + widget.getHeight() + BOTTOM_BORDER_HEIGHT - y;
-		openTabDimension = new Dimension(Math.max(openTabDimension.width(), widgetMaxWidthExtension), Math.max(openTabDimension.height(), widgetMaxHeightExtension));
+		openTabDimension = new Dimension(Math.max(openTabDimension.width(), widgetMaxWidthExtension),
+				Math.max(openTabDimension.height(), widgetMaxHeightExtension));
 	}
 
 	public void setHandlers(Runnable onOpen, Runnable onClose, BooleanSupplier shouldRender, BooleanSupplier shouldShowTooltip) {

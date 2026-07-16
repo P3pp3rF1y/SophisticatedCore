@@ -34,7 +34,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, W extends BlockConverterUpgradeWrapper<?, ?>, RC extends BlockConverterRecipeContainer<R, W, RC, C>,  C extends BlockConverterUpgradeContainer<R, W, C, RC>> {
+public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, W extends BlockConverterUpgradeWrapper<?, ?>, RC extends BlockConverterRecipeContainer<R, W, RC, C>, C extends BlockConverterUpgradeContainer<R, W, C, RC>> {
 	private static final String DATA_SELECTED_RECIPE_INDEX = "selectedRecipeIndex";
 	private final C upgradeContainer;
 	private final Slot inputSlot;
@@ -46,14 +46,16 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	private final DataSlot selectedRecipe = DataSlot.standalone();
 	private Item inputItem = Items.AIR;
 	private final CraftingItemHandler inputInventory;
-	private Runnable inventoryUpdateListener = () -> {};
+	private Runnable inventoryUpdateListener = () -> {
+	};
 	private final Supplier<Optional<ResourceLocation>> getLastSelectedRecipeId;
 	private final Consumer<ResourceLocation> setLastSelectedRecipeId;
 	private final List<ResourceLocation> recentResultItems = new ArrayList<>();
 	private long lastOnTake = -1;
 	private final SoundEvent craftSound;
 
-	public BlockConverterRecipeContainer(C upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level, SoundEvent craftSound) {
+	public BlockConverterRecipeContainer(C upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable,
+			Level level, SoundEvent craftSound) {
 		this.upgradeContainer = upgradeContainer;
 		this.level = level;
 		inputSlot = new SlotSuppliedHandler(upgradeContainer.getUpgradeWrapper()::getInputInventory, 0, -1, -1) {
@@ -163,7 +165,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	}
 
 	public boolean isRecentResult(int resultIndex) {
-		return isIndexInRecipeBounds(resultIndex) && recentResultItems.contains(getItemRegistryName(recipes.get(resultIndex).value().getResultItem(level.registryAccess())));
+		return isIndexInRecipeBounds(resultIndex)
+				&& recentResultItems.contains(getItemRegistryName(recipes.get(resultIndex).value().getResultItem(level.registryAccess())));
 	}
 
 	public int getRecentResultOrder(int resultIndex) {
@@ -201,7 +204,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 
 	private void updateClientRecentResults(ItemStack ingredient) {
 		if (level.isClientSide) {
-			updateRecentResultItems(ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
+			updateRecentResultItems(
+					ingredient.isEmpty() ? List.of() : RecentCraftedResultStorage.getClientRecentResults(getRecipeScope(), getItemRegistryName(ingredient)));
 		}
 	}
 
@@ -245,7 +249,8 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 
 		@Override
 		public void onTake(Player player, ItemStack stack) {
-			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(), getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
+			if (level instanceof ServerLevel serverLevel && RecentCraftedResultStorage.get(serverLevel).recordCraftedResult(player, getRecipeScope(),
+					getItemRegistryName(inputSlot.getItem()), getItemRegistryName(stack))) {
 				if (player instanceof ServerPlayer serverPlayer) {
 					RecentCraftedResultStorage.syncToPlayer(serverPlayer);
 				}

@@ -7,8 +7,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.BooleanOp;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.*;
@@ -96,7 +94,8 @@ public final class VoxelOutliner {
 	}
 
 	public static List<Edge> linesFromVoxelShapeSimplified(VoxelShape shape, BlockPos pos) {
-		if (shape.isEmpty()) return List.of();
+		if (shape.isEmpty())
+			return List.of();
 
 		List<Edge> edges = new ArrayList<>();
 		shape.forAllEdges((minX, minY, minZ, maxX, maxY, maxZ) -> {
@@ -137,7 +136,6 @@ public final class VoxelOutliner {
 		return Math.abs(a - b) <= eps;
 	}
 
-
 	public static List<Edge> computeRenderableEdges(Collection<BlockPos> blocks) {
 		HashSet<BlockPos> solid = new HashSet<>(blocks);
 		NormalsAccumulator acc = new NormalsAccumulator();
@@ -145,32 +143,24 @@ public final class VoxelOutliner {
 		for (BlockPos p : solid) {
 			int x = p.getX(), y = p.getY(), z = p.getZ();
 			for (Direction dir : Direction.values()) {
-				if (solid.contains(p.relative(dir))) continue; // hidden face
+				if (solid.contains(p.relative(dir)))
+					continue; // hidden face
 
 				switch (dir.getAxis()) {
 					case X -> {
 						int xf = dir == Direction.EAST ? x + 1 : x;
-						acc.addFaceEdges(dir,
-								new EdgeKey(xf, y, z, xf, y + 1, z),
-								new EdgeKey(xf, y + 1, z, xf, y + 1, z + 1),
-								new EdgeKey(xf, y + 1, z + 1, xf, y, z + 1),
-								new EdgeKey(xf, y, z + 1, xf, y, z));
+						acc.addFaceEdges(dir, new EdgeKey(xf, y, z, xf, y + 1, z), new EdgeKey(xf, y + 1, z, xf, y + 1, z + 1),
+								new EdgeKey(xf, y + 1, z + 1, xf, y, z + 1), new EdgeKey(xf, y, z + 1, xf, y, z));
 					}
 					case Y -> {
 						int yf = dir == Direction.UP ? y + 1 : y;
-						acc.addFaceEdges(dir,
-								new EdgeKey(x, yf, z, x + 1, yf, z),
-								new EdgeKey(x + 1, yf, z, x + 1, yf, z + 1),
-								new EdgeKey(x + 1, yf, z + 1, x, yf, z + 1),
-								new EdgeKey(x, yf, z + 1, x, yf, z));
+						acc.addFaceEdges(dir, new EdgeKey(x, yf, z, x + 1, yf, z), new EdgeKey(x + 1, yf, z, x + 1, yf, z + 1),
+								new EdgeKey(x + 1, yf, z + 1, x, yf, z + 1), new EdgeKey(x, yf, z + 1, x, yf, z));
 					}
 					case Z -> {
 						int zf = dir == Direction.SOUTH ? z + 1 : z;
-						acc.addFaceEdges(dir,
-								new EdgeKey(x, y, zf, x + 1, y, zf),
-								new EdgeKey(x + 1, y, zf, x + 1, y + 1, zf),
-								new EdgeKey(x + 1, y + 1, zf, x, y + 1, zf),
-								new EdgeKey(x, y + 1, zf, x, y, zf));
+						acc.addFaceEdges(dir, new EdgeKey(x, y, zf, x + 1, y, zf), new EdgeKey(x + 1, y, zf, x + 1, y + 1, zf),
+								new EdgeKey(x + 1, y + 1, zf, x, y + 1, zf), new EdgeKey(x, y + 1, zf, x, y, zf));
 					}
 				}
 			}
@@ -185,7 +175,7 @@ public final class VoxelOutliner {
 			}
 			int edgeMask = maskOf(normals.keySet());
 			EdgeKey k = e.getKey();
-			edges.add(new EdgeInt(k.x1(),k.y1(),k.z1(), k.x2(),k.y2(),k.z2(), k.axis(), edgeMask));
+			edges.add(new EdgeInt(k.x1(), k.y1(), k.z1(), k.x2(), k.y2(), k.z2(), k.axis(), edgeMask));
 		}
 
 		edges = mergeColinearEdges(edges);
@@ -201,7 +191,8 @@ public final class VoxelOutliner {
 	}
 
 	private static List<EdgeInt> mergeColinearEdges(List<EdgeInt> edges) {
-		record GKey(Axis axis, int a, int b, int mask) {}
+		record GKey(Axis axis, int a, int b, int mask) {
+		}
 		Map<GKey, List<EdgeInt>> groups = new HashMap<>();
 		for (EdgeInt e : edges) {
 			switch (e.axis) {
@@ -214,7 +205,8 @@ public final class VoxelOutliner {
 		List<EdgeInt> merged = new ArrayList<>(edges.size());
 		for (var ent : groups.entrySet()) {
 			List<EdgeInt> list = ent.getValue();
-			if (list.isEmpty()) continue;
+			if (list.isEmpty())
+				continue;
 			Axis axis = ent.getKey().axis();
 			int mask = ent.getKey().mask();
 
@@ -225,10 +217,17 @@ public final class VoxelOutliner {
 					int s = list.get(0).x1, epos = list.get(0).x2;
 					for (int i = 1; i < list.size(); i++) {
 						EdgeInt e = list.get(i);
-						if (e.y1 == y && e.z1 == z && e.x1 == epos) epos = e.x2;
-						else { merged.add(new EdgeInt(s,y,z, epos,y,z, Axis.X, mask)); y = e.y1; z = e.z1; s = e.x1; epos = e.x2; }
+						if (e.y1 == y && e.z1 == z && e.x1 == epos)
+							epos = e.x2;
+						else {
+							merged.add(new EdgeInt(s, y, z, epos, y, z, Axis.X, mask));
+							y = e.y1;
+							z = e.z1;
+							s = e.x1;
+							epos = e.x2;
+						}
 					}
-					merged.add(new EdgeInt(s,y,z, epos,y,z, Axis.X, mask));
+					merged.add(new EdgeInt(s, y, z, epos, y, z, Axis.X, mask));
 				}
 				case Y -> {
 					list.sort(Comparator.comparingInt(e -> e.y1));
@@ -236,10 +235,17 @@ public final class VoxelOutliner {
 					int s = list.get(0).y1, epos = list.get(0).y2;
 					for (int i = 1; i < list.size(); i++) {
 						EdgeInt e = list.get(i);
-						if (e.x1 == x && e.z1 == z && e.y1 == epos) epos = e.y2;
-						else { merged.add(new EdgeInt(x,s,z, x,epos,z, Axis.Y, mask)); x = e.x1; z = e.z1; s = e.y1; epos = e.y2; }
+						if (e.x1 == x && e.z1 == z && e.y1 == epos)
+							epos = e.y2;
+						else {
+							merged.add(new EdgeInt(x, s, z, x, epos, z, Axis.Y, mask));
+							x = e.x1;
+							z = e.z1;
+							s = e.y1;
+							epos = e.y2;
+						}
 					}
-					merged.add(new EdgeInt(x,s,z, x,epos,z, Axis.Y, mask));
+					merged.add(new EdgeInt(x, s, z, x, epos, z, Axis.Y, mask));
 				}
 				case Z -> {
 					list.sort(Comparator.comparingInt(e -> e.z1));
@@ -247,10 +253,17 @@ public final class VoxelOutliner {
 					int s = list.get(0).z1, epos = list.get(0).z2;
 					for (int i = 1; i < list.size(); i++) {
 						EdgeInt e = list.get(i);
-						if (e.x1 == x && e.y1 == y && e.z1 == epos) epos = e.z2;
-						else { merged.add(new EdgeInt(x,y,s, x,y,epos, Axis.Z, mask)); x = e.x1; y = e.y1; s = e.z1; epos = e.z2; }
+						if (e.x1 == x && e.y1 == y && e.z1 == epos)
+							epos = e.z2;
+						else {
+							merged.add(new EdgeInt(x, y, s, x, y, epos, Axis.Z, mask));
+							x = e.x1;
+							y = e.y1;
+							s = e.z1;
+							epos = e.z2;
+						}
 					}
-					merged.add(new EdgeInt(x,y,s, x,y,epos, Axis.Z, mask));
+					merged.add(new EdgeInt(x, y, s, x, y, epos, Axis.Z, mask));
 				}
 			}
 		}
@@ -260,13 +273,22 @@ public final class VoxelOutliner {
 	private record EdgeKey(int x1, int y1, int z1, int x2, int y2, int z2) {
 		EdgeKey {
 			if ((x1 > x2) || (x1 == x2 && (y1 > y2 || (y1 == y2 && z1 > z2)))) {
-				int tx=x1, ty=y1, tz=z1; x1=x2; y1=y2; z1=z2; x2=tx; y2=ty; z2=tz;
+				int tx = x1, ty = y1, tz = z1;
+				x1 = x2;
+				y1 = y2;
+				z1 = z2;
+				x2 = tx;
+				y2 = ty;
+				z2 = tz;
 			}
 		}
 		Axis axis() {
-			if (x1 != x2) return Axis.X;
-			if (y1 != y2) return Axis.Y;
-			if (z1 != z2) return Axis.Z;
+			if (x1 != x2)
+				return Axis.X;
+			if (y1 != y2)
+				return Axis.Y;
+			if (z1 != z2)
+				return Axis.Z;
 			throw new IllegalStateException("Non-axis aligned edge");
 		}
 	}
@@ -285,33 +307,33 @@ public final class VoxelOutliner {
 	}
 
 	private static List<Edge> boundsEdgesFromShape(VoxelShape shape, BlockPos pos) {
-		return boxEdges(shape.min(Axis.X) + pos.getX(), shape.min(Axis.Y) + pos.getY(), shape.min(Axis.Z) + pos.getZ(),
-				shape.max(Axis.X) + pos.getX(), shape.max(Axis.Y) + pos.getY(), shape.max(Axis.Z) + pos.getZ());
+		return boxEdges(shape.min(Axis.X) + pos.getX(), shape.min(Axis.Y) + pos.getY(), shape.min(Axis.Z) + pos.getZ(), shape.max(Axis.X) + pos.getX(),
+				shape.max(Axis.Y) + pos.getY(), shape.max(Axis.Z) + pos.getZ());
 	}
 
-	private static List<Edge> boxEdges(double x0, double y0, double z0,
-									   double x1, double y1, double z1) {
-		if (x1 <= x0 || y1 <= y0 || z1 <= z0) return List.of();
+	private static List<Edge> boxEdges(double x0, double y0, double z0, double x1, double y1, double z1) {
+		if (x1 <= x0 || y1 <= y0 || z1 <= z0)
+			return List.of();
 
 		var out = new ArrayList<Edge>(12);
 
 		// bottom (y0)
-		out.add(new Edge(new Vec3(x0,y0,z0), new Vec3(x1,y0,z0)));
-		out.add(new Edge(new Vec3(x1,y0,z0), new Vec3(x1,y0,z1)));
-		out.add(new Edge(new Vec3(x1,y0,z1), new Vec3(x0,y0,z1)));
-		out.add(new Edge(new Vec3(x0,y0,z1), new Vec3(x0,y0,z0)));
+		out.add(new Edge(new Vec3(x0, y0, z0), new Vec3(x1, y0, z0)));
+		out.add(new Edge(new Vec3(x1, y0, z0), new Vec3(x1, y0, z1)));
+		out.add(new Edge(new Vec3(x1, y0, z1), new Vec3(x0, y0, z1)));
+		out.add(new Edge(new Vec3(x0, y0, z1), new Vec3(x0, y0, z0)));
 
 		// top (y1)
-		out.add(new Edge(new Vec3(x0,y1,z0), new Vec3(x1,y1,z0)));
-		out.add(new Edge(new Vec3(x1,y1,z0), new Vec3(x1,y1,z1)));
-		out.add(new Edge(new Vec3(x1,y1,z1), new Vec3(x0,y1,z1)));
-		out.add(new Edge(new Vec3(x0,y1,z1), new Vec3(x0,y1,z0)));
+		out.add(new Edge(new Vec3(x0, y1, z0), new Vec3(x1, y1, z0)));
+		out.add(new Edge(new Vec3(x1, y1, z0), new Vec3(x1, y1, z1)));
+		out.add(new Edge(new Vec3(x1, y1, z1), new Vec3(x0, y1, z1)));
+		out.add(new Edge(new Vec3(x0, y1, z1), new Vec3(x0, y1, z0)));
 
 		// verticals
-		out.add(new Edge(new Vec3(x0,y0,z0), new Vec3(x0,y1,z0)));
-		out.add(new Edge(new Vec3(x1,y0,z0), new Vec3(x1,y1,z0)));
-		out.add(new Edge(new Vec3(x1,y0,z1), new Vec3(x1,y1,z1)));
-		out.add(new Edge(new Vec3(x0,y0,z1), new Vec3(x0,y1,z1)));
+		out.add(new Edge(new Vec3(x0, y0, z0), new Vec3(x0, y1, z0)));
+		out.add(new Edge(new Vec3(x1, y0, z0), new Vec3(x1, y1, z0)));
+		out.add(new Edge(new Vec3(x1, y0, z1), new Vec3(x1, y1, z1)));
+		out.add(new Edge(new Vec3(x0, y0, z1), new Vec3(x0, y1, z1)));
 
 		return out;
 	}

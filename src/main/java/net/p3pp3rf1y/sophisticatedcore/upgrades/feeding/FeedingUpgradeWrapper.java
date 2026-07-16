@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -49,7 +50,8 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 		boolean hungryPlayer = false;
 		if (!(entity instanceof Player)) {
 			AtomicBoolean stillHungryPlayer = new AtomicBoolean(false);
-			level.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true).forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, level)));
+			level.getEntities(EntityType.PLAYER, new AABB(pos).inflate(FEEDING_RANGE), p -> true)
+					.forEach(p -> stillHungryPlayer.set(stillHungryPlayer.get() || feedPlayerAndGetHungry(p, level)));
 			hungryPlayer = stillHungryPlayer.get();
 		} else {
 			if (feedPlayerAndGetHungry((Player) entity, level)) {
@@ -74,12 +76,14 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 
 	private boolean tryFeedingFoodFromStorage(Level level, int hungerLevel, Player player) {
 		ITrackedContentsItemHandler inventory = storageWrapper.getInventoryForUpgradeProcessing();
-		return InventoryHelper.iterate(inventory, (slot, stack) -> tryFeedingStack(level, hungerLevel, player, slot, stack, inventory), () -> false, ret -> ret);
+		return InventoryHelper.iterate(inventory, (slot, stack) -> tryFeedingStack(level, hungerLevel, player, slot, stack, inventory), () -> false,
+				ret -> ret);
 	}
 
 	private boolean tryFeedingStack(Level level, int hungerLevel, Player player, Integer slot, ItemStack stack, ITrackedContentsItemHandler inventory) {
 		boolean isHurt = player.getHealth() < player.getMaxHealth() - 0.1F;
-		if (isEdible(stack, player) && filterLogic.matchesFilter(stack) && (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
+		if (isEdible(stack, player) && filterLogic.matchesFilter(stack)
+				&& (isHungryEnoughForFood(hungerLevel, stack, player) || shouldFeedImmediatelyWhenHurt() && hungerLevel > 0 && isHurt)) {
 			ItemStack mainHandItem = player.getMainHandItem();
 			player.getInventory().items.set(player.getInventory().selected, stack);
 
@@ -90,12 +94,13 @@ public class FeedingUpgradeWrapper extends UpgradeWrapperBase<FeedingUpgradeWrap
 				stack.shrink(1);
 				inventory.setStackInSlot(slot, stack);
 
-				ItemStack resultItem = EventHooks.onItemUseFinish(player, singleItemCopy.copy(), 0, singleItemCopy.getItem().finishUsingItem(singleItemCopy, level, player));
+				ItemStack resultItem = EventHooks.onItemUseFinish(player, singleItemCopy.copy(), 0,
+						singleItemCopy.getItem().finishUsingItem(singleItemCopy, level, player));
 				if (!resultItem.isEmpty()) {
 					ItemStack insertResult = inventory.insertItem(resultItem, false);
 					if (!insertResult.isEmpty()) {
-						CapabilityHelper.runOnCapability(player, Capabilities.ItemHandler.ENTITY, null, playerInventory ->
-								InventoryHelper.insertOrDropItem(player, insertResult, playerInventory));
+						CapabilityHelper.runOnCapability(player, Capabilities.ItemHandler.ENTITY, null,
+								playerInventory -> InventoryHelper.insertOrDropItem(player, insertResult, playerInventory));
 					}
 				}
 

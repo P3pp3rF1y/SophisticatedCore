@@ -65,9 +65,12 @@ public class CraftingUpgradeTweakUIPart implements ICraftingUIPart {
 		}
 		Slot firstSlot = slots.getFirst();
 		CraftingTweaksProviderManager.getDefaultCraftingGrid(storageScreen.getMenu()).ifPresent(craftingGrid -> {
-			addButton(CraftingTweaksClientAPI.createTweakButtonRelative(craftingGrid, storageScreen, getButtonX(firstSlot), getButtonY(firstSlot, 0), TweakType.Rotate));
-			addButton(CraftingTweaksClientAPI.createTweakButtonRelative(craftingGrid, storageScreen, getButtonX(firstSlot), getButtonY(firstSlot, 1), TweakType.Balance));
-			addButton(CraftingTweaksClientAPI.createTweakButtonRelative(craftingGrid, storageScreen, getButtonX(firstSlot), getButtonY(firstSlot, 2), TweakType.Clear));
+			addButton(CraftingTweaksClientAPI.createTweakButtonRelative(craftingGrid, storageScreen, getButtonX(firstSlot), getButtonY(firstSlot, 0),
+					TweakType.Rotate));
+			addButton(CraftingTweaksClientAPI.createTweakButtonRelative(craftingGrid, storageScreen, getButtonX(firstSlot), getButtonY(firstSlot, 1),
+					TweakType.Balance));
+			addButton(CraftingTweaksClientAPI.createTweakButtonRelative(craftingGrid, storageScreen, getButtonX(firstSlot), getButtonY(firstSlot, 2),
+					TweakType.Clear));
 		});
 	}
 

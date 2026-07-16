@@ -26,25 +26,32 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	private static final String ROTATION_TAG = "rotation";
 	private static final String SLOTS_TAG = "slots";
 	private static final String ROTATIONS_TAG = "rotations";
+	private static final String Z_OFFSETS_TAG = "zOffsets";
 	private static final String COLOR_TAG = "color";
 	private static final String DISPLAY_SIDE_TAG = "displaySide";
+	public static final int MIN_Z_OFFSET = -16;
+	public static final int MAX_Z_OFFSET = 16;
 	private final Supplier<InventoryHandler> inventoryHandlerSupplier;
 	private final Supplier<RenderInfo> renderInfoSupplier;
 	private CompoundTag categoryNbt;
 	private final Consumer<CompoundTag> saveNbt;
 	private final int itemNumberLimit;
+	private final boolean canDeselectSlots;
 	private final Supplier<MemorySettingsCategory> getMemorySettings;
 	private DyeColor color = DyeColor.RED;
 	private final List<Integer> slotIndexes = new LinkedList<>();
 	private Map<Integer, Integer> slotRotations = new HashMap<>();
+	private Map<Integer, Integer> slotZOffsets = new HashMap<>();
 	private DisplaySide displaySide = DisplaySide.FRONT;
 
-	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt, Consumer<CompoundTag> saveNbt, int itemNumberLimit, Supplier<MemorySettingsCategory> getMemorySettings) {
+	public ItemDisplaySettingsCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderInfo> renderInfoSupplier, CompoundTag categoryNbt,
+			Consumer<CompoundTag> saveNbt, int itemNumberLimit, boolean canDeselectSlots, Supplier<MemorySettingsCategory> getMemorySettings) {
 		this.inventoryHandlerSupplier = inventoryHandlerSupplier;
 		this.renderInfoSupplier = renderInfoSupplier;
 		this.categoryNbt = categoryNbt;
 		this.saveNbt = saveNbt;
 		this.itemNumberLimit = itemNumberLimit;
+		this.canDeselectSlots = canDeselectSlots;
 		this.getMemorySettings = getMemorySettings;
 
 		deserialize();
@@ -55,16 +62,27 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	}
 
 	public void unselectSlot(int slotIndex) {
-		int orderIndex = slotIndexes.indexOf(slotIndex);
+		if (!canDeselectSlots) {
+			return;
+		}
 
-		//noinspection RedundantCollectionOperation
+		int orderIndex = slotIndexes.indexOf(slotIndex);
+		if (orderIndex == -1) {
+			return;
+		}
+
+		// noinspection RedundantCollectionOperation
 		slotIndexes.remove(orderIndex);
 		slotRotations.remove(slotIndex);
+		slotZOffsets.remove(slotIndex);
 		if (slotIndexes.isEmpty()) {
 			categoryNbt.remove(SLOTS_TAG);
 			categoryNbt.remove(ROTATIONS_TAG);
+			categoryNbt.remove(Z_OFFSETS_TAG);
 		}
 		serializeSlotIndexes();
+		serializeRotations();
+		serializeZOffsets();
 
 		updateFullRenderInfo();
 	}
@@ -81,9 +99,12 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		InventoryHandler inventoryHandler = inventoryHandlerSupplier.get();
 		for (int slotIndex : slotIndexes) {
 			ItemStack newItem = getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY);
+			RenderInfo.DisplayItem previousDisplayItem = previousDisplayItems.get(i);
 
-			ItemStack stack = previousDisplayItems.get(i).getItem();
-			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack)
+			ItemStack stack = previousDisplayItem.getItem();
+			if (ItemStack.hashItemAndComponents(newItem) != ItemStack.hashItemAndComponents(stack) || previousDisplayItem.getSlotIndex() != slotIndex
+					|| previousDisplayItem.getRotation() != getRotation(slotIndex) || previousDisplayItem.getZOffset() != getZOffset(slotIndex)
+					|| previousDisplayItem.getDisplaySide() != displaySide
 					|| (inaccessibleSlots.contains(slotIndex) == inventoryHandler.isSlotAccessible(slotIndex))) {
 				return true;
 			}
@@ -109,8 +130,7 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 				float previousSlotFillRatio = previousSlotFillRatios.get(slotIndex);
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
 				float currentSlotFillRatio = calculateSlotFillRatio(stack, inventoryHandler, slotIndex);
-				if (previousSlotCount != stack.getCount()
-						|| previousInfiniteSlots.contains(slotIndex) != inventoryHandler.isInfinite(slotIndex)
+				if (previousSlotCount != stack.getCount() || previousInfiniteSlots.contains(slotIndex) != inventoryHandler.isInfinite(slotIndex)
 						|| !MathHelper.epsilonEquals(previousSlotFillRatio, currentSlotFillRatio)) {
 					return true;
 				}
@@ -135,7 +155,8 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		renderInfo.refreshItemDisplayRenderInfo(displayItems, inaccessibleSlots, infiniteSlots, slotCounts, slotFillRatios);
 	}
 
-	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderInfo renderInfo, InventoryHandler inventoryHandler, List<Integer> slotCounts, List<Float> slotFillRatios, List<Integer> infiniteSlots) {
+	private void collectSlotCountsSlotFillRatiosAndInfiniteSlots(RenderInfo renderInfo, InventoryHandler inventoryHandler, List<Integer> slotCounts,
+			List<Float> slotFillRatios, List<Integer> infiniteSlots) {
 		if (renderInfo.showsCountsAndFillRatios()) {
 			for (int slotIndex = 0; slotIndex < inventoryHandler.getSlots(); slotIndex++) {
 				ItemStack stack = inventoryHandler.getStackInSlot(slotIndex);
@@ -148,9 +169,11 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		}
 	}
 
-	private void collectDisplayItemsAndInaccessibleSlots(List<RenderInfo.DisplayItem> displayItems, InventoryHandler inventoryHandler, List<Integer> inaccessibleSlots) {
+	private void collectDisplayItemsAndInaccessibleSlots(List<RenderInfo.DisplayItem> displayItems, InventoryHandler inventoryHandler,
+			List<Integer> inaccessibleSlots) {
 		for (int slotIndex : slotIndexes) {
-			displayItems.add(new RenderInfo.DisplayItem(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), slotRotations.getOrDefault(slotIndex, 0), slotIndex, displaySide));
+			displayItems.add(new RenderInfo.DisplayItem(getSlotItemCopy(slotIndex).orElse(ItemStack.EMPTY), slotRotations.getOrDefault(slotIndex, 0), slotIndex,
+					displaySide, getZOffset(slotIndex)));
 			if (!inventoryHandler.isSlotAccessible(slotIndex)) {
 				inaccessibleSlots.add(slotIndex);
 			}
@@ -229,7 +252,47 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	}
 
 	private void serializeRotations() {
-		NBTHelper.putMap(categoryNbt, ROTATIONS_TAG, slotRotations, String::valueOf, IntTag::valueOf);
+		if (slotRotations.isEmpty()) {
+			categoryNbt.remove(ROTATIONS_TAG);
+		} else {
+			NBTHelper.putMap(categoryNbt, ROTATIONS_TAG, slotRotations, String::valueOf, IntTag::valueOf);
+		}
+		saveNbt.accept(categoryNbt);
+	}
+
+	public int getZOffset(int slotIndex) {
+		return slotZOffsets.getOrDefault(slotIndex, 0);
+	}
+
+	public void changeZOffset(int slotIndex, int offsetChange) {
+		if (!slotIndexes.contains(slotIndex)) {
+			return;
+		}
+
+		setZOffset(slotIndex, getZOffset(slotIndex) + offsetChange);
+	}
+
+	public void setZOffset(int slotIndex, int zOffset) {
+		if (!slotIndexes.contains(slotIndex)) {
+			return;
+		}
+
+		zOffset = Math.max(MIN_Z_OFFSET, Math.min(MAX_Z_OFFSET, zOffset));
+		if (zOffset == 0) {
+			slotZOffsets.remove(slotIndex);
+		} else {
+			slotZOffsets.put(slotIndex, zOffset);
+		}
+		serializeZOffsets();
+		updateFullRenderInfo();
+	}
+
+	private void serializeZOffsets() {
+		if (slotZOffsets.isEmpty()) {
+			categoryNbt.remove(Z_OFFSETS_TAG);
+		} else {
+			NBTHelper.putMap(categoryNbt, Z_OFFSETS_TAG, slotZOffsets, String::valueOf, IntTag::valueOf);
+		}
 		saveNbt.accept(categoryNbt);
 	}
 
@@ -268,6 +331,9 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 		slotRotations.clear();
 		slotRotations.putAll(otherCategory.slotRotations);
 		serializeRotations();
+		slotZOffsets.clear();
+		slotZOffsets.putAll(otherCategory.slotZOffsets);
+		serializeZOffsets();
 		setColor(otherCategory.getColor());
 
 		itemsChanged();
@@ -281,9 +347,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 			}
 		});
 		slotRotations = NBTHelper.getMap(categoryNbt, ROTATIONS_TAG, Integer::valueOf, (k, v) -> Optional.of(((IntTag) v).getAsInt())).orElseGet(HashMap::new);
+		slotZOffsets = NBTHelper.getMap(categoryNbt, Z_OFFSETS_TAG, Integer::valueOf, (k, v) -> Optional.of(((IntTag) v).getAsInt())).orElseGet(HashMap::new);
 		color = NBTHelper.getInt(categoryNbt, COLOR_TAG).map(DyeColor::byId).orElse(DyeColor.RED);
 
-		//legacy nbt support to be removed in the future
+		// legacy nbt support to be removed in the future
 		NBTHelper.getInt(categoryNbt, SLOT_TAG).ifPresent(e -> {
 			slotIndexes.add(e);
 			categoryNbt.remove(SLOT_TAG);
@@ -333,8 +400,10 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 	/**
 	 * Selects slots that shouldn't be sorted
 	 *
-	 * @param minSlot inclusive
-	 * @param maxSlot exclusive
+	 * @param minSlot
+	 *            inclusive
+	 * @param maxSlot
+	 *            exclusive
 	 */
 
 	public void selectSlots(int minSlot, int maxSlot) {
@@ -355,13 +424,21 @@ public class ItemDisplaySettingsCategory implements ISettingsCategory<ItemDispla
 
 	@Override
 	public void copyTo(ItemDisplaySettingsCategory otherCategory, int startFromSlot, int slotOffset) {
-		//noop - keep the display item of the other category
+		// noop - keep the display item of the other category
 	}
 
 	@Override
 	public void deleteSlotSettingsFrom(int slotIndex) {
 		slotIndexes.removeIf(slot -> slot >= slotIndex);
+		slotRotations.keySet().removeIf(slot -> slot >= slotIndex);
+		slotZOffsets.keySet().removeIf(slot -> slot >= slotIndex);
 		serializeSlotIndexes();
+		serializeRotations();
+		serializeZOffsets();
+	}
+
+	public boolean canDeselectSlots() {
+		return canDeselectSlots;
 	}
 
 }

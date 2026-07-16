@@ -15,28 +15,20 @@ import java.util.List;
 
 public class BlockHighlightRenderHelper {
 
-	public static final RenderType OUTLINE_QUADS = RenderType.create(
-			"storage_outline_quads",
-			DefaultVertexFormat.POSITION_COLOR,
-			VertexFormat.Mode.QUADS,
-			256,
-			false,  // no affect crumbling
-			false,  // no sorting needed for opaque
-			RenderType.CompositeState.builder()
-					.setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
-					.setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
-					.setCullState(RenderStateShard.NO_CULL)
-					.setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
-					.setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
-					.setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
-					.setOutputState(RenderStateShard.MAIN_TARGET)
-					.createCompositeState(true));
+	public static final RenderType OUTLINE_QUADS = RenderType.create("storage_outline_quads", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256,
+			false, // no affect crumbling
+			false, // no sorting needed for opaque
+			RenderType.CompositeState.builder().setShaderState(RenderStateShard.POSITION_COLOR_SHADER).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+					.setCullState(RenderStateShard.NO_CULL).setTransparencyState(RenderStateShard.NO_TRANSPARENCY)
+					.setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE).setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING)
+					.setOutputState(RenderStateShard.MAIN_TARGET).createCompositeState(true));
 
 	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, BlockPos originPos) {
 		renderThickEdges(poseStack, bufferSource, color, edges, originPos.getX(), originPos.getY(), originPos.getZ());
 	}
 
-	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, double originX, double originY, double originZ) {
+	public static void renderThickEdges(PoseStack poseStack, MultiBufferSource bufferSource, int color, List<VoxelOutliner.Edge> edges, double originX,
+			double originY, double originZ) {
 		VertexConsumer vertexConsumer = bufferSource.getBuffer(OUTLINE_QUADS);
 		int red = color >> 16 & 255;
 		int green = color >> 8 & 255;
@@ -48,11 +40,8 @@ public class BlockHighlightRenderHelper {
 		});
 	}
 
-	public static void emitThickLineOrtho(
-			VertexConsumer vc, PoseStack.Pose pose,
-			Vec3 a, Vec3 b, float thickness,
-			int r, int g, int bl, int alpha, double originX, double originY, double originZ
-	) {
+	public static void emitThickLineOrtho(VertexConsumer vc, PoseStack.Pose pose, Vec3 a, Vec3 b, float thickness, int r, int g, int bl, int alpha,
+			double originX, double originY, double originZ) {
 		final float rh = thickness * 0.5f;
 
 		Vec3 d = b.subtract(a);
@@ -93,23 +82,15 @@ public class BlockHighlightRenderHelper {
 		emitQuad(vc, pose, aVpWm, aVmWm, bVmWm, bVpWm, r, g, bl, alpha, originX, originY, originZ);
 	}
 
-	private static void emitQuad(
-			VertexConsumer vc, PoseStack.Pose pose,
-			Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3,
-			int r, int g, int b, int a, double originX, double originY, double originZ
-	) {
+	private static void emitQuad(VertexConsumer vc, PoseStack.Pose pose, Vec3 p0, Vec3 p1, Vec3 p2, Vec3 p3, int r, int g, int b, int a, double originX,
+			double originY, double originZ) {
 		add(vc, pose, p0, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p1, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p2, r, g, b, a, originX, originY, originZ);
 		add(vc, pose, p3, r, g, b, a, originX, originY, originZ);
 	}
 
-	private static void add(VertexConsumer vc, PoseStack.Pose pose,
-							Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
-		vc.addVertex(pose,
-						(float) (p.x - originX),
-						(float) (p.y - originY),
-						(float) (p.z - originZ))
-				.setColor(r, g, b, a);
+	private static void add(VertexConsumer vc, PoseStack.Pose pose, Vec3 p, int r, int g, int b, int a, double originX, double originY, double originZ) {
+		vc.addVertex(pose, (float) (p.x - originX), (float) (p.y - originY), (float) (p.z - originZ)).setColor(r, g, b, a);
 	}
 }

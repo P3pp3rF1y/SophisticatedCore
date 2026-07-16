@@ -18,12 +18,14 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
+import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
@@ -39,7 +41,6 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 import static net.neoforged.neoforge.client.settings.KeyConflictContext.GUI;
@@ -55,7 +56,8 @@ public class ClientEventHandler {
 	public static final KeyMapping TRANSFER_TO_STORAGE_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_storage"),
 			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_LEFT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping TRANSFER_TO_INVENTORY_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_inventory"),
-			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET), KEYBIND_SOPHISTICATEDCORE_CATEGORY);
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET),
+			KEYBIND_SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
@@ -65,6 +67,7 @@ public class ClientEventHandler {
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
+		eventBus.addListener(ClientEventHandler::onContainerScreenForeground);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
@@ -94,10 +97,10 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(key) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, key) && tryCallTransferToStorage(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(key) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, key) && tryCallTransferToInventory(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
@@ -108,13 +111,19 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(input) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, input) && tryCallTransferToStorage(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(input) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, input) && tryCallTransferToInventory(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
+	}
+
+	public static boolean isActiveAndMatchesIgnoringShift(KeyMapping keyMapping, InputConstants.Key key) {
+		return keyMapping.isActiveAndMatches(key)
+				|| key != InputConstants.UNKNOWN && key.equals(keyMapping.getKey()) && keyMapping.getKeyConflictContext().isActive()
+						&& keyMapping.getKeyModifier() == KeyModifier.NONE && Screen.hasShiftDown() && !Screen.hasControlDown() && !Screen.hasAltDown();
 	}
 
 	private static boolean tryCallTransferToStorage(Screen gui) {
@@ -154,35 +163,40 @@ public class ClientEventHandler {
 		if (!(gui instanceof AbstractContainerScreen<?> containerGui) || gui instanceof CreativeModeInventoryScreen || mc.player == null) {
 			return;
 		}
-		AbstractContainerMenu menu = containerGui.getMenu();
-		ItemStack held = menu.getCarried();
-		if (!held.isEmpty()) {
-			Slot under = containerGui.getSlotUnderMouse();
-
-			List<Slot> slots = menu instanceof StorageContainerMenuBase<?> storageMenu ? storageMenu.realInventorySlots : menu.slots;
-
-			for (Slot s : slots) {
-				ItemStack stack = s.getItem();
-				if (!s.mayPickup(mc.player) || stack.isEmpty()) {
-					continue;
-				}
-				Optional<StashResultAndTooltip> stashResultAndTooltip = getStashResultAndTooltip(stack, held);
-				if (stashResultAndTooltip.isEmpty()) {
-					continue;
-				}
-
-				if (s == under) {
-					renderSpecialTooltip(event, mc, event.getGuiGraphics(), stashResultAndTooltip.get());
-				} else {
-					renderStashSign(mc, containerGui, event.getGuiGraphics(), s, stack, stashResultAndTooltip.get().stashResult());
-				}
-			}
+		ItemStack held = containerGui.getMenu().getCarried();
+		Slot under = containerGui.getSlotUnderMouse();
+		if (!held.isEmpty() && under != null && under.mayPickup(mc.player) && !under.getItem().isEmpty()) {
+			getStashResultAndTooltip(under.getItem(), held)
+					.ifPresent(stashResultAndTooltip -> renderSpecialTooltip(event, mc, event.getGuiGraphics(), stashResultAndTooltip));
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, AbstractContainerScreen<?> containerGui, GuiGraphics guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
-		int x = containerGui.getGuiLeft() + s.x;
-		int y = containerGui.getGuiTop() + s.y;
+	private static void onContainerScreenForeground(ContainerScreenEvent.Render.Foreground event) {
+		Minecraft mc = Minecraft.getInstance();
+		AbstractContainerScreen<?> containerGui = event.getContainerScreen();
+		if (containerGui instanceof CreativeModeInventoryScreen || mc.player == null) {
+			return;
+		}
+		AbstractContainerMenu menu = containerGui.getMenu();
+		ItemStack held = menu.getCarried();
+		if (held.isEmpty()) {
+			return;
+		}
+
+		Slot under = containerGui.getSlotUnderMouse();
+		for (Slot s : menu.slots) {
+			ItemStack stack = s.getItem();
+			if (s == under || !s.mayPickup(mc.player) || stack.isEmpty()) {
+				continue;
+			}
+			getStashResultAndTooltip(stack, held)
+					.ifPresent(stashResultAndTooltip -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResultAndTooltip.stashResult()));
+		}
+	}
+
+	private static void renderStashSign(Minecraft mc, GuiGraphics guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
+		int x = s.x;
+		int y = s.y;
 
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
@@ -197,13 +211,16 @@ public class ClientEventHandler {
 		poseStack.popPose();
 	}
 
-	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, Minecraft mc, GuiGraphics guiGraphics, StashResultAndTooltip stashResultAndTooltip) {
+	private static void renderSpecialTooltip(ScreenEvent.Render.Post event, Minecraft mc, GuiGraphics guiGraphics,
+			StashResultAndTooltip stashResultAndTooltip) {
 		int x = event.getMouseX();
 		int y = event.getMouseY();
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(0, 0, 100);
-		guiGraphics.renderTooltip(mc.font, Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")), stashResultAndTooltip.tooltip(), x, y);
+		guiGraphics.renderTooltip(mc.font,
+				Collections.singletonList(Component.translatable(TranslationHelper.INSTANCE.translItemTooltip("storage") + ".right_click_to_add_to_storage")),
+				stashResultAndTooltip.tooltip(), x, y);
 		poseStack.popPose();
 	}
 
@@ -218,16 +235,17 @@ public class ClientEventHandler {
 		return Optional.empty();
 	}
 
-	private static Optional<StashResultAndTooltip> getStashResultAndTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable, IStashStorageItem stashStorageItem) {
-		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage, potentiallyStashable);
+	private static Optional<StashResultAndTooltip> getStashResultAndTooltip(ItemStack potentialStashStorage, ItemStack potentiallyStashable,
+			IStashStorageItem stashStorageItem) {
+		IStashStorageItem.StashResult stashResult = stashStorageItem.getItemStashable(Minecraft.getInstance().level.registryAccess(), potentialStashStorage,
+				potentiallyStashable);
 		if (stashResult == IStashStorageItem.StashResult.NO_SPACE) {
 			return Optional.empty();
 		}
 		return Optional.of(new StashResultAndTooltip(stashResult, stashStorageItem.getInventoryTooltip(potentialStashStorage)));
 	}
 
-	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult,
-										 Optional<TooltipComponent> tooltip) {
+	private record StashResultAndTooltip(IStashStorageItem.StashResult stashResult, Optional<TooltipComponent> tooltip) {
 	}
 
 	private static void registerFluidClientExtension(RegisterClientExtensionsEvent event) {

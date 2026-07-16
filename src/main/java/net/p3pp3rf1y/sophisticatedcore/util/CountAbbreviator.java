@@ -6,9 +6,10 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 public class CountAbbreviator {
-	private CountAbbreviator() {}
+	private CountAbbreviator() {
+	}
 
-	private static final String[] COUNT_SUFFIXES = new String[] {"k", "m", "b"};
+	private static final String[] COUNT_SUFFIXES = {"k", "m", "b"};
 	private static final DecimalFormatSymbols ROOT_LOCALE_FORMAT_SYMBOLS = new DecimalFormatSymbols(Locale.ROOT);
 	private static final DecimalFormat TWO_DIGIT_PRECISION;
 	private static final DecimalFormat ONE_DIGIT_PRECISION;
@@ -23,7 +24,6 @@ public class CountAbbreviator {
 	public static String abbreviate(int count) {
 		return abbreviate(count, 4);
 	}
-
 
 	public static String abbreviate(int count, int maxCharacters) {
 		int digits = (int) Math.log10(count) + 1;

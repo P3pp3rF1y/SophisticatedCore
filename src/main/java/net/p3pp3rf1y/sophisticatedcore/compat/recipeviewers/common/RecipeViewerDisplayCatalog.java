@@ -63,25 +63,18 @@ public class RecipeViewerDisplayCatalog implements IRecipeViewerDisplayCatalog {
 
 	@Override
 	public List<SmithingDisplayView> getGlobalSmithingDisplays() {
-		return smithingSpecs.stream()
-				.map(spec -> new SmithingDisplayView(spec, spec.getGlobalDisplays()))
-				.filter(view -> !view.variants().isEmpty())
-				.toList();
+		return smithingSpecs.stream().map(spec -> new SmithingDisplayView(spec, spec.getGlobalDisplays())).filter(view -> !view.variants().isEmpty()).toList();
 	}
 
 	@Override
 	public List<SmithingDisplayView> getSmithingRecipesFor(ItemStack focusedOutput) {
-		return smithingSpecs.stream()
-				.map(spec -> new SmithingDisplayView(spec, spec.getRecipesFor(focusedOutput)))
-				.filter(view -> !view.variants().isEmpty())
+		return smithingSpecs.stream().map(spec -> new SmithingDisplayView(spec, spec.getRecipesFor(focusedOutput))).filter(view -> !view.variants().isEmpty())
 				.toList();
 	}
 
 	@Override
 	public List<SmithingDisplayView> getSmithingUsagesFor(ItemStack focusedInput) {
-		return smithingSpecs.stream()
-				.map(spec -> new SmithingDisplayView(spec, spec.getUsagesFor(focusedInput)))
-				.filter(view -> !view.variants().isEmpty())
+		return smithingSpecs.stream().map(spec -> new SmithingDisplayView(spec, spec.getUsagesFor(focusedInput))).filter(view -> !view.variants().isEmpty())
 				.toList();
 	}
 
@@ -97,25 +90,18 @@ public class RecipeViewerDisplayCatalog implements IRecipeViewerDisplayCatalog {
 
 	@Override
 	public List<CraftingDisplayView> getGlobalCraftingDisplays() {
-		return craftingSpecs.stream()
-				.map(spec -> new CraftingDisplayView(spec, spec.getGlobalDisplays()))
-				.filter(view -> !view.variants().isEmpty())
-				.toList();
+		return craftingSpecs.stream().map(spec -> new CraftingDisplayView(spec, spec.getGlobalDisplays())).filter(view -> !view.variants().isEmpty()).toList();
 	}
 
 	@Override
 	public List<CraftingDisplayView> getCraftingRecipesFor(ItemStack focusedOutput) {
-		return craftingSpecs.stream()
-				.map(spec -> new CraftingDisplayView(spec, spec.getRecipesFor(focusedOutput)))
-				.filter(view -> !view.variants().isEmpty())
+		return craftingSpecs.stream().map(spec -> new CraftingDisplayView(spec, spec.getRecipesFor(focusedOutput))).filter(view -> !view.variants().isEmpty())
 				.toList();
 	}
 
 	@Override
 	public List<CraftingDisplayView> getCraftingUsagesFor(ItemStack focusedInput) {
-		return craftingSpecs.stream()
-				.map(spec -> new CraftingDisplayView(spec, getUsagesFor(spec, focusedInput)))
-				.filter(view -> !view.variants().isEmpty())
+		return craftingSpecs.stream().map(spec -> new CraftingDisplayView(spec, getUsagesFor(spec, focusedInput))).filter(view -> !view.variants().isEmpty())
 				.toList();
 	}
 

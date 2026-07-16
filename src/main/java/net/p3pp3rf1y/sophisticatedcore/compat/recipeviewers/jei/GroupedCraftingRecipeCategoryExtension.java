@@ -26,15 +26,15 @@ public class GroupedCraftingRecipeCategoryExtension implements ICraftingCategory
 	}
 
 	@Override
-	public void setRecipe(RecipeHolder<GroupedCraftingRecipe> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
+	public void setRecipe(RecipeHolder<GroupedCraftingRecipe> recipeHolder, IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper,
+			IFocusGroup focuses) {
 		GroupedCraftingRecipe recipe = narrowToFocus(recipeHolder.value(), focuses);
 		craftingGridHelper.createAndSetInputs(builder, recipe.getInputSlots(), recipe.getDisplayWidth(), recipe.getDisplayHeight());
 		craftingGridHelper.createAndSetOutputs(builder, recipe.getResultStacks());
 	}
 
 	private static GroupedCraftingRecipe narrowToFocus(GroupedCraftingRecipe recipe, IFocusGroup focuses) {
-		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT)
-				.map(focus -> focus.getTypedValue().getIngredient())
+		Optional<ItemStack> outputFocus = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).map(focus -> focus.getTypedValue().getIngredient())
 				.findFirst();
 		return outputFocus.map(itemStack -> recipe.narrowForResult(itemStack).orElse(recipe)).orElse(recipe);
 	}
@@ -44,10 +44,8 @@ public class GroupedCraftingRecipeCategoryExtension implements ICraftingCategory
 		recipeSlots.forEach(IRecipeSlotDrawable::clearDisplayOverrides);
 
 		GroupedCraftingRecipe recipe = recipeHolder.value();
-		recipeSlots.stream()
-				.flatMap(slot -> slot.getDisplayedItemStack().stream())
-				.flatMap(displayedInput -> recipe.findResultForDisplayedInput(displayedInput).stream())
-				.findFirst()
+		recipeSlots.stream().flatMap(slot -> slot.getDisplayedItemStack().stream())
+				.flatMap(displayedInput -> recipe.findResultForDisplayedInput(displayedInput).stream()).findFirst()
 				.ifPresent(result -> recipeSlots.getLast().createDisplayOverrides().addItemStack(result));
 	}
 

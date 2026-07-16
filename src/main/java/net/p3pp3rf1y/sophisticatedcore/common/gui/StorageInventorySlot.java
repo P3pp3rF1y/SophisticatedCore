@@ -36,7 +36,8 @@ public class StorageInventorySlot extends SlotSuppliedHandler {
 
 	private void processSlotChangeResponse(int slot, IItemHandler handler, IStorageWrapper storageWrapper) {
 		if (!isClientSide) {
-			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(ISlotChangeResponseUpgrade.class).forEach(u -> u.onSlotChange(handler, slot));
+			storageWrapper.getUpgradeHandler().getWrappersThatImplementFromMainStorage(ISlotChangeResponseUpgrade.class)
+					.forEach(u -> u.onSlotChange(handler, slot));
 		}
 	}
 

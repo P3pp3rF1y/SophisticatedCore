@@ -8,6 +8,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.SlotRange;
 import org.apache.commons.lang3.function.TriFunction;
 
 import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -85,7 +86,7 @@ public abstract class InfinityInventoryPart implements IInventoryPartHandler {
 			cachedStacks.remove(slot);
 		}
 
-		return cachedStacks.computeIfAbsent(slot, s ->  parent.getSlotStack(s).copyWithCount(Integer.MAX_VALUE));
+		return cachedStacks.computeIfAbsent(slot, s -> parent.getSlotStack(s).copyWithCount(Integer.MAX_VALUE));
 	}
 
 	@Override

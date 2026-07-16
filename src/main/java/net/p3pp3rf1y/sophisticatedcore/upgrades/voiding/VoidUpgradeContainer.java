@@ -13,9 +13,10 @@ public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrappe
 	private static final String DATA_VOID_TYPE = "voidType";
 	private final FilterLogicContainer<FilterLogic> filterLogicContainer;
 
-	public VoidUpgradeContainer(Player player, int containerId, VoidUpgradeWrapper wrapper, UpgradeContainerType<VoidUpgradeWrapper, VoidUpgradeContainer> type) {
+	public VoidUpgradeContainer(Player player, int containerId, VoidUpgradeWrapper wrapper,
+			UpgradeContainerType<VoidUpgradeWrapper, VoidUpgradeContainer> type) {
 		super(player, containerId, wrapper, type);
-		filterLogicContainer = new FilterLogicContainer<>(upgradeWrapper::getFilterLogic, this, slots::add);
+		filterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(VoidUpgradeWrapper::getFilterLogic), this, slots::add);
 	}
 
 	@Override

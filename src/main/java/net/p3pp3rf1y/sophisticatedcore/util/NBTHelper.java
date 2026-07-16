@@ -16,7 +16,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class NBTHelper {
-	private NBTHelper() {}
+	private NBTHelper() {
+	}
 
 	public static Optional<Integer> getInt(CompoundTag tag, String key) {
 		return getTagValue(tag, key, CompoundTag::getInt);
@@ -42,7 +43,8 @@ public class NBTHelper {
 		return Optional.of(getValue.apply(tag, key));
 	}
 
-	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, byte listType, Function<Tag, Optional<E>> getElement, Supplier<C> initCollection) {
+	public static <E, C extends Collection<E>> Optional<C> getCollection(CompoundTag tag, String key, byte listType, Function<Tag, Optional<E>> getElement,
+			Supplier<C> initCollection) {
 		return getTagValue(tag, key, (c, n) -> c.getList(n, listType)).map(listNbt -> {
 			C ret = initCollection.get();
 			listNbt.forEach(elementNbt -> getElement.apply(elementNbt).ifPresent(ret::add));
@@ -90,7 +92,8 @@ public class NBTHelper {
 		return getMap(tag, key, getKey, getValue, HashMap::new);
 	}
 
-	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue, Supplier<Map<K, V>> initMap) {
+	public static <K, V> Optional<Map<K, V>> getMap(CompoundTag tag, String key, Function<String, K> getKey, BiFunction<String, Tag, Optional<V>> getValue,
+			Supplier<Map<K, V>> initMap) {
 		CompoundTag mapNbt = tag.getCompound(key);
 
 		Map<K, V> map = initMap.get();

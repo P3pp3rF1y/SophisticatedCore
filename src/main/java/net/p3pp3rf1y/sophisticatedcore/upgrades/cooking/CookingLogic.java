@@ -28,6 +28,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,15 +61,18 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 	public static final Codec<Map<ResourceLocation, Integer>> RECIPES_USED_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, ExtraCodecs.NON_NEGATIVE_INT);
 
-	public static final StreamCodec<FriendlyByteBuf, Map<ResourceLocation, Integer>> RECIPES_USED_STREAM_CODEC =
-			StreamCodec.of((buf, map) -> buf.writeMap(map, ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT),
-					buf -> buf.readMap(ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT));
+	public static final StreamCodec<FriendlyByteBuf, Map<ResourceLocation, Integer>> RECIPES_USED_STREAM_CODEC = StreamCodec.of(
+			(buf, map) -> buf.writeMap(map, ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT),
+			buf -> buf.readMap(ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT));
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
-		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(), cookingUpgradeConfig, recipeType, burnTimeModifier);
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType,
+			float burnTimeModifier) {
+		this(upgrade, saveHandler, s -> getBurnTime(s, recipeType, burnTimeModifier) > 0, s -> RecipeHelper.getCookingRecipe(s, recipeType).isPresent(),
+				cookingUpgradeConfig, recipeType, burnTimeModifier);
 	}
 
-	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
+	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, Predicate<ItemStack> isInput,
+			CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType, float burnTimeModifier) {
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
 		this.isFuel = isFuel;
@@ -395,7 +399,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 		List<ItemStack> items = InventoryHelper.getStacks(cookingInventory);
 
-		for(RecipeHolder<?> recipeholder : recipes) {
+		for (RecipeHolder<?> recipeholder : recipes) {
 			if (recipeholder != null) {
 				serverPlayer.triggerRecipeCrafted(recipeholder, items);
 			}
@@ -418,7 +422,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		float storedXp = getStoredExperience();
 		int i = Mth.floor(storedXp);
 		float f = Mth.frac(storedXp);
-		if (f != 0.0F && Math.random() < (double)f) {
+		if (f != 0.0F && Math.random() < (double) f) {
 			++i;
 		}
 

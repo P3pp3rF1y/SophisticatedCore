@@ -7,10 +7,7 @@ import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
 public class HelperAssertions {
 	public static void assertStackEquals(ItemStack expected, ItemStack actual, Object message) {
 		if (!ItemStack.matches(expected, actual)) {
-			assertionFailure().message(message)
-					.expected(expected)
-					.actual(actual)
-					.buildAndThrow();
+			assertionFailure().message(message).expected(expected).actual(actual).buildAndThrow();
 		}
 	}
 }

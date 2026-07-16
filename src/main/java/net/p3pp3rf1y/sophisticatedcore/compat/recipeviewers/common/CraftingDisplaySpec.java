@@ -17,8 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public record CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int width, int height, NonNullList<Ingredient> baseIngredients,
-								  List<CraftingDisplayVariant> variants, List<CraftingDisplayVariant> globalVariants, Set<ResourceLocation> replacedRecipeIds,
-								  IFocusBehavior<CraftingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<CraftingDisplayVariant> {
+		List<CraftingDisplayVariant> variants, List<CraftingDisplayVariant> globalVariants, Set<ResourceLocation> replacedRecipeIds,
+		IFocusBehavior<CraftingDisplayVariant> focusBehavior) implements IRecipeViewerDisplaySpec<CraftingDisplayVariant> {
 	public CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int width, int height, NonNullList<Ingredient> baseIngredients,
 			List<CraftingDisplayVariant> variants, IFocusBehavior<CraftingDisplayVariant> focusBehavior) {
 		this(id, shapeless, width, height, baseIngredients, variants, variants, Set.of(), focusBehavior);
@@ -56,8 +56,7 @@ public record CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int wi
 			int inputIndex = i;
 			List<ItemStack> variantInputs = displayVariants.stream()
 					.filter(variant -> variant.inputs().size() > inputIndex && !variant.inputs().get(inputIndex).isEmpty())
-					.map(variant -> variant.inputs().get(inputIndex))
-					.toList();
+					.map(variant -> variant.inputs().get(inputIndex)).toList();
 			inputSlots.add(variantInputs.isEmpty() ? List.of(baseIngredients.get(i).getItems()) : variantInputs);
 		}
 		return inputSlots;
@@ -85,7 +84,8 @@ public record CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int wi
 				ingredients.add(baseIngredients.get(i));
 			}
 		}
-		CraftingRecipe recipe = shapeless ? new SpecShapelessRecipe(this, displayVariants, variant.firstOutput(), ingredients)
+		CraftingRecipe recipe = shapeless
+				? new SpecShapelessRecipe(this, displayVariants, variant.firstOutput(), ingredients)
 				: new SpecShapedRecipe(this, displayVariants, width, height, ingredients, variant.firstOutput());
 		return new RecipeHolder<>(id, recipe);
 	}
@@ -94,7 +94,8 @@ public record CraftingDisplaySpec(ResourceLocation id, boolean shapeless, int wi
 		private final CraftingDisplaySpec spec;
 		private final List<CraftingDisplayVariant> variants;
 
-		private SpecShapedRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int width, int height, NonNullList<Ingredient> ingredients, ItemStack result) {
+		private SpecShapedRecipe(CraftingDisplaySpec spec, List<CraftingDisplayVariant> variants, int width, int height, NonNullList<Ingredient> ingredients,
+				ItemStack result) {
 			super("", CraftingBookCategory.MISC, new ShapedRecipePattern(width, height, ingredients, Optional.empty()), result);
 			this.spec = spec;
 			this.variants = List.copyOf(variants);

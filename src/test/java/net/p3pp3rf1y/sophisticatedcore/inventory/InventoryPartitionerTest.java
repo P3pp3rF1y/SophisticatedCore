@@ -179,7 +179,7 @@ class InventoryPartitionerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(ints = { 1, 2, 3, 4 })
+	@ValueSource(ints = {1, 2, 3, 4})
 	void getFirstSpaceReturnsCorrectRangeForSmallInventories(int slots) {
 		InventoryHandler invHandler = getInventoryHandler(slots);
 

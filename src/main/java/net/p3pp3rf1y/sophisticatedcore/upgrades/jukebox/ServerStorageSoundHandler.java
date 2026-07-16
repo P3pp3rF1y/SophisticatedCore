@@ -69,6 +69,16 @@ public class ServerStorageSoundHandler {
 		}
 	}
 
+	public static boolean isStorageSoundPlayingNear(Level level, Vec3 position, double radius) {
+		Map<UUID, SoundInfo> soundInfos = worldStorageSoundInfos.get(level.dimension());
+		if (soundInfos == null) {
+			return false;
+		}
+
+		double radiusSqr = radius * radius;
+		return soundInfos.values().stream().anyMatch(soundInfo -> soundInfo.getLastPosition().distanceToSqr(position) <= radiusSqr);
+	}
+
 	private static class SoundInfo {
 		private final WeakReference<Runnable> onFinishedHandler;
 		private long lastKeepAliveTime;
@@ -113,13 +123,15 @@ public class ServerStorageSoundHandler {
 		putSoundInfo(serverLevel, storageUuid, onFinishedHandler, pos, serverLevel.getGameTime() + song.value().lengthInTicks());
 	}
 
-	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, Holder<JukeboxSong> song, Runnable onStopHandler) {
+	public static void startPlayingDisc(ServerLevel serverLevel, Vec3 position, UUID storageUuid, int entityId, Holder<JukeboxSong> song,
+			Runnable onStopHandler) {
 		PacketDistributor.sendToPlayersNear(serverLevel, null, position.x(), position.y(), position.z(), 128, new PlayDiscPayload(storageUuid, song, entityId));
 		putSoundInfo(serverLevel, storageUuid, onStopHandler, position, serverLevel.getGameTime() + song.value().lengthInTicks());
 	}
 
 	public static void putSoundInfo(ServerLevel serverLevel, UUID storageUuid, Runnable onFinishedHandler, Vec3 pos, long finishTime) {
-		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid, new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
+		worldStorageSoundInfos.computeIfAbsent(serverLevel.dimension(), dim -> new HashMap<>()).put(storageUuid,
+				new SoundInfo(onFinishedHandler, serverLevel.getGameTime(), pos, finishTime));
 	}
 
 	public static void stopPlayingDisc(Level level, Vec3 position, UUID storageUuid) {

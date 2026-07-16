@@ -13,8 +13,8 @@ public class StonecutterUpgradeItem extends BlockConverterUpgradeItem<Stonecutte
 	private static final UpgradeType<Wrapper> TYPE = new UpgradeType<>(Wrapper::new);
 
 	public StonecutterUpgradeItem(IUpgradeCountLimitConfig upgradeTypeLimitConfig) {
-        super(upgradeTypeLimitConfig);
-    }
+		super(upgradeTypeLimitConfig);
+	}
 
 	@Override
 	public UpgradeType<Wrapper> getType() {

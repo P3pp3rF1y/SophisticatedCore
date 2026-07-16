@@ -10,6 +10,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,8 +24,10 @@ public class StackUpgradeConfig {
 
 	public StackUpgradeConfig(ModConfigSpec.Builder builder) {
 		builder.comment("Stack Upgrade Settings").push("stackUpgrade");
-		nonStackableItemsList = builder.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.")
-				.defineList("nonStackableItems", this::getDefaultNonStackableList, () -> "minecraft:bundle", itemName -> itemName instanceof String s && s.matches(REGISTRY_NAME_MATCHER));
+		nonStackableItemsList = builder
+				.comment("List of items that are not supposed to stack in storage even when stack upgrade is inserted. Item registry names are expected here.")
+				.defineList("nonStackableItems", this::getDefaultNonStackableList, () -> "minecraft:bundle",
+						itemName -> itemName instanceof String s && s.matches(REGISTRY_NAME_MATCHER));
 		builder.pop();
 	}
 
@@ -64,7 +67,8 @@ public class StackUpgradeConfig {
 				if (BuiltInRegistries.ITEM.containsKey(registryName)) {
 					nonStackableItems.add(BuiltInRegistries.ITEM.get(registryName));
 				} else {
-					SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry", name);
+					SophisticatedCore.LOGGER.error("Item {} is set to not be affected by stack upgrade in config, but it does not exist in item registry",
+							name);
 				}
 			});
 		}

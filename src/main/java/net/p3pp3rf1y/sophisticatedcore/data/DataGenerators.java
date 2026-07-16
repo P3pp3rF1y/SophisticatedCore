@@ -8,7 +8,8 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import java.util.concurrent.CompletableFuture;
 
 public class DataGenerators {
-	private DataGenerators() {}
+	private DataGenerators() {
+	}
 
 	public static void gatherData(GatherDataEvent evt) {
 		DataGenerator generator = evt.getGenerator();

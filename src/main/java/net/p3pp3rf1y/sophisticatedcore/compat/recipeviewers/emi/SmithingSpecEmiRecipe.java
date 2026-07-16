@@ -9,9 +9,9 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplaySpec;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayVariant;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SmithingDisplayView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,11 +61,13 @@ public class SmithingSpecEmiRecipe implements EmiRecipe {
 		this(spec, variants, variantIndex, true, true, true, true);
 	}
 
-	private SmithingSpecEmiRecipe(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, int variantIndex, boolean indexTemplate, boolean indexBase, boolean indexAddition, boolean indexOutputs) {
+	private SmithingSpecEmiRecipe(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, int variantIndex, boolean indexTemplate, boolean indexBase,
+			boolean indexAddition, boolean indexOutputs) {
 		this(spec, variants, variantIndex >= 0 ? "/" + variantIndex : "", indexTemplate, indexBase, indexAddition, indexOutputs);
 	}
 
-	private SmithingSpecEmiRecipe(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, String idSuffix, boolean indexTemplate, boolean indexBase, boolean indexAddition, boolean indexOutputs) {
+	private SmithingSpecEmiRecipe(SmithingDisplaySpec spec, List<SmithingDisplayVariant> variants, String idSuffix, boolean indexTemplate, boolean indexBase,
+			boolean indexAddition, boolean indexOutputs) {
 		this.spec = spec;
 		this.variants = variants;
 		id = spec.id().withPath(path -> (path.startsWith("/") ? path : "/" + path) + idSuffix);

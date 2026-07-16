@@ -4,7 +4,7 @@ import net.neoforged.bus.api.IEventBus;
 
 public interface ICompat {
 	default void init(IEventBus modBus) {
-		//noop
+		// noop
 	}
 	void setup();
 }

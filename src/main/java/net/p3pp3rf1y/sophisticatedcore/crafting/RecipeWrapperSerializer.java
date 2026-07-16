@@ -7,6 +7,7 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import javax.annotation.Nullable;
+
 import java.util.function.Function;
 
 public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & IWrapperRecipe<T>> implements RecipeSerializer<R> {
@@ -51,4 +52,3 @@ public class RecipeWrapperSerializer<T extends Recipe<?>, R extends Recipe<?> & 
 		return this.streamCodec;
 	}
 }
-

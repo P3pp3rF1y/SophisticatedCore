@@ -13,8 +13,11 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.blockconverter.BlockConverterRec
 import java.util.List;
 import java.util.function.Consumer;
 
-public class StonecutterRecipeContainer extends BlockConverterRecipeContainer<StonecutterRecipe, StonecutterUpgradeItem.Wrapper, StonecutterRecipeContainer, StonecutterUpgradeContainer> {
-	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater, ContainerLevelAccess worldPosCallable, Level level) {
+public class StonecutterRecipeContainer
+		extends
+			BlockConverterRecipeContainer<StonecutterRecipe, StonecutterUpgradeItem.Wrapper, StonecutterRecipeContainer, StonecutterUpgradeContainer> {
+	public StonecutterRecipeContainer(StonecutterUpgradeContainer upgradeContainer, Consumer<Slot> addSlot, IServerUpdater serverUpdater,
+			ContainerLevelAccess worldPosCallable, Level level) {
 		super(upgradeContainer, addSlot, serverUpdater, worldPosCallable, level, SoundEvents.UI_STONECUTTER_TAKE_RESULT);
 	}
 

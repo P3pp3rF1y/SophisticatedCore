@@ -5,7 +5,8 @@ import net.minecraft.world.item.DyeColor;
 import java.util.List;
 
 public class ColorHelper {
-	private ColorHelper() {}
+	private ColorHelper() {
+	}
 
 	public static int calculateColor(int baseColor, int defaultColor, List<DyeColor> dyes) {
 		if (dyes.isEmpty()) {

@@ -14,33 +14,24 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CodecHelper {
-	public static final Codec<ItemStack> OVERSIZED_ITEM_STACK_CODEC = Codec.lazyInitialized(
-			() -> RecordCodecBuilder.create(
-					instance -> instance.group(
-									ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
-									Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount),
-									DataComponentPatch.CODEC
-											.optionalFieldOf("components", DataComponentPatch.EMPTY)
-											.forGetter(p_330103_ -> p_330103_.components.asPatch())
-							)
-							.apply(instance, ItemStack::new)));
-	public static final Codec<ItemStack> OPTIONAL_OVERSIZED_ITEM_STACK_CODEC =
-			ExtraCodecs.optionalEmptyMap(CodecHelper.OVERSIZED_ITEM_STACK_CODEC)
-					.xmap(
-							optional -> optional.orElse(ItemStack.EMPTY),
-							stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack)
-					).orElse(ItemStack.EMPTY);
+	public static final Codec<ItemStack> OVERSIZED_ITEM_STACK_CODEC = Codec
+			.lazyInitialized(() -> RecordCodecBuilder.create(instance -> instance
+					.group(ItemStack.ITEM_NON_AIR_CODEC.fieldOf("id").forGetter(ItemStack::getItemHolder),
+							Codec.INT.fieldOf("count").orElse(1).forGetter(ItemStack::getCount), DataComponentPatch.CODEC
+									.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(p_330103_ -> p_330103_.components.asPatch()))
+					.apply(instance, ItemStack::new)));
+	public static final Codec<ItemStack> OPTIONAL_OVERSIZED_ITEM_STACK_CODEC = ExtraCodecs.optionalEmptyMap(OVERSIZED_ITEM_STACK_CODEC)
+			.xmap(optional -> optional.orElse(ItemStack.EMPTY), stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack)).orElse(ItemStack.EMPTY);
 
-	public static final Codec<ItemContainerContents.Slot> LENIENT_CONTENTS_SLOT_CODEC = RecordCodecBuilder.create(
-			instance -> instance.group(
-					Codec.intRange(0, 255).fieldOf("slot").forGetter(ItemContainerContents.Slot::index),
-					ItemStack.CODEC.lenientOptionalFieldOf("item", ItemStack.EMPTY).forGetter(ItemContainerContents.Slot::item)
-			).apply(instance, ItemContainerContents.Slot::new));
+	public static final Codec<ItemContainerContents.Slot> LENIENT_CONTENTS_SLOT_CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Codec.intRange(0, 255).fieldOf("slot").forGetter(ItemContainerContents.Slot::index),
+					ItemStack.CODEC.lenientOptionalFieldOf("item", ItemStack.EMPTY).forGetter(ItemContainerContents.Slot::item))
+			.apply(instance, ItemContainerContents.Slot::new));
 
-	public static Codec<ItemContainerContents> LENIENT_ITEM_CONTAINER_CONTENTS_CODEC = LENIENT_CONTENTS_SLOT_CODEC
-			.sizeLimitedListOf(256).xmap(ItemContainerContents::fromSlots, ItemContainerContents::asSlots);
+	public static Codec<ItemContainerContents> LENIENT_ITEM_CONTAINER_CONTENTS_CODEC = LENIENT_CONTENTS_SLOT_CODEC.sizeLimitedListOf(256)
+			.xmap(ItemContainerContents::fromSlots, ItemContainerContents::asSlots);
 
-	public static final PrimitiveCodec<Integer> STRING_ENCODED_INT = new PrimitiveCodec<Integer>() {
+	public static final PrimitiveCodec<Integer> STRING_ENCODED_INT = new PrimitiveCodec<>() {
 		@Override
 		public <T> DataResult<Integer> read(final DynamicOps<T> ops, final T input) {
 			return ops.getStringValue(input).map(s -> {
@@ -63,7 +54,8 @@ public class CodecHelper {
 		}
 	};
 
-	private CodecHelper() {}
+	private CodecHelper() {
+	}
 
 	public static <T> Codec<Set<T>> setOf(Codec<T> elementCodec) {
 		return new SetCodec<>(elementCodec);

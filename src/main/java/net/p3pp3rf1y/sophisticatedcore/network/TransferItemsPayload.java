@@ -23,17 +23,13 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 
 import javax.annotation.Nonnull;
+
 import java.util.Set;
 
-public record TransferItemsPayload(boolean transferToInventory,
-								   boolean filterByContents) implements CustomPacketPayload {
+public record TransferItemsPayload(boolean transferToInventory, boolean filterByContents) implements CustomPacketPayload {
 	public static final CustomPacketPayload.Type<TransferItemsPayload> TYPE = new CustomPacketPayload.Type<>(SophisticatedCore.getRL("transfer_items"));
-	public static final StreamCodec<ByteBuf, TransferItemsPayload> STREAM_CODEC = StreamCodec.composite(
-			ByteBufCodecs.BOOL,
-			TransferItemsPayload::transferToInventory,
-			ByteBufCodecs.BOOL,
-			TransferItemsPayload::filterByContents,
-			TransferItemsPayload::new);
+	public static final StreamCodec<ByteBuf, TransferItemsPayload> STREAM_CODEC = StreamCodec.composite(ByteBufCodecs.BOOL,
+			TransferItemsPayload::transferToInventory, ByteBufCodecs.BOOL, TransferItemsPayload::filterByContents, TransferItemsPayload::new);
 
 	public static void handlePayload(TransferItemsPayload payload, IPayloadContext context) {
 		Player player = context.player();
@@ -49,8 +45,9 @@ public record TransferItemsPayload(boolean transferToInventory,
 				mergeToPlayersInventory(storageWrapper, player);
 			}
 		} else {
-			InventoryHelper.transfer(new PlayerMainInvWithoutHotbarWrapper(player.getInventory()), new FilteredStorageItemHandler(storageWrapper, payload.filterByContents), s -> {
-			});
+			InventoryHelper.transfer(new PlayerMainInvWithoutHotbarWrapper(player.getInventory()),
+					new FilteredStorageItemHandler(storageWrapper, payload.filterByContents), s -> {
+					});
 		}
 	}
 
@@ -115,7 +112,9 @@ public record TransferItemsPayload(boolean transferToInventory,
 		}
 	}
 
-	private static class FilteredStorageItemHandler extends TransferItemsPayload.FilteredItemHandler<ITrackedContentsItemHandler> implements IItemHandlerSimpleInserter {
+	private static class FilteredStorageItemHandler extends TransferItemsPayload.FilteredItemHandler<ITrackedContentsItemHandler>
+			implements
+				IItemHandlerSimpleInserter {
 		private final IStorageWrapper storageWrapper;
 
 		public FilteredStorageItemHandler(IStorageWrapper storageWrapper, boolean smart) {

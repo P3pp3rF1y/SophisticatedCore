@@ -1,11 +1,8 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
-import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.JukeboxSong;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
@@ -18,7 +15,8 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 
 	private static final String ACTION_DATA = "action";
 
-	public JukeboxUpgradeContainer(Player player, int upgradeContainerId, JukeboxUpgradeWrapper upgradeWrapper, UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> type) {
+	public JukeboxUpgradeContainer(Player player, int upgradeContainerId, JukeboxUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<JukeboxUpgradeWrapper, JukeboxUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 		for (int slot = 0; slot < upgradeWrapper.getDiscInventory().getSlots(); slot++) {
 			slots.add(new SlotItemHandler(upgradeWrapper.getDiscInventory(), slot, -100, -100) {
@@ -40,7 +38,8 @@ public class JukeboxUpgradeContainer extends UpgradeContainerBase<JukeboxUpgrade
 			switch (actionName) {
 				case "play" -> {
 					if (player.containerMenu instanceof StorageContainerMenuBase<?> storageContainerMenu) {
-						storageContainerMenu.getBlockPosition().ifPresentOrElse(pos -> upgradeWrapper.play(player.level(), pos), () -> upgradeWrapper.play(storageContainerMenu.getEntity().orElse(player)));
+						storageContainerMenu.getBlockPosition().ifPresentOrElse(pos -> upgradeWrapper.play(player.level(), pos),
+								() -> upgradeWrapper.play(storageContainerMenu.getEntity().orElse(player)));
 					}
 				}
 				case "stop" -> upgradeWrapper.stop(player);

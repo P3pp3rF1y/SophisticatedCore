@@ -16,11 +16,8 @@ class VoidUpgradeWrapperTest {
 	void overflowMatchIncludesPartialStackWhenComponentsAreIgnored() {
 		ItemStack stackWithDifferentComponents = customizeName(new ItemStack(Items.DIAMOND, 1), "different component");
 
-		Assertions.assertTrue(VoidUpgradeWrapper.hasOverflowMatch(
-				Set.of(),
-				Set.of(ItemStackKey.of(new ItemStack(Items.DIAMOND, 1))),
-				stackKey -> stackKey.getStack().getItem() == stackWithDifferentComponents.getItem()
-		));
+		Assertions.assertTrue(VoidUpgradeWrapper.hasOverflowMatch(Set.of(), Set.of(ItemStackKey.of(new ItemStack(Items.DIAMOND, 1))),
+				stackKey -> stackKey.getStack().getItem() == stackWithDifferentComponents.getItem()));
 	}
 
 	private static ItemStack customizeName(ItemStack stack, String customName) {

@@ -9,7 +9,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicContainer;
 
 public class AutoCookingUpgradeContainer<R extends AbstractCookingRecipe, W extends AutoCookingUpgradeWrapper<W, ?, R>>
-		extends UpgradeContainerBase<W, AutoCookingUpgradeContainer<R, W>> {
+		extends
+			UpgradeContainerBase<W, AutoCookingUpgradeContainer<R, W>> {
 	private final FilterLogicContainer<FilterLogic> inputFilterLogicContainer;
 
 	private final FilterLogicContainer<FilterLogic> fuelFilterLogicContainer;
@@ -17,9 +18,9 @@ public class AutoCookingUpgradeContainer<R extends AbstractCookingRecipe, W exte
 
 	public AutoCookingUpgradeContainer(Player player, int containerId, W wrapper, UpgradeContainerType<W, AutoCookingUpgradeContainer<R, W>> type) {
 		super(player, containerId, wrapper, type);
-		inputFilterLogicContainer = new FilterLogicContainer<>(() -> upgradeWrapper.getInputFilterLogic(), this, slots::add);
-		fuelFilterLogicContainer = new FilterLogicContainer<>(() -> upgradeWrapper.getFuelFilterLogic(), this, slots::add);
-		cookingLogicContainer = new CookingLogicContainer<>(player, () -> upgradeWrapper.getCookingLogic(), slots::add);
+		inputFilterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(AutoCookingUpgradeWrapper::getInputFilterLogic), this, slots::add);
+		fuelFilterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(AutoCookingUpgradeWrapper::getFuelFilterLogic), this, slots::add);
+		cookingLogicContainer = new CookingLogicContainer<>(player, supplyFromWrapper(AutoCookingUpgradeWrapper::getCookingLogic), slots::add);
 	}
 
 	@Override

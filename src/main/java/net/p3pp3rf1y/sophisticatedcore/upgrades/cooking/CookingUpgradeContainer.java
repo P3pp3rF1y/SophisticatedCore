@@ -7,17 +7,18 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 
 public class CookingUpgradeContainer<R extends AbstractCookingRecipe, W extends CookingUpgradeWrapper<W, ?, R>>
-		extends UpgradeContainerBase<W, CookingUpgradeContainer<R, W>> {
+		extends
+			UpgradeContainerBase<W, CookingUpgradeContainer<R, W>> {
 	private final CookingLogicContainer<R> cookingLogicContainer;
 
 	public CookingUpgradeContainer(Player player, int containerId, W wrapper, UpgradeContainerType<W, CookingUpgradeContainer<R, W>> type) {
 		super(player, containerId, wrapper, type);
-		cookingLogicContainer = new CookingLogicContainer<>(player, () -> upgradeWrapper.getCookingLogic(), slots::add);
+		cookingLogicContainer = new CookingLogicContainer<>(player, supplyFromWrapper(CookingUpgradeWrapper::getCookingLogic), slots::add);
 	}
 
 	@Override
 	public void handlePacket(CompoundTag data) {
-		//noop
+		// noop
 	}
 
 	public CookingLogicContainer<R> getSmeltingLogicContainer() {

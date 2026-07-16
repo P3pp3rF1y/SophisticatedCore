@@ -22,10 +22,11 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 	public static final String DATA_MATCH_AMPLIFIER = "matchAmplifier";
 	private static final String DATA_ENTITY_MATCH = "entityMatch";
 
-	public AlchemyUpgradeContainer(Player player, int upgradeContainerId, AlchemyUpgradeWrapper upgradeWrapper, UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
+	public AlchemyUpgradeContainer(Player player, int upgradeContainerId, AlchemyUpgradeWrapper upgradeWrapper,
+			UpgradeContainerType<AlchemyUpgradeWrapper, AlchemyUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
 		InventoryHelper.iterate(upgradeWrapper.getFilterHandler(), (slot, stack) -> {
-			slots.add(new FilterSlotItemHandler(upgradeWrapper::getFilterHandler, slot, 0, 0) {
+			slots.add(new FilterSlotItemHandler(supplyFromWrapper(AlchemyUpgradeWrapper::getFilterHandler), slot, 0, 0) {
 				@Override
 				public boolean mayPickup(Player player) {
 					return false;
@@ -42,8 +43,8 @@ public class AlchemyUpgradeContainer extends UpgradeContainerBase<AlchemyUpgrade
 	@Override
 	public void handlePacket(CompoundTag data) {
 		if (data.contains(DATA_CONDITION)) {
-			NBTHelper.getEnumConstant(data, DATA_CONDITION, AlchemyCondition::fromName).ifPresent(
-					condition -> setConditionValue(data.getInt("slot"), condition, data.getFloat("value")));
+			NBTHelper.getEnumConstant(data, DATA_CONDITION, AlchemyCondition::fromName)
+					.ifPresent(condition -> setConditionValue(data.getInt("slot"), condition, data.getFloat("value")));
 		} else if (data.contains(DATA_MATCH_ALL)) {
 			setMatchAll(data.getBoolean(DATA_MATCH_ALL));
 		} else if (data.contains(DATA_MATCH_DURATION)) {
