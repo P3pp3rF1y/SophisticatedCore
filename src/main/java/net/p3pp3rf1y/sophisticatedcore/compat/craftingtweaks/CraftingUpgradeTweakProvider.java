@@ -6,7 +6,12 @@ import com.google.common.collect.Multiset;
 import net.blay09.mods.craftingtweaks.api.CraftingGrid;
 import net.blay09.mods.craftingtweaks.api.CraftingGridBuilder;
 import net.blay09.mods.craftingtweaks.api.CraftingGridProvider;
+import net.blay09.mods.craftingtweaks.api.GridBalanceHandler;
+import net.blay09.mods.craftingtweaks.api.GridClearHandler;
+import net.blay09.mods.craftingtweaks.api.GridGuiSettings;
+import net.blay09.mods.craftingtweaks.api.GridRotateHandler;
 import net.blay09.mods.craftingtweaks.api.GridTransferHandler;
+import net.blay09.mods.craftingtweaks.api.TweakType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -25,6 +30,7 @@ import java.util.Optional;
 
 @SuppressWarnings("java:S3776") // keeping this as close as possible to default implementation in crafting tweaks hence higher complexity but easier porting
 public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
+	private static final ResourceLocation DEFAULT_GRID_ID = new ResourceLocation(SophisticatedCore.MOD_ID, "default");
 
 	@Override
 	public String getModId() {
@@ -38,13 +44,66 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 	@Override
 	public void buildCraftingGrids(CraftingGridBuilder builder, AbstractContainerMenu containerMenu) {
-		if (!(containerMenu instanceof StorageContainerMenuBase<?> storageContainer)) {
+		if (!(containerMenu instanceof StorageContainerMenuBase<?>)) {
 			return;
 		}
-		builder.addGrid(getCraftingGridStart(storageContainer), getCraftingGridSize(storageContainer))
-				.clearHandler((craftingGrid, player, menu, forced) -> clearGrid(player, menu, forced))
-				.rotateHandler((craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse)).balanceHandler(new StorageCraftingGridBalanceHandler())
-				.transferHandler(new StorageCraftingGridTransferHandler()).hideAllTweakButtons();
+		builder.addCustomGrid(new StorageCraftingGrid());
+	}
+
+	private class StorageCraftingGrid implements CraftingGrid, GridGuiSettings {
+		@Override
+		public ResourceLocation getId() {
+			return DEFAULT_GRID_ID;
+		}
+
+		@Override
+		public Container getCraftingMatrix(Player player, AbstractContainerMenu menu) {
+			if (!(menu instanceof StorageContainerMenuBase<?> storageContainer)) {
+				return null;
+			}
+			return getCraftMatrix(storageContainer).orElse(null);
+		}
+
+		@Override
+		public int getGridStartSlot(Player player, AbstractContainerMenu menu) {
+			if (!(menu instanceof StorageContainerMenuBase<?> storageContainer)) {
+				return 0;
+			}
+			return getCraftingGridStart(storageContainer);
+		}
+
+		@Override
+		public int getGridSize(Player player, AbstractContainerMenu menu) {
+			if (!(menu instanceof StorageContainerMenuBase<?> storageContainer)) {
+				return 0;
+			}
+			return getCraftingGridSize(storageContainer);
+		}
+
+		@Override
+		public GridClearHandler<AbstractContainerMenu> clearHandler() {
+			return (craftingGrid, player, menu, forced) -> clearGrid(player, menu, forced);
+		}
+
+		@Override
+		public GridRotateHandler<AbstractContainerMenu> rotateHandler() {
+			return (craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse);
+		}
+
+		@Override
+		public GridBalanceHandler<AbstractContainerMenu> balanceHandler() {
+			return new StorageCraftingGridBalanceHandler();
+		}
+
+		@Override
+		public GridTransferHandler<AbstractContainerMenu> transferHandler() {
+			return new StorageCraftingGridTransferHandler();
+		}
+
+		@Override
+		public boolean isButtonVisible(TweakType tweakType) {
+			return false;
+		}
 	}
 
 	public void clearGrid(Player player, AbstractContainerMenu menu, boolean forced) {
