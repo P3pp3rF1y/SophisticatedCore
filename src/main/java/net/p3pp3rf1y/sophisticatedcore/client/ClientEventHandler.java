@@ -20,6 +20,7 @@ import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.client.settings.IKeyConflictContext;
+import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -95,10 +96,10 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(key) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, key) && tryCallTransferToStorage(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(key) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, key) && tryCallTransferToInventory(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
@@ -109,13 +110,19 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(input) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, input) && tryCallTransferToStorage(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(input) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, input) && tryCallTransferToInventory(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
+	}
+
+	public static boolean isActiveAndMatchesIgnoringShift(KeyMapping keyMapping, InputConstants.Key key) {
+		return keyMapping.isActiveAndMatches(key)
+				|| key != InputConstants.UNKNOWN && key.equals(keyMapping.getKey()) && keyMapping.getKeyConflictContext().isActive()
+						&& keyMapping.getKeyModifier() == KeyModifier.NONE && Screen.hasShiftDown() && !Screen.hasControlDown() && !Screen.hasAltDown();
 	}
 
 	private static boolean tryCallTransferToStorage(Screen gui) {
