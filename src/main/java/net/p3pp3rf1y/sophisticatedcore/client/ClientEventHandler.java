@@ -22,6 +22,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
+import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
@@ -107,10 +108,10 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(key) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, key) && tryCallTransferToStorage(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(key) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, key) && tryCallTransferToInventory(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
@@ -121,13 +122,20 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_STORAGE_KEYBIND.isActiveAndMatches(input) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, input) && tryCallTransferToStorage(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (TRANSFER_TO_INVENTORY_KEYBIND.isActiveAndMatches(input) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, input) && tryCallTransferToInventory(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
+	}
+
+	public static boolean isActiveAndMatchesIgnoringShift(KeyMapping keyMapping, InputConstants.Key key) {
+		Minecraft mc = Minecraft.getInstance();
+		return keyMapping.isActiveAndMatches(key)
+				|| key != InputConstants.UNKNOWN && key.equals(keyMapping.getKey()) && keyMapping.getKeyConflictContext().isActive()
+						&& keyMapping.getKeyModifier() == KeyModifier.NONE && mc.hasShiftDown() && !mc.hasControlDown() && !mc.hasAltDown();
 	}
 
 	private static boolean tryCallTransferToStorage(Screen gui) {
