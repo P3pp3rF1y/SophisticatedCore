@@ -3,10 +3,23 @@ package net.p3pp3rf1y.sophisticatedcore.compat.craftingtweaks;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
+import net.blay09.mods.craftingtweaks.CraftingTweaks;
 import net.blay09.mods.craftingtweaks.api.CraftingGrid;
 import net.blay09.mods.craftingtweaks.api.CraftingGridBuilder;
 import net.blay09.mods.craftingtweaks.api.CraftingGridProvider;
+import net.blay09.mods.craftingtweaks.api.CraftingTweaksAPI;
+import net.blay09.mods.craftingtweaks.api.GridBalanceHandler;
+import net.blay09.mods.craftingtweaks.api.GridClearHandler;
+import net.blay09.mods.craftingtweaks.api.GridGuiSettings;
+import net.blay09.mods.craftingtweaks.api.GridRefillHandler;
+import net.blay09.mods.craftingtweaks.api.GridRotateHandler;
 import net.blay09.mods.craftingtweaks.api.GridTransferHandler;
+import net.blay09.mods.craftingtweaks.api.RecipeMapper;
+import net.blay09.mods.craftingtweaks.api.TweakType;
+import net.blay09.mods.craftingtweaks.crafting.ContainerIngredientProvider;
+import net.blay09.mods.craftingtweaks.crafting.CraftingContext;
+import net.blay09.mods.craftingtweaks.crafting.CraftingOperation;
+import net.blay09.mods.craftingtweaks.crafting.IngredientToken;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -15,16 +28,23 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
+import javax.annotation.Nullable;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 @SuppressWarnings("java:S3776") // keeping this as close as possible to default implementation in crafting tweaks hence higher complexity but easier porting
 public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
+	private static final ResourceLocation DEFAULT_GRID_ID = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "default");
 
 	@Override
 	public String getModId() {
@@ -38,13 +58,63 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 	@Override
 	public void buildCraftingGrids(CraftingGridBuilder builder, AbstractContainerMenu containerMenu) {
-		if (!(containerMenu instanceof StorageContainerMenuBase<?> storageContainer)) {
+		if (!(containerMenu instanceof StorageContainerMenuBase<?>)) {
 			return;
 		}
-		builder.addGrid(getCraftingGridStart(storageContainer), getCraftingGridSize(storageContainer))
-				.clearHandler((craftingGrid, player, menu, forced) -> clearGrid(player, menu, forced))
-				.rotateHandler((craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse)).balanceHandler(new StorageCraftingGridBalanceHandler())
-				.transferHandler(new StorageCraftingGridTransferHandler()).hideAllTweakButtons();
+		builder.addCustomGrid(new StorageCraftingGrid());
+	}
+
+	private class StorageCraftingGrid implements CraftingGrid, GridGuiSettings {
+		@Override
+		public ResourceLocation getId() {
+			return DEFAULT_GRID_ID;
+		}
+
+		@Override
+		@Nullable
+		public Container getCraftingMatrix(Player player, AbstractContainerMenu menu) {
+			return menu instanceof StorageContainerMenuBase<?> storageMenu ? getCraftMatrix(storageMenu).orElse(null) : null;
+		}
+
+		@Override
+		public int getGridStartSlot(Player player, AbstractContainerMenu menu) {
+			return menu instanceof StorageContainerMenuBase<?> storageMenu ? getCraftingGridStart(storageMenu) : 0;
+		}
+
+		@Override
+		public int getGridSize(Player player, AbstractContainerMenu menu) {
+			return menu instanceof StorageContainerMenuBase<?> storageMenu ? getCraftingGridSize(storageMenu) : 0;
+		}
+
+		@Override
+		public GridClearHandler<AbstractContainerMenu> clearHandler() {
+			return (craftingGrid, player, menu, forced) -> clearGrid(player, menu, forced);
+		}
+
+		@Override
+		public GridRotateHandler<AbstractContainerMenu> rotateHandler() {
+			return (craftingGrid, player, menu, reverse) -> rotateGrid(menu, reverse);
+		}
+
+		@Override
+		public GridBalanceHandler<AbstractContainerMenu> balanceHandler() {
+			return new StorageCraftingGridBalanceHandler();
+		}
+
+		@Override
+		public GridTransferHandler<AbstractContainerMenu> transferHandler() {
+			return new StorageCraftingGridTransferHandler();
+		}
+
+		@Override
+		public GridRefillHandler<AbstractContainerMenu> refillHandler() {
+			return new StorageCraftingGridRefillHandler();
+		}
+
+		@Override
+		public boolean isButtonVisible(TweakType tweakType) {
+			return false;
+		}
 	}
 
 	public void clearGrid(Player player, AbstractContainerMenu menu, boolean forced) {
@@ -281,6 +351,164 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 
 				balanceGrid(grid, player, menu);
 			});
+		}
+	}
+
+	private static class StorageCraftingGridRefillHandler implements GridRefillHandler<AbstractContainerMenu> {
+		@Override
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		public void refillRecipe(CraftingGrid grid, Player player, AbstractContainerMenu menu, RecipeHolder<?> recipeHolder, boolean stack) {
+			if (!(menu instanceof StorageContainerMenuBase<?> storageContainer)) {
+				return;
+			}
+
+			grid.clearHandler().clearGrid(grid, player, menu, true);
+			Container craftMatrix = grid.getCraftingMatrix(player, menu);
+			if (craftMatrix == null) {
+				return;
+			}
+
+			Recipe<?> recipe = recipeHolder.value();
+			CraftingContext context = new CraftingContext(List.of(new ContainerIngredientProvider(player.getInventory()),
+					new ContainerIngredientProvider(new ItemHandlerContainer(storageContainer.getStorageWrapper().getInventoryHandler()))));
+			CraftingOperation operation = context.createOperation((RecipeHolder) recipeHolder).prepare();
+			if (!operation.canCraft()) {
+				return;
+			}
+
+			int operations = 0;
+			outer:
+			do {
+				List<IngredientToken> ingredientTokens = operation.getIngredientTokens();
+				RecipeMapper recipeMapper = CraftingTweaksAPI.getRecipeMapper((Class) recipe.getClass());
+
+				HashMap<Integer, IngredientToken> matrixDiff = new HashMap<>();
+				for (int i = 0; i < ingredientTokens.size(); i++) {
+					IngredientToken ingredientToken = ingredientTokens.get(i);
+					int matrixSlot = recipeMapper.mapToMatrixSlot(recipe, i);
+					if (matrixSlot != -1) {
+						ItemStack itemStack = ingredientToken.peek();
+						ItemStack slotStack = craftMatrix.getItem(matrixSlot);
+						if (!slotStack.isEmpty()) {
+							if (slotStack.getCount() >= slotStack.getMaxStackSize()) {
+								break outer;
+							} else if (!slotStack.isStackable()) {
+								break outer;
+							} else if (!ItemStack.isSameItemSameComponents(slotStack, itemStack)) {
+								break outer;
+							}
+						}
+
+						matrixDiff.put(matrixSlot, ingredientToken);
+					}
+				}
+				matrixDiff.forEach((slot, ingredientToken) -> {
+					ItemStack slotStack = craftMatrix.getItem(slot);
+					ItemStack itemStack = ingredientToken.consume();
+					craftMatrix.setItem(slot, itemStack.copyWithCount(itemStack.getCount() + slotStack.getCount()));
+				});
+				operations++;
+				if (operations > 64) {
+					CraftingTweaks.logger.warn("Something went wrong trying to refill recipe. Too many iterations. Recipe: {}", recipeHolder.id().location());
+					break;
+				}
+				if (!stack || matrixDiff.isEmpty()) {
+					break;
+				}
+			} while (operation.prepare().canCraft());
+
+			menu.broadcastChanges();
+		}
+	}
+
+	private static class ItemHandlerContainer implements Container {
+		private final IItemHandlerModifiable itemHandler;
+
+		private ItemHandlerContainer(IItemHandlerModifiable itemHandler) {
+			this.itemHandler = itemHandler;
+		}
+
+		@Override
+		public int getContainerSize() {
+			return itemHandler.getSlots();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+				if (!itemHandler.getStackInSlot(slot).isEmpty()) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		@Override
+		public ItemStack getItem(int slot) {
+			return isValidSlot(slot) ? itemHandler.getStackInSlot(slot) : ItemStack.EMPTY;
+		}
+
+		@Override
+		public ItemStack removeItem(int slot, int amount) {
+			if (!isValidSlot(slot) || amount <= 0) {
+				return ItemStack.EMPTY;
+			}
+
+			return itemHandler.extractItem(slot, amount, false);
+		}
+
+		@Override
+		public ItemStack removeItemNoUpdate(int slot) {
+			if (!isValidSlot(slot)) {
+				return ItemStack.EMPTY;
+			}
+
+			ItemStack itemStack = itemHandler.getStackInSlot(slot);
+			itemHandler.setStackInSlot(slot, ItemStack.EMPTY);
+			return itemStack;
+		}
+
+		@Override
+		public void setItem(int slot, ItemStack stack) {
+			if (!isValidSlot(slot)) {
+				return;
+			}
+
+			if (stack.isEmpty() || itemHandler.isItemValid(slot, stack)) {
+				itemHandler.setStackInSlot(slot, stack);
+			}
+		}
+
+		@Override
+		public void setChanged() {
+			// Handled by the backing item handler when slots are mutated.
+		}
+
+		@Override
+		public boolean stillValid(Player player) {
+			return true;
+		}
+
+		@Override
+		public boolean canPlaceItem(int slot, ItemStack stack) {
+			return isValidSlot(slot) && itemHandler.isItemValid(slot, stack);
+		}
+
+		@Override
+		public boolean canTakeItem(Container target, int slot, ItemStack stack) {
+			return isValidSlot(slot) && !itemHandler.extractItem(slot, 1, true).isEmpty();
+		}
+
+		@Override
+		public void clearContent() {
+			for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
+				itemHandler.setStackInSlot(slot, ItemStack.EMPTY);
+			}
+		}
+
+		private boolean isValidSlot(int slot) {
+			return slot >= 0 && slot < itemHandler.getSlots();
 		}
 	}
 
