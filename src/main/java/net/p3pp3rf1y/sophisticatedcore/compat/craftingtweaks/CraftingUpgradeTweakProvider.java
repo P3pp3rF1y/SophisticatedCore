@@ -379,8 +379,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			}
 
 			int operations = 0;
-			outer:
-			do {
+			outer : do {
 				List<IngredientToken> ingredientTokens = operation.getIngredientTokens();
 				RecipeMapper recipeMapper = CraftingTweaksAPI.getRecipeMapper((Class) recipe.getClass());
 
