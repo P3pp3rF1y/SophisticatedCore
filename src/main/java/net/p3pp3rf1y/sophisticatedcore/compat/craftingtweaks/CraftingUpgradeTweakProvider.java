@@ -407,8 +407,7 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			}
 
 			int operations = 0;
-			outer:
-			do {
+			outer : do {
 				List<IngredientToken> ingredientTokens = operation.getIngredientTokens();
 
 				HashMap<Integer, IngredientToken> matrixDiff = new HashMap<>();
