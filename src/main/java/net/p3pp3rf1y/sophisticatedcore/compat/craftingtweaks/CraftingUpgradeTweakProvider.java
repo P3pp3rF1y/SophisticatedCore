@@ -41,6 +41,7 @@ import javax.annotation.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -407,33 +408,16 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 			}
 
 			int operations = 0;
-			outer : do {
-				List<IngredientToken> ingredientTokens = operation.getIngredientTokens();
-
-				HashMap<Integer, IngredientToken> matrixDiff = new HashMap<>();
-				for (int i = 0; i < ingredientTokens.size(); i++) {
-					IngredientToken ingredientToken = ingredientTokens.get(i);
-					int matrixSlot = recipeMapper.mapToMatrixSlot(recipe, gridWidth, i);
-					if (matrixSlot >= craftMatrix.getContainerSize()) {
-						return;
-					}
-					if (matrixSlot != -1) {
-						ItemStack itemStack = ingredientToken.peek();
-						ItemStack slotStack = craftMatrix.getItem(matrixSlot);
-						if (!slotStack.isEmpty()) {
-							if (slotStack.getCount() >= slotStack.getMaxStackSize()) {
-								break outer;
-							} else if (!slotStack.isStackable()) {
-								break outer;
-							} else if (!ItemStack.isSameItemSameComponents(slotStack, itemStack)) {
-								break outer;
-							}
-						}
-
-						matrixDiff.put(matrixSlot, ingredientToken);
-					}
+			do {
+				MatrixDiffResult matrixDiffResult = getMatrixDiff(craftMatrix, recipe, recipeMapper, gridWidth, operation.getIngredientTokens());
+				if (matrixDiffResult.hasInvalidMatrixSlot()) {
+					return;
 				}
-				matrixDiff.forEach((slot, ingredientToken) -> {
+				Optional<Map<Integer, IngredientToken>> matrixDiff = matrixDiffResult.matrixDiff();
+				if (matrixDiff.isEmpty()) {
+					break;
+				}
+				matrixDiff.get().forEach((slot, ingredientToken) -> {
 					ItemStack slotStack = craftMatrix.getItem(slot);
 					ItemStack itemStack = ingredientToken.consume();
 					craftMatrix.setItem(slot, itemStack.copyWithCount(itemStack.getCount() + slotStack.getCount()));
@@ -443,12 +427,39 @@ public class CraftingUpgradeTweakProvider implements CraftingGridProvider {
 					CraftingTweaks.logger.warn("Something went wrong trying to refill recipe. Too many iterations. Recipe: {}", recipeHolder.id().identifier());
 					break;
 				}
-				if (!stack || matrixDiff.isEmpty()) {
+				if (!stack || matrixDiff.get().isEmpty()) {
 					break;
 				}
 			} while (operation.prepare().canCraft());
 
 			menu.broadcastChanges();
+		}
+
+		@SuppressWarnings({"rawtypes", "unchecked"})
+		private static MatrixDiffResult getMatrixDiff(Container craftMatrix, Recipe<?> recipe, RecipeMapper recipeMapper, int gridWidth,
+				List<IngredientToken> ingredientTokens) {
+			Map<Integer, IngredientToken> matrixDiff = new HashMap<>();
+			for (int i = 0; i < ingredientTokens.size(); i++) {
+				IngredientToken ingredientToken = ingredientTokens.get(i);
+				int matrixSlot = recipeMapper.mapToMatrixSlot(recipe, gridWidth, i);
+				if (matrixSlot >= craftMatrix.getContainerSize()) {
+					return new MatrixDiffResult(Optional.empty(), true);
+				}
+				if (matrixSlot != -1) {
+					ItemStack itemStack = ingredientToken.peek();
+					ItemStack slotStack = craftMatrix.getItem(matrixSlot);
+					if (!slotStack.isEmpty() && (slotStack.getCount() >= slotStack.getMaxStackSize() || !slotStack.isStackable()
+							|| !ItemStack.isSameItemSameComponents(slotStack, itemStack))) {
+						return new MatrixDiffResult(Optional.empty(), false);
+					}
+
+					matrixDiff.put(matrixSlot, ingredientToken);
+				}
+			}
+			return new MatrixDiffResult(Optional.of(matrixDiff), false);
+		}
+
+		private record MatrixDiffResult(Optional<Map<Integer, IngredientToken>> matrixDiff, boolean hasInvalidMatrixSlot) {
 		}
 	}
 
