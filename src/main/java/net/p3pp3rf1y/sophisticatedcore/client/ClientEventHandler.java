@@ -93,13 +93,14 @@ public class ClientEventHandler {
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
 		InputConstants.Key key = InputConstants.getKey(event.getKeyCode(), event.getScanCode());
+		boolean shiftDown = Screen.hasShiftDown() || (event.getModifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
 		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, key) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, key) && tryCallTransferToStorage(event.getScreen(), shiftDown)) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, key) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, key) && tryCallTransferToInventory(event.getScreen(), shiftDown)) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
@@ -110,10 +111,11 @@ public class ClientEventHandler {
 		if (SORT_KEYBIND.isActiveAndMatches(input) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, input) && tryCallTransferToStorage(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_STORAGE_KEYBIND, input) && tryCallTransferToStorage(event.getScreen(), Screen.hasShiftDown())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
-		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, input) && tryCallTransferToInventory(event.getScreen())) {
+		} else if (isActiveAndMatchesIgnoringShift(TRANSFER_TO_INVENTORY_KEYBIND, input)
+				&& tryCallTransferToInventory(event.getScreen(), Screen.hasShiftDown())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
 		}
@@ -125,17 +127,17 @@ public class ClientEventHandler {
 						&& keyMapping.getKeyModifier() == KeyModifier.NONE && Screen.hasShiftDown() && !Screen.hasControlDown() && !Screen.hasAltDown();
 	}
 
-	private static boolean tryCallTransferToStorage(Screen gui) {
+	private static boolean tryCallTransferToStorage(Screen gui, boolean shiftDown) {
 		if (gui instanceof StorageScreenBase<?> screen) {
-			screen.getMenu().transferItemsToStorage(!Screen.hasShiftDown());
+			screen.getMenu().transferItemsToStorage(!shiftDown);
 			return true;
 		}
 		return false;
 	}
 
-	private static boolean tryCallTransferToInventory(Screen gui) {
+	private static boolean tryCallTransferToInventory(Screen gui, boolean shiftDown) {
 		if (gui instanceof StorageScreenBase<?> screen) {
-			screen.getMenu().transferItemsToPlayerInventory(!Screen.hasShiftDown());
+			screen.getMenu().transferItemsToPlayerInventory(!shiftDown);
 			return true;
 		}
 		return false;
