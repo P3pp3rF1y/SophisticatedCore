@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -353,7 +354,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	private static class Accessor implements IUpgradeWrapperAccessor {
-		private final Map<Class<?>, List<?>> interfaceWrappers = new HashMap<>();
+		private final Map<Class<?>, List<?>> interfaceWrappers = new ConcurrentHashMap<>();
 
 		private final UpgradeHandler upgradeHandler;
 
