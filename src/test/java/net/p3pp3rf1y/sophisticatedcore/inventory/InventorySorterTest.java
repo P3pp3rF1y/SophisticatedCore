@@ -9,6 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 import net.p3pp3rf1y.sophisticatedcore.util.InventorySorter;
 import net.p3pp3rf1y.sophisticatedcore.util.NoopStorageWrapper;
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 class InventorySorterTest {
@@ -30,46 +32,46 @@ class InventorySorterTest {
 	}
 
 	@Test
-	void sortHandlerTopsUpNoSortSlots() {
+	void sortHandlerLeavesNoSortSlotsUntouched() {
 		InventoryHandler inventoryHandler = initInventoryHandler(7,
 				Map.of(0, stack(Items.IRON_NUGGET, 100), 1, stack(Items.IRON_INGOT, 10), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)));
 
 		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
 
-		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 110);
+		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 100);
 		assertStack(inventoryHandler, 1, Items.IRON_INGOT, 10);
 		Assertions.assertTrue(inventoryHandler.getInternalStack(2).isEmpty());
 		Assertions.assertTrue(inventoryHandler.getInternalStack(3).isEmpty());
 		Assertions.assertTrue(inventoryHandler.getInternalStack(4).isEmpty());
-		assertStack(inventoryHandler, 5, Items.COBBLESTONE, 1);
-		Assertions.assertTrue(inventoryHandler.getInternalStack(6).isEmpty());
+		assertStack(inventoryHandler, 5, Items.IRON_NUGGET, 10);
+		assertStack(inventoryHandler, 6, Items.COBBLESTONE, 1);
 	}
 
 	@Test
-	void sortHandlerTopsUpNoSortSlotsUsingVisibleCount() {
+	void sortHandlerLeavesNoSortSlotsUsingVisibleCount() {
 		Map<Integer, ItemStack> visibleStacks = new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, 100)));
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
-				Map.of(0, stack(Items.IRON_NUGGET, 5), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)), visibleStacks);
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3,
+				Map.of(0, stack(Items.IRON_NUGGET, 5), 1, stack(Items.COBBLESTONE, 1), 2, stack(Items.IRON_NUGGET, 10)), visibleStacks);
 
-		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0));
 
-		assertStack(visibleStacks, 0, Items.IRON_NUGGET, 110);
+		assertStack(visibleStacks, 0, Items.IRON_NUGGET, 100);
 		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 5);
-		assertStack(inventoryHandler, 5, Items.COBBLESTONE, 1);
-		Assertions.assertTrue(inventoryHandler.getInternalStack(6).isEmpty());
+		assertStack(inventoryHandler, 1, Items.IRON_NUGGET, 10);
+		assertStack(inventoryHandler, 2, Items.COBBLESTONE, 1);
 	}
 
 	@Test
-	void sortHandlerTopsUpInfiniteNoSortSlotsUsingInternalCount() {
-		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(7,
-				Map.of(0, stack(Items.IRON_NUGGET, 5), 5, stack(Items.IRON_NUGGET, 10), 6, stack(Items.COBBLESTONE, 1)),
+	void sortHandlerLeavesInfiniteNoSortSlotsUntouched() {
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3,
+				Map.of(0, stack(Items.IRON_NUGGET, 5), 1, stack(Items.COBBLESTONE, 1), 2, stack(Items.IRON_NUGGET, 10)),
 				new HashMap<>(Map.of(0, stack(Items.IRON_NUGGET, Integer.MAX_VALUE))), Set.of(0));
 
-		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0, 1, 2, 3, 4));
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0));
 
-		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 15);
-		assertStack(inventoryHandler, 5, Items.COBBLESTONE, 1);
-		Assertions.assertTrue(inventoryHandler.getInternalStack(6).isEmpty());
+		assertStack(inventoryHandler, 0, Items.IRON_NUGGET, 5);
+		assertStack(inventoryHandler, 1, Items.IRON_NUGGET, 10);
+		assertStack(inventoryHandler, 2, Items.COBBLESTONE, 1);
 	}
 
 	@Test
@@ -114,6 +116,65 @@ class InventorySorterTest {
 		Assertions.assertTrue(inventoryHandler.getInternalStack(4).isEmpty());
 		assertStack(inventoryHandler, 5, Items.IRON_INGOT, 10);
 		assertStack(inventoryHandler, 6, Items.COBBLESTONE, 1);
+	}
+
+	@Test
+	void sortHandlerFillsMatchingMemorizedSlotsBeforeOtherSlots() {
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(4,
+				Map.of(0, stack(Items.COBBLESTONE, 100), 1, stack(Items.COBBLESTONE, 100), 2, stack(Items.IRON_INGOT, 1), 3, stack(Items.COBBLESTONE, 100)),
+				new HashMap<>(), Set.of());
+		MemorySettingsCategory memorySettings = initMemorySettings(Map.of(0, stack(Items.COBBLESTONE, 1), 1, stack(Items.COBBLESTONE, 1)), false);
+
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_NAME, Set.of(), memorySettings.getSlotIndexes(), memorySettings::matchesFilter);
+
+		assertStack(inventoryHandler, 0, Items.COBBLESTONE, 256);
+		assertStack(inventoryHandler, 1, Items.COBBLESTONE, 44);
+		assertStack(inventoryHandler, 2, Items.IRON_INGOT, 1);
+		Assertions.assertTrue(inventoryHandler.getInternalStack(3).isEmpty());
+	}
+
+	@Test
+	void sortHandlerMovesNonMatchingMemorizedContentsToOtherSlots() {
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3,
+				Map.of(0, stack(Items.IRON_INGOT, 5), 1, stack(Items.COBBLESTONE, 10), 2, stack(Items.IRON_NUGGET, 1)), new HashMap<>(), Set.of());
+		MemorySettingsCategory memorySettings = initMemorySettings(Map.of(0, stack(Items.COBBLESTONE, 1)), false);
+
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(), memorySettings.getSlotIndexes(), memorySettings::matchesFilter);
+
+		assertStack(inventoryHandler, 0, Items.COBBLESTONE, 10);
+		assertStack(inventoryHandler, 1, Items.IRON_INGOT, 5);
+		assertStack(inventoryHandler, 2, Items.IRON_NUGGET, 1);
+	}
+
+	@Test
+	void sortHandlerPrioritizesNoSortOverMemorizedSlots() {
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(3,
+				Map.of(0, stack(Items.COBBLESTONE, 10), 1, stack(Items.IRON_INGOT, 5), 2, stack(Items.IRON_NUGGET, 1)), new HashMap<>(), Set.of());
+		MemorySettingsCategory memorySettings = initMemorySettings(Map.of(0, stack(Items.COBBLESTONE, 1)), false);
+
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_COUNT, Set.of(0), memorySettings.getSlotIndexes(), memorySettings::matchesFilter);
+
+		assertStack(inventoryHandler, 0, Items.COBBLESTONE, 10);
+		assertStack(inventoryHandler, 1, Items.IRON_INGOT, 5);
+		assertStack(inventoryHandler, 2, Items.IRON_NUGGET, 1);
+	}
+
+	@Test
+	void sortHandlerKeepsComponentDistinctStacksInSeparateMemorizedSlots() {
+		ItemStack firstStack = stack(Items.COBBLESTONE, 1);
+		firstStack.set(DataComponents.MAX_STACK_SIZE, 63);
+		ItemStack secondStack = stack(Items.COBBLESTONE, 1);
+		secondStack.set(DataComponents.MAX_STACK_SIZE, 62);
+		InventoryHandler inventoryHandler = initInventoryHandlerWithVisibleStacks(2, Map.of(0, firstStack, 1, secondStack), new HashMap<>(), Set.of());
+		MemorySettingsCategory memorySettings = initMemorySettings(Map.of(0, stack(Items.COBBLESTONE, 1), 1, stack(Items.COBBLESTONE, 1)), true);
+
+		InventorySorter.sortHandler(inventoryHandler, InventorySorter.BY_NAME, Set.of(), memorySettings.getSlotIndexes(), memorySettings::matchesFilter);
+
+		ItemStack sortedFirstStack = inventoryHandler.getInternalStack(0);
+		ItemStack sortedSecondStack = inventoryHandler.getInternalStack(1);
+		Assertions.assertEquals(Items.COBBLESTONE, sortedFirstStack.getItem());
+		Assertions.assertEquals(Items.COBBLESTONE, sortedSecondStack.getItem());
+		Assertions.assertFalse(ItemStack.isSameItemSameComponents(sortedFirstStack, sortedSecondStack));
 	}
 
 	private static InventoryHandler initInventoryHandler(int slots, Map<Integer, ItemStack> initialState) {
@@ -188,6 +249,17 @@ class InventorySorterTest {
 		ContainerContents containerContents = new ContainerContents();
 		containerContents.inventory().reloadFrom(new ContainerContents.InventoryData(stacks));
 		return containerContents;
+	}
+
+	private static MemorySettingsCategory initMemorySettings(Map<Integer, ItemStack> filters, boolean ignoreComponents) {
+		MemorySettingsCategory memorySettings = Mockito.mock(MemorySettingsCategory.class);
+		when(memorySettings.getSlotIndexes()).thenReturn(filters.keySet());
+		when(memorySettings.matchesFilter(anyInt(), any(ItemStack.class))).thenAnswer(invocation -> {
+			ItemStack filter = filters.get(invocation.getArgument(0));
+			ItemStack stack = invocation.getArgument(1);
+			return ignoreComponents ? filter.getItem() == stack.getItem() : ItemStack.isSameItemSameComponents(filter, stack);
+		});
+		return memorySettings;
 	}
 
 	private static ItemStack stack(Item item, int count) {
