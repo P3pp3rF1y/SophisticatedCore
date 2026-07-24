@@ -11,6 +11,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 public class InventorySorter {
@@ -76,18 +77,25 @@ public class InventorySorter {
 	}
 
 	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots) {
-		sortHandler(handler, comparator, noSortSlots, Set.of());
+		sortHandler(handler, comparator, noSortSlots, Set.of(), (slot, stack) -> false);
 	}
 
 	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots,
 			Set<Integer> ignoredSlots) {
+		Set<Integer> allNoSortSlots = new HashSet<>(noSortSlots);
+		allNoSortSlots.addAll(ignoredSlots);
+		sortHandler(handler, comparator, allNoSortSlots, Set.of(), (slot, stack) -> false);
+	}
+
+	public static void sortHandler(InventoryHandler handler, Comparator<? super Map.Entry<ItemStackKey, Integer>> comparator, Set<Integer> noSortSlots,
+			Set<Integer> memorizedSlots, BiPredicate<Integer, ItemStack> matchesMemorizedSlot) {
 		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
-		skippedSlots.addAll(ignoredSlots);
-		Set<Integer> accessibleNoSortSlots = new HashSet<>(noSortSlots);
+		Set<Integer> accessibleMemorizedSlots = new HashSet<>(memorizedSlots);
+		accessibleMemorizedSlots.removeAll(skippedSlots);
 		for (int slot = 0; slot < handler.size(); slot++) {
 			if (!handler.isSlotAccessible(slot)) {
 				skippedSlots.add(slot);
-				accessibleNoSortSlots.remove(slot);
+				accessibleMemorizedSlots.remove(slot);
 			}
 		}
 		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, skippedSlots, false);
@@ -96,7 +104,8 @@ public class InventorySorter {
 
 		int slots = handler.size();
 
-		sortIntoNoSortSlots(handler, accessibleNoSortSlots, sortedList);
+		sortIntoMemorizedSlots(handler, accessibleMemorizedSlots, matchesMemorizedSlot, sortedList);
+		skippedSlots.addAll(accessibleMemorizedSlots);
 
 		sortIntoOtherSlots(handler, skippedSlots, sortedList, slots);
 	}
@@ -123,49 +132,30 @@ public class InventorySorter {
 		}
 	}
 
-	private static void sortIntoNoSortSlots(InventoryHandler handler, Set<Integer> noSortSlots, List<Map.Entry<ItemStackKey, Integer>> sortedList) {
-		Iterator<Map.Entry<ItemStackKey, Integer>> it = sortedList.iterator();
-		if (!noSortSlots.isEmpty()) {
-			while (it.hasNext()) {
-				Map.Entry<ItemStackKey, Integer> entry = it.next();
-				ItemStackKey current = entry.getKey();
-				Integer count = entry.getValue();
+	private static void sortIntoMemorizedSlots(InventoryHandler handler, Set<Integer> memorizedSlots, BiPredicate<Integer, ItemStack> matchesMemorizedSlot,
+			List<Map.Entry<ItemStackKey, Integer>> sortedList) {
+		List<Integer> sortedMemorizedSlots = memorizedSlots.stream().sorted().toList();
+		for (int slot : sortedMemorizedSlots) {
+			emptySlot(handler, slot);
+		}
 
-				for (int slot : noSortSlots) {
-					ItemStack slotStack = handler.getStackInSlot(slot);
-					if (ItemStack.isSameItemSameComponents(slotStack, current.stack())) {
-						int placedCount = topUpNoSortSlot(handler, current, count, slot, slotStack);
-						count -= placedCount;
-						entry.setValue(count);
-						if (count <= 0) {
-							it.remove();
-							break;
-						}
-					}
+		Iterator<Map.Entry<ItemStackKey, Integer>> it = sortedList.iterator();
+		while (it.hasNext()) {
+			Map.Entry<ItemStackKey, Integer> entry = it.next();
+			ItemStackKey current = entry.getKey();
+			int count = entry.getValue();
+			for (int slot : sortedMemorizedSlots) {
+				if (!handler.getStackInSlot(slot).isEmpty() || !matchesMemorizedSlot.test(slot, current.stack())) {
+					continue;
+				}
+				count -= placeStack(handler, current, count, slot, false);
+				if (count <= 0) {
+					it.remove();
+					break;
 				}
 			}
-
+			entry.setValue(count);
 		}
-	}
-
-	private static int topUpNoSortSlot(InventoryHandler handler, ItemStackKey current, int count, int slot, ItemStack slotStack) {
-		if (handler.isInfinite(slot)) {
-			return placeStack(handler, current, count, slot, true);
-		}
-
-		int existingCount = slotStack.getCount();
-		long slotLimit = handler.getCapacityAsLong(slot, ItemResource.of(current.stack()));
-		int countPlaced = (int) Math.min(slotLimit, existingCount + (long) count) - existingCount;
-		if (countPlaced <= 0) {
-			return 0;
-		}
-
-		ItemStack copy = current.stack().copy();
-		copy.setCount(existingCount + countPlaced);
-		if (!ItemStack.matches(slotStack, copy)) {
-			handler.setStackInSlot(slot, copy);
-		}
-		return countPlaced;
 	}
 
 	private static void emptySlot(ResourceHandler<ItemResource> handler, int slot) {
