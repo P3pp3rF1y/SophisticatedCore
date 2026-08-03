@@ -71,7 +71,7 @@ public class ClientEventHandler {
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
-		eventBus.addListener(ClientEventHandler::onContainerScreenForeground);
+		eventBus.addListener(ClientEventHandler::onScreenForeground);
 		eventBus.addListener(ClientEventHandler::recipesReceived);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
@@ -188,9 +188,11 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void onContainerScreenForeground(ContainerScreenEvent.Render.Foreground event) {
+	private static void onScreenForeground(ScreenEvent.Render.Foreground event) {
 		Minecraft mc = Minecraft.getInstance();
-		AbstractContainerScreen<?> containerGui = event.getContainerScreen();
+		if (!(event.getScreen() instanceof AbstractContainerScreen<?> containerGui)) {
+			return;
+		}
 		if (containerGui instanceof CreativeModeInventoryScreen || mc.player == null) {
 			return;
 		}

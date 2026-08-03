@@ -31,9 +31,7 @@ import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.Config;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
@@ -594,8 +592,6 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		pose.translate(leftPos, topPos);
 
 		extractLabels(guiGraphics, mouseX, mouseY);
-		// noinspection UnstableApiUsage
-		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, mouseX, mouseY));
 
 		pose.popMatrix();
 

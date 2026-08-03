@@ -16,8 +16,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.event.ContainerScreenEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.InventoryScrollPanel;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.Label;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -191,7 +189,6 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		guiGraphics.pose().pushMatrix();
 		guiGraphics.pose().translate(leftPos, topPos);
 		extractLabels(guiGraphics, mouseX, mouseY);
-		NeoForge.EVENT_BUS.post(new ContainerScreenEvent.Render.Foreground(this, guiGraphics, mouseX, mouseY));
 		guiGraphics.pose().popMatrix();
 	}
 
