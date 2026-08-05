@@ -37,6 +37,16 @@ public class RotatablePreviewWidget extends CompositeWidgetBase<WidgetBase> {
 		lastTargetSetTime = System.currentTimeMillis();
 	}
 
+	public void setRotationsImmediately(float xAxisRotation, float yAxisRotation) {
+		this.xAxisRotation = xAxisRotation;
+		this.yAxisRotation = yAxisRotation;
+		fromXAxisRotation = xAxisRotation;
+		fromYAxisRotation = yAxisRotation;
+		targetXAxisRotation = xAxisRotation;
+		targetYAxisRotation = yAxisRotation;
+		lastTargetSetTime = 0;
+	}
+
 	@Override
 	protected void renderBg(GuiGraphics guiGraphics, Minecraft minecraft, int mouseX, int mouseY) {
 		guiGraphics.fill(x, y, x + getWidth(), y + getHeight(), 0xFF_000000);
