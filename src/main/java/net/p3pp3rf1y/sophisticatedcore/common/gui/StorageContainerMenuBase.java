@@ -9,6 +9,8 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
@@ -35,6 +37,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.SettingsManager;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.MainSettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConversionItem;
 import net.p3pp3rf1y.sophisticatedcore.util.DummySlot;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.MathHelper;
@@ -392,6 +395,24 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return;
 		} else if (isUpgradeSlot(slotId) && getSlot(slotId) instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot slot) {
 			ItemStack slotStack = slot.getItem();
+			if (clickType == ClickType.PICKUP && dragType == 1 && getCarried().getItem() instanceof StackUpgradeConversionItem conversionItem) {
+				ItemStack targetUpgradeStack = conversionItem.getTargetUpgradeStack();
+				if (conversionItem.canConvert(slotStack) && slot.mayPlace(targetUpgradeStack)) {
+					slot.set(targetUpgradeStack);
+					if (!player.getAbilities().instabuild) {
+						getCarried().shrink(1);
+						if (getCarried().isEmpty()) {
+							setCarried(ItemStack.EMPTY);
+						}
+					}
+					slot.setChanged();
+					if (!player.level().isClientSide()) {
+						player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.SMITHING_TABLE_USE, SoundSource.PLAYERS, 0.8F,
+								1.0F);
+					}
+				}
+				return;
+			}
 			if (slot.mayPlace(getCarried())) {
 				ItemStack carriedStack = getCarried();
 				IUpgradeItem<?> upgradeItem = (IUpgradeItem<?>) carriedStack.getItem();
