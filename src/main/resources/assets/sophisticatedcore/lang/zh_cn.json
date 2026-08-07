@@ -1,6 +1,7 @@
 {
   "itemGroup.sophisticatedcore": "精妙核心",
   "item.sophisticatedcore.xp_bucket": "经验桶",
+  "item.sophisticatedcore.stack_upgrade_conversion.tooltip": "右键点击已安装的堆叠升级，将其转换",
   "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "右击添加",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "堆叠倍数：%s",
   "item.sophisticatedcore.storage.tooltip.energy": "%s FE",
