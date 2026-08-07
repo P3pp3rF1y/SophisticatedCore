@@ -36,6 +36,14 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 	}
 
 	@Override
+	public void setPosition(Position position) {
+		int xOffset = position.x() - x;
+		int yOffset = position.y() - y;
+		super.setPosition(position);
+		children.forEach(child -> child.setPosition(new Position(child.getX() + xOffset, child.getY() + yOffset)));
+	}
+
+	@Override
 	public List<? extends GuiEventListener> children() {
 		return children;
 	}

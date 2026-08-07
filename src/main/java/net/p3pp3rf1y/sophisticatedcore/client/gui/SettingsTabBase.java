@@ -63,6 +63,15 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 		return widget;
 	}
 
+	protected void refreshOpenTabDimension() {
+		openTabDimension = new Dimension(0, 0);
+		hideableChildren.forEach(this::updateOpenTabDimension);
+		if (isOpen) {
+			setWidth(Math.max(openTabDimension.width(), DEFAULT_WIDTH));
+			setHeight(openTabDimension.height());
+		}
+	}
+
 	private <U extends WidgetBase> void updateOpenTabDimension(U widget) {
 		int widgetMaxWidthExtension = widget.getX() + widget.getWidth() + RIGHT_BORDER_WIDTH - x;
 		int widgetMaxHeightExtension = widget.getY() + widget.getHeight() + BOTTOM_BORDER_HEIGHT - y;
