@@ -82,7 +82,7 @@ public abstract class WidgetBase implements Renderable, GuiEventListener, Narrat
 
 	@Override
 	public boolean isMouseOver(double mouseX, double mouseY) {
-		return mouseX >= x && mouseX < x + getWidth() && mouseY >= y && mouseY < y + getHeight();
+		return visible && mouseX >= x && mouseX < x + getWidth() && mouseY >= y && mouseY < y + getHeight();
 	}
 
 	public int getX() {
