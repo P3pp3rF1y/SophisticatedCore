@@ -265,6 +265,7 @@
   "gui.sophisticatedcore.settings.buttons.display_side_left": "显示在左侧",
   "gui.sophisticatedcore.settings.buttons.display_side_right": "显示在右侧",
   "gui.sophisticatedcore.settings.message.save_template": "设置已保存至栏位%s",
+  "gui.sophisticatedcore.settings.message.save_template.empty_name": "栏位名称不能为空",
   "gui.sophisticatedcore.settings.message.load_template": "已从栏位%s读取设置",
   "gui.sophisticatedcore.settings.message.export_template": "已导出设置至%s",
   "gui.sophisticatedcore.settings.message.export_template.empty_name": "文件名不能为空",
