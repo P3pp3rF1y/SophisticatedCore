@@ -1,9 +1,11 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.tank;
 
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
@@ -51,11 +53,21 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	}
 
 	@Override
+	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (upgradeStackToPut.getItem() == this) {
+			return checkExtraInsertConditions(upgradeStackToPut, storageWrapper, isClientSide, upgradeSlot, this);
+		}
+
+		return super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
+	}
+
+	@Override
 	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide,
 			@Nullable IUpgradeItem<?> upgradeInSlot) {
 		int capacityAfter = (int) (getTankCapacity(storageWrapper)
 				/ (upgradeInSlot instanceof StackUpgradeItem stackUpgrade ? stackUpgrade.getStackSizeMultiplier() : 1));
-		double multiplierRequired = (double) TankUpgradeWrapper.getContents(upgradeStack).getAmount() / capacityAfter;
+		double multiplierRequired = (double) upgradeStack.getOrDefault(ModCoreDataComponents.FLUID_CONTENTS, SimpleFluidContent.EMPTY).getAmount()
+				/ capacityAfter;
 		if (multiplierRequired > 1) {
 			DecimalFormat multiplierFormat = new DecimalFormat("0.#");
 			String formattedMultiplierRequired = multiplierFormat.format(Math.ceil(10 * multiplierRequired) / 10);
