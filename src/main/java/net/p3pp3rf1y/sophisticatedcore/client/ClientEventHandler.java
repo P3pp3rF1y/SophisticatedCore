@@ -175,8 +175,8 @@ public class ClientEventHandler {
 		}
 		ItemStack held = containerGui.getMenu().getCarried();
 		Slot under = containerGui.getSlotUnderMouse();
-		if (!held.isEmpty() && under != null && under.mayPickup(mc.player) && !under.getItem().isEmpty()) {
-			getStashResultAndTooltip(under.getItem(), held)
+		if (!held.isEmpty() && under != null && !under.getItem().isEmpty()) {
+			getStashResultAndTooltip(under.getItem(), held).filter(stashResultAndTooltip -> under.mayPickup(mc.player))
 					.ifPresent(stashResultAndTooltip -> renderSpecialTooltip(event, mc, event.getGuiGraphics(), stashResultAndTooltip));
 		}
 	}
@@ -196,10 +196,10 @@ public class ClientEventHandler {
 		Slot under = containerGui.getSlotUnderMouse();
 		for (Slot s : menu.slots) {
 			ItemStack stack = s.getItem();
-			if (s == under || !s.mayPickup(mc.player) || stack.isEmpty()) {
+			if (s == under || stack.isEmpty()) {
 				continue;
 			}
-			getStashResultAndTooltip(stack, held)
+			getStashResultAndTooltip(stack, held).filter(stashResultAndTooltip -> s.mayPickup(mc.player))
 					.ifPresent(stashResultAndTooltip -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResultAndTooltip.stashResult()));
 		}
 	}
