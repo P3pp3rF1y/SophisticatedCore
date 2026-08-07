@@ -201,10 +201,11 @@ public class ClientEventHandler {
 		Slot under = containerGui.getSlotUnderMouse();
 		for (Slot s : menu.slots) {
 			ItemStack stack = s.getItem();
-			if (s == under || !s.mayPickup(mc.player) || stack.isEmpty()) {
+			if (s == under || stack.isEmpty()) {
 				continue;
 			}
-			getStashResult(stack, held).ifPresent(stashResult -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResult));
+			getStashResult(stack, held).filter(stashResult -> s.mayPickup(mc.player))
+					.ifPresent(stashResult -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResult));
 		}
 	}
 
