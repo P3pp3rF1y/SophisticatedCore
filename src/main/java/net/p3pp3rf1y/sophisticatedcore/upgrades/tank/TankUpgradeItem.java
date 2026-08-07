@@ -51,6 +51,15 @@ public class TankUpgradeItem extends UpgradeItemBase<TankUpgradeWrapper> {
 	}
 
 	@Override
+	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (upgradeStackToPut.getItem() == this) {
+			return checkExtraInsertConditions(upgradeStackToPut, storageWrapper, isClientSide, upgradeSlot, this);
+		}
+
+		return super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
+	}
+
+	@Override
 	public UpgradeSlotChangeResult checkExtraInsertConditions(ItemStack upgradeStack, IStorageWrapper storageWrapper, boolean isClientSide,
 			@Nullable IUpgradeItem<?> upgradeInSlot) {
 		int capacityAfter = (int) (getTankCapacity(storageWrapper)
