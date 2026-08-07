@@ -38,6 +38,15 @@ public class BatteryUpgradeItem extends UpgradeItemBase<BatteryUpgradeWrapper> {
 	}
 
 	@Override
+	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (upgradeStackToPut.getItem() == this) {
+			return checkExtraInsertConditions(upgradeStackToPut, storageWrapper, isClientSide, upgradeSlot, this);
+		}
+
+		return super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
+	}
+
+	@Override
 	public int getInventoryColumnsTaken() {
 		return 2;
 	}
