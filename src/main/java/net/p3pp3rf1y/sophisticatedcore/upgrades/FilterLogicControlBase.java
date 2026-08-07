@@ -55,6 +55,8 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 	@Nullable
 	private ToggleButton<Boolean> durabilityButton = null;
 	private int tagButtonsYOffset;
+	private Runnable dimensionsChangedHandler = () -> {
+	};
 
 	protected FilterLogicControlBase(StorageScreenBase<?> screen, C container, Position position, boolean buttonsVisible, int slotsPerRow,
 			MatchButton... showMatchButtons) {
@@ -81,6 +83,7 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 				}
 				container.setPrimaryMatch(next);
 				setDurabilityAndNbtButtonsVisibility();
+				updateDimensionsForPrimaryMatch();
 				moveSlotsToView();
 			}, container::getPrimaryMatch));
 			addTagButtons();
@@ -95,8 +98,12 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 					container::shouldMatchNbt);
 			addChild(nbtButton);
 		}
-		updateDimensions(Math.max(slotsPerRow * 18, getMaxButtonWidth()), (fullSlotRows + (slotsInExtraRow > 0 ? 1 : 0)) * 18 + slotsTopYOffset);
+		updateDimensions(Math.max(slotsPerRow * 18, getMaxButtonWidth()), getHeightForPrimaryMatch());
 		setDurabilityAndNbtButtonsVisibility();
+	}
+
+	public void setDimensionsChangedHandler(Runnable dimensionsChangedHandler) {
+		this.dimensionsChangedHandler = dimensionsChangedHandler;
 	}
 
 	private void setDurabilityAndNbtButtonsVisibility() {
@@ -322,7 +329,22 @@ public abstract class FilterLogicControlBase<F extends FilterLogicBase, S extend
 		}
 	}
 
-	private int getTagListHeight() {
+	private void updateDimensionsForPrimaryMatch() {
+		int height = getHeightForPrimaryMatch();
+		if (height != getHeight()) {
+			updateDimensions(getWidth(), height);
+			dimensionsChangedHandler.run();
+		}
+	}
+
+	private int getHeightForPrimaryMatch() {
+		if (shouldShow(PRIMARY_MATCH) && container.getPrimaryMatch() == PrimaryMatch.TAGS) {
+			return slotsTopYOffset + getTagListHeight() + 18;
+		}
+		return totalSlotRows * 18 + slotsTopYOffset;
+	}
+
+	protected int getTagListHeight() {
 		return (totalSlotRows - 1) * 18;
 	}
 
