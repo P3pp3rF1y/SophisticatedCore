@@ -5,6 +5,7 @@ import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
 import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.neoforge.NeoForgeTypes;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -18,6 +19,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> implements IGhostIngredientHandler<S> {
@@ -81,5 +83,19 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 	@Override
 	public void onComplete() {
 		// noop
+	}
+
+	@Override
+	public <I> boolean quickMove(S gui, ITypedIngredient<I> ingredient) {
+		if (ingredient.getType() != VanillaTypes.ITEM_STACK) {
+			return false;
+		}
+
+		return ingredient.getItemStack().map(stack -> {
+			Optional<Slot> target = gui.getMenu().getOpenContainer().flatMap(container -> container.getSlots().stream()
+					.filter(slot -> slot instanceof IFilterSlot && slot.isActive() && slot.getItem().isEmpty() && slot.mayPlace(stack)).findFirst());
+			target.ifPresent(slot -> PacketDistributor.sendToServer(new SetGhostSlotPayload(stack, slot.index)));
+			return target.isPresent();
+		}).orElse(false);
 	}
 }
