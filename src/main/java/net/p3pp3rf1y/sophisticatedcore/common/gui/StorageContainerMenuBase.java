@@ -1285,9 +1285,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				ItemStack slotStack = slot7.getItem();
 				ItemStack carriedStack = getCarried();
 				player.updateTutorialInventoryAction(carriedStack, slotStack, clickaction);
-				if (!CommonHooks.onItemStackedOn(carriedStack, slotStack, slot7, clickaction, player, SlotAccess.of(this::getCarried, this::setCarried))
-						&& !carriedStack.overrideStackedOnOther(slot7, clickaction, player)
-						&& !slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, SlotAccess.of(this::getCarried, this::setCarried))) {
+				var itemStackedOnEvent = CommonHooks.onItemStackedOn(carriedStack, slotStack, slot7, clickaction, player,
+						SlotAccess.of(this::getCarried, this::setCarried));
+				if (itemStackedOnEvent.isCanceled() && itemStackedOnEvent.getCancellationResult()) {
+					return;
+				}
+				boolean itemBehaviorHandled = !itemStackedOnEvent.isCanceled() && (carriedStack.overrideStackedOnOther(slot7, clickaction, player)
+						|| slotStack.overrideOtherStackedOnMe(carriedStack, slot7, clickaction, player, SlotAccess.of(this::getCarried, this::setCarried)));
+				if (!itemBehaviorHandled) {
 					if (slotStack.isEmpty()) {
 						if (!carriedStack.isEmpty()) {
 							int l2 = clickaction == ClickAction.PRIMARY ? carriedStack.getCount() : 1;
