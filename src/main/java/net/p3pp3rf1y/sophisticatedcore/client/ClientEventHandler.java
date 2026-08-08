@@ -209,7 +209,7 @@ public class ClientEventHandler {
 				continue;
 			}
 			getStashResult(stack, held).filter(stashResult -> s.mayPickup(mc.player))
-					.ifPresent(stashResult -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResult));
+					.ifPresent(stashResult -> renderStashSign(mc, event.getGuiGraphics(), containerGui, s, stack, stashResult));
 		}
 	}
 
@@ -225,9 +225,10 @@ public class ClientEventHandler {
 		}
 	}
 
-	private static void renderStashSign(Minecraft mc, GuiGraphicsExtractor guiGraphics, Slot s, ItemStack stack, IStashStorageItem.StashResult stashResult) {
-		int x = s.x;
-		int y = s.y;
+	private static void renderStashSign(Minecraft mc, GuiGraphicsExtractor guiGraphics, AbstractContainerScreen<?> containerGui, Slot s, ItemStack stack,
+			IStashStorageItem.StashResult stashResult) {
+		int x = containerGui.getGuiLeft() + s.x;
+		int y = containerGui.getGuiTop() + s.y;
 
 		int color = ARGB.opaque(stashResult == IStashStorageItem.StashResult.MATCH_AND_SPACE ? TextColor.GREEN.getValue() : 0xFFFF00);
 		if (stack.getItem() instanceof IStashStorageItem) {
