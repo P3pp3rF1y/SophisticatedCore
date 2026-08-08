@@ -8,7 +8,7 @@ public class BatteryUpgradeConfig {
 	public final ModConfigSpec.IntValue maxInputOutput;
 
 	public BatteryUpgradeConfig(ModConfigSpec.Builder builder) {
-		builder.comment("Tank Upgrade Settings").push("tankUpgrade");
+		builder.comment("Battery Upgrade Settings").push("batteryUpgrade");
 		energyPerSlotRow = builder.comment("Energy in FE the battery upgrade will have per row of storage slots").defineInRange("energyPerSlotRow", 10000, 500,
 				50000);
 		stackMultiplierRatio = builder.comment(
