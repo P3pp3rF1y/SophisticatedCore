@@ -28,7 +28,9 @@ import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import javax.annotation.Nullable;
 
 import java.util.*;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends StorageContainerMenuBase<?>, R extends Recipe<?>>
 		implements
@@ -87,7 +89,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 			return handlerHelper.createUserErrorForMissingSlots(message, transferOperations.missingItems);
 		}
 
-		if (!RecipeTransferUtil.validateSlots(player, transferOperations.results, craftingSlots, inventorySlots)) {
+		if (!validateSlots(container, transferOperations.results, craftingSlots, inventorySlots)) {
 			return handlerHelper.createInternalError();
 		}
 
@@ -118,6 +120,60 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 		Map<Integer, Integer> ret = new HashMap<>();
 		transferOperations.forEach(to -> ret.put(to.craftingSlotId(), to.inventorySlotId()));
 		return ret;
+	}
+
+	static boolean validateSlots(StorageContainerMenuBase<?> container, Collection<TransferOperation> transferOperations, Collection<Slot> craftingSlots,
+			Collection<Slot> inventorySlots) {
+		return validateSlots(container.getTotalSlotsNumber(), container::getSlot, transferOperations, craftingSlots, inventorySlots);
+	}
+
+	static boolean validateSlots(int totalSlotsNumber, IntFunction<Slot> getSlot, Collection<TransferOperation> transferOperations,
+			Collection<Slot> craftingSlots, Collection<Slot> inventorySlots) {
+		List<Integer> invalidSlotIds = transferOperations.stream().flatMap(to -> Stream.of(to.inventorySlotId(), to.craftingSlotId())).distinct()
+				.filter(slotId -> slotId < 0 || slotId >= totalSlotsNumber).toList();
+		if (!invalidSlotIds.isEmpty()) {
+			SophisticatedCore.LOGGER.error("Transfer request has invalid slot ids in its transfer operations: {}", StringUtil.intsToString(invalidSlotIds));
+			return false;
+		}
+
+		Set<Integer> craftingSlotIndexes = slotIndexes(craftingSlots);
+		Set<Integer> inventorySlotIndexes = slotIndexes(inventorySlots);
+
+		List<Integer> invalidCraftingSlots = transferOperations.stream().map(to -> getSlot.apply(to.craftingSlotId()).index)
+				.filter(slotId -> !craftingSlotIndexes.contains(slotId)).toList();
+		if (!invalidCraftingSlots.isEmpty()) {
+			SophisticatedCore.LOGGER.error(
+					"Transfer request has invalid slots for the destination of the recipe, the slots are not included in the list of crafting slots. {}",
+					StringUtil.intsToString(invalidCraftingSlots));
+			return false;
+		}
+
+		List<Integer> invalidInventorySlots = transferOperations.stream().map(to -> getSlot.apply(to.inventorySlotId()).index)
+				.filter(slotId -> !inventorySlotIndexes.contains(slotId) && !craftingSlotIndexes.contains(slotId)).toList();
+		if (!invalidInventorySlots.isEmpty()) {
+			SophisticatedCore.LOGGER.error(
+					"Transfer request has invalid source slots for the inventory stacks for the recipe, the slots are not included in the list of inventory slots or recipe slots. {}\n inventory slots: {}\n crafting slots: {}",
+					StringUtil.intsToString(invalidInventorySlots), StringUtil.intsToString(inventorySlotIndexes),
+					StringUtil.intsToString(craftingSlotIndexes));
+			return false;
+		}
+
+		Set<Integer> sharedSlotIndexes = inventorySlotIndexes.stream().filter(craftingSlotIndexes::contains).collect(Collectors.toSet());
+		if (!sharedSlotIndexes.isEmpty()) {
+			SophisticatedCore.LOGGER.error("Transfer request has invalid slots, inventorySlots and craftingSlots should not share any slot, but both have: {}",
+					StringUtil.intsToString(sharedSlotIndexes));
+			return false;
+		}
+
+		List<Integer> inactiveSlotIndexes = Stream.concat(craftingSlots.stream(), inventorySlots.stream()).filter(slot -> !slot.isActive())
+				.map(slot -> slot.index).toList();
+		if (!inactiveSlotIndexes.isEmpty()) {
+			SophisticatedCore.LOGGER.error("Transfer request has invalid slots, they are fake slots (recipe outputs): {}",
+					StringUtil.intsToString(inactiveSlotIndexes));
+			return false;
+		}
+
+		return true;
 	}
 
 	private boolean validateTransferInfo(C container, List<Slot> craftingSlots, List<Slot> inventorySlots) {
@@ -194,7 +250,7 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 		return new InventoryState(availableItemStacks, filledCraftSlotCount, emptySlotCount);
 	}
 
-	private Set<Integer> slotIndexes(Collection<Slot> slots) {
+	private static Set<Integer> slotIndexes(Collection<Slot> slots) {
 		return slots.stream().map(s -> s.index).collect(Collectors.toSet());
 	}
 
