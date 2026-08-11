@@ -10,6 +10,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
@@ -22,11 +25,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -41,13 +49,20 @@ class VoidUpgradeWrapperTest {
 		SharedConstants.tryDetectVersion();
 		Bootstrap.bootStrap();
 		Bootstrap.validate();
-		bindTestComponents(Items.DIAMOND);
+		bindTestComponents(Items.DIAMOND, Items.WATER_BUCKET, Items.LAVA_BUCKET);
+		bindTestComponents(Fluids.WATER, Fluids.LAVA);
 	}
 
 	private static void bindTestComponents(Item... items) {
 		DataComponentMap components = DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build();
 		for (Item item : items) {
 			item.builtInRegistryHolder().bindComponents(components);
+		}
+	}
+
+	private static void bindTestComponents(Fluid... fluids) {
+		for (Fluid fluid : fluids) {
+			fluid.builtInRegistryHolder().bindComponents(DataComponentMap.EMPTY);
 		}
 	}
 
@@ -84,6 +99,36 @@ class VoidUpgradeWrapperTest {
 		verify(storageWrapper, never()).getInventoryHandler();
 	}
 
+	@Test
+	void shouldVoidFluidMatchesContainedFilterAndInvalidatesItsCache() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapper();
+		wrapper.getFilterLogic().setAllowList(true);
+		wrapper.getFilterLogic().getFilterHandler().setStackInSlot(0, new ItemStack(Items.WATER_BUCKET));
+
+		assertTrue(wrapper.shouldVoidFluid(FluidResource.of(Fluids.WATER), VoidType.ALWAYS));
+		assertFalse(wrapper.shouldVoidFluid(FluidResource.of(Fluids.LAVA), VoidType.ALWAYS));
+
+		wrapper.getFilterLogic().getFilterHandler().setStackInSlot(0, new ItemStack(Items.LAVA_BUCKET));
+
+		assertFalse(wrapper.shouldVoidFluid(FluidResource.of(Fluids.WATER), VoidType.ALWAYS));
+		assertTrue(wrapper.shouldVoidFluid(FluidResource.of(Fluids.LAVA), VoidType.ALWAYS));
+	}
+
+	@Test
+	void shouldVoidFluidHonorsDenyListForContainedFilter() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapper();
+		wrapper.getFilterLogic().getFilterHandler().setStackInSlot(0, new ItemStack(Items.LAVA_BUCKET));
+		wrapper.getFilterLogic().setAllowList(false);
+
+		assertFalse(wrapper.shouldVoidFluid(FluidResource.of(Fluids.LAVA), VoidType.ALWAYS));
+		assertTrue(wrapper.shouldVoidFluid(FluidResource.of(Fluids.WATER), VoidType.ALWAYS));
+	}
+
+	@Test
+	void shouldVoidFluidSkipsEmptyContainedFilters() {
+		assertTrue(getVoidUpgradeWrapper().shouldVoidFluid(FluidResource.of(Fluids.WATER), VoidType.ALWAYS));
+	}
+
 	private static VoidUpgradeWrapper getVoidUpgradeWrapper(InventoryHandler inventoryHandler) {
 		IStorageWrapper storageWrapper = mock(IStorageWrapper.class);
 		when(storageWrapper.getInventoryHandler()).thenReturn(inventoryHandler);
@@ -92,10 +137,19 @@ class VoidUpgradeWrapperTest {
 	}
 
 	private static VoidUpgradeWrapper getVoidUpgradeWrapper(IStorageWrapper storageWrapper) {
+		return getVoidUpgradeWrapper(storageWrapper, 0);
+	}
+
+	private static VoidUpgradeWrapper getVoidUpgradeWrapper() {
+		return getVoidUpgradeWrapper(mock(IStorageWrapper.class), 1);
+	}
+
+	private static VoidUpgradeWrapper getVoidUpgradeWrapper(IStorageWrapper storageWrapper, int filterSlotCount) {
 		VoidUpgradeItem upgradeItem = mock(VoidUpgradeItem.class);
-		when(upgradeItem.getFilterSlotCount()).thenReturn(0);
+		when(upgradeItem.getFilterSlotCount()).thenReturn(filterSlotCount);
 		when(upgradeItem.isVoidAlwaysEnabled()).thenReturn(true);
 		ItemStack upgrade = mock(ItemStack.class);
+		Map<Object, Object> components = new HashMap<>();
 		when(upgrade.getItem()).thenReturn(upgradeItem);
 		when(upgrade.getOrDefault(anyDataComponentSupplier(), any())).thenAnswer(invocation -> {
 			Supplier<?> component = invocation.getArgument(0);
@@ -103,10 +157,11 @@ class VoidUpgradeWrapperTest {
 				return true;
 			}
 			if (component == ModCoreDataComponents.FILTER_ATTRIBUTES) {
-				return BLOCK_LIST_FILTER_ATTRIBUTES;
+				return components.getOrDefault(component, BLOCK_LIST_FILTER_ATTRIBUTES);
 			}
-			return invocation.getArgument(1);
+			return components.getOrDefault(component, invocation.getArgument(1));
 		});
+		doAnswer(invocation -> components.put(invocation.getArgument(0), invocation.getArgument(1))).when(upgrade).set(anySetDataComponentSupplier(), any());
 
 		return new VoidUpgradeWrapper(storageWrapper, upgrade, stack -> {
 		});
@@ -115,5 +170,10 @@ class VoidUpgradeWrapperTest {
 	@SuppressWarnings("unchecked")
 	private static <T> Supplier<? extends DataComponentType<? extends T>> anyDataComponentSupplier() {
 		return (Supplier<? extends DataComponentType<? extends T>>) any(Supplier.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static Supplier<? extends DataComponentType<Object>> anySetDataComponentSupplier() {
+		return (Supplier<? extends DataComponentType<Object>>) any(Supplier.class);
 	}
 }
