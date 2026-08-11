@@ -15,12 +15,18 @@ public class FluidFilterLogic {
 	private final List<FluidStack> fluidFilters;
 	private final ItemStack upgrade;
 	private final Consumer<ItemStack> saveHandler;
+	private final boolean noFilterMatchesEverything;
 	private boolean noFilter = true;
 
 	public FluidFilterLogic(int filterSlots, ItemStack upgrade, Consumer<ItemStack> saveHandler) {
+		this(filterSlots, upgrade, saveHandler, true);
+	}
+
+	public FluidFilterLogic(int filterSlots, ItemStack upgrade, Consumer<ItemStack> saveHandler, boolean noFilterMatchesEverything) {
 		fluidFilters = NonNullList.withSize(filterSlots, FluidStack.EMPTY);
 		this.upgrade = upgrade;
 		this.saveHandler = saveHandler;
+		this.noFilterMatchesEverything = noFilterMatchesEverything;
 		deserializeFluidFilters();
 		updateNoFilter();
 	}
@@ -52,7 +58,7 @@ public class FluidFilterLogic {
 	}
 
 	public boolean fluidMatches(FluidStack fluid) {
-		return noFilter || matchesFluidFilter(fluid);
+		return noFilter ? noFilterMatchesEverything : matchesFluidFilter(fluid);
 	}
 
 	private boolean matchesFluidFilter(FluidStack fluid) {

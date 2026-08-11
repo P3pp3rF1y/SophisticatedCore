@@ -56,18 +56,24 @@ public class FluidFilterContainer {
 		return fluidFilterLogic.get().getNumberOfFluidFilters();
 	}
 
-	public void slotClick(int index) {
+	public boolean slotClick(int index) {
 		ItemStack carried = player.containerMenu.getCarried();
 		if (carried.isEmpty()) {
 			setFluid(index, FluidStack.EMPTY);
-			return;
+			return true;
 		}
 
-		carried.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).ifPresent(itemFluidHandler -> {
-			FluidStack containedFluid = itemFluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE);
-			if (!containedFluid.isEmpty()) {
-				setFluid(index, containedFluid);
-			}
-		});
+		FluidStack containedFluid = getContainedFluid(carried);
+		if (containedFluid.isEmpty()) {
+			return false;
+		}
+
+		setFluid(index, containedFluid);
+		return true;
+	}
+
+	public static FluidStack getContainedFluid(ItemStack stack) {
+		return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+				.map(itemFluidHandler -> itemFluidHandler.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.SIMULATE)).orElse(FluidStack.EMPTY);
 	}
 }

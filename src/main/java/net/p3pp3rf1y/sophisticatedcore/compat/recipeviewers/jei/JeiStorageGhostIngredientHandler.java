@@ -14,6 +14,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SetGhostSlotMessage;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.pump.PumpUpgradeTab;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.voiding.VoidUpgradeTab;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,6 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 				if (!fluidStack.isEmpty()) {
 					gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast)
 							.ifPresent(pumpUpgradeTab -> addFluidTargets(pumpUpgradeTab, fluidStack, targets));
-					return;
 				}
 				container.getOpenContainer().ifPresent(c -> c.getSlots().forEach(s -> {
 					if (s instanceof IFilterSlot && s.mayPlace(ghostStack)) {
@@ -54,6 +54,9 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 			gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof PumpUpgradeTab.Advanced).map(PumpUpgradeTab.Advanced.class::cast)
 					.ifPresent(pumpUpgradeTab -> ForgeTypes.FLUID_STACK.castIngredient(ingredient.getIngredient())
 							.ifPresent(ghostFluid -> addFluidTargets(pumpUpgradeTab, ghostFluid, targets)));
+			gui.getUpgradeSettingsControl().getOpenTab().filter(tab -> tab instanceof VoidUpgradeTab).map(VoidUpgradeTab.class::cast)
+					.ifPresent(voidUpgradeTab -> ForgeTypes.FLUID_STACK.castIngredient(ingredient.getIngredient())
+							.ifPresent(ghostFluid -> addVoidFluidTargets(gui, voidUpgradeTab, ghostFluid, targets)));
 		}
 		return targets;
 	}
@@ -77,6 +80,25 @@ public class JeiStorageGhostIngredientHandler<S extends StorageScreenBase<?>> im
 				}
 			});
 		}
+	}
+
+	private <I> void addVoidFluidTargets(S gui, VoidUpgradeTab voidUpgradeTab, FluidStack ghostFluid, List<Target<I>> targets) {
+		gui.getMenu().getOpenContainer().ifPresent(container -> container.getSlots().forEach(slot -> {
+			if (slot instanceof IFilterSlot) {
+				int filterSlot = slot.getContainerSlot();
+				targets.add(new Target<>() {
+					@Override
+					public Rect2i getArea() {
+						return new Rect2i(gui.getGuiLeft() + slot.x, gui.getGuiTop() + slot.y, 17, 17);
+					}
+
+					@Override
+					public void accept(I i) {
+						voidUpgradeTab.setFluidFilter(filterSlot, ghostFluid);
+					}
+				});
+			}
+		}));
 	}
 
 	@Override

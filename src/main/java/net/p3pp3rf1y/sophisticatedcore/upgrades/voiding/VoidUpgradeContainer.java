@@ -2,21 +2,38 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.voiding;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogicContainer;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.pump.FluidFilterContainer;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 
 public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrapper, VoidUpgradeContainer> {
 	private static final String DATA_SHOULD_WORKD_IN_GUI = "shouldWorkdInGUI";
 	private static final String DATA_VOID_TYPE = "voidType";
 	private final FilterLogicContainer<FilterLogic> filterLogicContainer;
+	private final FluidFilterContainer fluidFilterContainer;
+	private boolean syncingFilters = false;
 
 	public VoidUpgradeContainer(Player player, int containerId, VoidUpgradeWrapper wrapper,
 			UpgradeContainerType<VoidUpgradeWrapper, VoidUpgradeContainer> type) {
 		super(player, containerId, wrapper, type);
-		filterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(VoidUpgradeWrapper::getFilterLogic), this, slots::add);
+		fluidFilterContainer = new FluidFilterContainer(player, this, supplyFromWrapper(VoidUpgradeWrapper::getFluidFilterLogic)) {
+			@Override
+			public void setFluid(int index, FluidStack fluid) {
+				super.setFluid(index, fluid);
+				if (!syncingFilters) {
+					syncingFilters = true;
+					upgradeWrapper.getFilterLogic().getFilterHandler().setStackInSlot(index, ItemStack.EMPTY);
+					syncingFilters = false;
+				}
+			}
+		};
+		filterLogicContainer = new FilterLogicContainer<>(supplyFromWrapper(VoidUpgradeWrapper::getFilterLogic), this, slots::add,
+				(slot, button) -> clearFluidFilter(slot));
 	}
 
 	@Override
@@ -27,10 +44,21 @@ public class VoidUpgradeContainer extends UpgradeContainerBase<VoidUpgradeWrappe
 			setVoidType(VoidType.fromName(data.getString(DATA_VOID_TYPE)));
 		}
 		filterLogicContainer.handleMessage(data);
+		fluidFilterContainer.handleMessage(data);
 	}
 
 	public FilterLogicContainer<FilterLogic> getFilterLogicContainer() {
 		return filterLogicContainer;
+	}
+
+	public FluidFilterContainer getFluidFilterContainer() {
+		return fluidFilterContainer;
+	}
+
+	private void clearFluidFilter(int slot) {
+		syncingFilters = true;
+		fluidFilterContainer.setFluid(slot, FluidStack.EMPTY);
+		syncingFilters = false;
 	}
 
 	public void setShouldWorkdInGUI(boolean shouldWorkdInGUI) {
