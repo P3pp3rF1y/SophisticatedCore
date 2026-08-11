@@ -394,6 +394,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 
 				slot.set(cursorStack);
+				((IFilterSlot) slot).onItemSet(dragType);
 			}
 			return;
 		} else if (isUpgradeSlot(slotId) && getSlot(slotId) instanceof StorageContainerMenuBase<?>.StorageUpgradeSlot slot) {
@@ -911,6 +912,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			stackToSet.setCount(slot.getMaxStackSize(stackToSet));
 		}
 		slot.set(stackToSet);
+		((IFilterSlot) slot).onItemSet(-1);
 	}
 
 	public Optional<ItemStack> getMemorizedStackInSlot(int slotId) {
