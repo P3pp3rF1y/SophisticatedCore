@@ -59,20 +59,28 @@ public class FluidFilterContainer {
 		return fluidFilterLogic.get().getNumberOfFluidFilters();
 	}
 
-	public void slotClick(int index) {
+	public boolean slotClick(int index) {
 		ItemStack carried = player.containerMenu.getCarried();
 		if (carried.isEmpty()) {
 			setFluid(index, FluidStack.EMPTY);
-			return;
+			return true;
 		}
 
-		CapabilityHelper.runOnCapability(ItemAccess.forStack(carried), Capabilities.Fluid.ITEM, itemFluidHandler -> {
-			if (itemFluidHandler.size() > 0) {
-				FluidResource resource = itemFluidHandler.getResource(0);
-				if (!resource.isEmpty()) {
-					setFluid(index, resource.toStack(FluidType.BUCKET_VOLUME));
-				}
-			}
-		});
+		FluidResource containedFluid = getContainedFluid(carried);
+		if (containedFluid.isEmpty()) {
+			return false;
+		}
+
+		setFluid(index, containedFluid.toStack(FluidType.BUCKET_VOLUME));
+		return true;
+	}
+
+	public static FluidResource getContainedFluid(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return FluidResource.EMPTY;
+		}
+
+		return CapabilityHelper.getFromCapability(ItemAccess.forStack(stack), Capabilities.Fluid.ITEM,
+				itemFluidHandler -> itemFluidHandler.size() > 0 ? itemFluidHandler.getResource(0) : FluidResource.EMPTY, FluidResource.EMPTY);
 	}
 }
