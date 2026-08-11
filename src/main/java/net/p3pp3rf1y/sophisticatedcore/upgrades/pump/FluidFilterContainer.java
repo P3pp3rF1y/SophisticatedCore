@@ -7,7 +7,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.IServerUpdater;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
@@ -59,20 +58,28 @@ public class FluidFilterContainer {
 		return fluidFilterLogic.get().getNumberOfFluidFilters();
 	}
 
-	public void slotClick(int index) {
+	public boolean slotClick(int index) {
 		ItemStack carried = player.containerMenu.getCarried();
 		if (carried.isEmpty()) {
 			setFluid(index, FluidStack.EMPTY);
-			return;
+			return true;
 		}
 
-		CapabilityHelper.runOnCapability(ItemAccess.forStack(carried), Capabilities.Fluid.ITEM, itemFluidHandler -> {
-			if (itemFluidHandler.size() > 0) {
-				FluidResource resource = itemFluidHandler.getResource(0);
-				if (!resource.isEmpty()) {
-					setFluid(index, resource.toStack(FluidType.BUCKET_VOLUME));
-				}
-			}
-		});
+		FluidStack containedFluid = getContainedFluid(carried);
+		if (containedFluid.isEmpty()) {
+			return false;
+		}
+
+		setFluid(index, containedFluid);
+		return true;
+	}
+
+	public static FluidStack getContainedFluid(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return FluidStack.EMPTY;
+		}
+
+		return CapabilityHelper.getFromCapability(ItemAccess.forStack(stack), Capabilities.Fluid.ITEM,
+				fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getResource(0).toStack(FluidType.BUCKET_VOLUME) : FluidStack.EMPTY, FluidStack.EMPTY);
 	}
 }

@@ -5,6 +5,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
@@ -13,10 +14,14 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.pump.FluidFilterContainer;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.pump.FluidFilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.util.ItemStackHelper;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -29,13 +34,18 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 			ITickableUpgrade,
 			IOverflowResponseUpgrade {
 	private final FilterLogic filterLogic;
+	private final FluidFilterLogic fluidFilterLogic;
 	private final Set<Integer> slotsToVoid = new HashSet<>();
+	@Nullable
+	private List<FluidStack> containedFilterFluids = null;
 	private VoidType voidType;
 
 	public VoidUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
 		filterLogic = new FilterLogic(upgrade, upgradeSaveHandler, upgradeItem.getFilterSlotCount(), ModCoreDataComponents.FILTER_ATTRIBUTES);
 		filterLogic.setAllowByDefault(true);
+		filterLogic.getFilterHandler().setOnSlotChange(this::updateContainedFilterFluid);
+		fluidFilterLogic = new FluidFilterLogic(upgradeItem.getFilterSlotCount(), upgrade, upgradeSaveHandler, false);
 
 		setFromLegacyComponent();
 
@@ -71,6 +81,49 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	@Override
 	public FilterLogic getFilterLogic() {
 		return filterLogic;
+	}
+
+	public FluidFilterLogic getFluidFilterLogic() {
+		return fluidFilterLogic;
+	}
+
+	public boolean shouldVoidFluid(FluidStack fluid, VoidType voidType) {
+		if (getVoidType() != voidType) {
+			return false;
+		}
+
+		boolean matchesFilter = fluidFilterLogic.fluidMatches(fluid) || containedFilterFluidMatches(fluid);
+		return filterLogic.isAllowList() == matchesFilter;
+	}
+
+	private boolean containedFilterFluidMatches(FluidStack fluid) {
+		for (FluidStack containedFluid : getContainedFilterFluids()) {
+			if (FluidStack.isSameFluidSameComponents(containedFluid, fluid)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private List<FluidStack> getContainedFilterFluids() {
+		if (containedFilterFluids == null) {
+			var filterHandler = filterLogic.getFilterHandler();
+			containedFilterFluids = new ArrayList<>(filterHandler.size());
+			for (int slot = 0; slot < filterHandler.size(); slot++) {
+				containedFilterFluids.add(FluidFilterContainer.getContainedFluid(filterHandler.getResource(slot).toStack(filterHandler.getAmountAsInt(slot))));
+			}
+		}
+
+		return containedFilterFluids;
+	}
+
+	private void updateContainedFilterFluid(int slot) {
+		if (containedFilterFluids != null) {
+			var filterHandler = filterLogic.getFilterHandler();
+			containedFilterFluids.set(slot,
+					FluidFilterContainer.getContainedFluid(filterHandler.getResource(slot).toStack(filterHandler.getAmountAsInt(slot))));
+		}
 	}
 
 	public void setShouldWorkdInGUI(boolean shouldWorkdInGUI) {
