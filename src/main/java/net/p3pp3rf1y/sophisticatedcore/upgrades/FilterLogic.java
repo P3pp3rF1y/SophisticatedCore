@@ -148,6 +148,9 @@ public class FilterLogic {
 
 	public void setAllowByDefault(boolean allowListDefault) {
 		this.allowListDefault = allowListDefault;
+		if (!upgrade.has(filterAttributesComponent)) {
+			emptyAttributes = null;
+		}
 	}
 
 	protected void save() {
