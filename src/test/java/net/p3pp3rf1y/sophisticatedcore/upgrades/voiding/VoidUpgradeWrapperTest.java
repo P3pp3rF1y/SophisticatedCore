@@ -58,6 +58,25 @@ class VoidUpgradeWrapperTest {
 		assertTrue(wrapper.shouldVoidFluid(new FluidStack(Fluids.WATER, 1_000), VoidType.ALWAYS));
 	}
 
+	@Test
+	void setAllowByDefaultUpdatesEmptyFilterAttributes() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapper();
+
+		wrapper.getFilterLogic().setAllowByDefault(false);
+
+		assertTrue(wrapper.getFilterLogic().matchesFilter(new ItemStack(Items.DIAMOND)));
+	}
+
+	@Test
+	void setAllowByDefaultDoesNotOverridePersistedFilterAttributes() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapper();
+		wrapper.getFilterLogic().setAllowList(true);
+
+		wrapper.getFilterLogic().setAllowByDefault(false);
+
+		assertFalse(wrapper.getFilterLogic().matchesFilter(new ItemStack(Items.DIAMOND)));
+	}
+
 	private static VoidUpgradeWrapper getVoidUpgradeWrapper() {
 		VoidUpgradeItem upgradeItem = mock(VoidUpgradeItem.class);
 		when(upgradeItem.getFilterSlotCount()).thenReturn(1);
