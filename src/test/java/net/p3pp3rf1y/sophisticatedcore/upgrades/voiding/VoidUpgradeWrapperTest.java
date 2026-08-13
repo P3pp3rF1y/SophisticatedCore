@@ -129,6 +129,25 @@ class VoidUpgradeWrapperTest {
 		assertTrue(getVoidUpgradeWrapper().shouldVoidFluid(FluidResource.of(Fluids.WATER), VoidType.ALWAYS));
 	}
 
+	@Test
+	void setAllowByDefaultUpdatesEmptyFilterAttributes() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapperWithEmptyFilterAttributes();
+
+		wrapper.getFilterLogic().setAllowByDefault(false);
+
+		assertTrue(wrapper.getFilterLogic().matchesFilter(ItemResource.of(Items.DIAMOND)));
+	}
+
+	@Test
+	void setAllowByDefaultDoesNotOverridePersistedFilterAttributes() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapperWithEmptyFilterAttributes();
+		wrapper.getFilterLogic().setAllowList(true);
+
+		wrapper.getFilterLogic().setAllowByDefault(false);
+
+		assertFalse(wrapper.getFilterLogic().matchesFilter(ItemResource.of(Items.DIAMOND)));
+	}
+
 	private static VoidUpgradeWrapper getVoidUpgradeWrapper(InventoryHandler inventoryHandler) {
 		IStorageWrapper storageWrapper = mock(IStorageWrapper.class);
 		when(storageWrapper.getInventoryHandler()).thenReturn(inventoryHandler);
@@ -144,7 +163,15 @@ class VoidUpgradeWrapperTest {
 		return getVoidUpgradeWrapper(mock(IStorageWrapper.class), 1);
 	}
 
+	private static VoidUpgradeWrapper getVoidUpgradeWrapperWithEmptyFilterAttributes() {
+		return getVoidUpgradeWrapper(mock(IStorageWrapper.class), 1, false);
+	}
+
 	private static VoidUpgradeWrapper getVoidUpgradeWrapper(IStorageWrapper storageWrapper, int filterSlotCount) {
+		return getVoidUpgradeWrapper(storageWrapper, filterSlotCount, true);
+	}
+
+	private static VoidUpgradeWrapper getVoidUpgradeWrapper(IStorageWrapper storageWrapper, int filterSlotCount, boolean useBlockListFilterAttributesDefault) {
 		VoidUpgradeItem upgradeItem = mock(VoidUpgradeItem.class);
 		when(upgradeItem.getFilterSlotCount()).thenReturn(filterSlotCount);
 		when(upgradeItem.isVoidAlwaysEnabled()).thenReturn(true);
@@ -157,10 +184,11 @@ class VoidUpgradeWrapperTest {
 				return true;
 			}
 			if (component == ModCoreDataComponents.FILTER_ATTRIBUTES) {
-				return components.getOrDefault(component, BLOCK_LIST_FILTER_ATTRIBUTES);
+				return components.getOrDefault(component, useBlockListFilterAttributesDefault ? BLOCK_LIST_FILTER_ATTRIBUTES : invocation.getArgument(1));
 			}
 			return components.getOrDefault(component, invocation.getArgument(1));
 		});
+		when(upgrade.has(anyDataComponentSupplier())).thenAnswer(invocation -> components.containsKey(invocation.getArgument(0)));
 		doAnswer(invocation -> components.put(invocation.getArgument(0), invocation.getArgument(1))).when(upgrade).set(anySetDataComponentSupplier(), any());
 
 		return new VoidUpgradeWrapper(storageWrapper, upgrade, stack -> {
