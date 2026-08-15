@@ -30,12 +30,14 @@ import java.util.List;
 
 public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, CompoundTag tag, List<Integer> inputSlots,
 		List<Integer> inventorySlots, boolean maxTransfer) implements CustomPacketPayload {
+	private static final int MAX_CRAFTING_SLOTS = 9;
+	private static final int MAX_INVENTORY_SLOTS = 512;
 	public static final Type<ReiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("rei_move_items"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(ResourceLocation.STREAM_CODEC,
 			ReiTransferRecipePayload::recipeId, ResourceLocation.STREAM_CODEC, ReiTransferRecipePayload::recipeTypeId, ByteBufCodecs.COMPOUND_TAG,
-			ReiTransferRecipePayload::tag, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), ReiTransferRecipePayload::inputSlots,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), ReiTransferRecipePayload::inventorySlots, ByteBufCodecs.BOOL, ReiTransferRecipePayload::maxTransfer,
-			ReiTransferRecipePayload::new);
+			ReiTransferRecipePayload::tag, ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_CRAFTING_SLOTS)), ReiTransferRecipePayload::inputSlots,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_INVENTORY_SLOTS)), ReiTransferRecipePayload::inventorySlots, ByteBufCodecs.BOOL,
+			ReiTransferRecipePayload::maxTransfer, ReiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
