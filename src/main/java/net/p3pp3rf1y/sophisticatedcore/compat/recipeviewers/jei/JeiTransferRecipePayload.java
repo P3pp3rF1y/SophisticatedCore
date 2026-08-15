@@ -22,9 +22,9 @@ public record JeiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, Identifi
 	public static final Type<JeiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("jei_transfer_recipe"));
 	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(ResourceKey.streamCodec(Registries.RECIPE),
 			JeiTransferRecipePayload::recipeId, Identifier.STREAM_CODEC, JeiTransferRecipePayload::recipeTypeId,
-			SlotTransfer.STREAM_CODEC.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::transferOperations, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::inventorySlotIndexes,
-			ByteBufCodecs.BOOL, JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
+			SlotTransfer.STREAM_CODEC.apply(ByteBufCodecs.list(512)), JeiTransferRecipePayload::transferOperations,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(9)), JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list(512)),
+			JeiTransferRecipePayload::inventorySlotIndexes, ByteBufCodecs.BOOL, JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

@@ -34,6 +34,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,8 +69,8 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 			ExtraCodecs.NON_NEGATIVE_INT);
 
 	public static final StreamCodec<ByteBuf, ResourceKey<Recipe<?>>> RECIPE_KEY_STREAM_CODEC = ResourceKey.streamCodec(Registries.RECIPE);
-	public static final StreamCodec<FriendlyByteBuf, Map<ResourceKey<Recipe<?>>, Integer>> RECIPES_USED_STREAM_CODEC = StreamCodec
-			.of((buf, map) -> buf.writeMap(map, RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT), buf -> buf.readMap(RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT));
+	public static final StreamCodec<FriendlyByteBuf, Map<ResourceKey<Recipe<?>>, Integer>> RECIPES_USED_STREAM_CODEC = ByteBufCodecs.map(HashMap::new,
+			RECIPE_KEY_STREAM_CODEC, ByteBufCodecs.INT, 256);
 
 	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType,
 			Predicate<ItemStack> isInput, float burnTimeModifier) {
