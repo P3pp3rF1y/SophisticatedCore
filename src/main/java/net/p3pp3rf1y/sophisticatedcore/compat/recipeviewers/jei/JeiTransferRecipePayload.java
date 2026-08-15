@@ -16,12 +16,15 @@ import java.util.List;
 
 public record JeiTransferRecipePayload(ResourceLocation recipeId, ResourceLocation recipeTypeId, List<SlotTransfer> slotTransfers,
 		List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes, boolean maxTransfer) implements CustomPacketPayload {
+	private static final int MAX_CRAFTING_SLOTS = 9;
+	private static final int MAX_INVENTORY_SLOTS = 512;
 	public static final Type<JeiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("jei_transfer_recipe"));
 	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(ResourceLocation.STREAM_CODEC,
 			JeiTransferRecipePayload::recipeId, ResourceLocation.STREAM_CODEC, JeiTransferRecipePayload::recipeTypeId,
-			SlotTransfer.STREAM_CODEC.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::slotTransfers, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::inventorySlotIndexes,
-			ByteBufCodecs.BOOL, JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
+			SlotTransfer.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_CRAFTING_SLOTS)), JeiTransferRecipePayload::slotTransfers,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_CRAFTING_SLOTS)), JeiTransferRecipePayload::craftingSlotIndexes,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_INVENTORY_SLOTS)), JeiTransferRecipePayload::inventorySlotIndexes, ByteBufCodecs.BOOL,
+			JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

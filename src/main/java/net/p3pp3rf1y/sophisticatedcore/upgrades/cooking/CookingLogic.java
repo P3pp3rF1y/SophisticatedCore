@@ -29,6 +29,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 
 import javax.annotation.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,10 +61,10 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	private long remainingBurnTime = 0;
 
 	public static final Codec<Map<ResourceLocation, Integer>> RECIPES_USED_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, ExtraCodecs.NON_NEGATIVE_INT);
+	private static final int MAX_RECIPES_USED = 256;
 
-	public static final StreamCodec<FriendlyByteBuf, Map<ResourceLocation, Integer>> RECIPES_USED_STREAM_CODEC = StreamCodec.of(
-			(buf, map) -> buf.writeMap(map, ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT),
-			buf -> buf.readMap(ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT));
+	public static final StreamCodec<FriendlyByteBuf, Map<ResourceLocation, Integer>> RECIPES_USED_STREAM_CODEC = ByteBufCodecs.map(HashMap::new,
+			ResourceLocation.STREAM_CODEC, ByteBufCodecs.INT, MAX_RECIPES_USED);
 
 	public CookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, CookingUpgradeConfig cookingUpgradeConfig, RecipeType<T> recipeType,
 			float burnTimeModifier) {
