@@ -34,9 +34,9 @@ public record ReiTransferRecipePayload(Identifier recipeId, Identifier recipeTyp
 	public static final Type<ReiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("rei_move_items"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(Identifier.STREAM_CODEC,
 			ReiTransferRecipePayload::recipeId, Identifier.STREAM_CODEC, ReiTransferRecipePayload::recipeTypeId, ByteBufCodecs.COMPOUND_TAG,
-			ReiTransferRecipePayload::tag, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), ReiTransferRecipePayload::inputSlots,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), ReiTransferRecipePayload::inventorySlots, ByteBufCodecs.BOOL, ReiTransferRecipePayload::maxTransfer,
-			ReiTransferRecipePayload::new);
+			ReiTransferRecipePayload::tag, ByteBufCodecs.INT.apply(ByteBufCodecs.list(9)), ReiTransferRecipePayload::inputSlots,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(512)), ReiTransferRecipePayload::inventorySlots, ByteBufCodecs.BOOL,
+			ReiTransferRecipePayload::maxTransfer, ReiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
