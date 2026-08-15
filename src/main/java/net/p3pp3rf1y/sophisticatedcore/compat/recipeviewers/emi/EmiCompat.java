@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.emi;
 
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.inventory.Slot;
+import net.minecraftforge.network.NetworkDirection;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SettingsContainerMenu;
 import net.p3pp3rf1y.sophisticatedcore.compat.ICompat;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CommonMessages;
@@ -16,7 +17,7 @@ public class EmiCompat implements ICompat {
 	@Override
 	public void setup() {
 		PacketHandler.INSTANCE.registerMessage(EmiTransferRecipeMessage.class, EmiTransferRecipeMessage::encode, EmiTransferRecipeMessage::decode,
-				EmiTransferRecipeMessage::onMessage);
+				EmiTransferRecipeMessage::onMessage, NetworkDirection.PLAY_TO_SERVER);
 		CommonMessages.registerMessages();
 	}
 

@@ -7,16 +7,18 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketBufferHelper;
 
 import javax.annotation.Nullable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public record JeiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, Map<Integer, Integer> matchingItems,
 		List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes, boolean maxTransfer) {
+	private static final int MAX_CRAFTING_SLOTS = 9;
+	private static final int MAX_INVENTORY_SLOTS = 512;
 
 	public static void encode(JeiTransferRecipeMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeResourceLocation(msg.recipeId);
@@ -29,8 +31,9 @@ public record JeiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 
 	public static JeiTransferRecipeMessage decode(FriendlyByteBuf packetBuffer) {
 		return new JeiTransferRecipeMessage(packetBuffer.readResourceLocation(), packetBuffer.readResourceLocation(),
-				packetBuffer.readMap(HashMap::new, FriendlyByteBuf::readInt, FriendlyByteBuf::readInt), packetBuffer.readList(FriendlyByteBuf::readInt),
-				packetBuffer.readList(FriendlyByteBuf::readInt), packetBuffer.readBoolean());
+				PacketBufferHelper.readMap(packetBuffer, FriendlyByteBuf::readInt, FriendlyByteBuf::readInt, MAX_CRAFTING_SLOTS),
+				PacketBufferHelper.readList(packetBuffer, FriendlyByteBuf::readInt, MAX_CRAFTING_SLOTS),
+				PacketBufferHelper.readList(packetBuffer, FriendlyByteBuf::readInt, MAX_INVENTORY_SLOTS), packetBuffer.readBoolean());
 	}
 
 	static void onMessage(JeiTransferRecipeMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {

@@ -21,6 +21,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.tank.TankClickMessage;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -47,40 +48,45 @@ public class PacketHandler {
 	}
 
 	public void registerSplitPacket() {
-		registerMessage(SplitPacket.class, SplitPacket::encode, SplitPacket::decode, this::handleSplitPacket);
+		registerMessage(SplitPacket.class, SplitPacket::encode, SplitPacket::decode, this::handleSplitPacket, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public void registerMessages() {
 		registerMessage(SyncContainerClientDataMessage.class, SyncContainerClientDataMessage::encode, SyncContainerClientDataMessage::decode,
-				SyncContainerClientDataMessage::onMessage);
-		registerMessage(TransferFullSlotMessage.class, TransferFullSlotMessage::encode, TransferFullSlotMessage::decode, TransferFullSlotMessage::onMessage);
+				SyncContainerClientDataMessage::onMessage, NetworkDirection.PLAY_TO_SERVER);
+		registerMessage(TransferFullSlotMessage.class, TransferFullSlotMessage::encode, TransferFullSlotMessage::decode, TransferFullSlotMessage::onMessage,
+				NetworkDirection.PLAY_TO_SERVER);
 		registerMessage(SyncContainerStacksMessage.class, SyncContainerStacksMessage::encode, SyncContainerStacksMessage::decode,
-				SyncContainerStacksMessage::onMessage);
-		registerMessage(SyncSlotStackMessage.class, SyncSlotStackMessage::encode, SyncSlotStackMessage::decode, SyncSlotStackMessage::onMessage);
+				SyncContainerStacksMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(SyncSlotStackMessage.class, SyncSlotStackMessage::encode, SyncSlotStackMessage::decode, SyncSlotStackMessage::onMessage,
+				NetworkDirection.PLAY_TO_CLIENT);
 		registerMessage(SyncRecentCraftedResultsMessage.class, SyncRecentCraftedResultsMessage::encode, SyncRecentCraftedResultsMessage::decode,
-				SyncRecentCraftedResultsMessage::onMessage);
+				SyncRecentCraftedResultsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 		registerMessage(SyncPlayerSettingsMessage.class, SyncPlayerSettingsMessage::encode, SyncPlayerSettingsMessage::decode,
-				SyncPlayerSettingsMessage::onMessage);
-		registerMessage(PlayDiscMessage.class, PlayDiscMessage::encode, PlayDiscMessage::decode, PlayDiscMessage::onMessage);
-		registerMessage(StopDiscPlaybackMessage.class, StopDiscPlaybackMessage::encode, StopDiscPlaybackMessage::decode, StopDiscPlaybackMessage::onMessage);
-		registerMessage(TankClickMessage.class, TankClickMessage::encode, TankClickMessage::decode, TankClickMessage::onMessage);
+				SyncPlayerSettingsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(PlayDiscMessage.class, PlayDiscMessage::encode, PlayDiscMessage::decode, PlayDiscMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(StopDiscPlaybackMessage.class, StopDiscPlaybackMessage::encode, StopDiscPlaybackMessage::decode, StopDiscPlaybackMessage::onMessage,
+				NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(TankClickMessage.class, TankClickMessage::encode, TankClickMessage::decode, TankClickMessage::onMessage,
+				NetworkDirection.PLAY_TO_SERVER);
 		registerMessage(SyncTemplateSettingsMessage.class, SyncTemplateSettingsMessage::encode, SyncTemplateSettingsMessage::decode,
-				SyncTemplateSettingsMessage::onMessage);
+				SyncTemplateSettingsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 		registerMessage(SyncAdditionalSlotInfoMessage.class, SyncAdditionalSlotInfoMessage::encode, SyncAdditionalSlotInfoMessage::decode,
-				SyncAdditionalSlotInfoMessage::onMessage);
+				SyncAdditionalSlotInfoMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 		registerMessage(SyncEmptySlotIconsMessage.class, SyncEmptySlotIconsMessage::encode, SyncEmptySlotIconsMessage::decode,
-				SyncEmptySlotIconsMessage::onMessage);
+				SyncEmptySlotIconsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 		registerMessage(SyncSlotChangeErrorMessage.class, SyncSlotChangeErrorMessage::encode, SyncSlotChangeErrorMessage::decode,
-				SyncSlotChangeErrorMessage::onMessage);
+				SyncSlotChangeErrorMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 		registerMessage(SyncDatapackSettingsTemplateMessage.class, SyncDatapackSettingsTemplateMessage::encode, SyncDatapackSettingsTemplateMessage::decode,
-				SyncDatapackSettingsTemplateMessage::onMessage);
-		registerMessage(TransferItemsMessage.class, TransferItemsMessage::encode, TransferItemsMessage::decode, TransferItemsMessage::onMessage);
+				SyncDatapackSettingsTemplateMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(TransferItemsMessage.class, TransferItemsMessage::encode, TransferItemsMessage::decode, TransferItemsMessage::onMessage,
+				NetworkDirection.PLAY_TO_SERVER);
 		registerMessage(SyncBlockHighlightsMessage.class, SyncBlockHighlightsMessage::encode, SyncBlockHighlightsMessage::decode,
-				SyncBlockHighlightsMessage::onMessage);
+				SyncBlockHighlightsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public <M> void registerMessage(Class<M> messageType, BiConsumer<M, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, M> decoder,
-			BiConsumer<M, Supplier<NetworkEvent.Context>> handler) {
+			BiConsumer<M, Supplier<NetworkEvent.Context>> handler, NetworkDirection direction) {
 
 		int id = idx++;
 
@@ -88,7 +94,7 @@ public class PacketHandler {
 		byType.put(messageType, entry);
 		byId.put(id, entry);
 
-		networkWrapper.registerMessage(id, messageType, encoder, decoder, handler);
+		networkWrapper.registerMessage(id, messageType, encoder, decoder, handler, Optional.of(direction));
 	}
 
 	public <M> void sendToServer(M message) {

@@ -11,6 +11,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
+import net.p3pp3rf1y.sophisticatedcore.network.PacketBufferHelper;
 
 import javax.annotation.Nullable;
 
@@ -19,6 +20,8 @@ import java.util.function.Supplier;
 
 public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting,
 		int output, List<ItemStack> stacks, boolean maxTransfer) {
+	private static final int MAX_CRAFTING_SLOTS = 9;
+	private static final int MAX_INVENTORY_SLOTS = 512;
 	public static void encode(EmiTransferRecipeMessage msg, FriendlyByteBuf packetBuffer) {
 		packetBuffer.writeResourceLocation(msg.recipeId);
 		packetBuffer.writeResourceLocation(msg.recipeTypeId);
@@ -32,8 +35,9 @@ public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 
 	public static EmiTransferRecipeMessage decode(FriendlyByteBuf packetBuffer) {
 		return new EmiTransferRecipeMessage(packetBuffer.readResourceLocation(), packetBuffer.readResourceLocation(), packetBuffer.readInt(),
-				packetBuffer.readList(FriendlyByteBuf::readVarInt), packetBuffer.readList(FriendlyByteBuf::readVarInt), packetBuffer.readInt(),
-				packetBuffer.readList(FriendlyByteBuf::readItem), packetBuffer.readBoolean());
+				PacketBufferHelper.readList(packetBuffer, FriendlyByteBuf::readVarInt, MAX_INVENTORY_SLOTS),
+				PacketBufferHelper.readList(packetBuffer, FriendlyByteBuf::readVarInt, MAX_CRAFTING_SLOTS), packetBuffer.readInt(),
+				PacketBufferHelper.readList(packetBuffer, FriendlyByteBuf::readItem, MAX_CRAFTING_SLOTS), packetBuffer.readBoolean());
 	}
 
 	static void onMessage(EmiTransferRecipeMessage msg, Supplier<NetworkEvent.Context> contextSupplier) {
