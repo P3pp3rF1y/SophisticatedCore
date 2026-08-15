@@ -13,7 +13,6 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
-import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +23,8 @@ public record JeiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, Resource
 	public static final Type<JeiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("jei_transfer_recipe"));
 	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(ResourceKey.streamCodec(Registries.RECIPE),
 			JeiTransferRecipePayload::recipeId, ResourceLocation.STREAM_CODEC, JeiTransferRecipePayload::recipeTypeId,
-			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new), JeiTransferRecipePayload::matchingItems,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
+			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.INT, ByteBufCodecs.INT, 512), JeiTransferRecipePayload::matchingItems,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(9)), JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list(512)),
 			JeiTransferRecipePayload::inventorySlotIndexes, ByteBufCodecs.BOOL, JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
 
 	@Override
