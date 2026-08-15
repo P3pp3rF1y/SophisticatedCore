@@ -24,13 +24,16 @@ import java.util.List;
 
 public record EmiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, ResourceLocation recipeTypeId, int action, List<Integer> slots, List<Integer> crafting,
 		int output, List<ItemStack> stacks, boolean maxTransfer) implements CustomPacketPayload {
+	private static final int MAX_CRAFTING_SLOTS = 9;
+	private static final int MAX_INVENTORY_SLOTS = 512;
 	public static final Type<EmiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("emi_transfer_recipe"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, EmiTransferRecipePayload> STREAM_CODEC = StreamCodecHelper.composite(
 			ResourceKey.streamCodec(Registries.RECIPE), EmiTransferRecipePayload::recipeId, ResourceLocation.STREAM_CODEC,
-			EmiTransferRecipePayload::recipeTypeId, ByteBufCodecs.INT, EmiTransferRecipePayload::action, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			EmiTransferRecipePayload::slots, ByteBufCodecs.INT.apply(ByteBufCodecs.list()), EmiTransferRecipePayload::crafting, ByteBufCodecs.INT,
-			EmiTransferRecipePayload::output, ItemStack.OPTIONAL_LIST_STREAM_CODEC, EmiTransferRecipePayload::stacks, ByteBufCodecs.BOOL,
-			EmiTransferRecipePayload::maxTransfer, EmiTransferRecipePayload::new);
+			EmiTransferRecipePayload::recipeTypeId, ByteBufCodecs.INT, EmiTransferRecipePayload::action,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_INVENTORY_SLOTS)), EmiTransferRecipePayload::slots,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_CRAFTING_SLOTS)), EmiTransferRecipePayload::crafting, ByteBufCodecs.INT,
+			EmiTransferRecipePayload::output, ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list(MAX_CRAFTING_SLOTS)), EmiTransferRecipePayload::stacks,
+			ByteBufCodecs.BOOL, EmiTransferRecipePayload::maxTransfer, EmiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {

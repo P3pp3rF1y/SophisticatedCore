@@ -13,7 +13,6 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
-import net.p3pp3rf1y.sophisticatedcore.util.StreamCodecHelper;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,12 +20,15 @@ import java.util.Map;
 
 public record JeiTransferRecipePayload(ResourceKey<Recipe<?>> recipeId, ResourceLocation recipeTypeId, Map<Integer, Integer> matchingItems,
 		List<Integer> craftingSlotIndexes, List<Integer> inventorySlotIndexes, boolean maxTransfer) implements CustomPacketPayload {
+	private static final int MAX_CRAFTING_SLOTS = 9;
+	private static final int MAX_INVENTORY_SLOTS = 512;
 	public static final Type<JeiTransferRecipePayload> TYPE = new Type<>(SophisticatedCore.getRL("jei_transfer_recipe"));
 	public static final StreamCodec<ByteBuf, JeiTransferRecipePayload> STREAM_CODEC = StreamCodec.composite(ResourceKey.streamCodec(Registries.RECIPE),
 			JeiTransferRecipePayload::recipeId, ResourceLocation.STREAM_CODEC, JeiTransferRecipePayload::recipeTypeId,
-			StreamCodecHelper.ofMap(ByteBufCodecs.INT, ByteBufCodecs.INT, HashMap::new), JeiTransferRecipePayload::matchingItems,
-			ByteBufCodecs.INT.apply(ByteBufCodecs.list()), JeiTransferRecipePayload::craftingSlotIndexes, ByteBufCodecs.INT.apply(ByteBufCodecs.list()),
-			JeiTransferRecipePayload::inventorySlotIndexes, ByteBufCodecs.BOOL, JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
+			ByteBufCodecs.map(HashMap::new, ByteBufCodecs.INT, ByteBufCodecs.INT, MAX_CRAFTING_SLOTS), JeiTransferRecipePayload::matchingItems,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_CRAFTING_SLOTS)), JeiTransferRecipePayload::craftingSlotIndexes,
+			ByteBufCodecs.INT.apply(ByteBufCodecs.list(MAX_INVENTORY_SLOTS)), JeiTransferRecipePayload::inventorySlotIndexes, ByteBufCodecs.BOOL,
+			JeiTransferRecipePayload::maxTransfer, JeiTransferRecipePayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
