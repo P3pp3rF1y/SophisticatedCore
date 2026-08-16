@@ -92,6 +92,19 @@ public class InventoryHandlerTest {
 		}
 	}
 
+	@Test
+	void extractPrefersPartialStacks() {
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, stack(Items.DIAMOND, 32), 1, stack(Items.DIAMOND, 64)), 64);
+
+		try (Transaction tx = Transaction.openRoot()) {
+			Assertions.assertEquals(64, inventoryHandler.extract(ItemResource.of(stack(Items.DIAMOND, 64)), 64, tx));
+			tx.commit();
+		}
+
+		Assertions.assertTrue(inventoryHandler.getStackInSlot(0).isEmpty());
+		Assertions.assertEquals(32, inventoryHandler.getStackInSlot(1).getCount());
+	}
+
 	private static void setSlotTracker(InventoryHandler inventoryHandler, ISlotTracker slotTracker) throws NoSuchFieldException, IllegalAccessException {
 		Field slotTrackerField = InventoryHandler.class.getDeclaredField("slotTracker");
 		slotTrackerField.setAccessible(true);
