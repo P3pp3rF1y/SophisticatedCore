@@ -72,10 +72,10 @@ public class InventoryHandlerTest {
 
 	@Test
 	void extractPrefersPartialStacks() {
-		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, stack(Items.DIAMOND, 32), 1, stack(Items.DIAMOND, 64)), 64);
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, new ItemStack(Items.DIAMOND, 32), 1, new ItemStack(Items.DIAMOND, 64)), 64);
 
 		try (Transaction tx = Transaction.openRoot()) {
-			Assertions.assertEquals(64, inventoryHandler.extract(ItemResource.of(stack(Items.DIAMOND, 64)), 64, tx));
+			Assertions.assertEquals(64, inventoryHandler.extract(ItemResource.of(new ItemStack(Items.DIAMOND, 64)), 64, tx));
 			tx.commit();
 		}
 
