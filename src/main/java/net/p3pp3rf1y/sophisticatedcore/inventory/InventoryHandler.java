@@ -212,11 +212,11 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		int extracted = 0;
 
 		ItemStackKey stackKey = ItemStackKey.of(resource);
-		int originalSize = tracker.getFullSlots(stackKey).size();
+		int originalSize = tracker.getPartialSlots(stackKey).size();
 		int i = 0;
 
-		while (extracted < amount && i++ < originalSize && !tracker.getFullSlots(stackKey).isEmpty()) {
-			int slot = tracker.getFullSlots(stackKey).iterator().next();
+		while (extracted < amount && i++ < originalSize && !tracker.getPartialSlots(stackKey).isEmpty()) {
+			int slot = tracker.getPartialSlots(stackKey).iterator().next();
 			extracted += extract(slot, resource, amount - extracted, transaction);
 		}
 
@@ -224,11 +224,11 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 			return extracted;
 		}
 
-		originalSize = tracker.getPartialSlots(stackKey).size();
+		originalSize = tracker.getFullSlots(stackKey).size();
 		i = 0;
 
-		while (extracted < amount && i++ < originalSize && !tracker.getPartialSlots(stackKey).isEmpty()) {
-			int slot = tracker.getPartialSlots(stackKey).iterator().next();
+		while (extracted < amount && i++ < originalSize && !tracker.getFullSlots(stackKey).isEmpty()) {
+			int slot = tracker.getFullSlots(stackKey).iterator().next();
 			extracted += extract(slot, resource, amount - extracted, transaction);
 		}
 
