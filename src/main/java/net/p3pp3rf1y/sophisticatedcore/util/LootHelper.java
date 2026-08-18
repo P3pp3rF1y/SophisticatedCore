@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -32,10 +31,8 @@ public class LootHelper {
 		if (player != null) {
 			lootParamsBuilder.withLuck(player.getLuck()).withParameter(LootContextParams.THIS_ENTITY, player);
 		}
-		LootContext.Builder lootBuilder = new LootContext.Builder(lootParamsBuilder.create(LootContextParamSets.CHEST))
-				.withOptionalRandomSeed(level.random.nextLong());
 		List<ItemStack> lootStacks = new ArrayList<>();
-		lootTable.getRandomItemsRaw(lootBuilder.create(null), lootStacks::add);
+		lootTable.getRandomItems(lootParamsBuilder.create(LootContextParamSets.CHEST), level.random.nextLong(), lootStacks::add);
 		return lootStacks;
 	}
 
