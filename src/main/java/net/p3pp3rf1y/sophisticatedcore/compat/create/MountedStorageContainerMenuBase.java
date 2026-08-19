@@ -149,11 +149,7 @@ public abstract class MountedStorageContainerMenuBase extends StorageContainerMe
 
 	@Override
 	public boolean stillValid(Player player) {
-		return getContraptionEntity().map(c -> {
-			Vec3 localPosVec = Vec3.atCenterOf(localPos);
-			Vec3 currentPos = c.toGlobalVector(localPosVec, 0);
-			return c.isAlive() && player.distanceToSqr(currentPos) < (8 * 8);
-		}).orElse(false);
+		return getContraptionEntity().map(c -> c.isAlive() && !c.isRemoved() && player.canReach(c, 4.0D)).orElse(false);
 	}
 
 	@Override
