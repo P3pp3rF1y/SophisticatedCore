@@ -322,6 +322,10 @@ public class RecipeHelper {
 		return getLevel().flatMap(w -> safeGetRecipeFor(recipeType, new RecipeWrapper(new ItemStackHandler(NonNullList.of(ItemStack.EMPTY, stack))), w, null));
 	}
 
+	public static Optional<Recipe<?>> getRecipe(ResourceLocation recipeId) {
+		return getLevel().flatMap(level -> level.getRecipeManager().byKey(recipeId).map(recipe -> (Recipe<?>) recipe));
+	}
+
 	public static Set<CompactingShape> getItemCompactingShapes(ItemStack stack) {
 		return getFromCache(cache -> cache.getItemCompactingShapes(stack), Collections.emptySet());
 	}

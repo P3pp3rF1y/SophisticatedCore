@@ -13,11 +13,26 @@ import net.minecraft.world.item.crafting.RecipeType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class ClientRecipeHelper {
 	private ClientRecipeHelper() {
+	}
+
+	public static Optional<Recipe<?>> getRecipe(ResourceLocation recipeId) {
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
+		if (level == null) {
+			return Optional.empty();
+		}
+
+		return getRecipe(level.getRecipeManager(), recipeId);
+	}
+
+	public static Optional<Recipe<?>> getRecipe(RecipeManager recipeManager, ResourceLocation recipeId) {
+		return recipeManager.byKey(recipeId).map(recipe -> (Recipe<?>) recipe);
 	}
 
 	public static <C extends Container, T extends Recipe<C>, U extends Recipe<C>, V> List<V> transformAllRecipesOfType(RecipeType<T> recipeType,
