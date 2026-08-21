@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.context.ContextMap;
@@ -327,6 +328,14 @@ public class RecipeHelper {
 
 	public static <T extends AbstractCookingRecipe> Optional<RecipeHolder<T>> getCookingRecipe(ItemStack stack, RecipeType<T> recipeType) {
 		return getLevel().flatMap(w -> safeGetRecipeFor(recipeType, new SingleRecipeInput(stack), w, null));
+	}
+
+	public static Optional<RecipeHolder<?>> getRecipe(Identifier recipeId) {
+		return getLevel().flatMap(level -> getRecipe(level, recipeId));
+	}
+
+	public static Optional<RecipeHolder<?>> getRecipe(Level level, Identifier recipeId) {
+		return Optional.ofNullable(getRecipeMap(level).byKey(ResourceKey.create(Registries.RECIPE, recipeId)));
 	}
 
 	public static Set<CompactingShape> getItemCompactingShapes(ItemStack stack) {
