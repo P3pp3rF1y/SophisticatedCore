@@ -1,0 +1,43 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "sophisticatedcore:item_enabled",
+      "itemRegistryName": "sophisticatedcore:ender_linker"
+    },
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "sophisticatedbackpacks"
+        },
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "sophisticatedstorage"
+        }
+      ]
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "minecraft:blaze_rod"
+    },
+    "E": {
+      "item": "minecraft:ender_pearl"
+    },
+    "O": {
+      "item": "minecraft:obsidian"
+    }
+  },
+  "pattern": [
+    "OEO",
+    "BOB",
+    "OEO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "sophisticatedcore:ender_linker"
+  }
+}

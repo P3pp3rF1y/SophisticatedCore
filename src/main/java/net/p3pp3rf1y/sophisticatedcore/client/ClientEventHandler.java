@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -17,6 +18,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ContainerScreenEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
@@ -27,6 +29,7 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
@@ -36,7 +39,9 @@ import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
+import net.p3pp3rf1y.sophisticatedcore.init.ModItems;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.EnderLinkerItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.lwjgl.glfw.GLFW;
 
@@ -61,6 +66,7 @@ public class ClientEventHandler {
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
+		modBus.addListener(ClientEventHandler::setup);
 		modBus.addListener(ClientEventHandler::registerFluidClientExtension);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
 		IEventBus eventBus = NeoForge.EVENT_BUS;
@@ -68,10 +74,16 @@ public class ClientEventHandler {
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
 		eventBus.addListener(ClientEventHandler::onContainerScreenForeground);
+		eventBus.addListener(ClientEventHandler::onItemTooltip);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 		eventBus.addListener(ClientEventHandler::onTickEnd);
+	}
+
+	private static void setup(FMLClientSetupEvent event) {
+		event.enqueueWork(() -> ItemProperties.register(ModItems.ENDER_LINKER.get(), SophisticatedCore.getRL("bound"),
+				(stack, level, entity, seed) -> EnderLinkerItem.hasBoundPresentation(stack) ? 1.0F : 0.0F));
 	}
 
 	private static void onTickEnd(ClientTickEvent.Post event) {
@@ -180,6 +192,8 @@ public class ClientEventHandler {
 			return;
 		}
 		AbstractContainerMenu menu = containerGui.getMenu();
+		LinkerCraftingDiagnostics.requestIfChanged(menu);
+		renderLinkerCraftingDiagnostics(event.getGuiGraphics(), menu);
 		ItemStack held = menu.getCarried();
 		if (held.isEmpty()) {
 			return;
@@ -193,6 +207,35 @@ public class ClientEventHandler {
 			}
 			getStashResultAndTooltip(stack, held).filter(stashResultAndTooltip -> s.mayPickup(mc.player))
 					.ifPresent(stashResultAndTooltip -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResultAndTooltip.stashResult()));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostics(GuiGraphics guiGraphics, AbstractContainerMenu menu) {
+		for (Slot slot : menu.slots) {
+			renderLinkerCraftingDiagnostic(guiGraphics, slot);
+		}
+		if (menu instanceof StorageContainerMenuBase<?> storageContainer) {
+			storageContainer.upgradeSlots.forEach(slot -> renderLinkerCraftingDiagnostic(guiGraphics, slot));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostic(GuiGraphics guiGraphics, Slot slot) {
+		if (LinkerCraftingDiagnostics.getStatusMessage(slot.index) != null) {
+			guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x80FF0000);
+		}
+	}
+
+	private static void onItemTooltip(ItemTooltipEvent event) {
+		if (!(Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> screen)) {
+			return;
+		}
+		Slot slot = screen.getSlotUnderMouse();
+		if (slot == null || slot.getItem() != event.getItemStack()) {
+			return;
+		}
+		String statusMessage = LinkerCraftingDiagnostics.getStatusMessage(slot.index);
+		if (statusMessage != null) {
+			event.getToolTip().add(TranslationHelper.INSTANCE.translStatusMessage(statusMessage).withStyle(ChatFormatting.RED));
 		}
 	}
 

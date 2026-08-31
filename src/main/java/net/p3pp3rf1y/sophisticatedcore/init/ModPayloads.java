@@ -32,5 +32,9 @@ public class ModPayloads {
 		registrar.playToClient(SyncDatapackSettingsTemplatePayload.TYPE, SyncDatapackSettingsTemplatePayload.STREAM_CODEC,
 				SyncDatapackSettingsTemplatePayload::handlePayload);
 		registrar.playToClient(SyncBlockHighlightsPayload.TYPE, SyncBlockHighlightsPayload.STREAM_CODEC, SyncBlockHighlightsPayload::handlePayload);
+		registrar.playToServer(RequestLinkerCraftingDiagnosticsPayload.TYPE, RequestLinkerCraftingDiagnosticsPayload.STREAM_CODEC,
+				RequestLinkerCraftingDiagnosticsPayload::handlePayload);
+		registrar.playToClient(SyncLinkerCraftingDiagnosticsPayload.TYPE, SyncLinkerCraftingDiagnosticsPayload.STREAM_CODEC,
+				SyncLinkerCraftingDiagnosticsPayload::handlePayload);
 	}
 }
