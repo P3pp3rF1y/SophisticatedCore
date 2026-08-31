@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "sophisticatedbackpacks"
+        },
+        {
+          "type": "neoforge:mod_loaded",
+          "modid": "sophisticatedstorage"
+        }
+      ]
+    }
+  ],
+  "type": "sophisticatedcore:ender_linker_endpoint",
+  "category": "misc"
+}

@@ -16,6 +16,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.EnderLinkPendingCraftData;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.EnderLinkerTargetData;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.EntityMatch;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterAttributes;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.alchemy.AlchemyFilterAttribute;
@@ -48,6 +51,20 @@ public class ModCoreDataComponents {
 
 	public static final Supplier<DataComponentType<UUID>> STORAGE_UUID = DATA_COMPONENT_TYPES.register("storage_uuid",
 			() -> new DataComponentType.Builder<UUID>().persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC).build());
+
+	public static final Supplier<DataComponentType<LinkedStorageEndpointData>> LINKED_STORAGE_ENDPOINT = DATA_COMPONENT_TYPES
+			.register("linked_storage_endpoint", () -> new DataComponentType.Builder<LinkedStorageEndpointData>().persistent(LinkedStorageEndpointData.CODEC)
+					.networkSynchronized(LinkedStorageEndpointData.STREAM_CODEC).build());
+	public static final Supplier<DataComponentType<Boolean>> LINKED_STORAGE_PRIMARY_ENDPOINT = DATA_COMPONENT_TYPES.register("linked_storage_primary_endpoint",
+			() -> new DataComponentType.Builder<Boolean>().persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL).build());
+	public static final Supplier<DataComponentType<Long>> LINKED_STORAGE_RENDER_REVISION = DATA_COMPONENT_TYPES.register("linked_storage_render_revision",
+			() -> new DataComponentType.Builder<Long>().persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG).build());
+	public static final Supplier<DataComponentType<EnderLinkerTargetData>> ENDER_LINKER_TARGET = DATA_COMPONENT_TYPES.register("ender_linker_target",
+			() -> new DataComponentType.Builder<EnderLinkerTargetData>().persistent(EnderLinkerTargetData.CODEC)
+					.networkSynchronized(EnderLinkerTargetData.STREAM_CODEC).build());
+	public static final Supplier<DataComponentType<EnderLinkPendingCraftData>> ENDER_LINK_PENDING_CRAFT = DATA_COMPONENT_TYPES
+			.register("ender_link_pending_craft", () -> new DataComponentType.Builder<EnderLinkPendingCraftData>().persistent(EnderLinkPendingCraftData.CODEC)
+					.networkSynchronized(EnderLinkPendingCraftData.STREAM_CODEC).build());
 
 	public static final Supplier<DataComponentType<Integer>> OPEN_TAB_ID = DATA_COMPONENT_TYPES.register("open_tab_id",
 			() -> new DataComponentType.Builder<Integer>().persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT).build());
