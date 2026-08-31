@@ -50,6 +50,8 @@ public abstract class RenderInfo {
 
 	private Consumer<RenderInfo> renderUpdateChangeListener = ri -> {
 	};
+	private Runnable renderDataChangeListener = () -> {
+	};
 
 	protected RenderInfo(Supplier<Runnable> getSaveHandler) {
 		this(getSaveHandler, false);
@@ -145,8 +147,13 @@ public abstract class RenderInfo {
 		this.renderUpdateChangeListener = renderUpdateChangeListener;
 	}
 
+	public void setRenderDataChangeListener(Runnable renderDataChangeListener) {
+		this.renderDataChangeListener = renderDataChangeListener;
+	}
+
 	protected void save(boolean triggerRenderUpdateListener) {
 		getSaveHandler.get().run();
+		renderDataChangeListener.run();
 
 		if (triggerRenderUpdateListener) {
 			renderUpdateChangeListener.accept(this);

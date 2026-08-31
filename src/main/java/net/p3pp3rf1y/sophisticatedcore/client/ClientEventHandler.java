@@ -17,19 +17,25 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ContainerScreenEvent;
+import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
+import net.neoforged.neoforge.client.event.RegisterConditionalItemModelPropertyEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiSoundHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
-import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
@@ -59,19 +65,28 @@ public class ClientEventHandler {
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
+		modBus.addListener(ClientEventHandler::registerConditionalItemModelProperties);
 		modBus.addListener(ClientEventHandler::registerFluidClientExtension);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
-		modBus.addListener(ClientEventHandler::registerRenderPipelines);
 		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
 		eventBus.addListener(ClientEventHandler::onContainerScreenForeground);
 		eventBus.addListener(ClientEventHandler::recipesReceived);
+		eventBus.addListener(ClientEventHandler::onItemTooltip);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 		eventBus.addListener(ClientEventHandler::onTickEnd);
+	}
+
+	private static void registerConditionalItemModelProperties(RegisterConditionalItemModelPropertyEvent event) {
+		event.register(SophisticatedCore.getRL("ender_linker_bound"), EnderLinkerBound.MAP_CODEC);
+	}
+
+	private static void recipesReceived(RecipesReceivedEvent event) {
+		RecipeHelper.setRecipes(event.getRecipeMap());
 	}
 
 	private static void onTickEnd(ClientTickEvent.Post event) {
@@ -84,10 +99,6 @@ public class ClientEventHandler {
 		}
 		float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
 		BlockHighlightRenderer.render(event.getPoseStack(), partialTick, event.getCamera().getPosition());
-	}
-
-	private static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
-		event.registerPipeline(BlockHighlightRenderHelper.THICK_HIGHLIGHT_PIPELINE);
 	}
 
 	private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
@@ -154,17 +165,13 @@ public class ClientEventHandler {
 			MouseHandler mh = mc.mouseHandler;
 			double mouseX = mh.xpos() * mc.getWindow().getGuiScaledWidth() / mc.getWindow().getScreenWidth();
 			double mouseY = mh.ypos() * mc.getWindow().getGuiScaledHeight() / mc.getWindow().getScreenHeight();
-			Slot selectedSlot = screen.getHoveredSlot(mouseX, mouseY);
+			Slot selectedSlot = screen.findSlot(mouseX, mouseY);
 			if (selectedSlot == null || container.isNotPlayersInventorySlot(selectedSlot.index)) {
 				container.sort();
 				return true;
 			}
 		}
 		return false;
-	}
-
-	private static void recipesReceived(RecipesReceivedEvent event) {
-		RecipeHelper.setRecipes(event.getRecipeMap());
 	}
 
 	private static void onDrawScreen(ScreenEvent.Render.Post event) {
@@ -188,6 +195,8 @@ public class ClientEventHandler {
 			return;
 		}
 		AbstractContainerMenu menu = containerGui.getMenu();
+		LinkerCraftingDiagnostics.requestIfChanged(menu);
+		renderLinkerCraftingDiagnostics(event.getGuiGraphics(), menu);
 		ItemStack held = menu.getCarried();
 		if (held.isEmpty()) {
 			return;
@@ -201,6 +210,35 @@ public class ClientEventHandler {
 			}
 			getStashResultAndTooltip(stack, held).filter(stashResultAndTooltip -> s.mayPickup(mc.player))
 					.ifPresent(stashResultAndTooltip -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResultAndTooltip.stashResult()));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostics(GuiGraphics guiGraphics, AbstractContainerMenu menu) {
+		for (Slot slot : menu.slots) {
+			renderLinkerCraftingDiagnostic(guiGraphics, slot);
+		}
+		if (menu instanceof StorageContainerMenuBase<?> storageContainer) {
+			storageContainer.upgradeSlots.forEach(slot -> renderLinkerCraftingDiagnostic(guiGraphics, slot));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostic(GuiGraphics guiGraphics, Slot slot) {
+		if (LinkerCraftingDiagnostics.getStatusMessage(slot.index) != null) {
+			guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x80FF0000);
+		}
+	}
+
+	private static void onItemTooltip(ItemTooltipEvent event) {
+		if (!(Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> screen)) {
+			return;
+		}
+		Slot slot = screen.getSlotUnderMouse();
+		if (slot == null || slot.getItem() != event.getItemStack()) {
+			return;
+		}
+		String statusMessage = LinkerCraftingDiagnostics.getStatusMessage(slot.index);
+		if (statusMessage != null) {
+			event.getToolTip().add(TranslationHelper.INSTANCE.translStatusMessage(statusMessage).withStyle(ChatFormatting.RED));
 		}
 	}
 
