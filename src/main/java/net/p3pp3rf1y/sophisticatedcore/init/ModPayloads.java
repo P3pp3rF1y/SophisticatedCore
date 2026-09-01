@@ -34,5 +34,9 @@ public class ModPayloads {
 		registrar.playToClient(EmitConsumableClientParticlesAndSoundsPayload.TYPE, EmitConsumableClientParticlesAndSoundsPayload.STREAM_CODEC,
 				EmitConsumableClientParticlesAndSoundsPayload::handlePayload);
 		registrar.playToClient(SyncBlockHighlightsPayload.TYPE, SyncBlockHighlightsPayload.STREAM_CODEC, SyncBlockHighlightsPayload::handlePayload);
+		registrar.playToServer(RequestLinkerCraftingDiagnosticsPayload.TYPE, RequestLinkerCraftingDiagnosticsPayload.STREAM_CODEC,
+				RequestLinkerCraftingDiagnosticsPayload::handlePayload);
+		registrar.playToClient(SyncLinkerCraftingDiagnosticsPayload.TYPE, SyncLinkerCraftingDiagnosticsPayload.STREAM_CODEC,
+				SyncLinkerCraftingDiagnosticsPayload::handlePayload);
 	}
 }

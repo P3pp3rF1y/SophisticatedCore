@@ -24,6 +24,7 @@ import net.p3pp3rf1y.sophisticatedcore.compat.CompatRegistry;
 import net.p3pp3rf1y.sophisticatedcore.data.DataGenerators;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCompat;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.init.ModItems;
 import net.p3pp3rf1y.sophisticatedcore.inventory.StorageWrapperRepository;
 import net.p3pp3rf1y.sophisticatedcore.settings.DatapackSettingsTemplateManager;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
@@ -52,6 +53,7 @@ public class SophisticatedCore {
 		}
 		Config.COMMON.initListeners(modBus);
 		ModCoreDataComponents.register(modBus);
+		ModItems.register(modBus);
 		modBus.addListener((FMLConstructModEvent event) -> construct(event, modBus));
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);

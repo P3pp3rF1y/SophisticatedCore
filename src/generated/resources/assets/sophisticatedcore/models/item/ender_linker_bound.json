@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sophisticatedcore:item/ender_linker_bound"
+  }
+}

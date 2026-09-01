@@ -1,0 +1,5 @@
+package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
+
+public enum LinkedStorageEndpointRole {
+	PRIMARY, SECONDARY
+}
