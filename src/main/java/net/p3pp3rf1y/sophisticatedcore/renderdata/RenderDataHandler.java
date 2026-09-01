@@ -119,7 +119,7 @@ public class RenderDataHandler {
 	}
 
 	public void setTankRenderData(TankPosition tankPosition, RenderData.TankRenderData data) {
-		update(renderData.withTank(tankPosition, data), false);
+		update(renderData.withTank(tankPosition, data), true);
 	}
 
 	public Map<TankPosition, RenderData.TankRenderData> getTankRenderData() {
@@ -131,7 +131,7 @@ public class RenderDataHandler {
 	}
 
 	public void setBatteryRenderData(RenderData.BatteryRenderData batteryRenderData) {
-		update(renderData.withBattery(batteryRenderData), false);
+		update(renderData.withBattery(batteryRenderData), true);
 	}
 
 	public List<ItemStack> getUpgradeItems() {

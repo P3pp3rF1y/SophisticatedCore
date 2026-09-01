@@ -8,6 +8,8 @@ import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerClearRecipe;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerEndpointRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ItemEnabledCondition;
 import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeClearRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
@@ -27,6 +29,10 @@ public class ModRecipes {
 			() -> UpgradeNextTierRecipe.SERIALIZER);
 	public static final Supplier<RecipeSerializer<UpgradeClearRecipe>> UPGRADE_CLEAR_SERIALIZER = RECIPE_SERIALIZERS.register("upgrade_clear",
 			() -> UpgradeClearRecipe.SERIALIZER);
+	public static final Supplier<RecipeSerializer<EnderLinkerEndpointRecipe>> ENDER_LINKER_ENDPOINT_SERIALIZER = RECIPE_SERIALIZERS
+			.register("ender_linker_endpoint", () -> EnderLinkerEndpointRecipe.SERIALIZER);
+	public static final Supplier<RecipeSerializer<EnderLinkerClearRecipe>> ENDER_LINKER_CLEAR_SERIALIZER = RECIPE_SERIALIZERS.register("ender_linker_clear",
+			() -> EnderLinkerClearRecipe.SERIALIZER);
 
 	public static void registerHandlers(IEventBus modBus) {
 		RECIPE_SERIALIZERS.register(modBus);

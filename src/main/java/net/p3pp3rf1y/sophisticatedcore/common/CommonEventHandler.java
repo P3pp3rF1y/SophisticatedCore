@@ -1,10 +1,13 @@
 package net.p3pp3rf1y.sophisticatedcore.common;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerClearRecipe;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerEndpointRecipe;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.init.ModPayloads;
@@ -33,6 +36,8 @@ public class CommonEventHandler {
 		eventBus.addListener(MagnetUpgradeWrapper::onWorldUnload);
 		eventBus.addListener(CoreFakePlayer::onDimensionUnload);
 		eventBus.addListener(CommonEventHandler::onPlayerLoggedIn);
+		eventBus.addListener(CommonEventHandler::onPlayerLoggedOut);
+		eventBus.addListener(CommonEventHandler::onEnderLinkCrafted);
 	}
 
 	private static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
@@ -41,7 +46,26 @@ public class CommonEventHandler {
 		}
 	}
 
+	private static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+		EnderLinkerEndpointRecipe.clearInFlightClaim(event.getEntity().getUUID());
+	}
+
+	private static void onEnderLinkCrafted(PlayerEvent.ItemCraftedEvent event) {
+		if (event.getEntity().level() instanceof ServerLevel level) {
+			EnderLinkerClearRecipe.clearPendingCraftClaim(level, event.getInventory());
+			EnderLinkerEndpointRecipe.issueCraftClaim(event.getEntity(), event.getCrafting());
+			if (EnderLinkerEndpointRecipe.completeCraft(level, event.getEntity(), event.getInventory(), event.getCrafting())) {
+				EnderLinkerEndpointRecipe.finalizeDeliveredCraftResult(level, event.getCrafting(), event.getEntity().getInventory(),
+						event.getEntity().containerMenu.getCarried());
+			}
+		}
+	}
+
 	public static void onTickEnd(ServerTickEvent.Post event) {
 		ItemStackKey.clearCache();
+		for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+			EnderLinkerEndpointRecipe.finalizePendingCraftResult(player.level(), player.containerMenu.getCarried());
+		}
+		EnderLinkerEndpointRecipe.clearInFlightClaims();
 	}
 }

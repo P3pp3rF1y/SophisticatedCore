@@ -37,9 +37,12 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
+import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.LinkedStorageEndpointRoleRenderer;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.*;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.ILinkedStorageEndpointProvider;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointRole;
 import net.p3pp3rf1y.sophisticatedcore.network.TransferFullSlotPayload;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
@@ -106,6 +109,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			|| (!stack.isEmpty() && stack.getHoverName().getString().toLowerCase().contains(searchBox.getValue().toLowerCase()));
 	private int visibleSlotsCount;
 	private boolean initializing = true;
+	private int linkedStorageEndpointRoleIconX = -1;
+	private int linkedStorageEndpointRoleIconY = -1;
+	@Nullable
+	private LinkedStorageEndpointRole linkedStorageEndpointRole;
 
 	public static void setCraftingUIPart(ICraftingUIPart part) {
 		craftingUIPart = part;
@@ -664,11 +671,34 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void extractStorageTitle(GuiGraphicsExtractor guiGraphics) {
 		int titleMaxWidth = getTitleMaxWidth();
-		if (Label.isTextTruncated(font, title, titleMaxWidth)) {
-			guiGraphics.text(font, Label.getTruncatedText(font, title, titleMaxWidth), titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
+		int titleX = titleLabelX + getStorageTitleDecorationWidth();
+		if (titleMaxWidth > 0 && Label.isTextTruncated(font, title, titleMaxWidth)) {
+			guiGraphics.text(font, Label.getTruncatedText(font, title, titleMaxWidth), titleX, titleLabelY, ARGB.opaque(4210752), false);
 		} else {
-			guiGraphics.text(font, title, titleLabelX, titleLabelY, ARGB.opaque(4210752), false);
+			guiGraphics.text(font, title, titleX, titleLabelY, ARGB.opaque(4210752), false);
 		}
+		extractStorageTitleDecoration(guiGraphics, titleLabelX, titleLabelY);
+	}
+
+	protected int getStorageTitleDecorationWidth() {
+		return getLinkedStorageEndpointRole().isPresent() ? 14 : 0;
+	}
+
+	protected void extractStorageTitleDecoration(GuiGraphicsExtractor guiGraphics, int x, int y) {
+		linkedStorageEndpointRole = getLinkedStorageEndpointRole().orElse(null);
+		linkedStorageEndpointRoleIconX = x - 2;
+		linkedStorageEndpointRoleIconY = y + (font.lineHeight - 16) / 2 - 1;
+		if (linkedStorageEndpointRole != null) {
+			LinkedStorageEndpointRoleRenderer.renderIcon(guiGraphics, linkedStorageEndpointRoleIconX, linkedStorageEndpointRoleIconY,
+					linkedStorageEndpointRole);
+		}
+	}
+
+	private Optional<LinkedStorageEndpointRole> getLinkedStorageEndpointRole() {
+		if (getMenu().getStorageWrapper() instanceof ILinkedStorageEndpointProvider endpointProvider) {
+			return endpointProvider.getLinkedStorageEndpointRole();
+		}
+		return Optional.empty();
 	}
 
 	private int getTitleMaxWidth() {
@@ -680,7 +710,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		} else {
 			titleLineEnd = imageWidth - 7;
 		}
-		return Math.max(0, titleLineEnd - titleLabelX);
+		return Math.max(0, titleLineEnd - titleLabelX - getStorageTitleDecorationWidth());
 	}
 
 	private int getTitleLineEndBeforeSortButtons() {
@@ -892,6 +922,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	protected void extractTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
 		getAllInventoryControls().forEach(control -> control.extractTooltip(this, guiGraphics, x, y));
+		extractStorageTitleDecorationTooltip(guiGraphics, x, y);
 		extractStorageTitleTooltip(guiGraphics, x, y);
 		if (getMenu().getCarried().isEmpty() && hoveredSlot != null) {
 			if (hoveredSlot.hasItem()) {
@@ -921,13 +952,22 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		upgradeSwitches.forEach(us -> us.extractTooltip(this, guiGraphics, x, y));
 	}
 
+	protected void extractStorageTitleDecorationTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+		int iconX = leftPos + linkedStorageEndpointRoleIconX;
+		int iconY = topPos + linkedStorageEndpointRoleIconY;
+		if (linkedStorageEndpointRole != null && mouseX >= iconX && mouseX < iconX + 16 && mouseY >= iconY && mouseY < iconY + 16) {
+			guiGraphics.setTooltipForNextFrame(font, List.of(LinkedStorageEndpointRoleRenderer.getDescription(linkedStorageEndpointRole)), Optional.empty(),
+					mouseX, mouseY);
+		}
+	}
+
 	private void extractStorageTitleTooltip(GuiGraphicsExtractor guiGraphics, int x, int y) {
 		if (searchBox != null && searchBox.isExpandedOrFocused()) {
 			return;
 		}
 
 		int titleMaxWidth = getTitleMaxWidth();
-		int titleX = leftPos + titleLabelX;
+		int titleX = leftPos + titleLabelX + getStorageTitleDecorationWidth();
 		int titleY = topPos + titleLabelY;
 		if (Label.isTextTruncated(font, title, titleMaxWidth) && x >= titleX && x < titleX + titleMaxWidth && y >= titleY && y < titleY + font.lineHeight) {
 			guiGraphics.setTooltipForNextFrame(font, List.of(title), Optional.empty(), x, y);

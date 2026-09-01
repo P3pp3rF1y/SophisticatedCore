@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
@@ -24,6 +25,7 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 import net.neoforged.neoforge.client.settings.IKeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
@@ -62,6 +64,7 @@ public class ClientEventHandler {
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
+		modBus.addListener(ClientEventHandler::registerConditionalItemModelProperties);
 		modBus.addListener(ClientEventHandler::registerFluidClientExtension);
 		modBus.addListener(ClientEventHandler::registerFluidModels);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
@@ -73,10 +76,15 @@ public class ClientEventHandler {
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
 		eventBus.addListener(ClientEventHandler::onScreenForeground);
 		eventBus.addListener(ClientEventHandler::recipesReceived);
+		eventBus.addListener(ClientEventHandler::onItemTooltip);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::submitCustomGeometry);
 		eventBus.addListener(ClientEventHandler::onTickEnd);
+	}
+
+	private static void registerConditionalItemModelProperties(RegisterConditionalItemModelPropertyEvent event) {
+		event.register(SophisticatedCore.getIdentifier("ender_linker_bound"), EnderLinkerBound.MAP_CODEC);
 	}
 
 	private static void onTickEnd(ClientTickEvent.Post event) {
@@ -197,6 +205,8 @@ public class ClientEventHandler {
 			return;
 		}
 		AbstractContainerMenu menu = containerGui.getMenu();
+		LinkerCraftingDiagnostics.requestIfChanged(menu);
+		renderLinkerCraftingDiagnostics(event.getGuiGraphics(), menu);
 		ItemStack held = menu.getCarried();
 		if (held.isEmpty()) {
 			return;
@@ -210,6 +220,35 @@ public class ClientEventHandler {
 			}
 			getStashResult(stack, held).filter(stashResult -> s.mayPickup(mc.player))
 					.ifPresent(stashResult -> renderStashSign(mc, event.getGuiGraphics(), containerGui, s, stack, stashResult));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostics(GuiGraphicsExtractor guiGraphics, AbstractContainerMenu menu) {
+		for (Slot slot : menu.slots) {
+			renderLinkerCraftingDiagnostic(guiGraphics, slot);
+		}
+		if (menu instanceof StorageContainerMenuBase<?> storageContainer) {
+			storageContainer.upgradeSlots.forEach(slot -> renderLinkerCraftingDiagnostic(guiGraphics, slot));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostic(GuiGraphicsExtractor guiGraphics, Slot slot) {
+		if (LinkerCraftingDiagnostics.getStatusMessage(slot.index) != null) {
+			guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x80FF0000);
+		}
+	}
+
+	private static void onItemTooltip(ItemTooltipEvent event) {
+		if (!(Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen<?> screen)) {
+			return;
+		}
+		Slot slot = screen.getSlotUnderMouse();
+		if (slot == null || slot.getItem() != event.getItemStack()) {
+			return;
+		}
+		String statusMessage = LinkerCraftingDiagnostics.getStatusMessage(slot.index);
+		if (statusMessage != null) {
+			event.getToolTip().add(TranslationHelper.INSTANCE.translStatusMessage(statusMessage).withStyle(ChatFormatting.RED));
 		}
 	}
 
