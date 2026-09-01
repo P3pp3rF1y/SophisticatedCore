@@ -26,6 +26,7 @@ public class TranslationHelper {
 	private final String guiUpgradePrefix;
 	private final String guiSettingsPrefix;
 	private final String guiStatusPrefix;
+	private final String tooltipPrefix;
 	private final String buttonsPrefix;
 	private final String itemUpgradePrefix;
 	private final String blockPrefix;
@@ -44,6 +45,7 @@ public class TranslationHelper {
 		guiUpgradePrefix = guiPrefix + "upgrades.";
 		guiSettingsPrefix = guiPrefix + "settings.";
 		guiStatusPrefix = guiPrefix + "status.";
+		tooltipPrefix = "tooltip." + modId + ".";
 		buttonsPrefix = guiPrefix + BUTTONS_SUFFIX;
 		upgradeButtonsPrefix = guiUpgradePrefix + BUTTONS_SUFFIX;
 		upgradeControlsPrefix = guiUpgradePrefix + CONTROLS_SUFFIX;
@@ -51,6 +53,10 @@ public class TranslationHelper {
 
 	public MutableComponent translStatusMessage(String statusMessage, Object... params) {
 		return Component.translatable(guiStatusPrefix + statusMessage, params);
+	}
+
+	public MutableComponent translTooltip(String tooltipName, Object... params) {
+		return Component.translatable(tooltipPrefix + tooltipName, params);
 	}
 
 	public MutableComponent translUpgrade(String upgradeName, Object... params) {
@@ -116,8 +122,16 @@ public class TranslationHelper {
 		return translItemTooltip(RegistryHelper.getItemKey(item).getPath());
 	}
 
+	public MutableComponent translItemTooltip(Item item, String tooltipName, Object... params) {
+		return translItemTooltip(RegistryHelper.getItemKey(item).getPath(), tooltipName, params);
+	}
+
 	public String translItemTooltip(String itemName) {
 		return itemUpgradePrefix + itemName + TOOLTIP_SUFFIX;
+	}
+
+	public MutableComponent translItemTooltip(String itemName, String tooltipName, Object... params) {
+		return Component.translatable(translItemTooltip(itemName) + "." + tooltipName, params);
 	}
 
 	public List<Component> getTranslatedLines(String translateKey, @Nullable Object parameters, ChatFormatting... textFormattings) {

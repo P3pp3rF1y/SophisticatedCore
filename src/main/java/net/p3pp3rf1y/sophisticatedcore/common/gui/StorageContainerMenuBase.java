@@ -35,8 +35,11 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayoutFitResult;
 import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayoutFitter;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerEndpointRecipe;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.ILinkedStorageEndpointProvider;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageGroupsSavedData;
 import net.p3pp3rf1y.sophisticatedcore.network.*;
 import net.p3pp3rf1y.sophisticatedcore.settings.ISlotColorCategory;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
@@ -124,6 +127,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		removeOpenTabIfKeepOff();
 		storageWrapper.fillWithLoot(player);
 		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot, extraSlots);
+		if (player instanceof ServerPlayer serverPlayer && storageWrapper instanceof ILinkedStorageEndpointProvider endpointProvider) {
+			endpointProvider.getLinkedStorageEndpoint().ifPresent(endpoint -> LinkedStorageGroupsSavedData.get(serverPlayer.level()).manager()
+					.recordEndpointOpened(endpoint.groupId(), endpoint.endpointId(), serverPlayer.getUUID(), serverPlayer.level().getGameTime()));
+		}
 
 		inventorySlotsBeforeClickHandled = getInventorySlotsSize();
 	}
@@ -756,6 +763,9 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		if (slot.hasItem()) {
 			Optional<UpgradeContainerBase<?, ?>> upgradeContainer = getSlotUpgradeContainer(slot);
 			ItemStack slotStack = upgradeContainer.map(c -> c.getSlotStackToTransfer(slot)).orElse(slot.getItem());
+			if (upgradeContainer.isPresent() && player instanceof ServerPlayer serverPlayer) {
+				EnderLinkerEndpointRecipe.issueCraftClaim(serverPlayer, slotStack);
+			}
 			itemstack = slotStack.copy();
 
 			ItemStack stackToMerge = isUpgradeSlot(index) && slotStack.getItem() instanceof IUpgradeItem<?> upgradeItem
@@ -770,10 +780,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			} else {
 				slot.setChanged();
 			}
-			slot.onQuickCraft(slotStack, itemstack);
+			slot.onQuickCraft(slot.getItem(), itemstack);
 
 			if (upgradeContainer.isPresent()) {
 				upgradeContainer.ifPresent(c -> c.onTakeFromSlot(slot, player, slotStack));
+				if (player instanceof ServerPlayer serverPlayer) {
+					EnderLinkerEndpointRecipe.finalizeTransferredCraftResult(serverPlayer.level(), itemstack, storageWrapper.getInventoryHandler(),
+							serverPlayer.getInventory());
+				}
 			} else {
 				slot.onTake(player, slotStack);
 			}
