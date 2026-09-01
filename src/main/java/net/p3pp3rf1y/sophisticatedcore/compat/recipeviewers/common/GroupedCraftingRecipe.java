@@ -82,7 +82,7 @@ public class GroupedCraftingRecipe extends ShapedRecipe {
 	}
 
 	public boolean hasFixedInput(ItemStack stack) {
-		return fixedInputSlots.stream().flatMap(List::stream).anyMatch(input -> ItemStack.isSameItemSameComponents(input, stack));
+		return fixedInputSlots.stream().flatMap(List::stream).anyMatch(input -> ItemStack.isSameItem(input, stack));
 	}
 
 	public Optional<GroupedCraftingRecipe> narrowForResult(ItemStack stack) {
