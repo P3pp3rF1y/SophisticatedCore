@@ -287,5 +287,20 @@
   "key.category.sophisticatedcore.main": "Sophisticated Mods",
   "key.sophisticatedcore.sort": "Sort Storage/Backpack",
   "key.sophisticatedcore.transfer_to_storage": "Transfer to Storage",
-  "key.sophisticatedcore.transfer_to_inventory": "Transfer to Inventory"
+   "key.sophisticatedcore.transfer_to_inventory": "Transfer to Inventory",
+   "item.sophisticatedcore.ender_linker": "Ender Linker",
+   "item.sophisticatedcore.ender_linker.tooltip.blank": "Right-click a compatible storage or craft with one",
+   "item.sophisticatedcore.ender_linker.tooltip.bound": "Right-click or craft with an unlinked compatible storage to add it",
+   "item.sophisticatedcore.ender_linker.tooltip.linker_target": "Linked to: %s",
+   "item.sophisticatedcore.ender_linker.tooltip.linker_pending": "Linked when crafted",
+   "gui.sophisticatedcore.status.ender_linker.already_linked": "Storage is already linked",
+   "gui.sophisticatedcore.status.ender_linker.unsupported_endpoint": "Storage cannot be linked",
+   "gui.sophisticatedcore.status.ender_linker.incompatible_endpoint": "Storage is incompatible with this linked storage group",
+   "gui.sophisticatedcore.status.ender_linker.endpoint_has_contents": "Storage has contents",
+   "item.sophisticatedcore.storage.tooltip.linked_storage_group": "Linked Storage Group: %s",
+   "item.sophisticatedcore.storage.tooltip.linked_storage_endpoint": "Linked Storage Endpoint: %s",
+   "tooltip.sophisticatedcore.linked_storage.primary": "Main Linked",
+    "tooltip.sophisticatedcore.linked_storage.secondary": "Linked",
+    "tooltip.sophisticatedcore.linked_storage.primary_named": "%s (%s)",
+    "tooltip.sophisticatedcore.linked_storage.secondary_named": "%s (%s)"
 }

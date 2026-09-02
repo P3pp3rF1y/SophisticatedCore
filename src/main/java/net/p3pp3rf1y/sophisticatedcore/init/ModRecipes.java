@@ -11,6 +11,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerClearRecipe;
+import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerEndpointRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.ItemEnabledCondition;
 import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeClearRecipe;
 import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeNextTierRecipe;
@@ -25,6 +27,10 @@ public class ModRecipes {
 			UpgradeNextTierRecipe.Serializer::new);
 	public static final RegistryObject<SimpleCraftingRecipeSerializer<?>> UPGRADE_CLEAR_SERIALIZER = RECIPE_SERIALIZERS.register("upgrade_clear",
 			() -> new SimpleCraftingRecipeSerializer<>(UpgradeClearRecipe::new));
+	public static final RegistryObject<SimpleCraftingRecipeSerializer<?>> ENDER_LINKER_ENDPOINT_SERIALIZER = RECIPE_SERIALIZERS
+			.register("ender_linker_endpoint", () -> new SimpleCraftingRecipeSerializer<>(EnderLinkerEndpointRecipe::new));
+	public static final RegistryObject<SimpleCraftingRecipeSerializer<?>> ENDER_LINKER_CLEAR_SERIALIZER = RECIPE_SERIALIZERS.register("ender_linker_clear",
+			() -> new SimpleCraftingRecipeSerializer<>(EnderLinkerClearRecipe::new));
 	public static void registerHandlers(IEventBus modBus) {
 		RECIPE_SERIALIZERS.register(modBus);
 		modBus.addListener(ModRecipes::registerRecipeCondition);

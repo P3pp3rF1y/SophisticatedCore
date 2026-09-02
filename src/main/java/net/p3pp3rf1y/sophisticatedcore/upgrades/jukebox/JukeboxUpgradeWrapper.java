@@ -116,6 +116,9 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (isPlaying) {
 			return;
 		}
+		if (level instanceof ServerLevel serverLevel && useProvidedPlaybackLocation(serverLevel)) {
+			return;
+		}
 
 		levelPlaying = level;
 		posPlaying = pos;
@@ -126,8 +129,24 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (isPlaying) {
 			return;
 		}
+		if (entity.level() instanceof ServerLevel serverLevel && useProvidedPlaybackLocation(serverLevel)) {
+			return;
+		}
 		entityPlaying = entity;
 		playNext();
+	}
+
+	private boolean useProvidedPlaybackLocation(ServerLevel initiatingLevel) {
+		if (!(storageWrapper instanceof IJukeboxPlaybackLocationProvider playbackLocationProvider)) {
+			return false;
+		}
+		return playbackLocationProvider.getJukeboxPlaybackLocation(initiatingLevel).map(playbackLocation -> {
+			levelPlaying = playbackLocation.level();
+			posPlaying = playbackLocation.blockPos();
+			entityPlaying = playbackLocation.entity();
+			playNext();
+			return true;
+		}).orElse(false);
 	}
 
 	private void playDisc() {
@@ -184,7 +203,11 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		if (!(entity.level() instanceof ServerLevel serverLevel)) {
 			return;
 		}
-		storageWrapper.getContentsUuid().ifPresent(storageUuid -> ServerStorageSoundHandler.stopPlayingDisc(serverLevel, entity.position(), storageUuid));
+		ServerLevel soundLevel = entityPlaying != null && entityPlaying.level() instanceof ServerLevel entityLevel
+				? entityLevel
+				: levelPlaying instanceof ServerLevel playbackLevel ? playbackLevel : serverLevel;
+		Vec3 soundPosition = entityPlaying != null ? entityPlaying.position() : posPlaying != null ? Vec3.atCenterOf(posPlaying) : entity.position();
+		storageWrapper.getContentsUuid().ifPresent(storageUuid -> ServerStorageSoundHandler.stopPlayingDisc(soundLevel, soundPosition, storageUuid));
 		setIsPlaying(false);
 		NBTHelper.removeTag(upgrade, "discFinishTime");
 		NBTHelper.removeTag(upgrade, "discLength");
@@ -214,7 +237,9 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 		}
 
 		if (isPlaying && lastKeepAliveSendTime < level.getGameTime() - KEEP_ALIVE_SEND_INTERVAL) {
-			Vec3 soundPosition = entity != null ? entity.position() : Vec3.atCenterOf(pos);
+			Vec3 soundPosition = entityPlaying != null
+					? entityPlaying.position()
+					: posPlaying != null ? Vec3.atCenterOf(posPlaying) : entity != null ? entity.position() : Vec3.atCenterOf(pos);
 			storageWrapper.getContentsUuid()
 					.ifPresent(storageUuid -> ServerStorageSoundHandler.updateKeepAlive(storageUuid, level, soundPosition, () -> setIsPlaying(false)));
 			lastKeepAliveSendTime = level.getGameTime();

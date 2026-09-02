@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -23,8 +24,11 @@ import net.minecraftforge.client.settings.IKeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStashStorageItem;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.StorageScreenBase;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiSoundHelper;
@@ -32,7 +36,9 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.init.ModParticles;
 import net.p3pp3rf1y.sophisticatedcore.client.render.BlockHighlightRenderer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
+import net.p3pp3rf1y.sophisticatedcore.init.ModItems;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.EnderLinkerItem;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import org.lwjgl.glfw.GLFW;
 
@@ -59,15 +65,22 @@ public class ClientEventHandler {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modBus.addListener(ModParticles::registerFactories);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
+		modBus.addListener(ClientEventHandler::registerItemProperties);
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
 		eventBus.addListener(StorageSoundHandler::tick);
 		eventBus.addListener(StorageSoundHandler::onWorldUnload);
 		eventBus.addListener(ClientEventHandler::onDrawScreen);
 		eventBus.addListener(ClientEventHandler::onContainerScreenForeground);
+		eventBus.addListener(ClientEventHandler::onItemTooltip);
 		eventBus.addListener(ClientEventHandler::handleGuiKeyPress);
 		eventBus.addListener(ClientEventHandler::handleGuiMouseKeyPress);
 		eventBus.addListener(ClientEventHandler::renderLevelStage);
 		eventBus.addListener(ClientEventHandler::onTickEnd);
+	}
+
+	private static void registerItemProperties(FMLClientSetupEvent event) {
+		event.enqueueWork(() -> ItemProperties.register(ModItems.ENDER_LINKER.get(), SophisticatedCore.getRL("bound"),
+				(stack, level, entity, seed) -> EnderLinkerItem.hasBoundPresentation(stack) ? 1.0F : 0.0F));
 	}
 
 	private static void onTickEnd(TickEvent.ClientTickEvent event) {
@@ -179,6 +192,8 @@ public class ClientEventHandler {
 			return;
 		}
 		AbstractContainerMenu menu = containerGui.getMenu();
+		LinkerCraftingDiagnostics.requestIfChanged(menu);
+		renderLinkerCraftingDiagnostics(event.getGuiGraphics(), menu);
 		ItemStack held = menu.getCarried();
 		if (held.isEmpty()) {
 			return;
@@ -192,6 +207,28 @@ public class ClientEventHandler {
 			}
 			getStashResultAndTooltip(stack, held).filter(stashResultAndTooltip -> s.mayPickup(mc.player))
 					.ifPresent(stashResultAndTooltip -> renderStashSign(mc, event.getGuiGraphics(), s, stack, stashResultAndTooltip.stashResult()));
+		}
+	}
+
+	private static void renderLinkerCraftingDiagnostics(GuiGraphics guiGraphics, AbstractContainerMenu menu) {
+		for (Slot slot : menu.slots) {
+			if (LinkerCraftingDiagnostics.getStatusMessage(slot.index) != null) {
+				guiGraphics.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0x80FF0000);
+			}
+		}
+	}
+
+	private static void onItemTooltip(ItemTooltipEvent event) {
+		if (!(Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> screen)) {
+			return;
+		}
+		Slot slot = screen.getSlotUnderMouse();
+		if (slot == null || slot.getItem() != event.getItemStack()) {
+			return;
+		}
+		String statusMessage = LinkerCraftingDiagnostics.getStatusMessage(slot.index);
+		if (statusMessage != null) {
+			event.getToolTip().add(TranslationHelper.INSTANCE.translStatusMessage(statusMessage).withStyle(ChatFormatting.RED));
 		}
 	}
 

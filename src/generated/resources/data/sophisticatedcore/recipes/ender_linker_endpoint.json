@@ -1,0 +1,18 @@
+{
+  "forge:conditions": [
+    {
+      "type": "forge:or",
+      "values": [
+        {
+          "type": "forge:mod_loaded",
+          "modid": "sophisticatedbackpacks"
+        },
+        {
+          "type": "forge:mod_loaded",
+          "modid": "sophisticatedstorage"
+        }
+      ]
+    }
+  ],
+  "type": "sophisticatedcore:ender_linker_endpoint"
+}

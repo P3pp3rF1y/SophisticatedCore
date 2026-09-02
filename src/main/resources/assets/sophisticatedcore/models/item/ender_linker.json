@@ -1,0 +1,14 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sophisticatedcore:item/ender_linker_blank"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "sophisticatedcore:bound": 1
+      },
+      "model": "sophisticatedcore:item/ender_linker_bound"
+    }
+  ]
+}
