@@ -114,14 +114,6 @@ public class TranslationHelper {
 		return translItemTooltip(RegistryHelper.getItemKey(item).getPath());
 	}
 
-	public MutableComponent translItemTooltip(Item item, String tooltipName, Object... params) {
-		return Component.translatable(translItemTooltip(item) + "." + tooltipName, params);
-	}
-
-	public MutableComponent translTooltip(String tooltipName, Object... params) {
-		return Component.translatable("tooltip." + SophisticatedCore.MOD_ID + "." + tooltipName, params);
-	}
-
 	public String translItemTooltip(String itemName) {
 		return itemUpgradePrefix + itemName + TOOLTIP_SUFFIX;
 	}

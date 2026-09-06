@@ -83,10 +83,6 @@ public class PacketHandler {
 				NetworkDirection.PLAY_TO_SERVER);
 		registerMessage(SyncBlockHighlightsMessage.class, SyncBlockHighlightsMessage::encode, SyncBlockHighlightsMessage::decode,
 				SyncBlockHighlightsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
-		registerMessage(RequestLinkerCraftingDiagnosticsMessage.class, RequestLinkerCraftingDiagnosticsMessage::encode,
-				RequestLinkerCraftingDiagnosticsMessage::decode, RequestLinkerCraftingDiagnosticsMessage::onMessage, NetworkDirection.PLAY_TO_SERVER);
-		registerMessage(SyncLinkerCraftingDiagnosticsMessage.class, SyncLinkerCraftingDiagnosticsMessage::encode, SyncLinkerCraftingDiagnosticsMessage::decode,
-				SyncLinkerCraftingDiagnosticsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public <M> void registerMessage(Class<M> messageType, BiConsumer<M, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, M> decoder,

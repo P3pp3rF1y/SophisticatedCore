@@ -17,7 +17,6 @@ import net.minecraftforge.fluids.ForgeFlowingFluid;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-import net.p3pp3rf1y.sophisticatedcore.Config;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.function.Consumer;
@@ -64,13 +63,9 @@ public class ModFluids {
 	public static final RegistryObject<Item> XP_BUCKET = ITEMS.register("xp_bucket", () -> new BucketItem(XP_STILL, new Item.Properties().stacksTo(1)));
 
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, SophisticatedCore.MOD_ID);
-	public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main", () -> CreativeModeTab.builder()
-			.icon(() -> new ItemStack(XP_BUCKET.get())).title(Component.translatable("itemGroup.sophisticatedcore")).displayItems((featureFlags, output) -> {
-				output.accept(new ItemStack(XP_BUCKET.get()));
-				if (Config.COMMON.enabledItems.isItemEnabled(ModItems.ENDER_LINKER.get())) {
-					output.accept(new ItemStack(ModItems.ENDER_LINKER.get()));
-				}
-			}).build());
+	public static final RegistryObject<CreativeModeTab> CREATIVE_TAB = CREATIVE_MODE_TABS.register("main",
+			() -> CreativeModeTab.builder().icon(() -> new ItemStack(XP_BUCKET.get())).title(Component.translatable("itemGroup.sophisticatedcore"))
+					.displayItems((featureFlags, output) -> output.accept(new ItemStack(XP_BUCKET.get()))).build());
 
 	public static void registerHandlers(IEventBus modBus) {
 		FLUIDS.register(modBus);
