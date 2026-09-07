@@ -18,7 +18,17 @@ public class MixinAbstractContraptionEntity {
 	@Inject(method = "remove", at = @At("HEAD"))
 	private void cleanupMountedStoragesOnDestroy(Entity.RemovalReason removalReason, CallbackInfo ci) {
 		AbstractContraptionEntity contraptionEntity = (AbstractContraptionEntity) (Object) this;
-		if (contraptionEntity.level().isClientSide() || contraption == null || contraption.disassembled || removalReason != Entity.RemovalReason.KILLED) {
+		if (contraptionEntity.level().isClientSide || contraption == null) {
+			return;
+		}
+
+		contraption.getStorage().getAllItemStorages().values().forEach(storage -> {
+			if (storage instanceof MountedStorageBase mountedStorage) {
+				mountedStorage.onContraptionRemoved();
+			}
+		});
+
+		if (contraption.disassembled || removalReason != Entity.RemovalReason.KILLED) {
 			return;
 		}
 

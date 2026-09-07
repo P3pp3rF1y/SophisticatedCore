@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -27,6 +28,8 @@ import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 import javax.annotation.Nullable;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 public class EnderLinkerItem extends ItemBase {
@@ -44,12 +47,12 @@ public class EnderLinkerItem extends ItemBase {
 
 	@Override
 	public boolean overrideStackedOnOther(ItemStack linker, Slot slot, ClickAction action, Player player) {
-		return action == ClickAction.SECONDARY && tryLinkStack(player, linker, slot.getItem());
+		return action == ClickAction.SECONDARY && tryLinkItemInteractionTarget(player, linker, () -> slot.getItem(), null).isPresent();
 	}
 
 	@Override
 	public boolean overrideOtherStackedOnMe(ItemStack linker, ItemStack endpoint, Slot slot, ClickAction action, Player player, SlotAccess carriedAccess) {
-		return action == ClickAction.SECONDARY && tryLinkStack(player, linker, endpoint);
+		return action == ClickAction.SECONDARY && tryLinkItemInteractionTarget(player, linker, () -> endpoint, null).isPresent();
 	}
 
 	@Override
@@ -73,20 +76,31 @@ public class EnderLinkerItem extends ItemBase {
 		if (level.isClientSide) {
 			return LinkAttempt.SUCCESS;
 		}
-		return level instanceof ServerLevel && linkBlock(player, linker, endpoint, pos) ? LinkAttempt.SUCCESS : LinkAttempt.FAILURE;
+		Optional<LinkedStorageService.LinkResult> result = tryLinkInteractionTarget(player, linker, endpoint, pos);
+		return result.isPresent() && result.get() == LinkedStorageService.LinkResult.SUCCESS ? LinkAttempt.SUCCESS : LinkAttempt.FAILURE;
 	}
 
-	private static boolean tryLinkStack(Player player, ItemStack linker, ItemStack endpoint) {
-		if (!LinkedStorageService.isLinkCandidate(endpoint)) {
-			return false;
+	public static Optional<LinkedStorageService.LinkResult> tryLinkItemInteractionTarget(Player player, ItemStack linker,
+			ILinkedStorageItemInteractionTarget target, @Nullable BlockPos feedbackPos) {
+		return tryLinkInteractionTarget(player, linker, target, feedbackPos);
+	}
+
+	public static Optional<LinkedStorageService.LinkResult> tryLinkInteractionTarget(Player player, ItemStack linker, ILinkedStorageInteractionTarget target,
+			@Nullable BlockPos feedbackPos) {
+		if (!target.isLinkedStorageLinkCandidate()) {
+			return Optional.empty();
 		}
-		linkWithFeedback(player, linker, null, (level, linkerToBind) -> LinkedStorageService.linkWithResult(level, player.getUUID(), linkerToBind, endpoint));
-		return true;
-	}
 
-	private static boolean linkBlock(Player player, ItemStack linker, ILinkedStorageBlockEndpoint endpoint, BlockPos blockPos) {
-		return linkWithFeedback(player, linker, blockPos, (level, linkerToBind) -> LinkedStorageService.linkWithResult(level, player.getUUID(), linkerToBind,
-				endpoint)) == LinkedStorageService.LinkResult.SUCCESS;
+		LinkedStorageEndpointData previousEndpoint = target.getLinkedStorageEndpointData();
+		LinkedStorageService.LinkResult result = linkWithFeedback(player, linker, feedbackPos,
+				(level, linkerToBind) -> target.link(level, player.getUUID(), linkerToBind));
+		if (result == LinkedStorageService.LinkResult.SUCCESS && player instanceof ServerPlayer serverPlayer) {
+			LinkedStorageEndpointData currentEndpoint = target.getLinkedStorageEndpointData();
+			if (!Objects.equals(previousEndpoint, currentEndpoint)) {
+				target.onLinkedStorageEndpointChanged(serverPlayer, previousEndpoint, currentEndpoint);
+			}
+		}
+		return Optional.of(result);
 	}
 
 	private static LinkedStorageService.LinkResult linkWithFeedback(Player player, ItemStack linker, @Nullable BlockPos blockPos,
