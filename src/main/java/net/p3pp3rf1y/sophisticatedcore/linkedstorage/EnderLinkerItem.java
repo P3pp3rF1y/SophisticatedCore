@@ -6,6 +6,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.TriState;
@@ -32,6 +33,8 @@ import net.p3pp3rf1y.sophisticatedcore.util.ItemBase;
 
 import javax.annotation.Nullable;
 
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -50,12 +53,12 @@ public class EnderLinkerItem extends ItemBase {
 
 	@Override
 	public boolean overrideStackedOnOther(ItemStack linker, Slot slot, ClickAction action, Player player) {
-		return action == ClickAction.SECONDARY && tryLinkStack(player, linker, slot.getItem());
+		return action == ClickAction.SECONDARY && tryLinkItemEndpoint(player, linker, slot.getItem()).isPresent();
 	}
 
 	@Override
 	public boolean overrideOtherStackedOnMe(ItemStack linker, ItemStack endpoint, Slot slot, ClickAction action, Player player, SlotAccess carriedAccess) {
-		return action == ClickAction.SECONDARY && tryLinkStack(player, linker, endpoint);
+		return action == ClickAction.SECONDARY && tryLinkItemEndpoint(player, linker, endpoint).isPresent();
 	}
 
 	@Override
@@ -79,23 +82,38 @@ public class EnderLinkerItem extends ItemBase {
 		if (level.isClientSide()) {
 			return TriState.TRUE;
 		}
-		if (!(level instanceof ServerLevel) || !linkBlock(player, linker, endpoint, pos)) {
+		Optional<LinkedStorageService.LinkResult> result = tryLinkInteractionTarget(player, linker, endpoint, pos);
+		if (result.isEmpty() || result.get() != LinkedStorageService.LinkResult.SUCCESS) {
 			return TriState.FALSE;
 		}
 		return TriState.TRUE;
 	}
 
-	private static boolean tryLinkStack(Player player, ItemStack linker, ItemStack endpoint) {
-		if (!LinkedStorageService.isLinkCandidate(endpoint)) {
-			return false;
-		}
-		linkWithFeedback(player, linker, null, (level, linkerToBind) -> LinkedStorageService.linkWithResult(level, player.getUUID(), linkerToBind, endpoint));
-		return true;
+	public static Optional<LinkedStorageService.LinkResult> tryLinkItemInteractionTarget(Player player, ItemStack linker,
+			ILinkedStorageItemInteractionTarget target, @Nullable BlockPos feedbackPos) {
+		return tryLinkInteractionTarget(player, linker, target, feedbackPos);
 	}
 
-	private static boolean linkBlock(Player player, ItemStack linker, ILinkedStorageBlockEndpoint endpoint, BlockPos blockPos) {
-		return linkWithFeedback(player, linker, blockPos, (level, linkerToBind) -> LinkedStorageService.linkWithResult(level, player.getUUID(), linkerToBind,
-				endpoint)) == LinkedStorageService.LinkResult.SUCCESS;
+	private static Optional<LinkedStorageService.LinkResult> tryLinkItemEndpoint(Player player, ItemStack linker, ItemStack endpoint) {
+		return tryLinkItemInteractionTarget(player, linker, () -> endpoint, null);
+	}
+
+	public static Optional<LinkedStorageService.LinkResult> tryLinkInteractionTarget(Player player, ItemStack linker, ILinkedStorageInteractionTarget target,
+			@Nullable BlockPos feedbackPos) {
+		if (!target.isLinkedStorageLinkCandidate()) {
+			return Optional.empty();
+		}
+
+		LinkedStorageEndpointData previousEndpoint = target.getLinkedStorageEndpointData();
+		LinkedStorageService.LinkResult result = linkWithFeedback(player, linker, feedbackPos,
+				(level, linkerToBind) -> target.link(level, player.getUUID(), linkerToBind));
+		if (result == LinkedStorageService.LinkResult.SUCCESS && player instanceof ServerPlayer serverPlayer) {
+			LinkedStorageEndpointData currentEndpoint = target.getLinkedStorageEndpointData();
+			if (!Objects.equals(previousEndpoint, currentEndpoint)) {
+				target.onLinkedStorageEndpointChanged(serverPlayer, previousEndpoint, currentEndpoint);
+			}
+		}
+		return Optional.of(result);
 	}
 
 	private static LinkedStorageService.LinkResult linkWithFeedback(Player player, ItemStack linker, @Nullable BlockPos blockPos,
