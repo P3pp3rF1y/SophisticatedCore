@@ -97,4 +97,8 @@ public abstract class MountedStorageBase extends MountedItemStorage implements S
 	public void onContraptionDestroyed() {
 
 	}
+
+	public void onContraptionRemoved() {
+
+	}
 }
