@@ -40,7 +40,7 @@ public abstract class MountedStorageSettingsContainerMenuBase extends SettingsCo
 		return contraptionEntityId;
 	}
 
-	private void sendStorageSettingsToClient() {
+	protected void sendStorageSettingsToClient() {
 		if (player.level().isClientSide()) {
 			return;
 		}
