@@ -1,6 +1,7 @@
 {
   "itemGroup.sophisticatedcore": "Sophisticated Core",
   "item.sophisticatedcore.xp_bucket": "Cubo de experiencia",
+  "item.sophisticatedcore.stack_upgrade_conversion.tooltip": "Haz clic derecho en una mejora de stack instalada para convertirla",
   "item.sophisticatedcore.storage.tooltip.right_click_to_add_to_storage": "Haz clic derecho para añadir",
   "item.sophisticatedcore.storage.tooltip.stack_multiplier": "Multiplicador de tamaño de stack: %s",
   "item.sophisticatedcore.storage.tooltip.energy": "%s EF",
@@ -219,6 +220,7 @@
   "gui.sophisticatedcore.buttons.confirm": "Confirmar",
   "gui.sophisticatedcore.buttons.cancel": "Cancelar",
   "gui.sophisticatedcore.buttons.transparent": "Sin color",
+  "gui.sophisticatedcore.buttons.browse_results": "Abrir lista de resultados ampliada con búsqueda",
   "gui.sophisticatedcore.buttons.upgrade_switch_enabled": "ENCENDIDO",
   "gui.sophisticatedcore.buttons.upgrade_switch_disabled": "APAGADO",
   "gui.sophisticatedcore.buttons.upgrade_switch_inactive": "INACTIVO",
@@ -229,6 +231,8 @@
   "gui.sophisticatedcore.settings.buttons.unselect_all_slots": "Deseleccionar todas las ranuras",
   "gui.sophisticatedcore.settings.buttons.rotate": "Rotar",
   "gui.sophisticatedcore.settings.buttons.rotate_detail": "Sentido horario = Clic izquierdo\nSentido antihorario = Clic derecho",
+  "gui.sophisticatedcore.settings.buttons.z_offset": "Profundidad",
+  "gui.sophisticatedcore.settings.buttons.z_offset_detail": "Fuera = Clic izquierdo\nDentro = Clic derecho",
   "gui.sophisticatedcore.settings.buttons.toggle_color": "Alternar color",
   "gui.sophisticatedcore.settings.buttons.toggle_color_detail": "Siguiente = Clic izquierdo\nAnterior = Clic derecho",
   "gui.sophisticatedcore.settings.buttons.context_player": "Jugador",
@@ -286,5 +290,16 @@
   "key.category.sophisticatedcore.main": "Sophisticated Mods",
   "key.sophisticatedcore.sort": "Ordenar almacenamiento/mochila",
   "key.sophisticatedcore.transfer_to_storage": "Transferir al almacenamiento",
-  "key.sophisticatedcore.transfer_to_inventory": "Transferir al inventario"
+  "key.sophisticatedcore.transfer_to_inventory": "Transferir al inventario",
+  "sophisticatedcore.configuration.client": "Cliente",
+  "sophisticatedcore.configuration.common": "Común",
+  "sophisticatedcore.configuration.sortButtonsPosition": "Posición de los botones de ordenamiento",
+  "sophisticatedcore.configuration.playButtonSound": "Reproducir sonido de botón",
+  "sophisticatedcore.configuration.mouseTweaksScrollEnabled": "Control de desplazamiento de Mouse Tweaks",
+  "sophisticatedcore.configuration.enabledItems": "Objetos de mod habilitados",
+  "sophisticatedcore.configuration.enabledItems.tooltip": "Prellenado con todos los objetos compatibles. Cambia |true a |false para deshabilitar uno.\nFormato: item_id|true_or_false\nEjemplo: sophisticatedbackpacks:smelting_upgrade|true",
+  "sophisticatedcore.configuration.sortButtonsPosition.title_line_right": "Línea de título a la derecha",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrades": "Debajo de las mejoras",
+  "sophisticatedcore.configuration.sortButtonsPosition.below_upgrade_tabs": "Debajo de las pestañas de mejoras",
+  "sophisticatedcore.configuration.sortButtonsPosition.hidden": "Oculto"
 }
