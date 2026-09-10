@@ -88,6 +88,9 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	@Override
 	public void onContentsChanged(int slot) {
 		super.onContentsChanged(slot);
+		if (inventoryPartitioner != null) {
+			inventoryPartitioner.getPartBySlot(slot).onContentsChanged(slot, super::setStackInSlot);
+		}
 		if (persistent && updateSlotNbt(slot)) {
 			saveInventory();
 			triggerOnChangeListeners(slot);
@@ -219,7 +222,11 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	}
 
 	public ItemStack extractItemInternal(int slot, int amount, boolean simulate) {
-		if (amount == 0) {
+		return extractItemInternal(slot, amount, simulate, false);
+	}
+
+	ItemStack extractItemInternal(int slot, int amount, boolean simulate, boolean ignoreStackLimit) {
+		if (amount <= 0) {
 			return ItemStack.EMPTY;
 		}
 
@@ -230,7 +237,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 			return ItemStack.EMPTY;
 		}
 
-		int toExtract = Math.min(amount, existing.getMaxStackSize());
+		int toExtract = Math.min(amount, ignoreStackLimit ? Integer.MAX_VALUE : existing.getMaxStackSize());
 
 		if (existing.getCount() <= toExtract) {
 			if (!simulate) {
@@ -252,6 +259,10 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	@Nonnull
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
 		return inventoryPartitioner.getPartBySlot(slot).extractItem(slot, amount, simulate);
+	}
+
+	public ItemStack extractItemIgnoringLimit(int slot, int amount, boolean simulate) {
+		return inventoryPartitioner.getPartBySlot(slot).extractItemIgnoringLimit(slot, amount, simulate);
 	}
 
 	@Override
@@ -483,6 +494,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		filterItemSlots.clear();
 		filterItemSlots.putAll(inventoryPartitioner.getFilterItems());
 
+		slotTracker.refreshSlotIndexesFrom(this);
 		filterItemsChangeListener.accept(filterItemSlots.keySet());
 	}
 

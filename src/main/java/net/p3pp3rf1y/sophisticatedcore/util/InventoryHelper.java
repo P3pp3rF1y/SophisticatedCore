@@ -17,6 +17,7 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IPickupResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
@@ -281,7 +282,8 @@ public class InventoryHelper {
 		if (slot >= itemHandler.getSlots()) {
 			return ItemStack.EMPTY;
 		}
-		return itemHandler.extractItem(slot, itemHandler.getStackInSlot(slot).getCount(), false);
+		int count = itemHandler.getStackInSlot(slot).getCount();
+		return itemHandler instanceof InventoryHandler handler ? handler.extractItemIgnoringLimit(slot, count, false) : itemHandler.extractItem(slot, count, false);
 	}
 
 	public static void insertOrDropItem(Player player, ItemStack stack, IItemHandler... inventories) {

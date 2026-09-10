@@ -34,11 +34,19 @@ public interface IInventoryPartHandler {
 		return ItemStack.EMPTY;
 	}
 
+	default ItemStack extractItemIgnoringLimit(int slot, int amount, boolean simulate) {
+		return extractItem(slot, amount, simulate);
+	}
+
 	default ItemStack insertItem(int slot, ItemStack stack, boolean simulate, TriFunction<Integer, ItemStack, Boolean, ItemStack> insertSuper) {
 		return stack;
 	}
 
 	default void setStackInSlot(int slot, ItemStack stack, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
+		//noop
+	}
+
+	default void onContentsChanged(int slot, BiConsumer<Integer, ItemStack> setStackInSlotSuper) {
 		//noop
 	}
 
@@ -55,6 +63,10 @@ public interface IInventoryPartHandler {
 	}
 
 	default int getSlots() { return 0;}
+
+	default boolean canCompact() {
+		return true;
+	}
 
 	String getName();
 
@@ -114,6 +126,11 @@ public interface IInventoryPartHandler {
 		@Override
 		public ItemStack extractItem(int slot, int amount, boolean simulate) {
 			return parent.extractItemInternal(slot, amount, simulate);
+		}
+
+		@Override
+		public ItemStack extractItemIgnoringLimit(int slot, int amount, boolean simulate) {
+			return parent.extractItemInternal(slot, amount, simulate, true);
 		}
 
 		@Override

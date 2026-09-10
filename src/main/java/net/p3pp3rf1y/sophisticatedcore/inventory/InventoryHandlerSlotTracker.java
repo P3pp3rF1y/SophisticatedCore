@@ -321,7 +321,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			while (!emptySlots.isEmpty() && i++ < sizeBefore) {
 				Iterator<Integer> it = emptySlots.iterator();
 				int slot = it.next();
-				while (memorySettings.isSlotSelected(slot)) {
+				while (memorySettings.isSlotSelected(slot) || isFilterSlot(slot)) {
 					if (!it.hasNext()) {
 						return remainingStack;
 					}
@@ -336,6 +336,15 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		}
 
 		return remainingStack;
+	}
+
+	private boolean isFilterSlot(int slot) {
+		for (Set<Integer> slots : filterItemSlots.values()) {
+			if (slots.contains(slot)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private ItemStack insertIntoEmptyFilterSlots(IItemHandlerInserter inserter, boolean simulate, ItemStack remainingStack) {

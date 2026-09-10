@@ -9,6 +9,7 @@ import net.minecraftforge.items.IItemHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.ISlotChangeResponseUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.IItemHandlerSimpleInserter;
+import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.FilterLogic;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IFilteredUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
@@ -22,7 +23,9 @@ import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper.CompactingShape;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -30,6 +33,8 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		implements IInsertResponseUpgrade, IFilteredUpgrade, ISlotChangeResponseUpgrade, ITickableUpgrade {
 	private final FilterLogic filterLogic;
 	private final Set<Integer> slotsToCompact = new HashSet<>();
+	private final Map<IItemHandlerSimpleInserter, Set<Integer>> pendingCompactingSlots = new IdentityHashMap<>();
+	private boolean isCompacting = false;
 
 	public CompactingUpgradeWrapper(IStorageWrapper storageWrapper, ItemStack upgrade, Consumer<ItemStack> upgradeSaveHandler) {
 		super(storageWrapper, upgrade, upgradeSaveHandler);
@@ -49,6 +54,32 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 	}
 
 	private void compactSlot(IItemHandlerSimpleInserter inventoryHandler, int slot) {
+		if (!canCompactSlot(inventoryHandler, slot)) {
+			return;
+		}
+		pendingCompactingSlots.computeIfAbsent(inventoryHandler, h -> new HashSet<>()).add(slot);
+		if (isCompacting) {
+			return;
+		}
+		isCompacting = true;
+		try {
+			while (!pendingCompactingSlots.isEmpty()) {
+				IItemHandlerSimpleInserter handler = pendingCompactingSlots.keySet().iterator().next();
+				Set<Integer> pendingSlots = pendingCompactingSlots.remove(handler);
+				for (int pendingSlot : pendingSlots) {
+					compactSlotContents(handler, pendingSlot);
+				}
+			}
+		} finally {
+			pendingCompactingSlots.clear();
+			isCompacting = false;
+		}
+	}
+
+	private void compactSlotContents(IItemHandlerSimpleInserter inventoryHandler, int slot) {
+		if (!canCompactSlot(inventoryHandler, slot)) {
+			return;
+		}
 		ItemStack slotStack = inventoryHandler.getStackInSlot(slot);
 
 		if (slotStack.isEmpty() || slotStack.hasTag() || !filterLogic.matchesFilter(slotStack)) {
@@ -70,7 +101,7 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		int totalCount = width * height;
 		RecipeHelper.CompactingResult compactingResult = RecipeHelper.getCompactingResult(item, width, height);
 		if (!compactingResult.getResult().isEmpty()) {
-			ItemStack extractedStack = InventoryHelper.extractFromInventory(item, totalCount, inventoryHandler, true);
+			ItemStack extractedStack = extractIngredients(item, totalCount, inventoryHandler, true);
 			if (extractedStack.getCount() != totalCount) {
 				return;
 			}
@@ -82,12 +113,27 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 				if (!fitsResultAndRemainingItems(inventoryHandler, remainingItemsCopy, resultCopy)) {
 					break;
 				}
-				InventoryHelper.extractFromInventory(item, totalCount, inventoryHandler, false);
+				extractIngredients(item, totalCount, inventoryHandler, false);
 				inventoryHandler.insertItem(resultCopy, false);
 				InventoryHelper.insertIntoInventory(remainingItemsCopy, inventoryHandler, false);
-				extractedStack = InventoryHelper.extractFromInventory(item, totalCount, inventoryHandler, true);
+				extractedStack = extractIngredients(item, totalCount, inventoryHandler, true);
 			}
 		}
+	}
+
+	private boolean canCompactSlot(IItemHandler inventory, int slot) {
+		return !(inventory instanceof InventoryHandler handler) || handler.getInventoryPartitioner().getPartBySlot(slot).canCompact();
+	}
+
+	private ItemStack extractIngredients(Item item, int count, IItemHandler inventory, boolean simulate) {
+		int extracted = 0;
+		for (int slot = 0; slot < inventory.getSlots() && extracted < count; slot++) {
+			ItemStack stack = inventory.getStackInSlot(slot);
+			if (canCompactSlot(inventory, slot) && stack.getItem() == item && !stack.hasTag()) {
+				extracted += inventory.extractItem(slot, count - extracted, simulate).getCount();
+			}
+		}
+		return new ItemStack(item, extracted);
 	}
 
 	private boolean fitsResultAndRemainingItems(IItemHandler inventoryHandler, List<ItemStack> remainingItems, ItemStack result) {
@@ -135,10 +181,10 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 			return;
 		}
 
-		for (int slot : slotsToCompact) {
+		Set<Integer> pendingSlots = new HashSet<>(slotsToCompact);
+		slotsToCompact.clear();
+		for (int slot : pendingSlots) {
 			compactSlot(storageWrapper.getInventoryHandler(), slot);
 		}
-
-		slotsToCompact.clear();
 	}
 }

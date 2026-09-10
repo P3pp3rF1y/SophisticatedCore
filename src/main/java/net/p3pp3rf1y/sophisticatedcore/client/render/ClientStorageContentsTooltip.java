@@ -83,12 +83,13 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 			upgrades.clear();
 			tooltipLines.clear();
 			if (storageUuid != null) {
-				wrapper.onContentsNbtUpdated();
-				sortedContents = InventoryHelper.getCompactedStacksSortedByCount(wrapper.getInventoryHandler());
+				wrapper = refreshContentsWrapper(wrapper);
+				sortedContents = getContents(wrapper);
 				upgrades = new ArrayList<>(wrapper.getUpgradeHandler().getSlotWrappers().values());
 				addMultiplierTooltip(wrapper);
 				addFluidTooltip(wrapper);
 				addEnergyTooltip(wrapper);
+				addTooltipLines(wrapper, tooltipLines);
 			}
 			if (upgrades.isEmpty() && sortedContents.isEmpty()) {
 				tooltipLines.add(new TranslatableComponent(TranslationHelper.INSTANCE.translItemTooltip(STORAGE_ITEM) + ".empty").withStyle(ChatFormatting.YELLOW));
@@ -106,6 +107,19 @@ public abstract class ClientStorageContentsTooltip implements ClientTooltipCompo
 
 	protected boolean shouldRefreshContents() {
 		return ClientStorageContentsTooltip.shouldRefreshContents;
+	}
+
+	protected IStorageWrapper refreshContentsWrapper(IStorageWrapper wrapper) {
+		wrapper.onContentsNbtUpdated();
+		return wrapper;
+	}
+
+	protected List<ItemStack> getContents(IStorageWrapper wrapper) {
+		return InventoryHelper.getCompactedStacksSortedByCount(wrapper.getInventoryHandler());
+	}
+
+	protected void addTooltipLines(IStorageWrapper wrapper, List<Component> lines) {
+		//noop
 	}
 
 	private void calculateWidth() {
