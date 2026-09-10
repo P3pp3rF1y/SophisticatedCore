@@ -4,6 +4,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 import javax.annotation.Nullable;
@@ -48,15 +49,17 @@ public class CraftingContainerRecipeTransferHandlerServer {
 
 		putIntoInventory(player, inventorySlots, container, clearedCraftingItems);
 
-		container.sendSlotUpdates();
 		container.broadcastChanges();
 	}
 
 	private static void putIntoInventory(Player player, List<Integer> inventorySlots, StorageContainerMenuBase<?> container, List<ItemStack> clearedCraftingItems) {
 		for (ItemStack oldCraftingItem : clearedCraftingItems) {
 			int added = addStack(container, inventorySlots, oldCraftingItem);
-			if (added < oldCraftingItem.getCount() && !player.getInventory().add(oldCraftingItem)) {
-				player.drop(oldCraftingItem, false);
+			if (added < oldCraftingItem.getCount()) {
+				ItemStack remainingStack = added == 0 ? oldCraftingItem : ItemHandlerHelper.copyStackWithSize(oldCraftingItem, oldCraftingItem.getCount() - added);
+				if (!player.getInventory().add(remainingStack)) {
+					player.drop(remainingStack, false);
+				}
 			}
 		}
 	}
@@ -71,7 +74,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				continue;
 			}
 			if (craftingSlot.hasItem()) {
-				ItemStack craftingItem = craftingSlot.remove(Integer.MAX_VALUE);
+				ItemStack craftingItem = craftingSlot.remove(craftingSlot.getItem().getCount());
 				clearedCraftingItems.add(craftingItem);
 			}
 			ItemStack transferItem = toTransfer.get(craftingSlotNumberIndex);
@@ -224,11 +227,13 @@ public class CraftingContainerRecipeTransferHandlerServer {
 						// Enough space
 						if (space >= remain) {
 							inventoryStack.grow(remain);
+							slot.setChanged();
 							return stack.getCount();
 						}
 
 						// Not enough space
 						inventoryStack.setCount(maxStackSize);
+						slot.setChanged();
 
 						added += space;
 					}

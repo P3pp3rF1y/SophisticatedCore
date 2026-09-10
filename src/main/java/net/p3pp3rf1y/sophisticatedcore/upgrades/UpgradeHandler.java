@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -347,7 +348,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	private static class Accessor implements IUpgradeWrapperAccessor {
-		private final Map<Class<?>, List<?>> interfaceWrappers = new HashMap<>();
+		private final Map<Class<?>, List<?>> interfaceWrappers = new ConcurrentHashMap<>();
 
 		private final UpgradeHandler upgradeHandler;
 

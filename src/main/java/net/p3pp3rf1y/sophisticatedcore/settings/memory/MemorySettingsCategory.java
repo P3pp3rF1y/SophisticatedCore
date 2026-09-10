@@ -91,10 +91,12 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	public void unselectAllSlots() {
+		Set<Integer> slotIndexes = getSlotIndexes();
 		unselectAllFilterItemSlots();
 		unselectAllFilteStackSlots();
 
 		serializeFilterItems();
+		slotIndexes.forEach(getInventoryHandler()::onSlotFilterChanged);
 	}
 
 	private void unselectAllFilteStackSlots() {
