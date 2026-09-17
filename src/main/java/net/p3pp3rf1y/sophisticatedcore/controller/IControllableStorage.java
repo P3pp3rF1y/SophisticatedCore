@@ -22,6 +22,18 @@ public interface IControllableStorage extends IControllerBoundable {
 		return getStorageBlockPos();
 	}
 
+	default ControllerStorageKey getControllerStorageKey() {
+		return new ControllerStorageKey(getControlledStorageBlockPos());
+	}
+
+	default boolean isControllerStorageAccessible() {
+		return true;
+	}
+
+	default void registerControllerMembership(ControllerBlockEntityBase controllerBlockEntity) {
+		setControllerPos(controllerBlockEntity.getBlockPos());
+	}
+
 	default void tryToAddToController() {
 		addToAdjacentController();
 	}
@@ -41,14 +53,30 @@ public interface IControllableStorage extends IControllerBoundable {
 	}
 
 	default void registerController(ControllerBlockEntityBase controllerBlockEntity) {
-		setControllerPos(controllerBlockEntity.getBlockPos());
+		registerControllerMembership(controllerBlockEntity);
 		if (hasStorageData() && controllerBlockEntity.getLevel() != null && !controllerBlockEntity.getLevel().isClientSide()) {
 			registerListeners();
 		}
 	}
 
+	default void reregisterWithController() {
+		Level level = getStorageBlockLevel();
+		if (!level.isClientSide()) {
+			getControllerPos().flatMap(controllerPos -> WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class))
+					.ifPresent(controller -> controller.addStorage(getStorageBlockPos()));
+		}
+	}
+
 	default void unregisterController() {
+		unregisterControllerMembership();
+		unregisterControllerListeners();
+	}
+
+	default void unregisterControllerMembership() {
 		removeControllerPos();
+	}
+
+	default void unregisterControllerListeners() {
 		getStorageWrapper().getInventoryForInputOutput().unregisterStackKeyListeners();
 		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unregisterListeners();
 		getStorageWrapper().getInventoryHandler().unregisterFilterItemsChangeListener();
@@ -82,22 +110,9 @@ public interface IControllableStorage extends IControllerBoundable {
 	}
 
 	default void registerWithControllerOnLoad() {
-		getControllerPos().ifPresentOrElse(controllerPos -> {
-			Level level = getStorageBlockLevel();
-			if (!level.isClientSide()) {
-				BlockPos controlledStorageBlockPos = getControlledStorageBlockPos();
-				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class).ifPresent(controller -> {
-					if (controller.isStorageConnected(controlledStorageBlockPos)) {
-						if (hasStorageData()) {
-							controller.addStorageStacksAndRegisterListeners(controlledStorageBlockPos);
-						}
-					} else {
-						removeControllerPos();
-						tryToAddToController();
-					}
-				});
-			}
-		}, this::tryToAddToController);
+		if (!getStorageBlockLevel().isClientSide()) {
+			tryToAddToController();
+		}
 	}
 
 	default void changeSlots(int newSlots) {

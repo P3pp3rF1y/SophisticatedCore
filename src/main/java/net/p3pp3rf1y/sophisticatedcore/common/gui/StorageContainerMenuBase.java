@@ -192,10 +192,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		int slotIndex = 0;
 
 		while (slotIndex < upgradeHandler.size()) {
-			addUpgradeSlot(new StorageUpgradeSlot(upgradeHandler, slotIndex));
+			addUpgradeSlot(instantiateUpgradeSlot(upgradeHandler, slotIndex));
 
 			slotIndex++;
 		}
+	}
+
+	protected StorageUpgradeSlot instantiateUpgradeSlot(UpgradeHandler upgradeHandler, int slotIndex) {
+		return new StorageUpgradeSlot(upgradeHandler, slotIndex);
 	}
 
 	public int getColumnsTaken() {
@@ -934,6 +938,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public void setUpgradeChangeListener(Consumer<StorageContainerMenuBase<?>> upgradeChangeListener) {
 		this.upgradeChangeListener = upgradeChangeListener;
+	}
+
+	public void refreshUpgradeControls() {
+		if (isClientSide()) {
+			reloadUpgradeControl(false);
+		}
 	}
 
 	public abstract void openSettings();
@@ -1984,6 +1994,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				}
 				onUpgradeChanged();
 			}
+		}
+
+		protected void onUpgradeChanged() {
+			// noop by default
 		}
 
 		private ReloadCheckResult updateWrappersAndCheckForReloadNeeded(boolean wasEmpty, ItemStack stack) {

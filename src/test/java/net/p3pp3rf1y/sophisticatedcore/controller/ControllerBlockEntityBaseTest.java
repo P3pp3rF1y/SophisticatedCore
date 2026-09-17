@@ -2,6 +2,11 @@ package net.p3pp3rf1y.sophisticatedcore.controller;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.LongTag;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -11,6 +16,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -42,6 +48,36 @@ class ControllerBlockEntityBaseTest {
 		// assert
 		assertTrue(matchesFilter);
 		assertEquals(0, insertedAmountAfterAction, "Filter matching probe should roll back its simulated insert");
+	}
+
+	@Test
+	void legacyStoragePositionsPopulateStorageKeysAndIndexesWhenStorageKeysAreAbsent() {
+		BlockPos firstPosition = new BlockPos(3, 64, -2);
+		BlockPos secondPosition = new BlockPos(-7, 80, 11);
+		CompoundTag legacyData = new CompoundTag();
+		ListTag storagePositions = new ListTag();
+		storagePositions.add(LongTag.valueOf(firstPosition.asLong()));
+		storagePositions.add(LongTag.valueOf(secondPosition.asLong()));
+		legacyData.put("storagePositions", storagePositions);
+		TestControllerBlockEntity controller = new TestControllerBlockEntity();
+
+		controller.loadAdditional(ValueIOHelper.inputFromCompoundTag(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY), legacyData));
+
+		assertEquals(java.util.List.of(firstPosition, secondPosition), controller.getStoragePositions());
+		assertTrue(controller.isStorageConnected(firstPosition));
+		assertTrue(controller.isStorageConnected(secondPosition));
+
+		CompoundTag explicitEmptyStorageKeys = legacyData.copy();
+		explicitEmptyStorageKeys.put("storageKeys", new ListTag());
+		TestControllerBlockEntity controllerWithExplicitEmptyKeys = new TestControllerBlockEntity();
+
+		controllerWithExplicitEmptyKeys.loadAdditional(
+				ValueIOHelper.inputFromCompoundTag(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY), explicitEmptyStorageKeys));
+
+		assertTrue(controllerWithExplicitEmptyKeys.getStoragePositions().isEmpty(),
+				"Legacy storagePositions must not migrate when storageKeys is explicitly empty");
+		assertTrue(!controllerWithExplicitEmptyKeys.isStorageConnected(firstPosition));
+		assertTrue(!controllerWithExplicitEmptyKeys.isStorageConnected(secondPosition));
 	}
 
 	private static class TestControllerBlockEntity extends ControllerBlockEntityBase {

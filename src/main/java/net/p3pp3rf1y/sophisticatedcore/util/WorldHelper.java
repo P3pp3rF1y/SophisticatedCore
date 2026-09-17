@@ -1,10 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.FuelValues;
@@ -72,6 +74,18 @@ public class WorldHelper {
 			throw new IllegalArgumentException("Cannot get fuel values without a server instance.");
 		}
 		return currentServer.fuelValues();
+	}
+
+	public static void notifyBlockEntityUpdate(BlockEntity tile) {
+		notifyBlockUpdate(tile);
+		if (!(tile.getLevel() instanceof ServerLevel serverLevel)) {
+			return;
+		}
+
+		Packet<?> updatePacket = tile.getUpdatePacket();
+		if (updatePacket != null) {
+			serverLevel.getChunkSource().chunkMap.getPlayers(new ChunkPos(tile.getBlockPos()), false).forEach(player -> player.connection.send(updatePacket));
+		}
 	}
 
 	public static List<BlockEntity> getBlockEntitiesInRange(Level level, BlockPos origin, int range) {
