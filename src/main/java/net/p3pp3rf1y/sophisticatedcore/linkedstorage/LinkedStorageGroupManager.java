@@ -14,6 +14,7 @@ public class LinkedStorageGroupManager {
 	private final LinkedStorageGroupsSavedData savedData;
 	private final Map<UUID, ILinkedStorageVirtualHost> virtualHosts = new HashMap<>();
 	private final Map<UUID, Set<Runnable>> groupChangeListeners = new HashMap<>();
+	private final Map<UUID, Set<Runnable>> rootContentsReplacementListeners = new HashMap<>();
 
 	LinkedStorageGroupManager(LinkedStorageGroupsSavedData savedData) {
 		this.savedData = savedData;
@@ -40,11 +41,11 @@ public class LinkedStorageGroupManager {
 
 	private Optional<ILinkedStorageVirtualHost> resolveVirtualHost(UUID groupId, LinkedStorageGroupRecord group) {
 		return LinkedStorageHostFactories.get(group.hostDescriptor().factoryId())
-				.map(factory -> virtualHosts.computeIfAbsent(groupId, id -> factory.create(new Binding(groupId), group.hostDescriptor().virtualCarrier())));
+				.map(factory -> virtualHosts.computeIfAbsent(groupId, id -> factory.create(new Contents(groupId), group.hostDescriptor().virtualCarrier())));
 	}
 
-	public Optional<ILinkedStorageContentsBinding> resolveContents(UUID groupId) {
-		return savedData.findGroup(groupId).map(group -> new Binding(groupId));
+	public Optional<ILinkedStorageContents> resolveContents(UUID groupId) {
+		return savedData.findGroup(groupId).map(group -> new Contents(groupId));
 	}
 
 	public long getRevision(UUID groupId) {
@@ -59,6 +60,15 @@ public class LinkedStorageGroupManager {
 		getGroup(groupId);
 		groupChangeListeners.computeIfAbsent(groupId, id -> new LinkedHashSet<>()).add(listener);
 		return () -> groupChangeListeners.computeIfPresent(groupId, (id, groupListeners) -> {
+			groupListeners.remove(listener);
+			return groupListeners.isEmpty() ? null : groupListeners;
+		});
+	}
+
+	public Runnable subscribeToRootContentsReplacements(UUID groupId, Runnable listener) {
+		getGroup(groupId);
+		rootContentsReplacementListeners.computeIfAbsent(groupId, id -> new LinkedHashSet<>()).add(listener);
+		return () -> rootContentsReplacementListeners.computeIfPresent(groupId, (id, groupListeners) -> {
 			groupListeners.remove(listener);
 			return groupListeners.isEmpty() ? null : groupListeners;
 		});
@@ -107,6 +117,15 @@ public class LinkedStorageGroupManager {
 		return savedData.findGroup(groupId).map(group -> group.hasEndpoint(endpointId)).orElse(false);
 	}
 
+	public Optional<LinkedStorageEndpointData> createSecondaryEndpoint(LinkedStorageEndpointData sourceEndpoint) {
+		return savedData.findGroup(sourceEndpoint.groupId()).filter(group -> group.hasEndpoint(sourceEndpoint.endpointId())).map(group -> {
+			UUID endpointId = UUID.randomUUID();
+			group.addEndpoint(endpointId);
+			commit(sourceEndpoint.groupId(), false, false, false);
+			return new LinkedStorageEndpointData(sourceEndpoint.groupId(), endpointId);
+		});
+	}
+
 	public void recordEndpointOpened(UUID groupId, UUID endpointId, UUID playerId, long gameTime) {
 		LinkedStorageGroupRecord group = getGroup(groupId);
 		if (!group.hasEndpoint(endpointId)) {
@@ -137,6 +156,7 @@ public class LinkedStorageGroupManager {
 		}
 		virtualHosts.remove(groupId);
 		groupChangeListeners.remove(groupId);
+		rootContentsReplacementListeners.remove(groupId);
 		savedData.removeGroup(groupId);
 	}
 
@@ -191,18 +211,25 @@ public class LinkedStorageGroupManager {
 		if (contentsReplaced && virtualHost != null) {
 			virtualHost.onLinkedStorageContentsChanged();
 		}
+		if (contentsReplaced) {
+			notifyListeners(rootContentsReplacementListeners.getOrDefault(groupId, Set.of()));
+		}
 		if (layoutChanged && virtualHost != null) {
 			virtualHost.onLinkedStorageLayoutChanged();
 		}
-		for (Runnable listener : Set.copyOf(groupChangeListeners.getOrDefault(groupId, Set.of()))) {
+		notifyListeners(groupChangeListeners.getOrDefault(groupId, Set.of()));
+	}
+
+	private void notifyListeners(Set<Runnable> listeners) {
+		for (Runnable listener : Set.copyOf(listeners)) {
 			listener.run();
 		}
 	}
 
-	private class Binding implements ILinkedStorageContentsBinding {
+	private class Contents implements ILinkedStorageContents {
 		private final UUID groupId;
 
-		private Binding(UUID groupId) {
+		private Contents(UUID groupId) {
 			this.groupId = groupId;
 		}
 

@@ -4,5 +4,5 @@ import net.minecraft.nbt.CompoundTag;
 
 @FunctionalInterface
 public interface ILinkedStorageHostFactory {
-	ILinkedStorageVirtualHost create(ILinkedStorageContentsBinding contents, CompoundTag virtualCarrier);
+	ILinkedStorageVirtualHost create(ILinkedStorageContents contents, CompoundTag virtualCarrier);
 }

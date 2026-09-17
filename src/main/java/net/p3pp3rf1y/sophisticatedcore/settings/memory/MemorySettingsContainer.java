@@ -43,6 +43,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 			getCategory().unselectSlot(slotNumber);
 			getSettingsContainer().onMemorizedStackRemoved(slotNumber);
 		} else {
+			getCategory().unselectSlot(slotNumber);
 			sendIntToServer(UNSELECT_SLOT_TAG, slotNumber);
 		}
 	}
@@ -55,6 +56,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 			getCategory().selectSlot(slotNumber);
 			getSettingsContainer().onMemorizedStackAdded(slotNumber);
 		} else {
+			getCategory().selectSlot(slotNumber);
 			sendIntToServer(SELECT_SLOT_TAG, slotNumber);
 		}
 	}
@@ -65,6 +67,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 			getCategory().unselectAllSlots();
 			selectedSlots.forEach(slotNumber -> getSettingsContainer().onMemorizedStackRemoved(slotNumber));
 		} else {
+			getCategory().unselectAllSlots();
 			sendStringToServer(ACTION_TAG, UNSELECT_ALL_ACTION);
 		}
 	}
@@ -73,6 +76,7 @@ public class MemorySettingsContainer extends SettingsContainerBase<MemorySetting
 		if (isServer()) {
 			getCategory().selectSlots(0, getSettingsContainer().getNumberOfSlots());
 		} else {
+			getCategory().selectSlots(0, getSettingsContainer().getNumberOfSlots());
 			sendStringToServer(ACTION_TAG, SELECT_ALL_ACTION);
 		}
 	}

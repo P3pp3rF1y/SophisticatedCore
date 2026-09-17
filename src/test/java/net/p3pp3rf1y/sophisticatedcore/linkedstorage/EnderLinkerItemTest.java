@@ -180,7 +180,7 @@ class EnderLinkerItemTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void linkWithResultDoesNotRegisterBlockEndpointWhenBindingFails() {
+	void linkWithResultRegistersBlockEndpointBeforeBinding() {
 		UUID groupId = UUID.randomUUID();
 		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
 		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
@@ -204,7 +204,7 @@ class EnderLinkerItemTest {
 		}
 
 		assertEquals(1, linker.getCount());
-		Mockito.verify(manager, Mockito.never()).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		Mockito.verify(manager).registerEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
 	@Test
@@ -504,7 +504,7 @@ class EnderLinkerItemTest {
 	}
 
 	@Test
-	void createSecondaryEndpointCopyDoesNotRegisterEndpointWhenBindingFails() {
+	void createSecondaryEndpointCopyRegistersEndpointBeforeBinding() {
 		UUID groupId = UUID.randomUUID();
 		UUID sourceEndpointId = UUID.randomUUID();
 		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
@@ -534,7 +534,7 @@ class EnderLinkerItemTest {
 			assertThrows(IllegalStateException.class, () -> LinkedStorageService.createSecondaryEndpointCopy(level, source));
 		}
 
-		Mockito.verify(manager, Mockito.never()).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		Mockito.verify(manager).registerEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
 	private static void mockLinkedStorageHost(LinkedStorageGroupManager manager, UUID groupId) {

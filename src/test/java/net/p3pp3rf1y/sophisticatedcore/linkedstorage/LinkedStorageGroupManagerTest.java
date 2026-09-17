@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -15,10 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class LinkedStorageGroupManagerTest {
 	@Test
@@ -46,13 +44,30 @@ class LinkedStorageGroupManagerTest {
 		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
 				new ContainerContents());
 		TestHost host = (TestHost) manager.resolveVirtualHost(groupId).orElseThrow();
-		ILinkedStorageContentsBinding contents = manager.resolveContents(groupId).orElseThrow();
+		ILinkedStorageContents contents = manager.resolveContents(groupId).orElseThrow();
 
 		contents.contents().inventory().stacks().add(new ItemStack(Items.STICK));
 		contents.markDirty();
 		contents.setContents(groupId, new ContainerContents());
 
 		assertEquals(1, host.refreshes());
+	}
+
+	@Test
+	void rootContentsReplacementListenerRunsOnlyAfterFullRootReplacement() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "root_listener_test_host_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new ContainerContents());
+		AtomicInteger notifications = new AtomicInteger();
+		manager.subscribeToRootContentsReplacements(groupId, notifications::incrementAndGet);
+		ILinkedStorageContents contents = manager.resolveContents(groupId).orElseThrow();
+
+		contents.markChanged();
+		contents.setContents(groupId, new ContainerContents());
+
+		assertEquals(1, notifications.get());
 	}
 
 	@Test
@@ -63,7 +78,7 @@ class LinkedStorageGroupManagerTest {
 		LinkedStorageGroupManager manager = savedData.manager();
 		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
 				new ContainerContents());
-		ILinkedStorageContentsBinding contents = manager.resolveContents(groupId).orElseThrow();
+		ILinkedStorageContents contents = manager.resolveContents(groupId).orElseThrow();
 
 		contents.markRenderDirty();
 
@@ -147,7 +162,7 @@ class LinkedStorageGroupManagerTest {
 				new ContainerContents());
 		TestHost host = (TestHost) manager.resolveVirtualHost(groupId).orElseThrow();
 		host.virtualCarrier.putString("render", "refreshed");
-		ILinkedStorageContentsBinding contents = manager.resolveContents(groupId).orElseThrow();
+		ILinkedStorageContents contents = manager.resolveContents(groupId).orElseThrow();
 		contents.setContents(groupId, new ContainerContents());
 		contents.contents().inventory().stacks().add(new ItemStack(Items.STICK));
 		contents.markDirty();
@@ -157,6 +172,23 @@ class LinkedStorageGroupManagerTest {
 		assertEquals(3, loaded.manager().getRevision(groupId));
 		assertEquals(1, loaded.manager().resolveContents(groupId).orElseThrow().contents().inventory().stacks().size());
 		assertEquals("refreshed", loaded.manager().getHostDescriptor(groupId).orElseThrow().virtualCarrier().getStringOr("render", ""));
+	}
+
+	@Test
+	void codecPreservesLinkedStorageSavedDataFieldNames() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "codec_field_names_test_host_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupsSavedData savedData = new LinkedStorageGroupsSavedData();
+		savedData.manager().createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new ContainerContents());
+
+		CompoundTag tag = (CompoundTag) LinkedStorageGroupsSavedData.CODEC.encodeStart(NbtOps.INSTANCE, savedData).getOrThrow();
+		CompoundTag group = tag.getListOrEmpty("groups").getCompound(0).orElseThrow();
+
+		assertTrue(group.contains("id"));
+		assertTrue(group.contains("factory_id"));
+		assertTrue(group.contains("virtual_carrier"));
+		assertTrue(group.contains("contents"));
 	}
 
 	@Test
@@ -219,18 +251,18 @@ class LinkedStorageGroupManagerTest {
 	}
 
 	private static class TestHost implements ILinkedStorageVirtualHost {
-		private final ILinkedStorageContentsBinding contents;
+		private final ILinkedStorageContents contents;
 		private CompoundTag virtualCarrier;
 		private int refreshes;
 		private int layoutRefreshes;
 		private int snapshots;
 
-		private TestHost(ILinkedStorageContentsBinding contents, CompoundTag virtualCarrier) {
+		private TestHost(ILinkedStorageContents contents, CompoundTag virtualCarrier) {
 			this.contents = contents;
 			this.virtualCarrier = virtualCarrier;
 		}
 
-		private ILinkedStorageContentsBinding contents() {
+		private ILinkedStorageContents contents() {
 			return contents;
 		}
 

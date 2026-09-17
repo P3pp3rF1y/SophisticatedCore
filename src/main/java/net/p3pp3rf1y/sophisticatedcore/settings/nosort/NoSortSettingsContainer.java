@@ -41,6 +41,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 		if (isServer()) {
 			getCategory().unselectSlot(slotNumber);
 		} else {
+			getCategory().unselectSlot(slotNumber);
 			sendIntToServer(UNSELECT_SLOT_TAG, slotNumber);
 		}
 	}
@@ -52,6 +53,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 		if (isServer()) {
 			getCategory().selectSlot(slotNumber);
 		} else {
+			getCategory().selectSlot(slotNumber);
 			sendIntToServer(SELECT_SLOT_TAG, slotNumber);
 		}
 	}
@@ -60,6 +62,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 		if (isServer()) {
 			getCategory().unselectAllSlots();
 		} else {
+			getCategory().unselectAllSlots();
 			sendStringToServer(ACTION_TAG, UNSELECT_ALL_ACTION);
 		}
 	}
@@ -68,6 +71,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 		if (isServer()) {
 			getCategory().selectSlots(0, getSettingsContainer().getNumberOfSlots());
 		} else {
+			getCategory().selectSlots(0, getSettingsContainer().getNumberOfSlots());
 			sendStringToServer(ACTION_TAG, SELECT_ALL_ACTION);
 		}
 	}
@@ -76,6 +80,7 @@ public class NoSortSettingsContainer extends SettingsContainerBase<NoSortSetting
 		if (isServer()) {
 			getCategory().setColor(color);
 		} else {
+			getCategory().setColor(color);
 			sendIntToServer(COLOR_TAG, color.getId());
 		}
 	}
