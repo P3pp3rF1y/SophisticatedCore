@@ -22,4 +22,8 @@ public interface ILinkedStorageVirtualHost {
 	default Optional<Component> getLinkedStorageDisplayName() {
 		return Optional.empty();
 	}
+
+	default Optional<LinkedStorageSnapshotProfile> getLinkedStorageSnapshotProfile() {
+		return Optional.empty();
+	}
 }

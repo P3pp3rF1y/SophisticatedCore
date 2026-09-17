@@ -64,8 +64,9 @@ class ControllerBlockEntityBaseTest {
 		}
 
 		private void addFilteredStorage(BlockPos storagePos) {
-			filteredInputStorages.add(storagePos);
-			emptySlotsStorages.add(storagePos);
+			ControllerStorageKey storageKey = new ControllerStorageKey(storagePos);
+			filteredInputStorageKeys.add(storageKey);
+			emptySlotStorageKeys.add(storageKey);
 		}
 
 		private int getInsertedAmount() {

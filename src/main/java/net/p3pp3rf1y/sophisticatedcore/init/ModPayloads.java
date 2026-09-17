@@ -3,6 +3,8 @@ package net.p3pp3rf1y.sophisticatedcore.init;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageContentsPayload;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.RequestLinkedStorageContentsPayload;
 import net.p3pp3rf1y.sophisticatedcore.network.*;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.PlayDiscPayload;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StopDiscPlaybackPayload;
@@ -38,5 +40,8 @@ public class ModPayloads {
 				RequestLinkerCraftingDiagnosticsPayload::handlePayload);
 		registrar.playToClient(SyncLinkerCraftingDiagnosticsPayload.TYPE, SyncLinkerCraftingDiagnosticsPayload.STREAM_CODEC,
 				SyncLinkerCraftingDiagnosticsPayload::handlePayload);
+		registrar.playToServer(RequestLinkedStorageContentsPayload.TYPE, RequestLinkedStorageContentsPayload.STREAM_CODEC,
+				RequestLinkedStorageContentsPayload::handlePayload);
+		registrar.playToClient(LinkedStorageContentsPayload.TYPE, LinkedStorageContentsPayload.STREAM_CODEC, LinkedStorageContentsPayload::handlePayload);
 	}
 }

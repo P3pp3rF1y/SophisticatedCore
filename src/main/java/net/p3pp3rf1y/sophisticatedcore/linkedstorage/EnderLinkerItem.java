@@ -78,7 +78,7 @@ public class EnderLinkerItem extends ItemBase {
 		if (level.isClientSide()) {
 			return InteractionResult.SUCCESS;
 		}
-		Optional<LinkedStorageService.LinkResult> result = tryLinkInteractionTarget(player, linker, endpoint, pos);
+		Optional<LinkedStorageService.LinkResult> result = tryLinkInteractionTarget(player, linker, endpoint.getLinkedStorageInteractionTarget(), pos);
 		if (result.isEmpty() || result.get() != LinkedStorageService.LinkResult.SUCCESS) {
 			return InteractionResult.FAIL;
 		}
@@ -97,7 +97,12 @@ public class EnderLinkerItem extends ItemBase {
 	public static Optional<LinkedStorageService.LinkResult> tryLinkInteractionTarget(Player player, ItemStack linker, ILinkedStorageInteractionTarget target,
 			@Nullable BlockPos feedbackPos) {
 		if (!target.isLinkedStorageLinkCandidate()) {
-			return Optional.empty();
+			Component failureMessage = target.getLinkedStorageLinkFailureMessage();
+			if (failureMessage == null) {
+				return Optional.empty();
+			}
+			playFailureFeedback(player, failureMessage);
+			return Optional.of(LinkedStorageService.LinkResult.UNSUPPORTED_ENDPOINT);
 		}
 
 		LinkedStorageEndpointData previousEndpoint = target.getLinkedStorageEndpointData();
@@ -168,8 +173,12 @@ public class EnderLinkerItem extends ItemBase {
 	}
 
 	private static void playFailureFeedback(Player player, LinkedStorageService.LinkResult result) {
+		playFailureFeedback(player, TranslationHelper.INSTANCE.translStatusMessage("ender_linker." + result.name().toLowerCase()));
+	}
+
+	private static void playFailureFeedback(Player player, Component message) {
 		player.level().playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.PLAYERS, 1, 0.7F);
-		player.sendSystemMessage(TranslationHelper.INSTANCE.translStatusMessage("ender_linker." + result.name().toLowerCase()));
+		player.sendSystemMessage(message);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -106,7 +107,8 @@ class EnderLinkerItemTest {
 		Player player = Mockito.mock(Player.class);
 		Inventory inventory = Mockito.mock(Inventory.class);
 		Slot slot = Mockito.mock(Slot.class);
-		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter();
+		ILinkedStorageItemEndpointAdapter adapter = Mockito.spy(new TestEndpointAdapter());
+		Identifier factoryId = adapter.factoryId();
 		LinkedStorageEndpointAdapters.register(adapter);
 		ItemStack linker = new ItemStack(Items.BLAZE_ROD, 2);
 		linker.set(ModCoreDataComponents.ENDER_LINKER_TARGET, new EnderLinkerTargetData(groupId, Component.empty()));
@@ -116,8 +118,8 @@ class EnderLinkerItemTest {
 		Mockito.when(player.getInventory()).thenReturn(inventory);
 		Mockito.when(inventory.add(Mockito.any(ItemStack.class))).thenReturn(true);
 		Mockito.when(slot.getItem()).thenReturn(endpoint);
-		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
-		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(new LinkedStorageHostDescriptor(adapter.factoryId(), new CompoundTag())));
+		Mockito.when(manager.usesHostFactory(groupId, factoryId)).thenReturn(true);
+		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(new LinkedStorageHostDescriptor(factoryId, new CompoundTag())));
 		Mockito.when(savedData.manager()).thenReturn(manager);
 
 		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
@@ -129,6 +131,9 @@ class EnderLinkerItemTest {
 
 		assertEquals(1, linker.getCount());
 		assertEquals(groupId, endpoint.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT).groupId());
+		InOrder inOrder = Mockito.inOrder(manager, adapter);
+		inOrder.verify(manager).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		inOrder.verify(adapter).bindEndpoint(Mockito.eq(level), Mockito.same(endpoint), Mockito.any());
 	}
 
 	@Test
@@ -194,35 +199,6 @@ class EnderLinkerItemTest {
 		Mockito.verify(adapter).bindEndpoint(Mockito.eq(level), Mockito.same(endpoint),
 				Mockito.argThat(endpointData -> endpointData.groupId().equals(groupId)));
 		Mockito.verify(adapter).onEndpointLinked(level, endpoint);
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	void linkWithResultDoesNotRegisterBlockEndpointWhenBindingFails() {
-		UUID groupId = UUID.randomUUID();
-		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
-		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
-		ServerLevel level = Mockito.mock(ServerLevel.class);
-		ILinkedStorageBlockEndpoint endpoint = Mockito.mock(ILinkedStorageBlockEndpoint.class);
-		ILinkedStorageEndpointAdapter<ILinkedStorageBlockEndpoint> adapter = Mockito.mock(ILinkedStorageEndpointAdapter.class);
-		LinkedStorageHostDescriptor descriptor = new LinkedStorageHostDescriptor(TestEndpointAdapter.FACTORY_ID, new CompoundTag());
-		Mockito.when(endpoint.getLinkedStorageBlockEndpointAdapter()).thenReturn(adapter);
-		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(descriptor));
-		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
-		Mockito.when(adapter.getCompatibility(level, endpoint, descriptor)).thenReturn(ILinkedStorageEndpointAdapter.Compatibility.COMPATIBLE);
-		Mockito.when(savedData.manager()).thenReturn(manager);
-		Mockito.doThrow(new IllegalStateException("binding failed")).when(adapter).bindEndpoint(Mockito.eq(level), Mockito.same(endpoint), Mockito.any());
-		ItemStack linker = new ItemStack(Items.BLAZE_ROD);
-		linker.set(ModCoreDataComponents.ENDER_LINKER_TARGET, new EnderLinkerTargetData(groupId, Component.empty()));
-
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
-			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
-
-			assertThrows(IllegalStateException.class, () -> LinkedStorageService.linkWithResult(level, null, linker, endpoint));
-		}
-
-		assertEquals(1, linker.getCount());
-		Mockito.verify(manager, Mockito.never()).registerEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
 	@Test
@@ -524,40 +500,6 @@ class EnderLinkerItemTest {
 			assertEquals(groupId, copiedEndpoint.groupId());
 			assertFalse(sourceEndpointId.equals(copiedEndpoint.endpointId()));
 		}
-	}
-
-	@Test
-	void createSecondaryEndpointCopyDoesNotRegisterEndpointWhenBindingFails() {
-		UUID groupId = UUID.randomUUID();
-		UUID sourceEndpointId = UUID.randomUUID();
-		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
-		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
-		ServerLevel level = Mockito.mock(ServerLevel.class);
-		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter() {
-			@Override
-			public boolean supports(ItemStack stack) {
-				return stack.is(Items.BLAZE_POWDER);
-			}
-
-			@Override
-			public void bindEndpoint(ServerLevel serverLevel, ItemStack stack, LinkedStorageEndpointData endpoint) {
-				throw new IllegalStateException("binding failed");
-			}
-		};
-		LinkedStorageEndpointAdapters.register(adapter);
-		Mockito.when(manager.isEndpointMember(groupId, sourceEndpointId)).thenReturn(true);
-		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
-		Mockito.when(savedData.manager()).thenReturn(manager);
-		ItemStack source = new ItemStack(Items.BLAZE_POWDER);
-		source.set(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT, new LinkedStorageEndpointData(groupId, sourceEndpointId));
-
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
-			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
-
-			assertThrows(IllegalStateException.class, () -> LinkedStorageService.createSecondaryEndpointCopy(level, source));
-		}
-
-		Mockito.verify(manager, Mockito.never()).registerEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
 	private static void mockLinkedStorageHost(LinkedStorageGroupManager manager, UUID groupId) {

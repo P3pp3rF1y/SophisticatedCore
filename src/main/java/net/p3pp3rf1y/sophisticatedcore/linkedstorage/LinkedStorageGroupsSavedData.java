@@ -1,19 +1,28 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.SavedDataStorage;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,28 +30,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class LinkedStorageGroupsSavedData extends SavedData {
-	private static final String SAVED_DATA_NAME = SophisticatedCore.MOD_ID + "_linked_storage_groups";
-	private static final String GROUPS_TAG = "groups";
-	private static final String ID_TAG = "id";
-	private static final String REVISION_TAG = "revision";
-	private static final String RENDER_REVISION_TAG = "render_revision";
-	private static final String COLUMNS_TAKEN_TAG = "columns_taken";
-	private static final String OWNER_ID_TAG = "owner_id";
-	private static final String PRIMARY_ENDPOINT_ID_TAG = "primary_endpoint_id";
-	private static final String ENDPOINTS_TAG = "endpoints";
-	private static final String LAST_OPENED_BY_TAG = "last_opened_by";
-	private static final String LAST_OPENED_AT_TAG = "last_opened_at";
-	private static final String FACTORY_ID_TAG = "factory_id";
-	private static final String VIRTUAL_CARRIER_TAG = "virtual_carrier";
-	private static final String CONTENTS_TAG = "contents";
-	private static final String ACTIVE_PENDING_CLAIMS_TAG = "active_pending_claims";
-	private static final String CLAIM_ID_TAG = "claim_id";
-	private static final String GROUP_ID_TAG = "group_id";
-	private static final String ENDPOINT_ID_TAG = "endpoint_id";
-	private static final String PLAN_KIND_TAG = "plan_kind";
+	private static final String LEGACY_SAVED_DATA_NAME = SophisticatedCore.MOD_ID + "_linked_storage_groups";
+	static final Codec<LinkedStorageGroupsSavedData> CODEC = RecordCodecBuilder.create(instance -> instance
+			.group(Codec.list(SerializedGroup.CODEC).optionalFieldOf("groups", List.of()).forGetter(LinkedStorageGroupsSavedData::serializeGroups),
+					Codec.list(ActivePendingCraftClaim.CODEC).optionalFieldOf("active_pending_claims", List.of())
+							.forGetter(LinkedStorageGroupsSavedData::serializeActivePendingClaims))
+			.apply(instance, LinkedStorageGroupsSavedData::fromSerializedData));
 	private static final SavedDataType<LinkedStorageGroupsSavedData> TYPE = new SavedDataType<>(
-			Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, SAVED_DATA_NAME), LinkedStorageGroupsSavedData::new,
-			CompoundTag.CODEC.xmap(LinkedStorageGroupsSavedData::load, LinkedStorageGroupsSavedData::save));
+			Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "linked_storage_groups"), LinkedStorageGroupsSavedData::new, CODEC);
+	private static final SavedDataType<LinkedStorageGroupsSavedData> LEGACY_TYPE = new SavedDataType<>(
+			Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, LEGACY_SAVED_DATA_NAME), LinkedStorageGroupsSavedData::new, CODEC);
 
 	private final Map<UUID, LinkedStorageGroupRecord> groups;
 	private final Map<UUID, ActivePendingCraftClaim> activePendingClaims;
@@ -64,7 +61,44 @@ public class LinkedStorageGroupsSavedData extends SavedData {
 			throw new IllegalStateException("Linked storage groups require an Overworld");
 		}
 		SavedDataStorage storage = overworld.getDataStorage();
+		LinkedStorageGroupsSavedData savedData = storage.get(TYPE);
+		if (savedData != null) {
+			return savedData;
+		}
+		LinkedStorageGroupsSavedData legacySavedData = storage.get(LEGACY_TYPE);
+		if (legacySavedData != null) {
+			SophisticatedCore.LOGGER.info("Migrating legacy linked storage groups to current saved data path");
+			storage.set(TYPE, legacySavedData);
+			return legacySavedData;
+		}
+		Optional<LinkedStorageGroupsSavedData> legacyRawSavedData = readLegacyRawSavedData(storage, level.getServer());
+		if (legacyRawSavedData.isPresent()) {
+			LinkedStorageGroupsSavedData migratedSavedData = legacyRawSavedData.get();
+			SophisticatedCore.LOGGER.info("Migrating legacy linked storage groups to current saved data path");
+			storage.set(TYPE, migratedSavedData);
+			return migratedSavedData;
+		}
 		return storage.computeIfAbsent(TYPE);
+	}
+
+	private static Optional<LinkedStorageGroupsSavedData> readLegacyRawSavedData(SavedDataStorage storage, MinecraftServer server) {
+		Path legacyDataFile = server.getWorldPath(LevelResource.DATA).resolve(LEGACY_SAVED_DATA_NAME + ".dat");
+		if (!Files.exists(legacyDataFile)) {
+			return Optional.empty();
+		}
+
+		try {
+			CompoundTag tag = storage.readTagFromDisk(legacyDataFile, null, SharedConstants.getCurrentVersion().dataVersion().version());
+			RegistryOps<Tag> ops = server.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+			return deserializeLegacySavedData(tag, ops);
+		} catch (IOException e) {
+			SophisticatedCore.LOGGER.error("Failed to read legacy linked storage groups from {}", legacyDataFile, e);
+			return Optional.empty();
+		}
+	}
+
+	static Optional<LinkedStorageGroupsSavedData> deserializeLegacySavedData(CompoundTag savedDataTag, DynamicOps<Tag> ops) {
+		return savedDataTag.getCompound("data").flatMap(data -> CODEC.parse(ops, data).result());
 	}
 
 	public LinkedStorageGroupManager manager() {
@@ -72,87 +106,50 @@ public class LinkedStorageGroupsSavedData extends SavedData {
 	}
 
 	public CompoundTag save() {
-		CompoundTag tag = new CompoundTag();
-		ListTag groupsTag = new ListTag();
-		for (LinkedStorageGroupRecord group : groups.values()) {
-			CompoundTag groupTag = new CompoundTag();
-			groupTag.store(ID_TAG, UUIDUtil.CODEC, group.id());
-			groupTag.putLong(REVISION_TAG, group.revision());
-			groupTag.putLong(RENDER_REVISION_TAG, group.renderRevision());
-			groupTag.putInt(COLUMNS_TAKEN_TAG, group.columnsTaken());
-			groupTag.store(OWNER_ID_TAG, UUIDUtil.CODEC, group.ownerId());
-			groupTag.store(PRIMARY_ENDPOINT_ID_TAG, UUIDUtil.CODEC, group.primaryEndpointId());
-			ListTag endpointsTag = new ListTag();
-			for (LinkedStorageEndpointRecord endpoint : group.endpoints()) {
-				CompoundTag endpointTag = new CompoundTag();
-				endpointTag.store(ID_TAG, UUIDUtil.CODEC, endpoint.endpointId());
-				if (endpoint.lastOpenedBy() != null) {
-					endpointTag.store(LAST_OPENED_BY_TAG, UUIDUtil.CODEC, endpoint.lastOpenedBy());
-				}
-				endpointTag.putLong(LAST_OPENED_AT_TAG, endpoint.lastOpenedAt());
-				endpointsTag.add(endpointTag);
-			}
-			groupTag.put(ENDPOINTS_TAG, endpointsTag);
-			groupTag.putString(FACTORY_ID_TAG, group.hostDescriptor().factoryId().toString());
-			groupTag.put(VIRTUAL_CARRIER_TAG, group.hostDescriptor().virtualCarrier());
-			groupTag.store(CONTENTS_TAG, ContainerContents.CODEC, group.contents());
-			groupsTag.add(groupTag);
-		}
-		tag.put(GROUPS_TAG, groupsTag);
-		ListTag claimsTag = new ListTag();
-		for (ActivePendingCraftClaim claim : activePendingClaims.values()) {
-			CompoundTag claimTag = new CompoundTag();
-			claimTag.store(CLAIM_ID_TAG, UUIDUtil.CODEC, claim.claimId());
-			claimTag.store(GROUP_ID_TAG, UUIDUtil.CODEC, claim.groupId());
-			claimTag.store(ENDPOINT_ID_TAG, UUIDUtil.CODEC, claim.endpointId());
-			claimTag.putString(PLAN_KIND_TAG, claim.plan().getSerializedName());
-			claimsTag.add(claimTag);
-		}
-		tag.put(ACTIVE_PENDING_CLAIMS_TAG, claimsTag);
-		return tag;
+		return (CompoundTag) CODEC.encodeStart(NbtOps.INSTANCE, this).getOrThrow();
 	}
 
 	static LinkedStorageGroupsSavedData load(CompoundTag tag) {
+		return CODEC.parse(NbtOps.INSTANCE, tag).getOrThrow();
+	}
+
+	private static LinkedStorageGroupsSavedData fromSerializedData(List<SerializedGroup> serializedGroups, List<ActivePendingCraftClaim> activePendingClaims) {
 		Map<UUID, LinkedStorageGroupRecord> groups = new HashMap<>();
-		Map<UUID, ActivePendingCraftClaim> activePendingClaims = new HashMap<>();
-		for (Tag value : tag.getListOrEmpty(GROUPS_TAG)) {
-			if (value instanceof CompoundTag groupTag) {
-				LinkedStorageGroupRecord group = loadGroup(groupTag);
-				groups.put(group.id(), group);
-			}
-		}
-		for (Tag value : tag.getListOrEmpty(ACTIVE_PENDING_CLAIMS_TAG)) {
-			if (value instanceof CompoundTag claimTag) {
-				ActivePendingCraftClaim claim = loadActivePendingClaim(claimTag);
-				activePendingClaims.put(claim.claimId(), claim);
-			}
-		}
-		return new LinkedStorageGroupsSavedData(groups, activePendingClaims);
+		serializedGroups.forEach(group -> groups.put(group.id(), group.toGroupRecord()));
+		Map<UUID, ActivePendingCraftClaim> claims = new HashMap<>();
+		activePendingClaims.forEach(claim -> claims.put(claim.claimId(), claim));
+		return new LinkedStorageGroupsSavedData(groups, claims);
 	}
 
-	private static ActivePendingCraftClaim loadActivePendingClaim(CompoundTag tag) {
-		return new ActivePendingCraftClaim(readUuid(tag, CLAIM_ID_TAG), readUuid(tag, GROUP_ID_TAG), readUuid(tag, ENDPOINT_ID_TAG),
-				EnderLinkPendingCraftPlan.fromSerializedName(tag.getStringOr(PLAN_KIND_TAG, "")));
+	private List<SerializedGroup> serializeGroups() {
+		return groups.values().stream().map(SerializedGroup::fromGroupRecord).toList();
 	}
 
-	private static LinkedStorageGroupRecord loadGroup(CompoundTag tag) {
-		List<LinkedStorageEndpointRecord> endpoints = new ArrayList<>();
-		for (Tag endpointValue : tag.getListOrEmpty(ENDPOINTS_TAG)) {
-			if (endpointValue instanceof CompoundTag endpointTag) {
-				endpoints.add(new LinkedStorageEndpointRecord(readUuid(endpointTag, ID_TAG), endpointTag.read(LAST_OPENED_BY_TAG, UUIDUtil.CODEC).orElse(null),
-						endpointTag.getLongOr(LAST_OPENED_AT_TAG, 0)));
-			}
+	private List<ActivePendingCraftClaim> serializeActivePendingClaims() {
+		return List.copyOf(activePendingClaims.values());
+	}
+
+	private record SerializedGroup(UUID id, UUID ownerId, UUID primaryEndpointId, List<LinkedStorageEndpointRecord> endpoints,
+			LinkedStorageHostDescriptor hostDescriptor, ContainerContents contents, long revision, long renderRevision, int columnsTaken) {
+		private static final Codec<SerializedGroup> CODEC = RecordCodecBuilder.create(instance -> instance
+				.group(UUIDUtil.CODEC.fieldOf("id").forGetter(SerializedGroup::id), UUIDUtil.CODEC.fieldOf("owner_id").forGetter(SerializedGroup::ownerId),
+						UUIDUtil.CODEC.fieldOf("primary_endpoint_id").forGetter(SerializedGroup::primaryEndpointId),
+						Codec.list(LinkedStorageEndpointRecord.CODEC).fieldOf("endpoints").forGetter(SerializedGroup::endpoints),
+						LinkedStorageHostDescriptor.MAP_CODEC.forGetter(SerializedGroup::hostDescriptor),
+						ContainerContents.CODEC.fieldOf("contents").forGetter(SerializedGroup::contents),
+						Codec.LONG.optionalFieldOf("revision", 0L).forGetter(SerializedGroup::revision),
+						Codec.LONG.optionalFieldOf("render_revision", 0L).forGetter(SerializedGroup::renderRevision),
+						Codec.INT.optionalFieldOf("columns_taken", 0).forGetter(SerializedGroup::columnsTaken))
+				.apply(instance, SerializedGroup::new));
+
+		private static SerializedGroup fromGroupRecord(LinkedStorageGroupRecord group) {
+			return new SerializedGroup(group.id(), group.ownerId(), group.primaryEndpointId(), group.endpoints(), group.hostDescriptor(), group.contents(),
+					group.revision(), group.renderRevision(), group.columnsTaken());
 		}
-		UUID primaryEndpointId = readUuid(tag, PRIMARY_ENDPOINT_ID_TAG);
-		Identifier factoryId = Identifier.tryParse(tag.getStringOr(FACTORY_ID_TAG, ""));
-		LinkedStorageHostDescriptor descriptor = new LinkedStorageHostDescriptor(factoryId, tag.getCompoundOrEmpty(VIRTUAL_CARRIER_TAG));
-		return new LinkedStorageGroupRecord(readUuid(tag, ID_TAG), readUuid(tag, OWNER_ID_TAG), primaryEndpointId, endpoints, descriptor,
-				tag.read(CONTENTS_TAG, ContainerContents.CODEC).orElseGet(ContainerContents::new), tag.getLongOr(REVISION_TAG, 0),
-				tag.getLongOr(RENDER_REVISION_TAG, 0), tag.getIntOr(COLUMNS_TAKEN_TAG, 0));
-	}
 
-	private static UUID readUuid(CompoundTag tag, String key) {
-		return tag.read(key, UUIDUtil.CODEC).orElseThrow(() -> new IllegalArgumentException("Missing linked storage UUID " + key));
+		private LinkedStorageGroupRecord toGroupRecord() {
+			return new LinkedStorageGroupRecord(id, ownerId, primaryEndpointId, endpoints, hostDescriptor, contents, revision, renderRevision, columnsTaken);
+		}
 	}
 
 	Optional<LinkedStorageGroupRecord> findGroup(UUID groupId) {
