@@ -9,12 +9,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public class LinkedStorageGroupManager {
 	private final LinkedStorageGroupsSavedData savedData;
 	private final Map<UUID, ILinkedStorageVirtualHost> virtualHosts = new HashMap<>();
-	private final Map<UUID, Set<Consumer<GroupChange>>> groupChangeListeners = new HashMap<>();
+	private final Map<UUID, Set<Runnable>> groupChangeListeners = new HashMap<>();
+	private final Map<UUID, Set<Runnable>> rootContentsReplacementListeners = new HashMap<>();
 
 	LinkedStorageGroupManager(LinkedStorageGroupsSavedData savedData) {
 		this.savedData = savedData;
@@ -41,11 +41,11 @@ public class LinkedStorageGroupManager {
 
 	private Optional<ILinkedStorageVirtualHost> resolveVirtualHost(UUID groupId, LinkedStorageGroupRecord group) {
 		return LinkedStorageHostFactories.get(group.hostDescriptor().factoryId())
-				.map(factory -> virtualHosts.computeIfAbsent(groupId, id -> factory.create(new Binding(groupId), group.hostDescriptor().virtualCarrier())));
+				.map(factory -> virtualHosts.computeIfAbsent(groupId, id -> factory.create(new Contents(groupId), group.hostDescriptor().virtualCarrier())));
 	}
 
-	public Optional<ILinkedStorageContentsBinding> resolveContents(UUID groupId) {
-		return savedData.findGroup(groupId).map(group -> new Binding(groupId));
+	public Optional<ILinkedStorageContents> resolveContents(UUID groupId) {
+		return savedData.findGroup(groupId).map(group -> new Contents(groupId));
 	}
 
 	public long getRevision(UUID groupId) {
@@ -56,7 +56,7 @@ public class LinkedStorageGroupManager {
 		return getGroup(groupId).renderRevision();
 	}
 
-	public Runnable subscribeToGroupChanges(UUID groupId, Consumer<GroupChange> listener) {
+	public Runnable subscribeToGroupChanges(UUID groupId, Runnable listener) {
 		getGroup(groupId);
 		groupChangeListeners.computeIfAbsent(groupId, id -> new LinkedHashSet<>()).add(listener);
 		return () -> groupChangeListeners.computeIfPresent(groupId, (id, groupListeners) -> {
@@ -65,9 +65,18 @@ public class LinkedStorageGroupManager {
 		});
 	}
 
+	public Runnable subscribeToRootContentsReplacements(UUID groupId, Runnable listener) {
+		getGroup(groupId);
+		rootContentsReplacementListeners.computeIfAbsent(groupId, id -> new LinkedHashSet<>()).add(listener);
+		return () -> rootContentsReplacementListeners.computeIfPresent(groupId, (id, groupListeners) -> {
+			groupListeners.remove(listener);
+			return groupListeners.isEmpty() ? null : groupListeners;
+		});
+	}
+
 	private void replaceContents(UUID groupId, CompoundTag contents) {
-		getGroup(groupId).setContents(contents.copy());
-		commit(groupId, true, true, false, false);
+		getGroup(groupId).setContents(contents);
+		markDirty(groupId, true, false);
 	}
 
 	private CompoundTag contents(UUID groupId) {
@@ -79,17 +88,21 @@ public class LinkedStorageGroupManager {
 	}
 
 	private void markDirty(UUID groupId) {
-		commit(groupId, true, false, false, false);
+		markDirty(groupId, false, false);
 	}
 
 	private void markRenderDirty(UUID groupId) {
-		commit(groupId, false, false, true, false);
+		markDirty(groupId, false, true);
 	}
 
 	private void setColumnsTaken(UUID groupId, int columnsTaken) {
 		if (getGroup(groupId).setColumnsTaken(columnsTaken)) {
-			commit(groupId, true, false, false, true);
+			markLayoutDirty(groupId);
 		}
+	}
+
+	private void markLayoutDirty(UUID groupId) {
+		commit(groupId, false, false, true);
 	}
 
 	public boolean usesHostFactory(UUID groupId, ResourceLocation factoryId) {
@@ -104,6 +117,15 @@ public class LinkedStorageGroupManager {
 		return savedData.findGroup(groupId).map(group -> group.hasEndpoint(endpointId)).orElse(false);
 	}
 
+	public Optional<LinkedStorageEndpointData> createSecondaryEndpoint(LinkedStorageEndpointData sourceEndpoint) {
+		return savedData.findGroup(sourceEndpoint.groupId()).filter(group -> group.hasEndpoint(sourceEndpoint.endpointId())).map(group -> {
+			UUID endpointId = UUID.randomUUID();
+			group.addEndpoint(endpointId);
+			commit(sourceEndpoint.groupId(), false, false, false);
+			return new LinkedStorageEndpointData(sourceEndpoint.groupId(), endpointId);
+		});
+	}
+
 	public void recordEndpointOpened(UUID groupId, UUID endpointId, UUID playerId, long gameTime) {
 		LinkedStorageGroupRecord group = getGroup(groupId);
 		if (!group.hasEndpoint(endpointId)) {
@@ -115,7 +137,7 @@ public class LinkedStorageGroupManager {
 
 	public void registerEndpoint(UUID groupId, UUID endpointId) {
 		savedData.findGroup(groupId).orElseThrow().addEndpoint(endpointId);
-		commit(groupId, false, false, false, false);
+		commit(groupId, false, false, false);
 	}
 
 	public boolean unregisterEndpoint(UUID groupId, UUID endpointId) {
@@ -123,7 +145,7 @@ public class LinkedStorageGroupManager {
 			if (!group.removeEndpoint(endpointId)) {
 				return false;
 			}
-			commit(groupId, false, false, false, false);
+			commit(groupId, false, false, false);
 			return true;
 		}).orElse(false);
 	}
@@ -134,6 +156,7 @@ public class LinkedStorageGroupManager {
 		}
 		virtualHosts.remove(groupId);
 		groupChangeListeners.remove(groupId);
+		rootContentsReplacementListeners.remove(groupId);
 		savedData.removeGroup(groupId);
 	}
 
@@ -160,7 +183,7 @@ public class LinkedStorageGroupManager {
 					if (virtualHost != null) {
 						virtualHost.onVirtualCarrierChanged(hostDescriptor.virtualCarrier());
 					}
-					commit(groupId, true, false, true, true);
+					commit(groupId, false, false, false);
 					return true;
 				}).orElse(false);
 	}
@@ -169,7 +192,11 @@ public class LinkedStorageGroupManager {
 		return savedData.findGroup(groupId).map(LinkedStorageGroupRecord::hostDescriptor);
 	}
 
-	private void commit(UUID groupId, boolean contentsChanged, boolean contentsReplaced, boolean renderChanged, boolean layoutChanged) {
+	private void markDirty(UUID groupId, boolean contentsReplaced, boolean renderChanged) {
+		commit(groupId, contentsReplaced, renderChanged, false);
+	}
+
+	private void commit(UUID groupId, boolean contentsReplaced, boolean renderChanged, boolean layoutChanged) {
 		LinkedStorageGroupRecord group = getGroup(groupId);
 		ILinkedStorageVirtualHost virtualHost = virtualHosts.get(groupId);
 		if (renderChanged && virtualHost != null) {
@@ -184,28 +211,25 @@ public class LinkedStorageGroupManager {
 		if (contentsReplaced && virtualHost != null) {
 			virtualHost.onLinkedStorageContentsChanged();
 		}
+		if (contentsReplaced) {
+			notifyListeners(rootContentsReplacementListeners.getOrDefault(groupId, Set.of()));
+		}
 		if (layoutChanged && virtualHost != null) {
 			virtualHost.onLinkedStorageLayoutChanged();
 		}
-		if (!contentsChanged && !renderChanged && !layoutChanged) {
-			return;
-		}
-		GroupChange change = new GroupChange(contentsChanged, renderChanged, layoutChanged);
-		for (Consumer<GroupChange> listener : Set.copyOf(groupChangeListeners.getOrDefault(groupId, Set.of()))) {
-			listener.accept(change);
+		notifyListeners(groupChangeListeners.getOrDefault(groupId, Set.of()));
+	}
+
+	private void notifyListeners(Set<Runnable> listeners) {
+		for (Runnable listener : Set.copyOf(listeners)) {
+			listener.run();
 		}
 	}
 
-	public record GroupChange(boolean contentsChanged, boolean renderChanged, boolean layoutChanged) {
-		public boolean projectionChanged() {
-			return renderChanged || layoutChanged;
-		}
-	}
-
-	private class Binding implements ILinkedStorageContentsBinding {
+	private class Contents implements ILinkedStorageContents {
 		private final UUID groupId;
 
-		private Binding(UUID groupId) {
+		private Contents(UUID groupId) {
 			this.groupId = groupId;
 		}
 

@@ -5,9 +5,8 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 
-/** NBT schema shared by Core and endpoint modules for linked item stacks. */
 public final class LinkedStorageStackData {
-	private static final String LINKED_STORAGE_TAG = "sophisticatedcore:linked_storage";
+	private static final String LINKED_STORAGE_TAG = "linked_storage";
 	private static final String ENDPOINT_TAG = "endpoint";
 	private static final String LINKER_TARGET_TAG = "linker_target";
 	private static final String PENDING_CRAFT_TAG = "pending_craft";

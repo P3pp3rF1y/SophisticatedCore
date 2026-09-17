@@ -8,6 +8,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.crafting.EnderLinkerEndpointRecipe;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -27,7 +28,7 @@ public record RequestLinkerCraftingDiagnosticsMessage(int containerId) {
 		context.setPacketHandled(true);
 	}
 
-	private static void handle(ServerPlayer player, RequestLinkerCraftingDiagnosticsMessage message) {
+	private static void handle(@Nullable ServerPlayer player, RequestLinkerCraftingDiagnosticsMessage message) {
 		if (player == null || player.containerMenu.containerId != message.containerId) {
 			return;
 		}

@@ -98,6 +98,7 @@ public abstract class SettingsHandler {
 	}
 
 	public void reloadFrom(CompoundTag contentsNbt) {
+		this.contentsNbt = contentsNbt;
 		CompoundTag settingsNbt = getSettingsNbtFromContentsNbt(contentsNbt);
 		getSettingsCategories().forEach((categoryName, category) -> category.reloadFrom(settingsNbt.getCompound(categoryName)));
 	}

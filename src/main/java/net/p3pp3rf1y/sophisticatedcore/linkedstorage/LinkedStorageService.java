@@ -113,8 +113,8 @@ public final class LinkedStorageService {
 		LinkedStorageGroupManager manager = LinkedStorageGroupsSavedData.get(level).manager();
 		UUID endpointId = UUID.randomUUID();
 		ItemStack copiedEndpoint = endpoint.copyWithCount(1);
-		adapter.bindEndpoint(level, copiedEndpoint, new LinkedStorageEndpointData(sourceEndpoint.groupId(), endpointId));
 		manager.registerEndpoint(sourceEndpoint.groupId(), endpointId);
+		adapter.bindEndpoint(level, copiedEndpoint, new LinkedStorageEndpointData(sourceEndpoint.groupId(), endpointId));
 		adapter.onEndpointLinked(level, copiedEndpoint);
 		return Optional.of(copiedEndpoint);
 	}
@@ -140,8 +140,8 @@ public final class LinkedStorageService {
 			return addEndpointResult;
 		}
 		UUID endpointId = UUID.randomUUID();
-		adapter.bindEndpoint(level, endpoint, new LinkedStorageEndpointData(target.groupId(), endpointId));
 		manager.registerEndpoint(target.groupId(), endpointId);
+		adapter.bindEndpoint(level, endpoint, new LinkedStorageEndpointData(target.groupId(), endpointId));
 		adapter.onEndpointLinked(level, endpoint);
 		linker.shrink(1);
 		return LinkResult.SUCCESS;

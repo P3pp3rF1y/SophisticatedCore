@@ -87,6 +87,10 @@ public class PacketHandler {
 				RequestLinkerCraftingDiagnosticsMessage::decode, RequestLinkerCraftingDiagnosticsMessage::onMessage, NetworkDirection.PLAY_TO_SERVER);
 		registerMessage(SyncLinkerCraftingDiagnosticsMessage.class, SyncLinkerCraftingDiagnosticsMessage::encode, SyncLinkerCraftingDiagnosticsMessage::decode,
 				SyncLinkerCraftingDiagnosticsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(RequestLinkedStorageContentsMessage.class, RequestLinkedStorageContentsMessage::encode, RequestLinkedStorageContentsMessage::decode,
+				RequestLinkedStorageContentsMessage::onMessage, NetworkDirection.PLAY_TO_SERVER);
+		registerMessage(LinkedStorageContentsMessage.class, LinkedStorageContentsMessage::encode, LinkedStorageContentsMessage::decode,
+				LinkedStorageContentsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public <M> void registerMessage(Class<M> messageType, BiConsumer<M, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, M> decoder,
