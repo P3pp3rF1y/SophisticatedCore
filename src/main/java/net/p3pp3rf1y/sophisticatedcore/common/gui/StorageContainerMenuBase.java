@@ -957,6 +957,12 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		this.upgradeChangeListener = upgradeChangeListener;
 	}
 
+	public void refreshUpgradeControls() {
+		if (isClientSide()) {
+			reloadUpgradeControl(false);
+		}
+	}
+
 	public abstract void openSettings();
 
 	protected abstract boolean storageItemHasChanged();

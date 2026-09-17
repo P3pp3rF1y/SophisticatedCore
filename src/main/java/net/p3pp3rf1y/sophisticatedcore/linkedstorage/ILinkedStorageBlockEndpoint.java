@@ -8,6 +8,10 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 public interface ILinkedStorageBlockEndpoint extends ILinkedStorageInteractionTarget {
+	default ILinkedStorageBlockEndpoint getLinkedStorageInteractionTarget() {
+		return this;
+	}
+
 	@Override
 	default boolean isLinkedStorageLinkCandidate() {
 		return true;
@@ -21,6 +25,6 @@ public interface ILinkedStorageBlockEndpoint extends ILinkedStorageInteractionTa
 
 	@Override
 	default LinkedStorageService.LinkResult link(ServerLevel level, UUID playerId, ItemStack linker) {
-		return LinkedStorageService.linkWithResult(level, playerId, linker, this);
+		return LinkedStorageService.linkWithResult(level, playerId, linker, getLinkedStorageInteractionTarget());
 	}
 }
