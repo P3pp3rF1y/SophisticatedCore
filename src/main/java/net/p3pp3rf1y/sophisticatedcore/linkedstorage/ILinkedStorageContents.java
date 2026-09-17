@@ -5,11 +5,19 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageSavedData;
 
 import java.util.UUID;
 
-public interface ILinkedStorageContentsBinding extends IStorageSavedData {
+public interface ILinkedStorageContents extends IStorageSavedData {
 	UUID groupId();
 
-	default CompoundTag contents() {
+	default CompoundTag getContents() {
 		return getContents(groupId());
+	}
+
+	default void setContents(CompoundTag contents) {
+		setContents(groupId(), contents);
+	}
+
+	default CompoundTag contents() {
+		return getContents();
 	}
 
 	default void markDirty() {
