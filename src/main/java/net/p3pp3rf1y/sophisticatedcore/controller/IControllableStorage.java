@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.controller;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.ILinkedStorageEndpointProvider;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
@@ -20,6 +21,14 @@ public interface IControllableStorage extends IControllerBoundable {
 
 	default BlockPos getControlledStorageBlockPos() {
 		return getStorageBlockPos();
+	}
+
+	default ControllerStorageKey getControllerStorageKey() {
+		if (this instanceof ILinkedStorageEndpointProvider endpointProvider) {
+			return endpointProvider.getLinkedStorageEndpoint().map(endpoint -> new ControllerStorageKey(getControlledStorageBlockPos(), endpoint.groupId()))
+					.orElseGet(() -> new ControllerStorageKey(getControlledStorageBlockPos(), null));
+		}
+		return new ControllerStorageKey(getControlledStorageBlockPos(), null);
 	}
 
 	default void tryToAddToController() {
@@ -47,11 +56,27 @@ public interface IControllableStorage extends IControllerBoundable {
 		}
 	}
 
+	default void registerControllerMembership(ControllerBlockEntityBase controllerBlockEntity) {
+		setControllerPos(controllerBlockEntity.getBlockPos());
+	}
+
 	default void unregisterController() {
+		unregisterControllerMembership();
+		unregisterControllerListeners();
+	}
+
+	default void unregisterControllerMembership() {
 		removeControllerPos();
+	}
+
+	default void unregisterControllerListeners() {
 		getStorageWrapper().getInventoryForInputOutput().unregisterStackKeyListeners();
 		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).unregisterListeners();
 		getStorageWrapper().getInventoryHandler().unregisterFilterItemsChangeListener();
+	}
+
+	default boolean isControllerStorageAccessible() {
+		return true;
 	}
 
 	private void registerListeners() {
@@ -85,11 +110,11 @@ public interface IControllableStorage extends IControllerBoundable {
 		getControllerPos().ifPresentOrElse(controllerPos -> {
 			Level level = getStorageBlockLevel();
 			if (!level.isClientSide()) {
-				BlockPos controlledStorageBlockPos = getControlledStorageBlockPos();
+				BlockPos controlledStoragePos = getControlledStorageBlockPos();
 				WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class).ifPresent(controller -> {
-					if (controller.isStorageConnected(controlledStorageBlockPos)) {
+					if (controller.isStorageConnected(controlledStoragePos)) {
 						if (hasStorageData()) {
-							controller.addStorageStacksAndRegisterListeners(controlledStorageBlockPos);
+							controller.addStorageStacksAndRegisterListeners(controlledStoragePos);
 						}
 					} else {
 						removeControllerPos();
@@ -98,6 +123,14 @@ public interface IControllableStorage extends IControllerBoundable {
 				});
 			}
 		}, this::tryToAddToController);
+	}
+
+	default void reregisterWithController() {
+		Level level = getStorageBlockLevel();
+		if (!level.isClientSide()) {
+			getControllerPos().flatMap(controllerPos -> WorldHelper.getLoadedBlockEntity(level, controllerPos, ControllerBlockEntityBase.class))
+					.ifPresent(controller -> controller.reregisterStorage(this));
+		}
 	}
 
 	default void changeSlots(int newSlots) {

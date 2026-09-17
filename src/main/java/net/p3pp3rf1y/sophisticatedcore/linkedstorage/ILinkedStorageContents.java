@@ -5,7 +5,7 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.UUID;
 
-public interface ILinkedStorageContentsBinding extends IStorageSavedData {
+public interface ILinkedStorageContents extends IStorageSavedData {
 	UUID groupId();
 
 	default ContainerContents contents() {

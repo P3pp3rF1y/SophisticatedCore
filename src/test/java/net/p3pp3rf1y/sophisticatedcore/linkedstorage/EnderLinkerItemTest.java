@@ -198,7 +198,7 @@ class EnderLinkerItemTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	void linkWithResultDoesNotRegisterBlockEndpointWhenBindingFails() {
+	void linkWithResultRegistersBlockEndpointBeforeBinding() {
 		UUID groupId = UUID.randomUUID();
 		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
 		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
@@ -222,7 +222,8 @@ class EnderLinkerItemTest {
 		}
 
 		assertEquals(1, linker.getCount());
-		Mockito.verify(manager, Mockito.never()).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		Mockito.verify(manager).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		Mockito.verify(manager, Mockito.never()).unregisterEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
 	@Test
@@ -385,7 +386,7 @@ class EnderLinkerItemTest {
 
 		Mockito.verify(level, Mockito.never()).playSound(Mockito.isNull(), Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(),
 				Mockito.eq(SoundEvents.NOTE_BLOCK_BASS.value()), Mockito.eq(SoundSource.PLAYERS), Mockito.eq(1F), Mockito.eq(0.7F));
-		Mockito.verify(player, Mockito.never()).sendSystemMessage(Mockito.any(Component.class));
+		Mockito.verify(player, Mockito.never()).sendOverlayMessage(Mockito.any(Component.class));
 	}
 
 	@Test
@@ -430,7 +431,7 @@ class EnderLinkerItemTest {
 
 		Mockito.verify(level, Mockito.never()).playSound(Mockito.isNull(), Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(),
 				Mockito.eq(SoundEvents.NOTE_BLOCK_BASS.value()), Mockito.eq(SoundSource.PLAYERS), Mockito.eq(1F), Mockito.eq(0.7F));
-		Mockito.verify(player, Mockito.never()).sendSystemMessage(Mockito.any(Component.class));
+		Mockito.verify(player, Mockito.never()).sendOverlayMessage(Mockito.any(Component.class));
 	}
 
 	@Test
@@ -454,7 +455,7 @@ class EnderLinkerItemTest {
 		assertEquals(endpointData, endpoint.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT));
 		Mockito.verify(level).playSound(Mockito.isNull(), Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(),
 				Mockito.eq(SoundEvents.NOTE_BLOCK_BASS.value()), Mockito.eq(SoundSource.PLAYERS), Mockito.eq(1F), Mockito.eq(0.7F));
-		Mockito.verify(player).sendSystemMessage(TranslationHelper.INSTANCE.translStatusMessage("ender_linker.already_linked"));
+		Mockito.verify(player).sendOverlayMessage(TranslationHelper.INSTANCE.translStatusMessage("ender_linker.already_linked"));
 	}
 
 	@Test
@@ -495,7 +496,7 @@ class EnderLinkerItemTest {
 
 		Mockito.verify(level).playSound(Mockito.isNull(), Mockito.anyDouble(), Mockito.anyDouble(), Mockito.anyDouble(),
 				Mockito.eq(SoundEvents.NOTE_BLOCK_BASS.value()), Mockito.eq(SoundSource.PLAYERS), Mockito.eq(1F), Mockito.eq(0.7F));
-		Mockito.verify(player).sendSystemMessage(Mockito.any(Component.class));
+		Mockito.verify(player).sendOverlayMessage(Mockito.any(Component.class));
 		assertEquals(target, linker.get(ModCoreDataComponents.ENDER_LINKER_TARGET));
 	}
 
@@ -527,7 +528,7 @@ class EnderLinkerItemTest {
 	}
 
 	@Test
-	void createSecondaryEndpointCopyDoesNotRegisterEndpointWhenBindingFails() {
+	void createSecondaryEndpointCopyRegistersEndpointBeforeBinding() {
 		UUID groupId = UUID.randomUUID();
 		UUID sourceEndpointId = UUID.randomUUID();
 		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
@@ -557,7 +558,8 @@ class EnderLinkerItemTest {
 			assertThrows(IllegalStateException.class, () -> LinkedStorageService.createSecondaryEndpointCopy(level, source));
 		}
 
-		Mockito.verify(manager, Mockito.never()).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		Mockito.verify(manager).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		Mockito.verify(manager, Mockito.never()).unregisterEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
 	private static void mockLinkedStorageHost(LinkedStorageGroupManager manager, UUID groupId) {

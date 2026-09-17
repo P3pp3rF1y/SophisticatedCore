@@ -579,8 +579,14 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			updateStorageSlotsPositions();
 			updatePlayerSlotsPositions();
 			updateExtraSlotsPositions();
+			updateUpgradeSlotsPositions();
 			updateInventoryScrollPanel();
 			updateNoResultsLabel();
+			children().remove(settingsTabControl);
+			craftingUIPart.onCraftingSlotsHidden();
+			initUpgradeSettingsControl();
+			initUpgradeInventoryControls();
+			addUpgradeSwitches();
 			updateTransferButtonsPositions();
 		}
 		super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
