@@ -82,7 +82,7 @@ public final class RenderData {
 					BatteryRenderData.CODEC.optionalFieldOf("battery").forGetter(RenderData::battery),
 					DisplayData.CODEC.fieldOf("display").forGetter(RenderData::display)).apply(inst, RenderData::newFromUpgradeItemTemplates));
 
-	// TODO remove legacy current structure codec in 26.2
+	// TODO remove legacy current structure codec in 26.3
 	private static final Codec<RenderData> LEGACY_CURRENT_CODEC = Codec.either(CURRENT_STRUCTURE_CODEC, LegacyCurrentStructure.CODEC)
 			.xmap(either -> either.map(Function.identity(), LegacyCurrentStructure::toRenderData), Either::left);
 
@@ -441,7 +441,7 @@ public final class RenderData {
 		}
 	}
 
-	// TODO remove legacy deserialization in 26.2
+	// TODO remove legacy deserialization in 26.3
 	private static class LegacyDeserialization {
 		private static final String TANKS_TAG = "tanks";
 		private static final String BATTERY_TAG = "battery";

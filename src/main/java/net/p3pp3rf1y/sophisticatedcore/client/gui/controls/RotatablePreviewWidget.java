@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -76,7 +77,7 @@ public class RotatablePreviewWidget extends CompositeWidgetBase<WidgetBase> {
 		}
 
 		if (isMouseOver(event.x(), event.y())) {
-			setDragging(event.button() == 0);
+			setDragging(event.button() == InputConstants.MOUSE_BUTTON_LEFT);
 			return true;
 		}
 

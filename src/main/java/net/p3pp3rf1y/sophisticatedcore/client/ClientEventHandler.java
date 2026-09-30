@@ -42,7 +42,8 @@ import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.StorageSoundHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.sdl.SDLKeycode;
+import org.lwjgl.sdl.SDLScancode;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -58,9 +59,11 @@ public class ClientEventHandler {
 	public static final KeyMapping SORT_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("sort"),
 			SophisticatedScreenKeyConflictContext.INSTANCE, InputConstants.Type.MOUSE.getOrCreate(MIDDLE_BUTTON), SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping TRANSFER_TO_STORAGE_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_storage"),
-			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_LEFT_BRACKET), SOPHISTICATEDCORE_CATEGORY);
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYBOARD.getOrCreate(SDLScancode.SDL_SCANCODE_LEFTBRACKET),
+			SOPHISTICATEDCORE_CATEGORY);
 	public static final KeyMapping TRANSFER_TO_INVENTORY_KEYBIND = new KeyMapping(TranslationHelper.INSTANCE.translKeybind("transfer_to_inventory"),
-			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYSYM.getOrCreate(GLFW.GLFW_KEY_RIGHT_BRACKET), SOPHISTICATEDCORE_CATEGORY);
+			ContainerScreenKeyConflictContext.INSTANCE, InputConstants.Type.KEYBOARD.getOrCreate(SDLScancode.SDL_SCANCODE_RIGHTBRACKET),
+			SOPHISTICATEDCORE_CATEGORY);
 
 	public static void registerHandlers(IEventBus modBus) {
 		modBus.addListener(ModParticles::registerFactories);
@@ -113,7 +116,7 @@ public class ClientEventHandler {
 
 	public static void handleGuiKeyPress(ScreenEvent.KeyPressed.Pre event) {
 		InputConstants.Key key = InputConstants.getKey(event.getKeyEvent());
-		boolean shiftDown = Minecraft.getInstance().hasShiftDown() || (event.getModifiers() & GLFW.GLFW_MOD_SHIFT) != 0;
+		boolean shiftDown = Minecraft.getInstance().hasShiftDown() || (event.getModifiers() & SDLKeycode.SDL_KMOD_SHIFT) != 0;
 		if (SORT_KEYBIND.isActiveAndMatches(key) && tryCallSort(event.getScreen())) {
 			GuiSoundHelper.playButtonClickSound();
 			event.setCanceled(true);
@@ -212,7 +215,7 @@ public class ClientEventHandler {
 			return;
 		}
 
-		Slot under = containerGui.getSlotUnderMouse();
+		Slot under = containerGui.getHoveredSlot();
 		for (Slot s : menu.slots) {
 			ItemStack stack = s.getItem();
 			if (s == under || stack.isEmpty()) {
@@ -242,7 +245,7 @@ public class ClientEventHandler {
 		if (!(Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen<?> screen)) {
 			return;
 		}
-		Slot slot = screen.getSlotUnderMouse();
+		Slot slot = screen.getHoveredSlot();
 		if (slot == null || slot.getItem() != event.getItemStack()) {
 			return;
 		}
@@ -253,7 +256,7 @@ public class ClientEventHandler {
 	}
 
 	private static void renderStashTooltip(ScreenEvent.Render.Post event, AbstractContainerScreen<?> containerGui, ItemStack held) {
-		Slot under = containerGui.getSlotUnderMouse();
+		Slot under = containerGui.getHoveredSlot();
 		if (under != null) {
 			ItemStack inInventory = under.getItem();
 			if (inInventory.getCount() == 1 && inInventory.getItem() instanceof IStashStorageItem stashStorageItem) {
@@ -266,8 +269,8 @@ public class ClientEventHandler {
 
 	private static void renderStashSign(Minecraft mc, GuiGraphicsExtractor guiGraphics, AbstractContainerScreen<?> containerGui, Slot s, ItemStack stack,
 			IStashStorageItem.StashResult stashResult) {
-		int x = containerGui.getGuiLeft() + s.x;
-		int y = containerGui.getGuiTop() + s.y;
+		int x = containerGui.getLeftPos() + s.x;
+		int y = containerGui.getTopPos() + s.y;
 
 		int color = ARGB.opaque(stashResult == IStashStorageItem.StashResult.MATCH_AND_SPACE ? TextColor.GREEN.getValue() : 0xFFFF00);
 		if (stack.getItem() instanceof IStashStorageItem) {

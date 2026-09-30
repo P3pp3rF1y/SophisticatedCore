@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -136,7 +137,7 @@ public class EnderLinkerItem extends ItemBase {
 			}
 			linker.shrink(1);
 			if (!player.getInventory().add(boundLinker)) {
-				player.drop(boundLinker, false);
+				player.drop(boundLinker, false, Prediction.PREDICTED);
 			}
 			playLinkFeedback(level, player, blockPos);
 			return LinkedStorageService.LinkResult.SUCCESS;

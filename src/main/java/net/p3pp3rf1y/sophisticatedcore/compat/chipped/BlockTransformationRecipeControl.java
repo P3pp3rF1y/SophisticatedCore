@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.chipped;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -65,7 +66,7 @@ public class BlockTransformationRecipeControl extends WidgetBase {
 		this.screen = screen;
 		this.container = container;
 		browseButton = new Button(getBrowseButtonPosition(), BROWSE_RESULTS, button -> {
-			if (button == 0 && shouldShowBrowseButton()) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT && shouldShowBrowseButton()) {
 				openLargeResultSelector();
 			}
 		}) {

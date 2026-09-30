@@ -166,7 +166,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 					if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid) && WorldHelper.playerMayInteract(player, offsetPos)
 							&& isValidForFluidPlacement(level, offsetPos)
 							&& storageFluidHandler.extract(tankFluid, FluidType.BUCKET_VOLUME, tx) == FluidType.BUCKET_VOLUME
-							&& FluidUtil.tryPlaceFluid(tankFluid, null, level, InteractionHand.MAIN_HAND, offsetPos)) {
+							&& FluidUtil.tryPlaceFluid(tankFluid, null, level, offsetPos, true)) {
 						tx.commit();
 						return true;
 					}

@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -324,10 +325,10 @@ public class LargeResultSelector extends CompositeWidgetBase<WidgetBase> {
 			if (!isMouseOver(event.x(), event.y())) {
 				return false;
 			}
-			if (event.button() == 0) {
+			if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 				setFocused(true);
 				LargeResultSelector.this.setFocused(this);
-			} else if (event.button() == 1) {
+			} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 				setValue("");
 			}
 			return true;

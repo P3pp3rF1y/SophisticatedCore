@@ -1,17 +1,22 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CookingFuel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.FuelValues;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.util.thread.SidedThreadGroups;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jspecify.annotations.Nullable;
 
@@ -63,15 +68,19 @@ public class WorldHelper {
 		level.sendBlockUpdated(tile.getBlockPos(), tile.getBlockState(), tile.getBlockState(), 3);
 	}
 
-	public static FuelValues getFuelValues() {
-		if (Thread.currentThread().getThreadGroup() != SidedThreadGroups.SERVER && FMLEnvironment.getDist().isClient()) {
-			return ClientLevelHelper.getFuelValues();
+	public static int getFuelBurnTime(ItemStack fuel) {
+		CookingFuel cookingFuel = fuel.get(DataComponents.COOKING_FUEL);
+		if (cookingFuel == null) {
+			return 0;
 		}
-		MinecraftServer currentServer = ServerLifecycleHooks.getCurrentServer();
-		if (currentServer == null) {
-			throw new IllegalArgumentException("Cannot get fuel values without a server instance.");
+		if (ServerLifecycleHooks.getCurrentServer() == null) {
+			// Client-side filter previews cannot resolve server-owned context providers.
+			return cookingFuel.burnTime() instanceof ResolvableInt.Constant constant ? constant.value() : 1;
 		}
-		return currentServer.fuelValues();
+		ServerLevel level = ServerLifecycleHooks.getCurrentServer().overworld();
+		LootContext context = new LootContext.Builder(
+				new LootParams.Builder(level).withParameter(LootContextParams.ORIGIN, Vec3.ZERO).create(LootContextParamSets.CHEST)).create(Optional.empty());
+		return cookingFuel.burnTime().get(context, 0);
 	}
 
 	public static List<BlockEntity> getBlockEntitiesInRange(Level level, BlockPos origin, int range) {

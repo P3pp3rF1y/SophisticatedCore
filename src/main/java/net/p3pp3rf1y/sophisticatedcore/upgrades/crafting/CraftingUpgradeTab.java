@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.crafting;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -88,7 +89,7 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 		craftingUIAddition = screen.getCraftingUIAddition();
 		openTabDimension = new Dimension(63 + craftingUIAddition.getWidth(), 142);
 		previousResultButton = new Button(new Position(x + 3 + 6 + craftingUIAddition.getWidth(), y + 118), PREVIOUS_RESULT, button -> {
-			if (button == 0) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 				getContainer().selectPreviousCraftingResult();
 			}
 		}) {
@@ -97,19 +98,19 @@ public class CraftingUpgradeTab extends UpgradeSettingsTab<CraftingUpgradeContai
 				if (visible && isMouseOver(mouseX, mouseY)) {
 					List<ClientTooltipComponent> list = ClientHooks.gatherTooltipComponents(ItemStack.EMPTY, getTooltip(), mouseX, guiGraphics.guiWidth(),
 							guiGraphics.guiHeight(), minecraft.font);
-					guiGraphics.tooltip(minecraft.font, list, mouseX, mouseY, LEFT_SIDE_TOOLTIP_POSITIONER, null);
+					guiGraphics.tooltip(minecraft.font, list, mouseX, mouseY, LEFT_SIDE_TOOLTIP_POSITIONER, null, false);
 				}
 			}
 		};
 		addHideableChild(previousResultButton);
 		nextResultButton = new Button(new Position(x + 3 + 6 + craftingUIAddition.getWidth() + 8 + 26, y + 118), NEXT_RESULT, button -> {
-			if (button == 0) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 				getContainer().selectNextCraftingResult();
 			}
 		});
 		addHideableChild(nextResultButton);
 		selectResultButton = new Button(new Position(x + 3 + 6 + craftingUIAddition.getWidth() + 13, y + 99), SELECT_RESULT, button -> {
-			if (button == 0) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 				resultSelectionShown = !resultSelectionShown;
 			}
 		}) {

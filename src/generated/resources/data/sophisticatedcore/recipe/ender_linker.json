@@ -19,7 +19,6 @@
     }
   ],
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "B": "minecraft:blaze_rod",
     "E": "minecraft:ender_pearl",
@@ -31,7 +30,6 @@
     "OEO"
   ],
   "result": {
-    "count": 1,
     "id": "sophisticatedcore:ender_linker"
   }
 }

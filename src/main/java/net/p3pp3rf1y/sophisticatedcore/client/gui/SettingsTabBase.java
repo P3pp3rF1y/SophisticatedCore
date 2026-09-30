@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -137,7 +138,7 @@ public abstract class SettingsTabBase<T extends AbstractContainerScreen<?>> exte
 
 	@Override
 	protected void onTabIconClicked(int button) {
-		if (button != 0) {
+		if (button != InputConstants.MOUSE_BUTTON_LEFT) {
 			return;
 		}
 		setOpen(!isOpen);

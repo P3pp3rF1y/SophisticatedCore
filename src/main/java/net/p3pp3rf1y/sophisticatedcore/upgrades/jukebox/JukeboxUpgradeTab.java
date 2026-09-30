@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -99,12 +100,12 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 					TranslationHelper.INSTANCE.translUpgradeTooltip("jukebox"));
 			int bottomSlotY = getBottomSlotY();
 			addHideableChild(new Button(new Position(x + 3, y + bottomSlotY + BUTTON_PADDING), STOP, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().stop();
 				}
 			}));
 			addHideableChild(new Button(new Position(x + 21, y + bottomSlotY + BUTTON_PADDING), PLAY, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().play();
 				}
 			}));
@@ -117,33 +118,33 @@ public abstract class JukeboxUpgradeTab extends UpgradeSettingsTab<JukeboxUpgrad
 					TranslationHelper.INSTANCE.translUpgradeTooltip("advanced_jukebox"));
 			int bottomSlotY = getBottomSlotY();
 			addHideableChild(new Button(new Position(x + 3, y + bottomSlotY + BUTTON_PADDING), PREVIOUS, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().previous();
 				}
 			}));
 			addHideableChild(new Button(new Position(x + 21, y + bottomSlotY + BUTTON_PADDING), STOP, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().stop();
 				}
 			}));
 			addHideableChild(new Button(new Position(x + 39, y + bottomSlotY + BUTTON_PADDING), PLAY, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().play();
 				}
 			}));
 			addHideableChild(new Button(new Position(x + 57, y + bottomSlotY + BUTTON_PADDING), NEXT, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().next();
 				}
 			}));
 			addHideableChild(new ToggleButton<>(new Position(x + 12, y + bottomSlotY + BUTTON_PADDING + 20), SHUFFLE, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().toggleShuffle();
 				}
 			}, () -> getContainer().isShuffleEnabled()));
 
 			addHideableChild(new ToggleButton<>(new Position(x + 48, y + bottomSlotY + BUTTON_PADDING + 20), REPEAT, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					getContainer().toggleRepeat();
 				}
 			}, () -> getContainer().getRepeatMode()));

@@ -286,7 +286,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 		}
 		Slot slot = getHoveredSlot(mouseX, mouseY);
 		if (slot != null) {
-			settingsTabControl.handleSlotClick(slot, button);
+			settingsTabControl.handleSlotClick(slot, getContainerClickButton(button));
 		}
 		for (GuiEventListener child : children()) {
 			if (child.isMouseOver(mouseX, mouseY) && child.mouseDragged(event, dragX, dragY)) {
@@ -375,7 +375,15 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	@Override
 	public int getTopY() {
-		return getGuiTop();
+		return getTopPos();
+	}
+
+	public int getGuiTop() {
+		return getTopPos();
+	}
+
+	public int getGuiLeft() {
+		return getLeftPos();
 	}
 
 	@Override
@@ -416,7 +424,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 			Slot slot = this.getHoveredSlot(event.x(), event.y());
 			this.doubleclick = this.lastClickSlot == slot && doubleClicked;
 			this.skipNextRelease = false;
-			if (event.button() != 0 && event.button() != 1 && !flag) {
+			if (event.button() != InputConstants.MOUSE_BUTTON_LEFT && event.button() != InputConstants.MOUSE_BUTTON_RIGHT && !flag) {
 				this.checkHotbarMouseClicked(event);
 			} else {
 				int i = this.leftPos;
@@ -438,7 +446,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 				if (k != -1 && !this.isQuickCrafting) {
 					if (this.menu.getCarried().isEmpty()) {
 						if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
-							this.slotClicked(slot, k, event.button(), ContainerInput.CLONE);
+							this.slotClicked(slot, k, getContainerClickButton(event.button()), ContainerInput.CLONE);
 						} else {
 							boolean flag2 = k != -999 && event.hasShiftDown();
 							ContainerInput clicktype = ContainerInput.PICKUP;
@@ -449,7 +457,7 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 								clicktype = ContainerInput.THROW;
 							}
 
-							this.slotClicked(slot, k, event.button(), clicktype);
+							this.slotClicked(slot, k, getContainerClickButton(event.button()), clicktype);
 						}
 
 						this.skipNextRelease = true;
@@ -457,9 +465,9 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 						this.isQuickCrafting = true;
 						this.quickCraftingButton = event.button();
 						this.quickCraftSlots.clear();
-						if (event.button() == 0) {
+						if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 							this.quickCraftingType = 0;
-						} else if (event.button() == 1) {
+						} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 							this.quickCraftingType = 1;
 						} else if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
 							this.quickCraftingType = 2;
@@ -474,11 +482,19 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 	}
 
 	// Modified to actually return false if child didn't handle the click
+	private static int getContainerClickButton(int button) {
+		return switch (button) {
+			case InputConstants.MOUSE_BUTTON_LEFT -> 0;
+			case InputConstants.MOUSE_BUTTON_RIGHT -> 1;
+			default -> button;
+		};
+	}
+
 	private boolean containerEventHandlerMouseClicked(MouseButtonEvent event, boolean doubleClicked) {
 		return getChildAt(event.x(), event.y()).map(child -> {
 			if (child.mouseClicked(event, doubleClicked)) {
 				setFocused(child);
-				if (event.button() == 0) {
+				if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 					setDragging(true);
 				}
 				return true;

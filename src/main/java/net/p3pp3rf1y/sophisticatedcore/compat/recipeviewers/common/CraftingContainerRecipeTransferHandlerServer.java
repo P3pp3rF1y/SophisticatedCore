@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common;
 
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
@@ -117,7 +118,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 			if (added < oldCraftingItem.getCount()) {
 				ItemStack remainingStack = added == 0 ? oldCraftingItem : oldCraftingItem.copyWithCount(oldCraftingItem.getCount() - added);
 				if (!player.getInventory().add(remainingStack)) {
-					player.drop(remainingStack, false);
+					player.drop(remainingStack, false, Prediction.PREDICTED);
 				}
 			}
 		}

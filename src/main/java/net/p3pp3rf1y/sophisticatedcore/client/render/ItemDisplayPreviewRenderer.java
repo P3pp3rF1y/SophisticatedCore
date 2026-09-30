@@ -17,8 +17,8 @@ public class ItemDisplayPreviewRenderer extends PictureInPictureRenderer<ItemDis
 
 	@Override
 	protected void renderToTexture(ItemDisplayPreviewRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
-		poseStack.mulPose(Axis.XN.rotationDegrees(-renderState.xAxisRotation()));
-		poseStack.mulPose(Axis.YP.rotationDegrees(-renderState.yAxisRotation()));
+		poseStack.rotate(Axis.XN.rotationDegrees(-renderState.xAxisRotation()));
+		poseStack.rotate(Axis.YP.rotationDegrees(-renderState.yAxisRotation()));
 		float previewScale = renderState.scaleMultiplier();
 		poseStack.scale(previewScale, -previewScale, -previewScale);
 		TrackingItemStackRenderState itemStackRenderState = renderState.itemStackRenderState();

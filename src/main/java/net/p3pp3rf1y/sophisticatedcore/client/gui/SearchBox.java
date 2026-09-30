@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -46,10 +47,10 @@ class SearchBox extends TextBox {
 		}
 
 		if (isEditable()) {
-			if (event.button() == 0) {
+			if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 				setFocused(true);
 				screen.setFocused(this);
-			} else if (event.button() == 1) {
+			} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 				setValue("");
 			}
 			return true;

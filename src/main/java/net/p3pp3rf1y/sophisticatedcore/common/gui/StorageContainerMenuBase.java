@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.SlotAccess;
@@ -1256,10 +1257,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			if (slotId == -999) {
 				if (!getCarried().isEmpty()) {
 					if (clickaction == ClickAction.PRIMARY) {
-						player.drop(getCarried(), true);
+						player.drop(getCarried(), true, Prediction.PREDICTED);
 						setCarried(ItemStack.EMPTY);
 					} else {
-						player.drop(getCarried().split(1), true);
+						player.drop(getCarried().split(1), true, Prediction.PREDICTED);
 					}
 				}
 			} else if (clickType == ContainerInput.QUICK_MOVE) {
@@ -1379,7 +1380,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 						slot2.set(itemstack4.split(i2));
 						slot2.onTake(player, slotStack);
 						if (!inventory.add(slotStack)) {
-							player.drop(slotStack, true);
+							player.drop(slotStack, true, Prediction.PREDICTED);
 						}
 					} else {
 						ItemStack slotStackCopy = slotStack.copy();
@@ -1400,7 +1401,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			Slot slot4 = getSlot(slotId);
 			int i1 = dragType == 0 ? 1 : slot4.getItem().getCount();
 			ItemStack itemstack8 = slot4.safeTake(i1, slot4.getItem().getMaxStackSize(), player);
-			player.drop(itemstack8, true);
+			player.drop(itemstack8, true, Prediction.PREDICTED);
 		} else if (clickType == ContainerInput.PICKUP_ALL && slotId >= 0) {
 			Slot slot3 = getSlot(slotId);
 			ItemStack carriedStack = getCarried();
@@ -1466,7 +1467,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 				ItemStack slotStack = slot.getItem();
 				slot.set(ItemStack.EMPTY);
 				if (!player.addItem(slotStack)) {
-					player.drop(slotStack, false);
+					player.drop(slotStack, false, Prediction.PREDICTED);
 				}
 			}
 		}

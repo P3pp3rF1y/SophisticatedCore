@@ -50,7 +50,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.crafting.ICraftingUIPart;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
 import org.joml.Matrix3x2fStack;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.sdl.SDLScancode;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -527,7 +527,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		Position pos = getSortButtonsPosition(sortButtonsPosition);
 
 		sortButton = new Button(new Position(pos.x(), pos.y()), ButtonDefinitions.SORT, button -> {
-			if (button == 0) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 				getMenu().sort();
 				// noinspection ConstantConditions - by this point player can't be null
 				Minecraft.getInstance().player.sendOverlayMessage(Component.literal("Sorted"));
@@ -535,7 +535,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		});
 		addRenderableWidget(sortButton);
 		sortByButton = new ToggleButton<>(new Position(pos.x() + 12, pos.y()), ButtonDefinitions.SORT_BY, button -> {
-			if (button == 0) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 				getMenu().setSortBy(getMenu().getSortBy().next());
 			}
 		}, () -> getMenu().getSortBy());
@@ -1048,8 +1048,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void handleQuickMoveAll(double mouseX, double mouseY, int button) {
 		Slot slot = getHoveredSlot(mouseX, mouseY);
-		if (doubleclick && !getMenu().getCarried().isEmpty() && slot != null && button == 0 && menu.canTakeItemForPickAll(ItemStack.EMPTY, slot)
-				&& Minecraft.getInstance().hasShiftDown() && !lastQuickMoved.isEmpty()) {
+		if (doubleclick && !getMenu().getCarried().isEmpty() && slot != null && button == InputConstants.MOUSE_BUTTON_LEFT
+				&& menu.canTakeItemForPickAll(ItemStack.EMPTY, slot) && Minecraft.getInstance().hasShiftDown() && !lastQuickMoved.isEmpty()) {
 			for (Slot slot2 : menu.slots) {
 				tryQuickMoveSlot(button, slot, slot2);
 			}
@@ -1064,7 +1064,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				if (slotItem.getCount() > slotItem.getMaxStackSize()) {
 					ClientPacketDistributor.sendToServer(new TransferFullSlotPayload(slot2.index));
 				} else {
-					slotClicked(slot2, slot2.index, button, ContainerInput.QUICK_MOVE);
+					slotClicked(slot2, slot2.index, getContainerClickButton(button), ContainerInput.QUICK_MOVE);
 				}
 			}
 		}
@@ -1146,7 +1146,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				return true;
 			}
 		}
-		if (event.hasShiftDown() && event.hasControlDown() && slot instanceof StorageInventorySlot && event.button() == 0) {
+		if (event.hasShiftDown() && event.hasControlDown() && slot instanceof StorageInventorySlot && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 			ClientPacketDistributor.sendToServer(new TransferFullSlotPayload(slot.index));
 			return true;
 		}
@@ -1168,7 +1168,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			Slot slot = this.getHoveredSlot(event.x(), event.y());
 			this.doubleclick = this.lastClickSlot == slot && doubleClicked;
 			this.skipNextRelease = false;
-			if (event.button() != 0 && event.button() != 1 && !flag) {
+			if (event.button() != InputConstants.MOUSE_BUTTON_LEFT && event.button() != InputConstants.MOUSE_BUTTON_RIGHT && !flag) {
 				this.checkHotbarMouseClicked(event);
 			} else {
 				int i = this.leftPos;
@@ -1190,7 +1190,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				if (k != -1 && !this.isQuickCrafting) {
 					if (this.menu.getCarried().isEmpty()) {
 						if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
-							this.slotClicked(slot, k, event.button(), ContainerInput.CLONE);
+							this.slotClicked(slot, k, getContainerClickButton(event.button()), ContainerInput.CLONE);
 						} else {
 							boolean flag2 = k != -999 && event.hasShiftDown();
 							ContainerInput clicktype = ContainerInput.PICKUP;
@@ -1201,7 +1201,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 								clicktype = ContainerInput.THROW;
 							}
 
-							this.slotClicked(slot, k, event.button(), clicktype);
+							this.slotClicked(slot, k, getContainerClickButton(event.button()), clicktype);
 						}
 
 						this.skipNextRelease = true;
@@ -1209,9 +1209,9 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 						this.isQuickCrafting = true;
 						this.quickCraftingButton = event.button();
 						this.quickCraftSlots.clear();
-						if (event.button() == 0) {
+						if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 							this.quickCraftingType = 0;
-						} else if (event.button() == 1) {
+						} else if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
 							this.quickCraftingType = 1;
 						} else if (this.minecraft.options.keyPickItem.isActiveAndMatches(mouseKey)) {
 							this.quickCraftingType = 2;
@@ -1226,11 +1226,19 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	// Modified to actually return false if child didn't handle the click
+	private static int getContainerClickButton(int button) {
+		return switch (button) {
+			case InputConstants.MOUSE_BUTTON_LEFT -> 0;
+			case InputConstants.MOUSE_BUTTON_RIGHT -> 1;
+			default -> button;
+		};
+	}
+
 	private boolean containerEventHandlerMouseClicked(MouseButtonEvent event, boolean doubleClicked) {
 		return getChildAt(event.x(), event.y()).map(child -> {
 			if (child.mouseClicked(event, doubleClicked)) {
 				setFocused(child);
-				if (event.button() == 0) {
+				if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 					setDragging(true);
 				}
 				return true;
@@ -1283,17 +1291,17 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Override
 	public boolean keyPressed(KeyEvent event) {
 		if (modalOverlay != null) {
-			if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
+			if (event.key() == SDLScancode.SDL_SCANCODE_ESCAPE) {
 				setModalOverlay(null);
 				return true;
 			}
 			modalOverlay.keyPressed(event);
 			return true;
 		}
-		if (event.key() == GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof TextBox && clearFocusedWidget()) {
+		if (event.key() == SDLScancode.SDL_SCANCODE_ESCAPE && getFocused() instanceof TextBox && clearFocusedWidget()) {
 			return true;
 		}
-		if (event.key() == GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof WidgetBase) {
+		if (event.key() == SDLScancode.SDL_SCANCODE_ESCAPE && getFocused() instanceof WidgetBase) {
 			clearFocusedWidget();
 		}
 		return super.keyPressed(event);
@@ -1491,7 +1499,15 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	@Override
 	public int getTopY() {
-		return getGuiTop();
+		return getTopPos();
+	}
+
+	public int getGuiTop() {
+		return getTopPos();
+	}
+
+	public int getGuiLeft() {
+		return getLeftPos();
 	}
 
 	@Override
@@ -1518,7 +1534,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		public TransferButton(Consumer<Boolean> transferItems, ButtonDefinition shiftDefinition, ButtonDefinition definition) {
 			super(new Position(leftPos, topPos), definition, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					transferItems.accept(!Minecraft.getInstance().hasShiftDown());
 				}
 			});

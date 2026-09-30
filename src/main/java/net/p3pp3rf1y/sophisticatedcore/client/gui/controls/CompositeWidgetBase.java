@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.client.gui.controls;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -62,7 +63,7 @@ public abstract class CompositeWidgetBase<T extends WidgetBase> extends WidgetBa
 		return getChildAt(event.x(), event.y()).map(l -> {
 			if (l.mouseClicked(event, doubleClicked)) {
 				setFocused(l);
-				if (event.button() == 0) {
+				if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 					setDragging(true);
 				}
 				return true;

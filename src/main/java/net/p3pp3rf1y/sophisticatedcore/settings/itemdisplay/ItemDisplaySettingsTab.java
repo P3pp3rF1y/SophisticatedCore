@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -76,9 +77,9 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 			buttonX += Dimension.SQUARE_16.width() + BUTTON_SPACING;
 		}
 		addHideableChild(new Button(new Position(buttonX, buttonY), ROTATE, button -> {
-			if (button == 0) {
+			if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 				container.rotateClockwise(currentSelectedSlot);
-			} else if (button == 1) {
+			} else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
 				container.rotateCounterClockwise(currentSelectedSlot);
 			}
 		}) {
@@ -88,7 +89,8 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 			}
 		});
 		buttonX += Dimension.SQUARE_16.width() + BUTTON_SPACING;
-		addHideableChild(new Button(new Position(buttonX, buttonY), Z_OFFSET, button -> container.changeZOffset(currentSelectedSlot, button == 0 ? 1 : -1)) {
+		addHideableChild(new Button(new Position(buttonX, buttonY), Z_OFFSET,
+				button -> container.changeZOffset(currentSelectedSlot, button == InputConstants.MOUSE_BUTTON_LEFT ? 1 : -1)) {
 			@Override
 			protected List<Component> getTooltip() {
 				return getZOffsetTooltip();
@@ -97,9 +99,9 @@ public class ItemDisplaySettingsTab extends SettingsTab<ItemDisplaySettingsConta
 		buttonX += Dimension.SQUARE_16.width() + BUTTON_SPACING;
 		if (showSideSelection()) {
 			addHideableChild(new ToggleButton<>(new Position(buttonX, buttonY), DISPLAY_SIDE, button -> {
-				if (button == 0) {
+				if (button == InputConstants.MOUSE_BUTTON_LEFT) {
 					container.setDisplaySide(container.getDisplaySide().next());
-				} else if (button == 1) {
+				} else if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
 					container.setDisplaySide(container.getDisplaySide().previous());
 				}
 				preview.updateTargetRotation();

@@ -144,7 +144,7 @@ public class ShapeBasedRecipeBuilder implements RecipeBuilder {
 	public void save(RecipeOutput recipeOutput, ResourceKey<Recipe<?>> id) {
 		ShapedRecipe compose = new ShapedRecipe(RecipeBuilder.createCraftingCommonInfo(showNotification), RecipeBuilder.createCraftingBookInfo(category, group),
 				ShapedRecipePattern.of(key, rows), resultTemplate);
-		HoldingRecipeOutput holdingRecipeOutput = new HoldingRecipeOutput(recipeOutput.advancement());
+		HoldingRecipeOutput holdingRecipeOutput = new HoldingRecipeOutput(recipeOutput);
 		holdingRecipeOutput.accept(id, compose, advancementBuilder.build(recipeOutput, id, category));
 		recipeOutput.withConditions(new ItemEnabledCondition(result)).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(),
 				holdingRecipeOutput.getConditions());

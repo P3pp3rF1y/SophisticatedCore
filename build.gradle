@@ -2,7 +2,7 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.147'
     id "org.openrewrite.rewrite" version "7.35.0"
     id "net.darkhax.curseforgegradle" version "1.1.15"
     id "com.modrinth.minotaur" version "2.+"
@@ -10,7 +10,7 @@ plugins {
 }
 
 def sharedCodeQualityScript = file('../gradle/code-quality.gradle')
-apply from: sharedCodeQualityScript.exists() ? sharedCodeQualityScript : 'https://raw.githubusercontent.com/P3pp3rF1y/MultiWorkspace/26.2/gradle/code-quality.gradle'
+apply from: sharedCodeQualityScript.exists() ? sharedCodeQualityScript : 'https://raw.githubusercontent.com/P3pp3rF1y/MultiWorkspace/26.3/gradle/code-quality.gradle'
 
 idea {
     module {
@@ -61,6 +61,7 @@ repositories {
         url "https://maven.blamejared.com/"
         content {
             includeGroup "mezz.jei"
+            includeGroup "net.mezzdev.config"
         }
     }
     maven {
@@ -182,6 +183,10 @@ sourceSets.main.resources {
 }
 
 sourceSets.main.java {
+    // Create and NeoForge Iris have no compatible 26.3 compile artifacts yet.
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/create/**'
+    exclude 'net/p3pp3rf1y/sophisticatedcore/mixin/create/**'
+    exclude 'net/p3pp3rf1y/sophisticatedcore/compat/iris/**'
     exclude 'net/p3pp3rf1y/sophisticatedcore/compat/accessories/**'
     exclude 'net/p3pp3rf1y/sophisticatedcore/compat/chipped/**'
     exclude 'net/p3pp3rf1y/sophisticatedcore/compat/recipeviewers/rei/**'
@@ -203,55 +208,30 @@ dependencies {
         }
     }
     compileOnly "mezz.jei:jei-${jei_mc_version}:${jei_version}"
-    if (!isClientDataRun) {
-        localRuntime "mezz.jei:jei-${jei_mc_version}:${jei_version}"
-    }
     compileOnly "dev.emi:emi-neoforge:${emi_version}"
     //localRuntime "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
-    if (!isClientDataRun) {
-        localRuntime "me.shedaniel:RoughlyEnoughItems-neoforge:${rei_version}"
-    }
     compileOnly "net.blay09.mods:balm-neoforge:${balm_version}"
-    if (!isClientDataRun) {
-        localRuntime "net.blay09.mods:balm-neoforge:${balm_version}"
-    }
     compileOnly "net.blay09.mods:craftingtweaks-neoforge:${craftingtweaks_version}"
-    compileOnly "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
-    if (!isClientDataRun) {
-        localRuntime "curse.maven:itemborders-513769:${item_borders_cf_file_id}"
-    }
-    compileOnly "curse.maven:iceberg-520110:${iceberg_cf_file_id}"
-    if (!isClientDataRun) {
-        localRuntime "curse.maven:iceberg-520110:${iceberg_cf_file_id}"
-    }
-    compileOnly "curse.maven:prism-638111:${prism_cf_file_id}"
-    if (!isClientDataRun) {
-        localRuntime "curse.maven:prism-638111:${prism_cf_file_id}"
-    }
+    compileOnly "maven.modrinth:item-borders:${item_borders_version}"
+    compileOnly "maven.modrinth:iceberg:${iceberg_version}"
+    compileOnly "maven.modrinth:prism-lib:${prism_version}"
     compileOnly "curse.maven:chipped-456956:${chipped_cf_file_id}"
     //localRuntime "curse.maven:chipped-456956:${chipped_cf_file_id}"
-    compileOnly "curse.maven:resourcefullib-570073:${resourcefullib_cf_file_id}"
-    //localRuntime "curse.maven:resourcefullib-570073:${resourcefullib_cf_file_id}"
+    compileOnly "maven.modrinth:resourceful-lib:${resourcefullib_version}"
+    //localRuntime "maven.modrinth:resourceful-lib:${resourcefullib_version}"
     compileOnly "curse.maven:athena-841890:${athena_cf_file_id}"
     //localRuntime "curse.maven:athena-841890:${athena_cf_file_id}"
     compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
-    if (!isClientDataRun) {
-        localRuntime "top.theillusivec4.curios:curios-neoforge:${curios_version}"
-    }
     compileOnly "curse.maven:sawmill-964817:${sawmill_cf_file_id}"
     //localRuntime "curse.maven:sawmill-964817:${sawmill_cf_file_id}"
     compileOnly "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"
     //localRuntime "curse.maven:moonlightlib-499980:${moonlightlib_cf_file_id}"
     compileOnly "net.blay09.mods:trashslot-neoforge:${trashslot_version}"
-    compileOnly("com.simibubi.create:create-${create_mc_version}:${create_version}") {
-        transitive = false
-    }
     compileOnly "dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}"
     compileOnly "dev.ftb.mods:ftb-library-neoforge:${ftb_library_version}"
 
-    compileOnly "curse.maven:openpartiesandclaims-636608:${openpartiesandclaims_cf_file_id}"
-    compileOnly "maven.modrinth:iris:${iris_version}"
+    compileOnly "maven.modrinth:open-parties-and-claims:${openpartiesandclaims_version}"
 /*
     compileOnly "curse.maven:autoreglib-250363:${autoreglib_cf_file_id}")
     compileOnly "curse.maven:quark-243121:${quark_cf_file_id}")

@@ -32,7 +32,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "sophisticatedcore:ender_linker"
+        "recipes": "sophisticatedcore:ender_linker"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

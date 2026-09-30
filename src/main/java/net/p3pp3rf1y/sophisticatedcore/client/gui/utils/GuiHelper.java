@@ -274,14 +274,14 @@ public class GuiHelper {
 		}
 
 		List<ClientTooltipComponent> list = gatherTooltipComponents(components, x, screen.width, screen.height, screen.getFont());
-		guiGraphics.tooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
+		guiGraphics.tooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null, false);
 	}
 
 	public static void extractTooltip(Screen screen, GuiGraphicsExtractor guiGraphics, ItemStack tooltipStack, List<Component> components,
 			Optional<TooltipComponent> tooltipComponent, int x, int y) {
 		List<ClientTooltipComponent> list = ClientHooks.gatherTooltipComponents(tooltipStack, components, tooltipComponent, x, screen.width, screen.height,
 				screen.getFont());
-		guiGraphics.tooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null);
+		guiGraphics.tooltip(screen.getFont(), list, x, y, DefaultTooltipPositioner.INSTANCE, null, false);
 	}
 
 	// copy of ForgeHooksClient.gatherTooltipComponents with splitting always called so that new lines in translation are properly wrapped

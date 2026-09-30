@@ -141,7 +141,7 @@ public class ShapelessBasedRecipeBuilder implements RecipeBuilder {
 	public void save(RecipeOutput recipeOutput, ResourceKey<Recipe<?>> id) {
 		ShapelessRecipe compose = new ShapelessRecipe(RecipeBuilder.createCraftingCommonInfo(true), RecipeBuilder.createCraftingBookInfo(category, group),
 				resultTemplate, ingredients);
-		HoldingRecipeOutput holdingRecipeOutput = new HoldingRecipeOutput(recipeOutput.advancement());
+		HoldingRecipeOutput holdingRecipeOutput = new HoldingRecipeOutput(recipeOutput);
 		holdingRecipeOutput.accept(id, compose, advancementBuilder.build(recipeOutput, id, category));
 		recipeOutput.withConditions(new ItemEnabledCondition(result)).accept(id, factory.apply(compose), holdingRecipeOutput.getAdvancementHolder(),
 				holdingRecipeOutput.getConditions());

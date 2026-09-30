@@ -3,7 +3,6 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.world.level.block.entity.FuelValues;
 
 import java.util.Optional;
 
@@ -18,13 +17,4 @@ public class ClientLevelHelper {
 		return Optional.of(level.registryAccess());
 	}
 
-	public static FuelValues getFuelValues() {
-		ClientLevel level = Minecraft.getInstance().level;
-
-		if (level == null) {
-			throw new IllegalArgumentException("Client level is null, cannot retrieve fuel values.");
-		}
-
-		return level.fuelValues();
-	}
 }

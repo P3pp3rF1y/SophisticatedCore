@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Prediction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
@@ -109,7 +110,7 @@ public class InventoryHelper {
 			}
 		}
 		if (!ret.isEmpty()) {
-			player.drop(ret, true);
+			player.drop(ret, true, Prediction.PREDICTED);
 		}
 	}
 

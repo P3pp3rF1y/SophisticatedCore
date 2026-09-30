@@ -22,6 +22,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public abstract class ClientStorageContentsTooltipBase implements ClientTooltipComponent {
@@ -36,6 +37,8 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	private static int height = 0;
 	private static int width = 0;
 	private static boolean shouldRefreshContents = true;
+	@Nullable
+	private IStorageWrapper tooltipWrapper;
 
 	public static void refreshContents() {
 		shouldRefreshContents = true;
@@ -43,7 +46,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 
 	private void initContents(LocalPlayer player, IStorageWrapper wrapper) {
 		UUID newUuid = wrapper.getContentsUuid().orElse(null);
-		if (storageUuid == null && newUuid != null || storageUuid != null && !storageUuid.equals(newUuid)) {
+		if (!Objects.equals(storageUuid, newUuid)) {
 			setLastRequestTime(0);
 			storageUuid = newUuid;
 			setShouldRefreshContents(true);
@@ -71,6 +74,18 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 	}
 
 	protected abstract void sendInventorySyncRequest(UUID uuid);
+
+	protected abstract IStorageWrapper getTooltipStorageWrapper();
+
+	private void prepareContents() {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player != null) {
+			if (tooltipWrapper == null) {
+				tooltipWrapper = getTooltipStorageWrapper();
+			}
+			initContents(player, tooltipWrapper);
+		}
+	}
 
 	private void refreshContents(IStorageWrapper wrapper) {
 		if (shouldRefreshContents()) {
@@ -205,22 +220,23 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 
 	@Override
 	public int getWidth(Font font) {
+		prepareContents();
 		return width;
 	}
 
 	@Override
 	public int getHeight(Font font) {
+		prepareContents();
 		return height;
 	}
 
-	protected void extractTooltip(IStorageWrapper wrapper, Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics) {
+	protected void extractTooltip(Font font, int leftX, int topY, GuiGraphicsExtractor guiGraphics) {
 		Minecraft minecraft = Minecraft.getInstance();
-		LocalPlayer player = minecraft.player;
-		if (player == null) {
+		if (minecraft.player == null) {
 			return;
 		}
 
-		initContents(player, wrapper);
+		prepareContents();
 		renderComponent(font, leftX, topY, guiGraphics, minecraft);
 	}
 

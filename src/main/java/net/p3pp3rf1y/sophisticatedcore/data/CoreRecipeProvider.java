@@ -1,15 +1,16 @@
 package net.p3pp3rf1y.sophisticatedcore.data;
 
-import net.minecraft.core.HolderLookup;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
 import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import net.neoforged.neoforge.common.conditions.OrCondition;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
@@ -20,16 +21,15 @@ import net.p3pp3rf1y.sophisticatedcore.crafting.UpgradeClearRecipe;
 import net.p3pp3rf1y.sophisticatedcore.init.ModItems;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 public class CoreRecipeProvider extends RecipeProvider {
-	public CoreRecipeProvider(HolderLookup.Provider provider, RecipeOutput recipeOutput) {
-		super(provider, recipeOutput);
+	public CoreRecipeProvider(BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements) {
+		super(recipes, advancements);
 	}
 
 	@Override
 	protected void buildRecipes() {
-		HolderLookup.RegistryLookup<net.minecraft.world.item.Item> items = registries.lookupOrThrow(Registries.ITEM);
+		var items = output.lookup(Registries.ITEM);
 		SpecialRecipeBuilder.special(() -> UpgradeClearRecipe.INSTANCE).save(output,
 				ResourceKey.create(Registries.RECIPE, SophisticatedCore.getIdentifier("upgrade_clear")));
 		RecipeOutput enderLinkRecipeOutput = output
@@ -45,19 +45,4 @@ public class CoreRecipeProvider extends RecipeProvider {
 						ResourceKey.create(Registries.RECIPE, SophisticatedCore.getIdentifier("ender_linker")));
 	}
 
-	public static class Runner extends RecipeProvider.Runner {
-		protected Runner(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> registries) {
-			super(packOutput, registries);
-		}
-
-		@Override
-		protected RecipeProvider createRecipeProvider(HolderLookup.Provider provider, RecipeOutput recipeOutput) {
-			return new CoreRecipeProvider(provider, recipeOutput);
-		}
-
-		@Override
-		public String getName() {
-			return "Sophisticated Core Recipes";
-		}
-	}
 }

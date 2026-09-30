@@ -11,7 +11,7 @@ import net.minecraft.util.ARGB;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 import org.jspecify.annotations.Nullable;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.sdl.SDLScancode;
 
 import java.util.function.Consumer;
 
@@ -54,10 +54,10 @@ public class TextBox extends WidgetBase {
 			return false;
 		}
 		editBox.keyPressed(event);
-		if (event.key() == GLFW.GLFW_KEY_ENTER) {
+		if (event.key() == SDLScancode.SDL_SCANCODE_RETURN) {
 			onEnterPressed();
 		}
-		return event.key() != GLFW.GLFW_KEY_ESCAPE;
+		return event.key() != SDLScancode.SDL_SCANCODE_ESCAPE;
 	}
 
 	protected void onEnterPressed() {

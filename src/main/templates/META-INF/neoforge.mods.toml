@@ -20,10 +20,6 @@ file="META-INF/accesstransformer.cfg"
 [[mixins]]
 config = "sophisticatedcore.mixins.json"
 
-[[mixins]]
-config = "sophisticatedcore.create.mixins.json"
-requiredMods = ["create"]
-
 [[dependencies.${mod_id}]] #optional
 modId="neoforge" #mandatory
 type="required" #mandatory
