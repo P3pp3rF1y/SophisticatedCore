@@ -148,6 +148,9 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void addSlotItem(int slot, Item item) {
+		if (slotFilterItems.containsKey(slot) && slotFilterItems.get(slot) != item) {
+			unselectFilterItemSlot(slot);
+		}
 		slotFilterItems.put(slot, item);
 		filterItemSlots.computeIfAbsent(item, k -> {
 			onItemAdded.accept(k);
@@ -157,6 +160,9 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	private void addSlotStack(int slot, ItemStack stack) {
 		ItemStackKey isk = ItemStackKey.of(stack);
+		if (slotFilterStacks.containsKey(slot) && !slotFilterStacks.get(slot).equals(isk)) {
+			unselectFilterStackSlot(slot);
+		}
 		slotFilterStacks.put(slot, isk);
 		int stackHash = isk.hashCode();
 		filterStackSlots.computeIfAbsent(stackHash, k -> {
@@ -373,13 +379,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.slotFilterItems.put(slotIndex + slotOffset, item);
+			otherCategory.addSlotItem(slotIndex + slotOffset, item);
 		});
 		slotFilterStacks.forEach((slotIndex, isk) -> {
 			if (slotIndex < startFromSlot) {
 				return;
 			}
-			otherCategory.slotFilterStacks.put(slotIndex + slotOffset, isk);
+			otherCategory.addSlotStack(slotIndex + slotOffset, isk.getStack());
 		});
 		otherCategory.serializeFilterItems();
 	}
