@@ -148,6 +148,9 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 	}
 
 	private void addSlotItem(int slot, Item item) {
+		if (data.slotFilterItems().containsKey(slot) && data.slotFilterItems().get(slot) != item) {
+			unselectFilterItemSlot(slot);
+		}
 		data.slotFilterItems().put(slot, item);
 		addFilterItemSlot(slot, item);
 	}
@@ -161,6 +164,9 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 
 	private void addSlotStack(int slot, ItemStack stack) {
 		ItemStackKey stackKey = ItemStackKey.of(stack);
+		if (data.slotFilterStacks().containsKey(slot) && !data.slotFilterStacks().get(slot).equals(stackKey)) {
+			unselectFilterStackSlot(slot);
+		}
 		data.addSlotStack(slot, stackKey);
 		addFilterStackSlot(slot, stackKey);
 	}
@@ -192,8 +198,13 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 			return;
 		}
 
-		Item item = data.slotFilterItems().remove(slotNumber);
+		Item item = data.slotFilterItems().get(slotNumber);
 		Set<Integer> itemSlots = filterItemSlots.get(item);
+		if (itemSlots == null) {
+			reloadFrom(data);
+			itemSlots = filterItemSlots.get(item);
+		}
+		data.slotFilterItems().remove(slotNumber);
 		itemSlots.remove(slotNumber);
 		if (itemSlots.isEmpty()) {
 			filterItemSlots.remove(item);
@@ -206,9 +217,14 @@ public class MemorySettingsCategory implements ISettingsCategory<MemorySettingsC
 			return;
 		}
 
-		ItemStackKey isk = data.slotFilterStacks().remove(slotNumber);
+		ItemStackKey isk = data.slotFilterStacks().get(slotNumber);
 		int stackHash = isk.hashCode();
 		Set<Integer> stackSlots = filterStackSlots.get(stackHash);
+		if (stackSlots == null) {
+			reloadFrom(data);
+			stackSlots = filterStackSlots.get(stackHash);
+		}
+		data.slotFilterStacks().remove(slotNumber);
 		stackSlots.remove(slotNumber);
 		if (stackSlots.isEmpty()) {
 			filterStackSlots.remove(stackHash);
