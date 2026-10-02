@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.UUIDUtil;
 
 import javax.annotation.Nullable;
+
 import java.util.Optional;
 import java.util.UUID;
 
