@@ -27,6 +27,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Function;
@@ -97,7 +98,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 					searchAndAddBoundables(positionsToCheck, true);
 				}
 
-				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false);
+				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false, linkedPos);
 			});
 			WorldHelper.notifyBlockEntityUpdate(this);
 			return true;
@@ -220,7 +221,15 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private void searchAndAddBoundables(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf) {
+		searchAndAddBoundables(positionsToCheck, addingLinkedSelf, null);
+	}
+
+	private void searchAndAddBoundables(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf, @Nullable BlockPos linkedPos) {
 		Set<BlockPos> positionsChecked = new HashSet<>();
+		if (linkedPos != null) {
+			positionsChecked.add(linkedPos);
+			positionsToCheck.remove(linkedPos);
+		}
 
 		boolean first = true;
 		while (!positionsToCheck.isEmpty()) {
@@ -231,8 +240,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 			final boolean finalFirst = first;
 			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllerBoundable.class)
-					.ifPresent(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked,
-							posToCheck, finalFirst, boundable));
+					.ifPresent(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked, posToCheck,
+							finalFirst, boundable));
 			first = false;
 		}
 	}
@@ -241,9 +250,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			BlockPos posToCheck, boolean finalFirst, IControllerBoundable boundable) {
 		if (boundable.canBeConnected() || isConnectedToThisController(boundable) || (addingLinkedSelf && finalFirst)) {
 			if (boundable instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
-				linkedBlocks.remove(posToCheck);
-				linkable.setNotLinked();
-				clearCachedHandlers();
+				if (!linkedBlocks.contains(posToCheck)) {
+					linkable.setNotLinked();
+					clearCachedHandlers();
+				}
 			} else if (boundable instanceof IControllableStorage storage && storage.hasStorageData()) {
 				addStorageData(storage);
 			} else {
@@ -1007,7 +1017,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 					searchAndAddBoundables(positionsToCheck, true);
 				}
 
-				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false);
+				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false, linkedPos);
 			});
 		}
 	}
