@@ -94,7 +94,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 					searchAndAddBoundables(positionsToCheck, true);
 				}
 
-				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false);
+				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false, linkedPos);
 			});
 			WorldHelper.notifyBlockEntityUpdate(this);
 			return true;
@@ -217,7 +217,15 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	private void searchAndAddBoundables(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf) {
+		searchAndAddBoundables(positionsToCheck, addingLinkedSelf, null);
+	}
+
+	private void searchAndAddBoundables(Set<BlockPos> positionsToCheck, boolean addingLinkedSelf, @Nullable BlockPos linkedPos) {
 		Set<BlockPos> positionsChecked = new HashSet<>();
+		if (linkedPos != null) {
+			positionsChecked.add(linkedPos);
+			positionsToCheck.remove(linkedPos);
+		}
 
 		boolean first = true;
 		while (!positionsToCheck.isEmpty()) {
@@ -228,8 +236,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 
 			final boolean finalFirst = first;
 			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllerBoundable.class)
-					.ifPresent(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked,
-							posToCheck, finalFirst, boundable));
+					.ifPresent(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked, posToCheck,
+							finalFirst, boundable));
 			first = false;
 		}
 	}
@@ -238,9 +246,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			BlockPos posToCheck, boolean finalFirst, IControllerBoundable boundable) {
 		if (boundable.canBeConnected() || isConnectedToThisController(boundable) || (addingLinkedSelf && finalFirst)) {
 			if (boundable instanceof ILinkable linkable && linkable.isLinked() && (!addingLinkedSelf || !finalFirst)) {
-				linkedBlocks.remove(posToCheck);
-				linkable.setNotLinked();
-				clearCachedHandlers();
+				if (!linkedBlocks.contains(posToCheck)) {
+					linkable.setNotLinked();
+					clearCachedHandlers();
+				}
 			} else if (boundable instanceof IControllableStorage storage && storage.hasStorageData()) {
 				addStorageData(storage);
 			} else {
@@ -992,7 +1001,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 					searchAndAddBoundables(positionsToCheck, true);
 				}
 
-				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false);
+				searchAndAddBoundables(new LinkedHashSet<>(l.getConnectablePositions()), false, linkedPos);
 			});
 		}
 	}
