@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.util.NBTHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
 import javax.annotation.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.function.Function;
@@ -223,8 +224,8 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 
 			final boolean finalFirst = first;
 			WorldHelper.getLoadedBlockEntity(level, posToCheck, IControllerBoundable.class)
-					.ifPresent(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked,
-							posToCheck, finalFirst, boundable));
+					.ifPresent(boundable -> tryToConnectStorageAndAddPositionsToCheckAround(positionsToCheck, addingLinkedSelf, positionsChecked, posToCheck,
+							finalFirst, boundable));
 			first = false;
 		}
 	}
