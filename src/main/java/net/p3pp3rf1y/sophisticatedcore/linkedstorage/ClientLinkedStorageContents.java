@@ -16,6 +16,7 @@ public final class ClientLinkedStorageContents {
 	private static final Map<UUID, ClientContents> CONTENTS = new HashMap<>();
 	private static final Map<UUID, Long> LAST_REQUEST_TIMES = new HashMap<>();
 	private static final Set<UUID> UPDATED_GROUPS = new HashSet<>();
+	private static final Set<UUID> UPDATED_SETTINGS = new HashSet<>();
 
 	private ClientLinkedStorageContents() {
 	}
@@ -36,6 +37,23 @@ public final class ClientLinkedStorageContents {
 			clientContents.update(snapshot);
 		}
 		UPDATED_GROUPS.add(groupId);
+	}
+
+	public static void updateSettings(UUID groupId, CompoundTag settings) {
+		Snapshot snapshot = SNAPSHOTS.get(groupId);
+		if (snapshot == null) {
+			return;
+		}
+		CompoundTag contents = snapshot.contents().copy();
+		contents.put("settings", settings.copy());
+		Snapshot updated = new Snapshot(contents, snapshot.revision(), snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(),
+				snapshot.columnsTaken());
+		SNAPSHOTS.put(groupId, updated);
+		ClientContents clientContents = CONTENTS.get(groupId);
+		if (clientContents != null) {
+			clientContents.update(updated);
+		}
+		UPDATED_SETTINGS.add(groupId);
 	}
 
 	public static Optional<Component> getGroupName(UUID groupId) {
@@ -71,11 +89,16 @@ public final class ClientLinkedStorageContents {
 		return UPDATED_GROUPS.remove(groupId);
 	}
 
+	public static boolean removeUpdatedSettings(UUID groupId) {
+		return UPDATED_SETTINGS.remove(groupId);
+	}
+
 	public static void clear() {
 		SNAPSHOTS.clear();
 		CONTENTS.clear();
 		LAST_REQUEST_TIMES.clear();
 		UPDATED_GROUPS.clear();
+		UPDATED_SETTINGS.clear();
 	}
 
 	private static final class ClientContents implements ILinkedStorageContents {

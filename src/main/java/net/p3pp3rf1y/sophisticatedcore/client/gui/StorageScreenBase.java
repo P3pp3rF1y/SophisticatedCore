@@ -715,7 +715,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		}
 	}
 
-	private Optional<LinkedStorageEndpointRole> getLinkedStorageEndpointRole() {
+	protected Optional<LinkedStorageEndpointRole> getLinkedStorageEndpointRole() {
 		if (getMenu().getStorageWrapper() instanceof ILinkedStorageEndpointProvider endpointProvider) {
 			return endpointProvider.getLinkedStorageEndpointRole();
 		}

@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClientLinkedStorageContentsTest {
 	@AfterEach
@@ -44,5 +46,32 @@ class ClientLinkedStorageContentsTest {
 		assertSame(contents, ClientLinkedStorageContents.getContents(groupId).orElseThrow());
 		assertEquals("payload", contents.getContents().getString("source"));
 		assertEquals(45, ClientLinkedStorageContents.getInventorySlots(groupId).orElseThrow());
+	}
+
+	@Test
+	void settingsUpdatePreservesSnapshotRevisionAndInventory() {
+		UUID groupId = UUID.randomUUID();
+		CompoundTag initial = new CompoundTag();
+		initial.putString("inventory", "diamond");
+		initial.put("settings", new CompoundTag());
+		ClientLinkedStorageContents.updateContents(groupId, 7L, initial, Component.literal("Storage"), 27, 3, 2);
+		ILinkedStorageContents contents = ClientLinkedStorageContents.getContents(groupId).orElseThrow();
+		ClientLinkedStorageContents.removeUpdatedGroup(groupId);
+
+		CompoundTag settings = new CompoundTag();
+		settings.putBoolean("changed", true);
+		ClientLinkedStorageContents.updateSettings(groupId, settings);
+		boolean settingsWereUpdated = ClientLinkedStorageContents.removeUpdatedSettings(groupId);
+		boolean groupWasUpdated = ClientLinkedStorageContents.removeUpdatedGroup(groupId);
+
+		assertSame(contents, ClientLinkedStorageContents.getContents(groupId).orElseThrow());
+		assertEquals("diamond", contents.getContents().getString("inventory"));
+		assertTrue(contents.getContents().getCompound("settings").getBoolean("changed"));
+		assertEquals(7L, ClientLinkedStorageContents.getRevision(groupId).orElseThrow());
+		assertEquals(27, ClientLinkedStorageContents.getInventorySlots(groupId).orElseThrow());
+		assertEquals(3, ClientLinkedStorageContents.getUpgradeSlots(groupId).orElseThrow());
+		assertEquals(2, ClientLinkedStorageContents.getColumnsTaken(groupId).orElseThrow());
+		assertTrue(settingsWereUpdated);
+		assertFalse(groupWasUpdated);
 	}
 }
