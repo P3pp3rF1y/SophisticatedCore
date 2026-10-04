@@ -24,6 +24,7 @@ public abstract class SettingsHandler {
 	protected ContainerContents.SettingsData settingsData;
 	protected final Runnable markContentsDirty;
 	protected final Map<String, ISettingsCategory<?, ?>> settingsCategories = new LinkedHashMap<>();
+	private final Map<String, Supplier<? extends ContainerContents.ISettingsCategoryData<?>>> defaultCategoryDataSuppliers = new HashMap<>();
 	private final Map<Class<?>, List<?>> interfaceCategories = new HashMap<>();
 	private final Map<Class<? extends ISettingsCategory<?, ?>>, ISettingsCategory<?, ?>> typeCategories = new HashMap<>();
 
@@ -42,7 +43,7 @@ public abstract class SettingsHandler {
 	private void addSettingsCategories(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
 			ContainerContents.SettingsData settingsData, String playerSettingsName) {
 		addSettingsCategory(settingsData, MainSettingsCategory.NAME, markContentsDirty,
-				(MainSettingsCategoryData data, Runnable save) -> new MainSettingsCategory(settingsData, data, save, playerSettingsName),
+				(MainSettingsCategoryData data, Runnable save) -> new MainSettingsCategory(() -> this.settingsData, data, save, playerSettingsName),
 				MainSettingsCategoryData::new);
 		addItemDisplayCategory(inventoryHandlerSupplier, renderDataHandlerSupplier, settingsData);
 		addSettingsCategory(settingsData, NoSortSettingsCategory.NAME, markContentsDirty, NoSortSettingsCategory::new, NoSortSettingsCategoryData::new);
@@ -59,6 +60,7 @@ public abstract class SettingsHandler {
 			Supplier<D> defaultDataSupplier) {
 		T category = instantiateCategory.apply(getSettingsCategoryData(settingsData, categoryName, defaultDataSupplier), markContentsDirty);
 		settingsCategories.put(categoryName, category);
+		defaultCategoryDataSuppliers.put(categoryName, defaultDataSupplier);
 		// noinspection unchecked
 		typeCategories.put((Class<? extends ISettingsCategory<?, ?>>) category.getClass(), category);
 	}
@@ -107,9 +109,7 @@ public abstract class SettingsHandler {
 		this.settingsData = settingsData;
 		getSettingsCategories().forEach((categoryName, category) -> {
 			ContainerContents.ISettingsCategoryData<?> data = settingsData.categories().get(categoryName);
-			if (data != null) {
-				reloadFrom(category, data);
-			}
+			reloadFrom(category, data != null ? data : defaultCategoryDataSuppliers.get(categoryName).get());
 		});
 	}
 
