@@ -324,6 +324,23 @@ class LinkedStorageGroupManagerTest {
 	}
 
 	@Test
+	void detachLostEndpointRetainsGroupContentsWhenLastEndpointIsLost() {
+		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "lost_primary_test_host_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		ContainerContents initialContents = new ContainerContents();
+		initialContents.inventory().stacks().add(new ItemStack(Items.DIAMOND));
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), initialContents);
+
+		boolean detachedPrimary = manager.detachLostEndpoint(groupId, primaryId);
+
+		assertTrue(detachedPrimary);
+		assertFalse(manager.isEndpointMember(groupId, primaryId));
+		assertTrue(manager.resolveContents(groupId).orElseThrow().contents().inventory().stacks().getFirst().is(Items.DIAMOND));
+	}
+
+	@Test
 	void recordEndpointOpenedPersistsOwnershipAndEndpointAccessWithoutChangingContentRevision() {
 		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "ownership_test_host_" + UUID.randomUUID());
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);

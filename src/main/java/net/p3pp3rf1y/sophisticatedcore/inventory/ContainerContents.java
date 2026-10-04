@@ -290,12 +290,17 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		}
 
 		public void reloadFrom(SettingsData settings) {
-			categories.forEach((name, categoryData) -> {
-				if (settings.categories.containsKey(name)) {
-					categoryData.reloadFromAny(settings.categories.get(name));
+			categories.keySet().retainAll(settings.categories.keySet());
+			settings.categories.forEach((name, sourceData) -> {
+				ISettingsCategoryData<?> categoryData = categories.get(name);
+				if (categoryData == null || categoryData.getClass() != sourceData.getClass()) {
+					categories.put(name, sourceData.copy());
+				} else if (categoryData != sourceData) {
+					categoryData.reloadFromAny(sourceData);
 				}
 			});
 			mainSettingsContext = settings.mainSettingsContext;
+			searchPhrase = settings.searchPhrase;
 		}
 
 		@Override
@@ -307,7 +312,13 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 				return false;
 			}
 			SettingsData that = (SettingsData) obj;
-			return Objects.equals(categories, that.categories);
+			return Objects.equals(categories, that.categories) && mainSettingsContext == that.mainSettingsContext
+					&& Objects.equals(searchPhrase, that.searchPhrase);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(categories, mainSettingsContext, searchPhrase);
 		}
 	}
 
