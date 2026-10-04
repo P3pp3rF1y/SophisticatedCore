@@ -4,6 +4,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageContentsPayload;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageSettingsPayload;
 import net.p3pp3rf1y.sophisticatedcore.linkedstorage.RequestLinkedStorageContentsPayload;
 import net.p3pp3rf1y.sophisticatedcore.network.*;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.jukebox.PlayDiscPayload;
@@ -43,5 +44,6 @@ public class ModPayloads {
 		registrar.playToServer(RequestLinkedStorageContentsPayload.TYPE, RequestLinkedStorageContentsPayload.STREAM_CODEC,
 				RequestLinkedStorageContentsPayload::handlePayload);
 		registrar.playToClient(LinkedStorageContentsPayload.TYPE, LinkedStorageContentsPayload.STREAM_CODEC, LinkedStorageContentsPayload::handlePayload);
+		registrar.playToClient(LinkedStorageSettingsPayload.TYPE, LinkedStorageSettingsPayload.STREAM_CODEC, LinkedStorageSettingsPayload::handlePayload);
 	}
 }

@@ -5,16 +5,17 @@ import net.p3pp3rf1y.sophisticatedcore.settings.ISettingsCategory;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class MainSettingsCategory implements ISettingsCategory<MainSettingsCategory, MainSettingsCategoryData> {
 	public static final String NAME = "global";
 	private final Runnable save;
 
 	private final String playerSettingsName;
-	private final ContainerContents.SettingsData settingsData;
+	private final Supplier<ContainerContents.SettingsData> settingsData;
 	private MainSettingsCategoryData data;
 
-	public MainSettingsCategory(ContainerContents.SettingsData settingsData, MainSettingsCategoryData data, Runnable save, String playerSettingsName) {
+	public MainSettingsCategory(Supplier<ContainerContents.SettingsData> settingsData, MainSettingsCategoryData data, Runnable save, String playerSettingsName) {
 		this.settingsData = settingsData;
 		this.data = data;
 		this.save = save;
@@ -56,11 +57,11 @@ public class MainSettingsCategory implements ISettingsCategory<MainSettingsCateg
 	}
 
 	public Context getContext() {
-		return settingsData.mainSettingsContext();
+		return settingsData.get().mainSettingsContext();
 	}
 
 	public void setContext(Context context) {
-		settingsData.setMainSettingsContext(context);
+		settingsData.get().setMainSettingsContext(context);
 		save.run();
 	}
 

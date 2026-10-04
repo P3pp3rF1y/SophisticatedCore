@@ -98,6 +98,10 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		return storageWrapper;
 	}
 
+	public ItemStack getStorageSettingsTabIcon() {
+		return storageWrapper.getWrappedStorageStack();
+	}
+
 	private void addSettingsContainers() {
 		SettingsHandler settingsHandler = storageWrapper.getSettingsHandler();
 		settingsHandler.getSettingsCategories().forEach((name, category) -> settingsContainers.put(name, instantiateContainer(this, name, category)));
