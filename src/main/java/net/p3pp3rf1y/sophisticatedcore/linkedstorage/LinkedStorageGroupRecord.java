@@ -64,6 +64,10 @@ final class LinkedStorageGroupRecord {
 		return !primaryEndpointId.equals(endpointId) && endpoints.remove(endpointId) != null;
 	}
 
+	boolean detachLostEndpoint(UUID endpointId) {
+		return endpoints.remove(endpointId) != null;
+	}
+
 	void recordEndpointOpened(UUID endpointId, UUID playerId, long gameTime) {
 		endpoints.put(endpointId, endpoints.get(endpointId).withLastOpenedBy(playerId, gameTime));
 	}

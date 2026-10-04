@@ -91,6 +91,8 @@ public class PacketHandler {
 				RequestLinkedStorageContentsMessage::onMessage, NetworkDirection.PLAY_TO_SERVER);
 		registerMessage(LinkedStorageContentsMessage.class, LinkedStorageContentsMessage::encode, LinkedStorageContentsMessage::decode,
 				LinkedStorageContentsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
+		registerMessage(LinkedStorageSettingsMessage.class, LinkedStorageSettingsMessage::encode, LinkedStorageSettingsMessage::decode,
+				LinkedStorageSettingsMessage::onMessage, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public <M> void registerMessage(Class<M> messageType, BiConsumer<M, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, M> decoder,
