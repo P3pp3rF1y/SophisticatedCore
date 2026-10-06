@@ -15,7 +15,8 @@ public class MainSettingsCategory implements ISettingsCategory<MainSettingsCateg
 	private final Supplier<ContainerContents.SettingsData> settingsData;
 	private MainSettingsCategoryData data;
 
-	public MainSettingsCategory(Supplier<ContainerContents.SettingsData> settingsData, MainSettingsCategoryData data, Runnable save, String playerSettingsName) {
+	public MainSettingsCategory(Supplier<ContainerContents.SettingsData> settingsData, MainSettingsCategoryData data, Runnable save,
+			String playerSettingsName) {
 		this.settingsData = settingsData;
 		this.data = data;
 		this.save = save;
