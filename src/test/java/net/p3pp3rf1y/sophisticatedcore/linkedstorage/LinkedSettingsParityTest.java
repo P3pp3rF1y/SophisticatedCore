@@ -65,10 +65,11 @@ class LinkedSettingsParityTest {
 	@Test
 	void mainSettingsCategoryUsesReloadedSettingsContext() {
 		ContainerContents.SettingsData initial = new ContainerContents.SettingsData();
-		SettingsHandler handler = new SettingsHandler(initial, () -> {}, () -> null, () -> null, "test") {
+		SettingsHandler handler = new SettingsHandler(initial, () -> {
+		}, () -> null, () -> null, "test") {
 			@Override
-			protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier,
-					Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
+			protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
+					ContainerContents.SettingsData settingsData) {
 			}
 		};
 		MainSettingsCategory category = handler.getTypeCategory(MainSettingsCategory.class);
@@ -84,10 +85,11 @@ class LinkedSettingsParityTest {
 
 	@Test
 	void missingCategoryReloadsItsDefaultInsteadOfKeepingPreviousSettings() {
-		SettingsHandler handler = new SettingsHandler(new ContainerContents.SettingsData(), () -> {}, () -> null, () -> null, "test") {
+		SettingsHandler handler = new SettingsHandler(new ContainerContents.SettingsData(), () -> {
+		}, () -> null, () -> null, "test") {
 			@Override
-			protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier,
-					Supplier<RenderDataHandler> renderDataHandlerSupplier, ContainerContents.SettingsData settingsData) {
+			protected void addItemDisplayCategory(Supplier<InventoryHandler> inventoryHandlerSupplier, Supplier<RenderDataHandler> renderDataHandlerSupplier,
+					ContainerContents.SettingsData settingsData) {
 			}
 		};
 		MainSettingsCategory category = handler.getTypeCategory(MainSettingsCategory.class);
