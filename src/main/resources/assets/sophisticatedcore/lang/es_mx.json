@@ -280,5 +280,9 @@
   "fluid_type.sophisticatedcore.experience": "Experiencia",
   "gui.sophisticatedcore.tooltip.stack_count": "Cantidad: %s",
   "key.category.sophisticatedcore.main": "Sophisticated Mods",
-  "key.sophisticatedcore.sort": "Ordenar almacenamiento/mochila"
+  "key.sophisticatedcore.sort": "Ordenar almacenamiento/mochila",
+  "item.sophisticatedcore.stack_upgrade_conversion.tooltip": "Haz clic derecho en una mejora de stack instalada para convertirla",
+  "gui.sophisticatedcore.buttons.browse_results": "Abrir lista de resultados ampliada con búsqueda",
+  "gui.sophisticatedcore.settings.buttons.z_offset": "Profundidad",
+  "gui.sophisticatedcore.settings.buttons.z_offset_detail": "Fuera = Clic izquierdo\nDentro = Clic derecho"
 }
