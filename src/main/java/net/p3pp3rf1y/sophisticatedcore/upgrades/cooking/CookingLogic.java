@@ -16,6 +16,7 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
@@ -454,7 +455,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 		public ItemStack getStackInSlot(int slot) {
 			ItemContainerContents contents = getContentsFromStack();
-			return getStackFromContents(contents, slot);
+			return getTemplateFromContents(contents, slot).map(ItemStackTemplate::create).orElse(ItemStack.EMPTY);
 		}
 
 		@Override
@@ -486,7 +487,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 
 		public void setStackInSlotWithoutValidation(int slot, ItemStack stack) {
 			ItemContainerContents contents = getContentsFromStack();
-			ItemStack existing = getStackFromContents(contents, slot);
+			ItemStack existing = getTemplateFromContents(contents, slot).map(ItemStackTemplate::create).orElse(ItemStack.EMPTY);
 			if (!ItemStack.matches(stack, existing)) {
 				NonNullList<ItemStack> list = NonNullList.withSize(Math.max(contents.getSlots(), this.size), ItemStack.EMPTY);
 				contents.copyInto(list);

@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -202,7 +203,7 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 
 		public ItemStack getStackInSlot(int slot) {
 			ItemContainerContents contents = getContents(itemAccess.getResource());
-			return getStackFromContents(contents, slot);
+			return getTemplateFromContents(contents, slot).map(ItemStackTemplate::create).orElse(ItemStack.EMPTY);
 		}
 
 		public void setStackInSlot(int slot, ItemStack stack) {

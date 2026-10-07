@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
@@ -398,7 +399,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 
 		public ItemStack getStackInSlot(int slot) {
 			ItemContainerContents contents = getContents(itemAccess.getResource());
-			return getStackFromContents(contents, slot);
+			return getTemplateFromContents(contents, slot).map(ItemStackTemplate::create).orElse(ItemStack.EMPTY);
 		}
 
 		public void setStackInSlot(int slot, ItemStack stack) {
