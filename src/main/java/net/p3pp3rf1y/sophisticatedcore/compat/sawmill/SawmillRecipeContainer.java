@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.compat.sawmill;
 
 import net.mehvahdjukaar.sawmill.RecipeSorter;
 import net.mehvahdjukaar.sawmill.SawmillMod;
+import net.mehvahdjukaar.sawmill.WoodcuttingEntry;
 import net.mehvahdjukaar.sawmill.WoodcuttingRecipe;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
@@ -33,7 +34,8 @@ public class SawmillRecipeContainer
 	@Override
 	protected List<RecipeHolder<WoodcuttingRecipe>> filterAndSortRecipes(List<RecipeHolder<WoodcuttingRecipe>> recipes) {
 		recipes.removeIf(r -> r.value().result.is(SawmillMod.BLACKLIST));
-		RecipeSorter.sort(recipes, level);
+		recipes = RecipeSorter.sorted(recipes.stream().map(WoodcuttingEntry::of).toList(), level.registryAccess()).stream()
+				.map(entry -> entry.recipe().orElseThrow()).toList();
 		recipes = recipes.subList(0, Math.min(recipes.size(), 255));
 		this.maxInputCount = recipes.stream().mapToInt(r -> r.value().getInputCount()).max().orElse(0);
 		return recipes;
