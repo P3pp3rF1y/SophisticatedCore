@@ -136,6 +136,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			filterItemStorages.clear();
 			storageFilterItems.clear();
 			listenerSourcePositions.clear();
+			clearCachedHandlers();
 			storageKeys.forEach(storageKey -> getStorageMemberPositions(storageKey).stream()
 					.filter(storagePos -> WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).isPresent()).findFirst()
 					.ifPresent(this::addStorageStacksAndRegisterListeners));
@@ -178,6 +179,24 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 			setChanged();
 			WorldHelper.notifyBlockEntityUpdate(this);
 		});
+	}
+
+	public void unloadStorage(BlockPos storagePos) {
+		if (!isStorageConnected(storagePos)) {
+			return;
+		}
+		ControllerStorageKey storageKey = getStorageKey(storagePos);
+		clearCachedHandler(storagePos);
+		if (!storagePos.equals(listenerSourcePositions.get(storageKey))) {
+			return;
+		}
+
+		removeStorageRoutingData(storagePos);
+		WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterControllerListeners);
+		listenerSourcePositions.remove(storageKey);
+		getStorageMemberPositions(storageKey).stream().filter(memberPos -> !memberPos.equals(storagePos))
+				.filter(memberPos -> WorldHelper.getLoadedBlockEntity(level, memberPos, IControllableStorage.class).isPresent()).findFirst()
+				.ifPresent(this::addStorageStacksAndRegisterListeners);
 	}
 
 	public void updateEmptySlots(BlockPos storagePos, boolean hasEmptySlots) {
@@ -385,6 +404,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	public void addStorageStacksAndRegisterListeners(BlockPos storagePos) {
 		WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(storage -> {
 			ControllerStorageKey storageKey = getStorageKey(storagePos);
+			clearCachedHandler(storagePos);
 			if (listenerSourcePositions.containsKey(storageKey)) {
 				storage.registerControllerMembership(this);
 				return;
