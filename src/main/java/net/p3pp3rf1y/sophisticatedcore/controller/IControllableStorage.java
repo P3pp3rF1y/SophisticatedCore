@@ -44,6 +44,14 @@ public interface IControllableStorage extends IControllerBoundable {
 		}
 	}
 
+	default void unloadFromController() {
+		Level level = getStorageBlockLevel();
+		if (!level.isClientSide()) {
+			getControllerPos().flatMap(pos -> WorldHelper.getLoadedBlockEntity(level, pos, ControllerBlockEntityBase.class))
+					.filter(controller -> !controller.isRemoved()).ifPresent(controller -> controller.unloadStorage(getStorageBlockPos()));
+		}
+	}
+
 	@Override
 	default void addToController(Level level, BlockPos pos, BlockPos controllerPos) {
 		WorldHelper.getBlockEntity(level, controllerPos, ControllerBlockEntityBase.class).ifPresent(c -> c.addStorage(getControlledStorageBlockPos()));
