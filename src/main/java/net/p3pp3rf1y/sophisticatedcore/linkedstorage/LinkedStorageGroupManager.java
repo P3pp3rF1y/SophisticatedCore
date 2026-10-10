@@ -165,9 +165,10 @@ public class LinkedStorageGroupManager {
 			return;
 		}
 		virtualHosts.remove(groupId);
+		savedData.removeGroup(groupId);
+		notifyListeners(groupChangeListeners.getOrDefault(groupId, Set.of()));
 		groupChangeListeners.remove(groupId);
 		rootContentsReplacementListeners.remove(groupId);
-		savedData.removeGroup(groupId);
 	}
 
 	public void activatePendingCraftClaim(ActivePendingCraftClaim claim) {
@@ -266,6 +267,11 @@ public class LinkedStorageGroupManager {
 		@Override
 		public void markRenderDirty() {
 			LinkedStorageGroupManager.this.markRenderDirty(groupId);
+		}
+
+		@Override
+		public void onHandlersInvalidated() {
+			notifyListeners(groupChangeListeners.getOrDefault(groupId, Set.of()));
 		}
 
 		@Override

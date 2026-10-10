@@ -222,7 +222,8 @@ public class EnderLinkerEndpointRecipe extends CustomRecipe {
 		Optional<ActivePendingCraftClaim> claim = manager.getActivePendingCraftClaim(pendingCraft.claimId())
 				.filter(activeClaim -> activeClaim.plan() == pendingCraft.plan());
 		Optional<ILinkedStorageItemEndpointAdapter> adapter = LinkedStorageEndpointAdapters.find(endpoint);
-		if (claim.isEmpty() || adapter.isEmpty() || !manager.usesHostFactory(claim.get().groupId(), adapter.get().factoryId())) {
+		if (claim.isEmpty() || adapter.isEmpty()
+				|| manager.getHostDescriptor(claim.get().groupId()).filter(descriptor -> adapter.get().acceptsHostFactory(descriptor.factoryId())).isEmpty()) {
 			return false;
 		}
 		endpoint.remove(ModCoreDataComponents.ENDER_LINK_PENDING_CRAFT);

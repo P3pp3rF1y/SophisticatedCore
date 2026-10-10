@@ -135,6 +135,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	public abstract Optional<Entity> getEntity();
 
+	public Optional<UUID> getLinkedStorageGroupId() {
+		return Optional.empty();
+	}
+
 	protected void initSlotsAndContainers(Player player, int storageItemSlotIndex, boolean shouldLockStorageItemSlot, List<Slot> extraSlots) {
 		addStorageInventorySlots();
 		addPlayerInventorySlots(player.getInventory(), storageItemSlotIndex, shouldLockStorageItemSlot);

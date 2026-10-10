@@ -19,6 +19,33 @@ class ClientLinkedStorageContentsTest {
 	}
 
 	@Test
+	void updateHostDescriptorCopiesCarrierAndRetainsItAcrossContentsAndSettingsUpdates() {
+		UUID groupId = UUID.randomUUID();
+		CompoundTag descriptor = new CompoundTag();
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "sophisticatedstorage:storage");
+
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, descriptor);
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "changed");
+		ClientLinkedStorageContents.updateContents(groupId, 1, new CompoundTag(), Component.literal("Chest"), 54, 3, 0);
+		ClientLinkedStorageContents.updateSettings(groupId, new CompoundTag());
+		CompoundTag projection = ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow();
+		projection.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "changed again");
+
+		assertEquals("sophisticatedstorage:storage",
+				ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow().getString(LinkedStorageHostDescriptor.FACTORY_ID_TAG));
+	}
+
+	@Test
+	void clearRemovesHostDescriptors() {
+		UUID groupId = UUID.randomUUID();
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, new CompoundTag());
+
+		ClientLinkedStorageContents.clear();
+
+		assertTrue(ClientLinkedStorageContents.getHostDescriptor(groupId).isEmpty());
+	}
+
+	@Test
 	void updateContentsReplacesContents() {
 		UUID groupId = UUID.randomUUID();
 		CompoundTag currentContents = new CompoundTag();

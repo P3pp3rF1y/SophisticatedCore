@@ -20,8 +20,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class RenderInfo {
-	private static final String TANKS_TAG = "tanks";
-	private static final String BATTERY_TAG = "battery";
+	public static final String TANKS_TAG = "tanks";
+	public static final String BATTERY_TAG = "battery";
 	private static final String TANK_POSITION_TAG = "position";
 	private static final String TANK_INFO_TAG = "info";
 	private static final String ITEM_DISPLAY_TAG = "itemDisplay";

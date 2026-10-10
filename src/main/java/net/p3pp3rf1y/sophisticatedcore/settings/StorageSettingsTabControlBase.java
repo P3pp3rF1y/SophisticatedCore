@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.settings;
 
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.inventory.Slot;
@@ -12,15 +11,17 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Position;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class StorageSettingsTabControlBase extends SettingsTabControl<SettingsScreen, SettingsTab<?>> {
+	private static final Map<String, ISettingsTabFactory<?, ?>> SETTINGS_TAB_FACTORIES = new HashMap<>();
 	private final List<SettingsTab<?>> settingsTabs = new ArrayList<>();
 	protected final SettingsScreen screen;
 
-	protected static <C extends SettingsContainerBase<?>, T extends SettingsTab<C>> void addFactory(
-			ImmutableMap.Builder<String, ISettingsTabFactory<?, ?>> builder, String categoryName, ISettingsTabFactory<C, T> factory) {
-		builder.put(categoryName, factory);
+	protected static <C extends SettingsContainerBase<?>, T extends SettingsTab<C>> void addFactory(String categoryName, ISettingsTabFactory<C, T> factory) {
+		SETTINGS_TAB_FACTORIES.put(categoryName, factory);
 	}
 
 	protected StorageSettingsTabControlBase(SettingsScreen screen, Position position) {
@@ -114,5 +115,8 @@ public abstract class StorageSettingsTabControlBase extends SettingsTabControl<S
 		return (SettingsTab<C>) getSettingsTabFactory(categoryName).create(container, position, screen);
 	}
 
-	protected abstract <C extends SettingsContainerBase<?>, T extends SettingsTab<C>> ISettingsTabFactory<C, T> getSettingsTabFactory(String name);
+	protected <C extends SettingsContainerBase<?>, T extends SettingsTab<C>> ISettingsTabFactory<C, T> getSettingsTabFactory(String name) {
+		// noinspection unchecked
+		return (ISettingsTabFactory<C, T>) SETTINGS_TAB_FACTORIES.get(name);
+	}
 }

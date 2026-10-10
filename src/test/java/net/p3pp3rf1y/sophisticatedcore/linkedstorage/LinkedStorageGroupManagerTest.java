@@ -21,6 +21,75 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LinkedStorageGroupManagerTest {
 	@Test
+	void onHandlersInvalidatedNotifiesEndpointsWithoutChangingPersistedRevisions() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "capability_listener_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new CompoundTag());
+		ILinkedStorageContents contents = manager.resolveContents(groupId).orElseThrow();
+		AtomicInteger first = new AtomicInteger();
+		AtomicInteger second = new AtomicInteger();
+		Runnable unsubscribe = manager.subscribeToGroupChanges(groupId, first::incrementAndGet);
+		manager.subscribeToGroupChanges(groupId, second::incrementAndGet);
+
+		contents.onHandlersInvalidated();
+		unsubscribe.run();
+		contents.onHandlersInvalidated();
+
+		assertEquals(1, first.get());
+		assertEquals(2, second.get());
+		assertEquals(0, manager.getRevision(groupId));
+		assertEquals(0, manager.getRenderRevision(groupId));
+	}
+
+	@Test
+	void detachLostEndpointRevokesResolutionBeforeNotifyingAndRetainsSurvivingHost() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "detach_capability_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		ILinkedStorageVirtualHost host = manager.resolveVirtualHost(secondary, false).orElseThrow();
+		AtomicInteger notifications = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertTrue(manager.resolveVirtualHost(secondary, false).isEmpty());
+			notifications.incrementAndGet();
+		});
+
+		assertTrue(manager.detachLostEndpoint(groupId, secondary.endpointId()));
+		assertFalse(manager.detachLostEndpoint(groupId, secondary.endpointId()));
+
+		assertEquals(1, notifications.get());
+		assertSame(host, manager.resolveVirtualHost(new LinkedStorageEndpointData(groupId, primaryId), false).orElseThrow());
+	}
+
+	@Test
+	void discardUnboundGroupRevokesCachedHostBeforeNotifyingEachEndpointOnce() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "discard_capability_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		manager.resolveVirtualHost(groupId).orElseThrow();
+		AtomicInteger first = new AtomicInteger();
+		AtomicInteger second = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertTrue(manager.resolveVirtualHost(groupId).isEmpty());
+			assertTrue(manager.resolveContents(groupId).isEmpty());
+			first.incrementAndGet();
+		});
+		manager.subscribeToGroupChanges(groupId, second::incrementAndGet);
+
+		manager.discardUnboundGroup(groupId, primaryId);
+		manager.discardUnboundGroup(groupId, primaryId);
+
+		assertEquals(1, first.get());
+		assertEquals(1, second.get());
+	}
+
+	@Test
 	void resolveVirtualHostResolvesEndpointKeysToCachedVirtualHost() {
 		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "endpoint_key_test_host_" + UUID.randomUUID());
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);

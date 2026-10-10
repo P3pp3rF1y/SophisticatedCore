@@ -50,7 +50,7 @@ public abstract class SettingsHandler {
 	protected void addSettingsCategory(CompoundTag settingsNbt, String categoryName, Runnable markContentsDirty,
 			BiFunction<CompoundTag, Consumer<CompoundTag>, ISettingsCategory<?>> instantiateCategory) {
 		ISettingsCategory<?> category = instantiateCategory.apply(settingsNbt.getCompound(categoryName), tag -> {
-			saveCategoryNbt(settingsNbt, categoryName, tag);
+			saveCategoryNbt(getSettingsNbtFromContentsNbt(contentsNbt), categoryName, tag);
 			markContentsDirty.run();
 		});
 		settingsCategories.put(categoryName, category);
@@ -97,5 +97,9 @@ public abstract class SettingsHandler {
 		this.contentsNbt = contentsNbt;
 		CompoundTag settingsNbt = getSettingsNbtFromContentsNbt(contentsNbt);
 		getSettingsCategories().forEach((categoryName, category) -> category.reloadFrom(settingsNbt.getCompound(categoryName)));
+	}
+
+	public void reloadFromStorageContents(CompoundTag storageContents) {
+		reloadFrom(storageContents);
 	}
 }

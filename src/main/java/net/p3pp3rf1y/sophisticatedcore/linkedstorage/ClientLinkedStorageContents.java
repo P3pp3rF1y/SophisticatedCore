@@ -13,12 +13,21 @@ import java.util.UUID;
 public final class ClientLinkedStorageContents {
 	private static final long REQUEST_INTERVAL = 20;
 	private static final Map<UUID, Snapshot> SNAPSHOTS = new HashMap<>();
+	private static final Map<UUID, CompoundTag> HOST_DESCRIPTORS = new HashMap<>();
 	private static final Map<UUID, ClientContents> CONTENTS = new HashMap<>();
 	private static final Map<UUID, Long> LAST_REQUEST_TIMES = new HashMap<>();
 	private static final Set<UUID> UPDATED_GROUPS = new HashSet<>();
 	private static final Set<UUID> UPDATED_SETTINGS = new HashSet<>();
 
 	private ClientLinkedStorageContents() {
+	}
+
+	public static void updateHostDescriptor(UUID groupId, CompoundTag hostDescriptor) {
+		HOST_DESCRIPTORS.put(groupId, hostDescriptor.copy());
+	}
+
+	public static Optional<CompoundTag> getHostDescriptor(UUID groupId) {
+		return Optional.ofNullable(HOST_DESCRIPTORS.get(groupId)).map(CompoundTag::copy);
 	}
 
 	public static Optional<ILinkedStorageContents> getContents(UUID groupId) {
@@ -95,6 +104,7 @@ public final class ClientLinkedStorageContents {
 
 	public static void clear() {
 		SNAPSHOTS.clear();
+		HOST_DESCRIPTORS.clear();
 		CONTENTS.clear();
 		LAST_REQUEST_TIMES.clear();
 		UPDATED_GROUPS.clear();

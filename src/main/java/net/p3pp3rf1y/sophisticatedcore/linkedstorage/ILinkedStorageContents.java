@@ -20,6 +20,10 @@ public interface ILinkedStorageContents extends IStorageSavedData {
 		markDirty();
 	}
 
+	default void onHandlersInvalidated() {
+		// Client snapshots and detached contents have no live capability caches.
+	}
+
 	int getColumnsTaken();
 
 	void setColumnsTaken(int columnsTaken);
