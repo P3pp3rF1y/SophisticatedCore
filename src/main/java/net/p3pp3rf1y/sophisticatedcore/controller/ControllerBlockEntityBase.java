@@ -130,6 +130,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			filterItemStorages.clear();
 			storageFilterItems.clear();
 			listenerSourcePositions.clear();
+			clearCachedHandlers();
 			for (ControllerStorageKey storageKey : new ArrayList<>(storageKeys)) {
 				getStorageMemberPositions(storageKey).stream()
 						.filter(memberPos -> WorldHelper.getLoadedBlockEntity(level, memberPos, IControllableStorage.class).isPresent()).findFirst()
@@ -189,6 +190,24 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		clearCachedHandler(storagePos);
 		setChanged();
 		WorldHelper.notifyBlockUpdate(this);
+	}
+
+	public void unloadStorage(BlockPos storagePos) {
+		if (!isStorageConnected(storagePos)) {
+			return;
+		}
+		ControllerStorageKey storageKey = getStorageKey(storagePos);
+		clearCachedHandler(storagePos);
+		if (!storagePos.equals(listenerSourcePositions.get(storageKey))) {
+			return;
+		}
+
+		removeStorageRoutingData(storagePos);
+		WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(IControllableStorage::unregisterControllerListeners);
+		listenerSourcePositions.remove(storageKey);
+		getStorageMemberPositions(storageKey).stream().filter(memberPos -> !memberPos.equals(storagePos))
+				.filter(memberPos -> WorldHelper.getLoadedBlockEntity(level, memberPos, IControllableStorage.class).isPresent()).findFirst()
+				.ifPresent(this::addStorageStacksAndRegisterListeners);
 	}
 
 	public void updateEmptySlots(BlockPos storagePos, boolean hasEmptySlots) {
@@ -412,6 +431,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 			if (storageKey == null) {
 				return;
 			}
+			clearCachedHandler(storagePos);
 			if (listenerSourcePositions.containsKey(storageKey)) {
 				storage.registerControllerMembership(this);
 				return;
