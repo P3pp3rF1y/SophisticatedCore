@@ -344,6 +344,11 @@ public abstract class SettingsScreen extends AbstractContainerScreen<SettingsCon
 
 	protected abstract void sendStorageInventoryScreenOpenMessage();
 
+	@Override
+	public void onClose() {
+		sendStorageInventoryScreenOpenMessage();
+	}
+
 	public StorageSettingsTabControlBase getSettingsTabControl() {
 		return settingsTabControl;
 	}

@@ -24,6 +24,8 @@ public class RenderDataHandler {
 
 	private Consumer<RenderDataHandler> renderUpdateChangeListener = ri -> {
 	};
+	private Runnable renderDataChangeListener = () -> {
+	};
 
 	private RenderData renderData;
 
@@ -73,6 +75,10 @@ public class RenderDataHandler {
 		this.renderUpdateChangeListener = renderUpdateChangeListener;
 	}
 
+	public void setRenderDataChangeListener(Runnable renderDataChangeListener) {
+		this.renderDataChangeListener = renderDataChangeListener;
+	}
+
 	@Deprecated
 	public void setDisplayItemsChangeListener(Consumer<RenderDataHandler> renderUpdateChangeListener) {
 		setRenderUpdateChangeListener(renderUpdateChangeListener);
@@ -80,6 +86,7 @@ public class RenderDataHandler {
 
 	protected void save(boolean triggerChangeListener) {
 		saveHandler.accept(renderData);
+		renderDataChangeListener.run();
 
 		if (triggerChangeListener) {
 			renderUpdateChangeListener.accept(this);
