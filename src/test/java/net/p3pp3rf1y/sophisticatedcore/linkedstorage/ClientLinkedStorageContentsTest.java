@@ -1,11 +1,17 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
+import net.minecraft.SharedConstants;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.settings.main.Context;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -16,9 +22,44 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClientLinkedStorageContentsTest {
+	@BeforeAll
+	static void setup() {
+		SharedConstants.tryDetectVersion();
+		Bootstrap.bootStrap();
+		Items.STICK.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+		Items.DIAMOND.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+	}
+
 	@AfterEach
 	void clearSnapshots() {
 		ClientLinkedStorageContents.clear();
+	}
+
+	@Test
+	void updateHostDescriptorCopiesCarrierAndRetainsItAcrossContentsAndSettingsUpdates() {
+		UUID groupId = UUID.randomUUID();
+		CompoundTag descriptor = new CompoundTag();
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "sophisticatedstorage:storage");
+
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, descriptor);
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "changed");
+		ClientLinkedStorageContents.updateContents(groupId, 1, new ContainerContents(), Component.literal("Chest"), 54, 3, 0);
+		ClientLinkedStorageContents.updateSettings(groupId, new ContainerContents.SettingsData());
+		CompoundTag projection = ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow();
+		projection.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "changed again");
+
+		assertEquals("sophisticatedstorage:storage",
+				ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow().getString(LinkedStorageHostDescriptor.FACTORY_ID_TAG).orElseThrow());
+	}
+
+	@Test
+	void clearRemovesHostDescriptors() {
+		UUID groupId = UUID.randomUUID();
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, new CompoundTag());
+
+		ClientLinkedStorageContents.clear();
+
+		assertTrue(ClientLinkedStorageContents.getHostDescriptor(groupId).isEmpty());
 	}
 
 	@Test
@@ -50,6 +91,30 @@ class ClientLinkedStorageContentsTest {
 		assertEquals(0, contents.contents().inventory().stacks().size());
 		assertEquals(7L, ClientLinkedStorageContents.getRevision(groupId).orElseThrow());
 		assertEquals(45, ClientLinkedStorageContents.getInventorySlots(groupId).orElseThrow());
+	}
+
+	@Test
+	void setColumnsTakenPreservesPredictedLiveUpgradeContents() {
+		UUID groupId = UUID.randomUUID();
+		ContainerContents initial = new ContainerContents();
+		initial.upgrades().stacks().add(ItemStack.EMPTY);
+		initial.upgrades().stacks().add(ItemStack.EMPTY);
+		ClientLinkedStorageContents.updateContents(groupId, 6L, initial, Component.literal("Linked storage"), 27, 2, 0);
+		ILinkedStorageContents contents = ClientLinkedStorageContents.getContents(groupId).orElseThrow();
+		ContainerContents liveContents = contents.contents();
+		liveContents.upgrades().stacks().set(1, new ItemStack(Items.DIAMOND));
+		liveContents.inventory().stacks().add(new ItemStack(Items.STICK));
+
+		contents.setColumnsTaken(1);
+
+		assertSame(liveContents, contents.contents());
+		assertEquals(2, contents.contents().upgrades().stacks().size());
+		assertTrue(contents.contents().upgrades().stacks().get(0).isEmpty());
+		assertTrue(contents.contents().upgrades().stacks().get(1).is(Items.DIAMOND));
+		assertTrue(contents.contents().inventory().stacks().getFirst().is(Items.STICK));
+		assertEquals(1, contents.getColumnsTaken());
+		assertEquals(1, ClientLinkedStorageContents.getColumnsTaken(groupId).orElseThrow());
+		assertEquals(6L, ClientLinkedStorageContents.getRevision(groupId).orElseThrow());
 	}
 
 	@Test

@@ -31,6 +31,7 @@ import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointData;
 import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageGroupManager;
 import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageGroupsSavedData;
 import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageHostDescriptor;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageHostFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -56,6 +57,61 @@ class EnderLinkerEndpointRecipeTest {
 		DataComponentMap components = DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build();
 		for (var item : List.of(Items.DIRT, Items.STICK, Items.DIAMOND, Items.BLAZE_ROD)) {
 			item.builtInRegistryHolder().bindComponents(components);
+		}
+	}
+
+	@Test
+	void finalizePendingCraftResultAcceptsBothCrossFamilyDirectionsAndConsumesClaims() {
+		assertEndpointFinalization("sophisticatedbackpacks", "backpack", "sophisticatedstorage", "storage", true);
+		assertEndpointFinalization("sophisticatedstorage", "storage", "sophisticatedbackpacks", "backpack", true);
+		assertEndpointFinalization("sophisticatedbackpacks", "backpack", "sophisticatedbackpacks", "backpack", true);
+	}
+
+	@Test
+	void finalizePendingCraftResultKeepsIncompatibleClaimAndPendingResult() {
+		assertEndpointFinalization("sophisticatedbackpacks", "backpack", "other", "host", false);
+	}
+
+	private static void assertEndpointFinalization(String adapterNamespace, String adapterPath, String hostNamespace, String hostPath, boolean accepted) {
+		Identifier adapterFactory = Identifier.fromNamespaceAndPath(adapterNamespace, adapterPath);
+		Identifier hostFactory = Identifier.fromNamespaceAndPath(hostNamespace, hostPath);
+		if (accepted) {
+			LinkedStorageHostFactories.registerCompatibility(adapterFactory, hostFactory);
+		}
+		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter() {
+			@Override
+			public Identifier factoryId() {
+				return adapterFactory;
+			}
+		};
+		ServerLevel level = Mockito.mock(ServerLevel.class);
+		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
+		LinkedStorageGroupManager manager = Mockito.mock(LinkedStorageGroupManager.class);
+		UUID claimId = UUID.randomUUID();
+		LinkedStorageEndpointData endpoint = new LinkedStorageEndpointData(UUID.randomUUID(), UUID.randomUUID());
+		ItemStack result = new ItemStack(Items.STICK);
+		EnderLinkPendingCraftData pending = new EnderLinkPendingCraftData(EnderLinkPendingCraftPlan.ADD_SECONDARY, claimId);
+		result.set(ModCoreDataComponents.ENDER_LINK_PENDING_CRAFT, pending);
+		Mockito.when(savedData.manager()).thenReturn(manager);
+		Mockito.when(manager.getActivePendingCraftClaim(claimId))
+				.thenReturn(Optional.of(new ActivePendingCraftClaim(claimId, endpoint.groupId(), endpoint.endpointId(), pending.plan())));
+		Mockito.when(manager.getHostDescriptor(endpoint.groupId())).thenReturn(Optional.of(new LinkedStorageHostDescriptor(hostFactory, new CompoundTag())));
+		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class);
+				MockedStatic<LinkedStorageEndpointAdapters> adapters = Mockito.mockStatic(LinkedStorageEndpointAdapters.class)) {
+			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
+			adapters.when(() -> LinkedStorageEndpointAdapters.find(result)).thenReturn(Optional.of(adapter));
+
+			assertEquals(accepted, EnderLinkerEndpointRecipe.finalizePendingCraftResult(level, result));
+		}
+
+		if (accepted) {
+			assertEquals(endpoint, result.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT));
+			assertFalse(result.has(ModCoreDataComponents.ENDER_LINK_PENDING_CRAFT));
+			Mockito.verify(manager).consumeActivePendingCraftClaim(claimId);
+		} else {
+			assertEquals(pending, result.get(ModCoreDataComponents.ENDER_LINK_PENDING_CRAFT));
+			assertFalse(result.has(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT));
+			Mockito.verify(manager, Mockito.never()).consumeActivePendingCraftClaim(Mockito.any());
 		}
 	}
 
@@ -239,7 +295,8 @@ class EnderLinkerEndpointRecipeTest {
 		Mockito.when(manager.getActivePendingCraftClaim(claimId))
 				.thenReturn(Optional.of(new ActivePendingCraftClaim(claimId, groupId, endpointId, EnderLinkPendingCraftPlan.ADD_SECONDARY)));
 		Mockito.when(manager.isEndpointMember(groupId, endpointId)).thenReturn(true);
-		Mockito.when(manager.usesHostFactory(groupId, TestEndpointAdapter.FACTORY_ID)).thenReturn(true);
+		Mockito.when(manager.getHostDescriptor(groupId))
+				.thenReturn(Optional.of(new LinkedStorageHostDescriptor(TestEndpointAdapter.FACTORY_ID, new CompoundTag())));
 		Mockito.when(manager.consumeActivePendingCraftClaim(claimId)).thenReturn(true);
 		Mockito.when(savedData.manager()).thenReturn(manager);
 		Mockito.when(playerInventory.getContainerSize()).thenReturn(1);

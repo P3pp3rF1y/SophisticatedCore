@@ -7,6 +7,10 @@ import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 public interface ILinkedStorageEndpointAdapter<E> {
 	Identifier factoryId();
 
+	default boolean acceptsHostFactory(Identifier hostFactoryId) {
+		return LinkedStorageHostFactories.areCompatible(factoryId(), hostFactoryId);
+	}
+
 	default boolean isCompatible(ServerLevel level, E endpoint, LinkedStorageHostDescriptor hostDescriptor) {
 		return true;
 	}

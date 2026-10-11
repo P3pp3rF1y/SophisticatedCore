@@ -72,7 +72,7 @@ public final class LinkedStorageService {
 		UUID groupId = getLinkerTargetGroup(level, linker).orElseThrow();
 		LinkedStorageGroupManager manager = LinkedStorageGroupsSavedData.get(level).manager();
 		LinkedStorageHostDescriptor hostDescriptor = manager.getHostDescriptor(groupId).orElseThrow();
-		if (!manager.usesHostFactory(groupId, adapter.get().factoryId())) {
+		if (!adapter.get().acceptsHostFactory(hostDescriptor.factoryId())) {
 			return LinkResult.INCOMPATIBLE_ENDPOINT;
 		}
 		return getAddEndpointResult(level, endpoint, adapter.get(), groupId, manager, hostDescriptor);
@@ -80,7 +80,7 @@ public final class LinkedStorageService {
 
 	private static <E> LinkResult getAddEndpointResult(ServerLevel level, E endpoint, ILinkedStorageEndpointAdapter<E> adapter, UUID groupId,
 			LinkedStorageGroupManager manager, LinkedStorageHostDescriptor hostDescriptor) {
-		if (!manager.usesHostFactory(groupId, adapter.factoryId())) {
+		if (!adapter.acceptsHostFactory(hostDescriptor.factoryId())) {
 			return LinkResult.INCOMPATIBLE_ENDPOINT;
 		}
 		return switch (adapter.getCompatibility(level, endpoint, hostDescriptor)) {
