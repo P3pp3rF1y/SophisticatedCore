@@ -208,7 +208,7 @@ class EnderLinkerItemTest {
 		LinkedStorageHostDescriptor descriptor = new LinkedStorageHostDescriptor(TestEndpointAdapter.FACTORY_ID, new CompoundTag());
 		Mockito.when(endpoint.getLinkedStorageBlockEndpointAdapter()).thenReturn(adapter);
 		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(descriptor));
-		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
+		Mockito.when(adapter.acceptsHostFactory(descriptor.factoryId())).thenReturn(true);
 		Mockito.when(adapter.getCompatibility(level, endpoint, descriptor)).thenReturn(ILinkedStorageEndpointAdapter.Compatibility.COMPATIBLE);
 		Mockito.when(savedData.manager()).thenReturn(manager);
 		Mockito.doThrow(new IllegalStateException("binding failed")).when(adapter).bindEndpoint(Mockito.eq(level), Mockito.same(endpoint), Mockito.any());

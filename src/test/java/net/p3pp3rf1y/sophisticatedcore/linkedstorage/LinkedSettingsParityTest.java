@@ -101,11 +101,12 @@ class LinkedSettingsParityTest {
 	}
 
 	@Test
-	void settingsUpdateReplacesClientSnapshotWithoutChangingRevision() {
+	void updateSettingsReloadsLiveContentsWithoutChangingRevision() {
 		UUID groupId = UUID.randomUUID();
 		ClientLinkedStorageContents.updateContents(groupId, 4, new ContainerContents(), Component.literal("Linked"), 27, 3, 2);
 		ILinkedStorageContents contents = ClientLinkedStorageContents.getContents(groupId).orElseThrow();
-		ContainerContents original = contents.contents();
+		ContainerContents liveContents = contents.contents();
+		ContainerContents.SettingsData liveSettings = liveContents.settings();
 		ContainerContents.SettingsData settings = new ContainerContents.SettingsData();
 		settings.categories().put(MainSettingsCategory.NAME, new MainSettingsCategoryData());
 		settings.setMainSettingsContext(Context.CONTAINER);
@@ -115,8 +116,9 @@ class LinkedSettingsParityTest {
 		settings.setSearchPhrase("changed after update");
 
 		assertSame(contents, ClientLinkedStorageContents.getContents(groupId).orElseThrow());
-		assertNotSame(original, contents.contents());
-		assertTrue(original.settings().categories().isEmpty());
+		assertSame(liveContents, contents.contents());
+		assertSame(liveSettings, contents.contents().settings());
+		assertNotSame(settings, contents.contents().settings());
 		assertEquals("linked", contents.contents().settings().searchPhrase());
 		assertEquals(Context.CONTAINER, contents.contents().settings().mainSettingsContext());
 		assertTrue(contents.contents().settings().categories().containsKey(MainSettingsCategory.NAME));
