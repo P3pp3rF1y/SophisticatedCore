@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -27,9 +28,14 @@ public class WorldHelper {
 	}
 
 	private static final List<BiPredicate<Player, BlockPos>> ADDITIONAL_INTERACTION_CHECKS = new ArrayList<>();
+	private static final List<BiPredicate<Player, Entity>> ADDITIONAL_ENTITY_INTERACTION_CHECKS = new ArrayList<>();
 
 	public static void addAdditionalInteractionCheck(BiPredicate<Player, BlockPos> check) {
 		ADDITIONAL_INTERACTION_CHECKS.add(check);
+	}
+
+	public static void addAdditionalEntityInteractionCheck(BiPredicate<Player, Entity> check) {
+		ADDITIONAL_ENTITY_INTERACTION_CHECKS.add(check);
 	}
 
 	public static Optional<BlockEntity> getBlockEntity(@Nullable BlockGetter level, BlockPos pos) {
@@ -141,7 +147,18 @@ public class WorldHelper {
 	}
 
 	public static boolean playerMayInteract(Player player, BlockPos pos) {
-		return !(player.level() instanceof ServerLevel serverLevel)
-				|| (player.mayInteract(serverLevel, pos) && ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos)));
+		return playerMayInteract(player, player.level(), pos);
+	}
+
+	public static boolean playerMayInteract(Player player, Level level, BlockPos pos) {
+		if (level.isClientSide()) {
+			return true;
+		}
+		return (!(level instanceof ServerLevel serverLevel) || player.mayInteract(serverLevel, pos))
+				&& ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos));
+	}
+
+	public static boolean playerMayInteract(Player player, Entity entity) {
+		return ADDITIONAL_ENTITY_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, entity));
 	}
 }

@@ -11,5 +11,7 @@ public class FTBChunksCompat implements ICompat {
 	public void setup() {
 		WorldHelper.addAdditionalInteractionCheck((player,
 				pos) -> !FTBChunksAPI.api().getManager().shouldPreventInteraction(player, InteractionHand.MAIN_HAND, pos, Protection.INTERACT_BLOCK, null));
+		WorldHelper.addAdditionalEntityInteractionCheck((player, entity) -> !FTBChunksAPI.api().getManager().shouldPreventInteraction(player,
+				InteractionHand.MAIN_HAND, entity.blockPosition(), Protection.INTERACT_ENTITY, entity));
 	}
 }
