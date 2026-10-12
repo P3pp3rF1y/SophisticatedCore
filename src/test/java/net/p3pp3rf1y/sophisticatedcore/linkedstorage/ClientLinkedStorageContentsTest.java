@@ -13,6 +13,56 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClientLinkedStorageContentsTest {
+	@Test
+	void hostDescriptorCopiesCarrierAndSurvivesContentsAndSettingsUpdates() {
+		UUID groupId = UUID.randomUUID();
+		CompoundTag descriptor = new CompoundTag();
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "sophisticatedstorage:storage");
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, descriptor);
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "changed");
+		ClientLinkedStorageContents.updateContents(groupId, 1, new CompoundTag(), Component.literal("Chest"), 54, 3, 0);
+		ClientLinkedStorageContents.updateSettings(groupId, new CompoundTag());
+		ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow().putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "changed again");
+
+		assertEquals("sophisticatedstorage:storage",
+				ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow().getString(LinkedStorageHostDescriptor.FACTORY_ID_TAG));
+	}
+
+	@Test
+	void storageHostDescriptorUsesLatestSnapshotProfileRegardlessOfPacketOrder() {
+		UUID groupId = UUID.randomUUID();
+		CompoundTag descriptor = new CompoundTag();
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "sophisticatedstorage:storage");
+		CompoundTag carrier = new CompoundTag();
+		carrier.putString("storageType", "chest");
+		carrier.putInt("inventorySlots", 27);
+		descriptor.put(LinkedStorageHostDescriptor.VIRTUAL_CARRIER_TAG, carrier);
+
+		ClientLinkedStorageContents.updateContents(groupId, 1, new CompoundTag(), Component.literal("First"), 54, 3, 0);
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, descriptor);
+		carrier.putInt("inventorySlots", 1);
+		CompoundTag first = ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow().getCompound(LinkedStorageHostDescriptor.VIRTUAL_CARRIER_TAG);
+		assertEquals("chest", first.getString("storageType"));
+		assertEquals("First", first.getString("displayName"));
+		assertEquals(54, first.getInt("inventorySlots"));
+		assertEquals(3, first.getInt("upgradeSlots"));
+
+		ClientLinkedStorageContents.updateContents(groupId, 2, new CompoundTag(), Component.literal("Expanded"), 81, 5, 0);
+		CompoundTag expanded = ClientLinkedStorageContents.getHostDescriptor(groupId).orElseThrow()
+				.getCompound(LinkedStorageHostDescriptor.VIRTUAL_CARRIER_TAG);
+		assertEquals("Expanded", expanded.getString("displayName"));
+		assertEquals(81, expanded.getInt("inventorySlots"));
+		assertEquals(5, expanded.getInt("upgradeSlots"));
+	}
+
+	@Test
+	void clearRemovesHostDescriptors() {
+		UUID groupId = UUID.randomUUID();
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, new CompoundTag());
+		ClientLinkedStorageContents.clear();
+		assertTrue(ClientLinkedStorageContents.getHostDescriptor(groupId).isEmpty());
+	}
+
 	@AfterEach
 	void clearSnapshots() {
 		ClientLinkedStorageContents.clear();
@@ -86,5 +136,34 @@ class ClientLinkedStorageContentsTest {
 		assertEquals(2, ClientLinkedStorageContents.getColumnsTaken(groupId).orElseThrow());
 		assertTrue(settingsWereUpdated);
 		assertFalse(groupWasUpdated);
+	}
+
+	@Test
+	void storageNativeSettingsUpdateReplacesNestedRootWithoutChangingInventory() {
+		UUID groupId = UUID.randomUUID();
+		CompoundTag descriptor = new CompoundTag();
+		descriptor.putString(LinkedStorageHostDescriptor.FACTORY_ID_TAG, "sophisticatedstorage:storage");
+		ClientLinkedStorageContents.updateHostDescriptor(groupId, descriptor);
+		CompoundTag initial = new CompoundTag();
+		initial.putString("inventory", "diamond");
+		CompoundTag initialSettings = new CompoundTag();
+		initialSettings.put("no_sort", new CompoundTag());
+		initial.put("settings", initialSettings);
+		ClientLinkedStorageContents.updateContents(groupId, 7L, initial, Component.literal("Chest"), 27, 3, 2);
+		CompoundTag settings = new CompoundTag();
+		settings.putString("custom_setting", "preserved");
+		CompoundTag memory = new CompoundTag();
+		memory.putBoolean("changed", true);
+		settings.put("memory", memory);
+
+		ClientLinkedStorageContents.updateSettings(groupId, settings);
+
+		CompoundTag contents = ClientLinkedStorageContents.getContents(groupId).orElseThrow().getContents();
+		assertEquals("diamond", contents.getString("inventory"));
+		assertEquals(settings, contents.getCompound("settings"));
+		assertTrue(contents.getCompound("settings").getCompound("memory").getBoolean("changed"));
+		assertFalse(contents.getCompound("settings").contains("no_sort"));
+		assertFalse(contents.contains("memory"));
+		assertEquals(7L, ClientLinkedStorageContents.getRevision(groupId).orElseThrow());
 	}
 }

@@ -542,6 +542,14 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		}
 
 		@Override
+		public void setStackInSlot(int slot, ItemStack stack) {
+			if (stack.isEmpty() && getStackInSlot(slot).isEmpty()) {
+				return;
+			}
+			super.setStackInSlot(slot, stack);
+		}
+
+		@Override
 		protected void onContentsChanged(int slot) {
 			super.onContentsChanged(slot);
 			upgrade.addTagElement("inventory", serializeNBT());

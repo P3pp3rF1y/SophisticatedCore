@@ -198,6 +198,8 @@ class EnderLinkerEndpointRecipeTest {
 				.thenReturn(Optional.of(new ActivePendingCraftClaim(claim, group, endpoint, EnderLinkPendingCraftPlan.ADD_SECONDARY)));
 		Mockito.when(manager.isEndpointMember(group, endpoint)).thenReturn(true);
 		Mockito.when(manager.usesHostFactory(group, TestEndpointAdapter.FACTORY_ID)).thenReturn(true);
+		Mockito.when(manager.getHostDescriptor(group))
+				.thenReturn(Optional.of(new LinkedStorageHostDescriptor(TestEndpointAdapter.FACTORY_ID, new CompoundTag())));
 		Mockito.when(manager.consumeActivePendingCraftClaim(claim)).thenReturn(true);
 		Mockito.when(data.manager()).thenReturn(manager);
 		Mockito.when(inventory.getContainerSize()).thenReturn(1);

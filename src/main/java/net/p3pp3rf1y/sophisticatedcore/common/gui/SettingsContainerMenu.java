@@ -337,13 +337,12 @@ public abstract class SettingsContainerMenu<S extends IStorageWrapper> extends A
 		T create(SettingsContainerMenu<?> settingsContainer, String categoryName, C category);
 	}
 
-	private static <C extends ISettingsCategory> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name,
-			C category) {
+	private <C extends ISettingsCategory> SettingsContainerBase<C> instantiateContainer(SettingsContainerMenu<?> settingsContainer, String name, C category) {
 		// noinspection unchecked
 		return (SettingsContainerBase<C>) getSettingsContainerFactory(name).create(settingsContainer, name, category);
 	}
 
-	private static <C extends ISettingsCategory, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
+	protected <C extends ISettingsCategory, T extends SettingsContainerBase<C>> ISettingsContainerFactory<C, T> getSettingsContainerFactory(String name) {
 		// noinspection unchecked
 		return (ISettingsContainerFactory<C, T>) SETTINGS_CONTAINER_FACTORIES.get(name);
 	}

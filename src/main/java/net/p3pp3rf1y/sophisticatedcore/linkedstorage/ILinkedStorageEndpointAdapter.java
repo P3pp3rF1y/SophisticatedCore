@@ -7,6 +7,10 @@ import net.minecraft.server.level.ServerLevel;
 public interface ILinkedStorageEndpointAdapter<E> {
 	ResourceLocation factoryId();
 
+	default boolean acceptsHostFactory(ResourceLocation hostFactoryId) {
+		return LinkedStorageHostFactories.areCompatible(factoryId(), hostFactoryId);
+	}
+
 	default boolean isCompatible(ServerLevel level, E endpoint, LinkedStorageHostDescriptor hostDescriptor) {
 		return true;
 	}
