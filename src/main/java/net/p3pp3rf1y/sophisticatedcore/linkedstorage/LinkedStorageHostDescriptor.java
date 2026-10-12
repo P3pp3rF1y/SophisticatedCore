@@ -7,6 +7,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 
 public record LinkedStorageHostDescriptor(Identifier factoryId, CompoundTag virtualCarrier) {
+	public static final String FACTORY_ID_TAG = "factoryId";
+	public static final String VIRTUAL_CARRIER_TAG = "virtualCarrier";
 	public static final MapCodec<LinkedStorageHostDescriptor> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance
 			.group(Identifier.CODEC.fieldOf("factory_id").forGetter(LinkedStorageHostDescriptor::factoryId),
 					CompoundTag.CODEC.fieldOf("virtual_carrier").forGetter(LinkedStorageHostDescriptor::virtualCarrier))

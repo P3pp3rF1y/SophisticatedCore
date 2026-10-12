@@ -60,6 +60,11 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 		}
 	}
 
+	public void reloadUpgradesFromData() {
+		loadUpgradesFromData();
+		refreshUpgradeWrappers();
+	}
+
 	public <T extends IUpgradeWrapper> void registerUpgradeDefaultsHandler(Class<T> upgradeClass, Consumer<T> defaultsHandler) {
 		upgradeDefaultsHandlers.put(upgradeClass, defaultsHandler);
 	}

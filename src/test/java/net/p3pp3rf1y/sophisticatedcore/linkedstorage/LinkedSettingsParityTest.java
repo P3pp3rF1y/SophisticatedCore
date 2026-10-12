@@ -115,8 +115,7 @@ class LinkedSettingsParityTest {
 		settings.setSearchPhrase("changed after update");
 
 		assertSame(contents, ClientLinkedStorageContents.getContents(groupId).orElseThrow());
-		assertNotSame(original, contents.contents());
-		assertTrue(original.settings().categories().isEmpty());
+		assertSame(original, contents.contents());
 		assertEquals("linked", contents.contents().settings().searchPhrase());
 		assertEquals(Context.CONTAINER, contents.contents().settings().mainSettingsContext());
 		assertTrue(contents.contents().settings().categories().containsKey(MainSettingsCategory.NAME));

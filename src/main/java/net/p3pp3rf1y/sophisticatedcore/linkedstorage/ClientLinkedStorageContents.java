@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
@@ -13,12 +14,21 @@ import java.util.UUID;
 public final class ClientLinkedStorageContents {
 	private static final long REQUEST_INTERVAL = 20;
 	private static final Map<UUID, Snapshot> SNAPSHOTS = new HashMap<>();
+	private static final Map<UUID, CompoundTag> HOST_DESCRIPTORS = new HashMap<>();
 	private static final Map<UUID, ClientContents> CONTENTS = new HashMap<>();
 	private static final Map<UUID, Long> LAST_REQUEST_TIMES = new HashMap<>();
 	private static final Set<UUID> UPDATED_GROUPS = new HashSet<>();
 	private static final Set<UUID> UPDATED_SETTINGS = new HashSet<>();
 
 	private ClientLinkedStorageContents() {
+	}
+
+	public static void updateHostDescriptor(UUID groupId, CompoundTag hostDescriptor) {
+		HOST_DESCRIPTORS.put(groupId, hostDescriptor.copy());
+	}
+
+	public static Optional<CompoundTag> getHostDescriptor(UUID groupId) {
+		return Optional.ofNullable(HOST_DESCRIPTORS.get(groupId)).map(CompoundTag::copy);
 	}
 
 	public static Optional<ILinkedStorageContents> getContents(UUID groupId) {
@@ -94,6 +104,7 @@ public final class ClientLinkedStorageContents {
 
 	public static void clear() {
 		SNAPSHOTS.clear();
+		HOST_DESCRIPTORS.clear();
 		CONTENTS.clear();
 		LAST_REQUEST_TIMES.clear();
 		UPDATED_GROUPS.clear();
@@ -102,14 +113,17 @@ public final class ClientLinkedStorageContents {
 
 	private static final class ClientContents implements ILinkedStorageContents {
 		private final UUID groupId;
+		private final ContainerContents contents;
 		private Snapshot snapshot;
 
 		private ClientContents(UUID groupId) {
 			this.groupId = groupId;
 			snapshot = SNAPSHOTS.get(groupId);
+			contents = snapshot.contents().copy();
 		}
 
 		private void update(Snapshot snapshot) {
+			contents.reloadFrom(snapshot.contents());
 			this.snapshot = snapshot;
 		}
 
@@ -120,7 +134,7 @@ public final class ClientLinkedStorageContents {
 
 		@Override
 		public ContainerContents getContents(UUID storageId) {
-			return snapshot.contents();
+			return contents;
 		}
 
 		@Override
@@ -140,8 +154,7 @@ public final class ClientLinkedStorageContents {
 
 		@Override
 		public void setColumnsTaken(int columnsTaken) {
-			updateContents(groupId, snapshot.revision(), snapshot.contents(), snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(),
-					columnsTaken);
+			updateContents(groupId, snapshot.revision(), contents(), snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), columnsTaken);
 		}
 	}
 
