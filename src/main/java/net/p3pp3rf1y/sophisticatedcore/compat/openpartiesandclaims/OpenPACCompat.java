@@ -17,5 +17,12 @@ public class OpenPACCompat implements ICompat {
 			}
 			return true;
 		});
+		WorldHelper.addAdditionalEntityInteractionCheck((player, entity) -> {
+			if (player.level() instanceof ServerLevel serverLevel) {
+				return !OpenPACServerAPI.get(serverLevel.getServer()).getChunkProtection().onEntityInteraction(null, player, entity, null,
+						InteractionHand.MAIN_HAND, false, false, false);
+			}
+			return true;
+		});
 	}
 }
