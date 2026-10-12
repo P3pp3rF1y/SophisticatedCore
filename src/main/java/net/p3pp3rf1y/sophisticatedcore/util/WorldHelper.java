@@ -3,6 +3,7 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
@@ -12,7 +13,6 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.dimension.DimensionType;
 
 import javax.annotation.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +23,14 @@ public class WorldHelper {
 	}
 
 	private static final List<BiPredicate<Player, BlockPos>> ADDITIONAL_INTERACTION_CHECKS = new ArrayList<>();
+	private static final List<BiPredicate<Player, Entity>> ADDITIONAL_ENTITY_INTERACTION_CHECKS = new ArrayList<>();
 
 	public static void addAdditionalInteractionCheck(BiPredicate<Player, BlockPos> check) {
 		ADDITIONAL_INTERACTION_CHECKS.add(check);
+	}
+
+	public static void addAdditionalEntityInteractionCheck(BiPredicate<Player, Entity> check) {
+		ADDITIONAL_ENTITY_INTERACTION_CHECKS.add(check);
 	}
 
 	public static Optional<BlockEntity> getBlockEntity(@Nullable BlockGetter level, BlockPos pos) {
@@ -125,6 +130,14 @@ public class WorldHelper {
 	}
 
 	public static boolean playerMayInteract(Player player, BlockPos pos) {
-		return player.mayInteract(player.level(), pos) && ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos));
+		return playerMayInteract(player, player.level(), pos);
+	}
+
+	public static boolean playerMayInteract(Player player, Level level, BlockPos pos) {
+		return player.mayInteract(level, pos) && (level.isClientSide || ADDITIONAL_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, pos)));
+	}
+
+	public static boolean playerMayInteract(Player player, Entity entity) {
+		return ADDITIONAL_ENTITY_INTERACTION_CHECKS.stream().allMatch(check -> check.test(player, entity));
 	}
 }
