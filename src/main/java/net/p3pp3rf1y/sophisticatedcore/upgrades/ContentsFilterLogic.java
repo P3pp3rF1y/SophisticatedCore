@@ -52,6 +52,9 @@ public class ContentsFilterLogic extends FilterLogic {
 
 	@Override
 	protected boolean matchesFilter(Stream<TagKey<Item>> tags, Item item, int damageValue, boolean empty, DataComponentMap components) {
+		if (empty) {
+			return false;
+		}
 		if (!shouldFilterByStorage()) {
 			return super.matchesFilter(tags, item, damageValue, empty, components);
 		}

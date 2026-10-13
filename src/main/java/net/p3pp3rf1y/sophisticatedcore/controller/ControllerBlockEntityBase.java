@@ -1447,6 +1447,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	public boolean hasMatchingFilter(ItemStack stack, TransactionContext tx) {
+		if (stack.isEmpty()) {
+			return false;
+		}
 		ItemResource resource = ItemResource.of(stack);
 		Set<ControllerStorageKey> storageKeysCopy = new LinkedHashSet<>(filteredInputStorageKeys);
 		for (ControllerStorageKey storageKey : storageKeysCopy) {
