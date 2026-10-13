@@ -1461,6 +1461,9 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	public boolean hasMatchingFilter(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return false;
+		}
 		ItemStack singleItemStack = stack.copyWithCount(1);
 		Set<ControllerStorageKey> storageKeysCopy = new LinkedHashSet<>(filteredInputStorageKeys);
 		for (ControllerStorageKey storageKey : storageKeysCopy) {

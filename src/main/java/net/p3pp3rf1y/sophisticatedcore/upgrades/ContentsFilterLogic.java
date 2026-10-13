@@ -54,6 +54,9 @@ public class ContentsFilterLogic extends FilterLogic {
 
 	@Override
 	public boolean matchesFilter(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return false;
+		}
 		if (!shouldFilterByStorage()) {
 			return super.matchesFilter(stack);
 		}
