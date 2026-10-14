@@ -176,13 +176,13 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		if (isCooking() && finishedCooking(level)) {
 			smelt(cookingRecipe);
 			if (canSmelt(cookingRecipe)) {
-				setCookTime(level, (int) (cookingRecipe.cookingTime() * (1 / cookingSpeedMultiplier)));
+				setCookTime(level, (int) (cookingRecipe.cookingTime() * burnTimeModifier * (1 / cookingSpeedMultiplier)));
 			} else {
 				setIsCooking(false);
 			}
 		} else if (!isCooking()) {
 			setIsCooking(true);
-			setCookTime(level, (int) (cookingRecipe.cookingTime() * (1 / cookingSpeedMultiplier)));
+			setCookTime(level, (int) (cookingRecipe.cookingTime() * burnTimeModifier * (1 / cookingSpeedMultiplier)));
 		}
 	}
 
