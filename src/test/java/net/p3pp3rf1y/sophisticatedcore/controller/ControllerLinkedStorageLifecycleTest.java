@@ -17,9 +17,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityTypes;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ITrackedContentsItemResourceHandler;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
@@ -31,7 +33,9 @@ import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -48,6 +52,57 @@ class ControllerLinkedStorageLifecycleTest {
 		Bootstrap.bootStrap();
 		Bootstrap.validate();
 		Items.DIAMOND.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+		Items.COBBLESTONE.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+	}
+
+	@Test
+	void onInventoryInputOutputHandlerRefreshRebindsControllerToReplacementHandler() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 1));
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		ITrackedContentsItemResourceHandler originalInventory = mock(ITrackedContentsItemResourceHandler.class);
+		ITrackedContentsItemResourceHandler resizedInventory = mock(ITrackedContentsItemResourceHandler.class);
+		AtomicReference<ITrackedContentsItemResourceHandler> inventory = new AtomicReference<>(originalInventory);
+		IControllableStorage storage = refreshingStorage(level, wrapper);
+		when(wrapper.getInventoryForInputOutput()).thenAnswer(invocation -> inventory.get());
+		when(originalInventory.size()).thenReturn(1);
+		when(resizedInventory.size()).thenReturn(10);
+		ItemResource cobblestone = ItemResource.of(Items.COBBLESTONE);
+		when(resizedInventory.getTrackedStacks()).thenReturn(Set.of(ItemStackKey.of(cobblestone)));
+		when(resizedInventory.extract(eq(cobblestone), eq(10), any())).thenReturn(10);
+		AtomicReference<Runnable> refreshListener = new AtomicReference<>();
+		doAnswer(invocation -> {
+			refreshListener.set(invocation.getArgument(0));
+			return null;
+		}).when(wrapper).registerOnInventoryInputOutputHandlerRefreshListener(any());
+		int originalSlots;
+		int extractedBeforeRefresh;
+		int extractedAfterRefresh;
+
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, BlockPos.ZERO, ControllerBlockEntityBase.class)).thenReturn(Optional.of(controller));
+
+			controller.onLoad();
+			originalSlots = controller.size();
+			try (Transaction tx = Transaction.openRoot()) {
+				extractedBeforeRefresh = controller.extract(cobblestone, 10, tx);
+			}
+			inventory.set(resizedInventory);
+			refreshListener.get().run();
+			try (Transaction tx = Transaction.openRoot()) {
+				extractedAfterRefresh = controller.extract(cobblestone, 10, tx);
+			}
+		}
+
+		assertEquals(1, originalSlots);
+		assertEquals(10, controller.size());
+		assertEquals(0, extractedBeforeRefresh);
+		assertEquals(10, extractedAfterRefresh);
+		verify(wrapper, times(2)).registerOnInventoryInputOutputHandlerRefreshListener(any());
+		verify(resizedInventory).registerTrackingListeners(any(), any(), any(), any());
 	}
 
 	@Test
@@ -163,6 +218,23 @@ class ControllerLinkedStorageLifecycleTest {
 
 	private static void load(TestController controller, CompoundTag tag) {
 		controller.loadAdditional(ValueIOHelper.inputFromCompoundTag(REGISTRIES, tag));
+	}
+
+	private static IControllableStorage refreshingStorage(ServerLevel level, IStorageWrapper wrapper) {
+		IControllableStorage storage = mock(IControllableStorage.class, CALLS_REAL_METHODS);
+		when(storage.getStorageWrapper()).thenReturn(wrapper);
+		when(storage.getStorageBlockPos()).thenReturn(FIRST);
+		when(storage.getControlledStorageBlockPos()).thenReturn(FIRST);
+		when(storage.getControllerStorageKey()).thenReturn(new ControllerStorageKey(FIRST));
+		when(storage.getStorageBlockLevel()).thenReturn(level);
+		when(storage.getControllerPos()).thenReturn(Optional.of(BlockPos.ZERO));
+		InventoryHandler inventoryHandler = mock(InventoryHandler.class);
+		when(wrapper.getInventoryHandler()).thenReturn(inventoryHandler);
+		when(wrapper.getUpgradeHandler()).thenReturn(mock(UpgradeHandler.class));
+		SettingsHandler settings = mock(SettingsHandler.class);
+		when(wrapper.getSettingsHandler()).thenReturn(settings);
+		when(settings.getTypeCategory(MemorySettingsCategory.class)).thenReturn(mock(MemorySettingsCategory.class));
+		return storage;
 	}
 
 	private static CompoundTag savedGroup(UUID group, BlockPos anchor, List<BlockPos> members, int slots) {
