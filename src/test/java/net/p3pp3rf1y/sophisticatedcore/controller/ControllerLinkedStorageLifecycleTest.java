@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -45,6 +46,53 @@ class ControllerLinkedStorageLifecycleTest {
 	static void setup() {
 		SharedConstants.tryDetectVersion();
 		Bootstrap.bootStrap();
+	}
+
+	@Test
+	void onInventoryInputOutputHandlerRefreshRebindsControllerToReplacementHandler() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		controller.loadAdditional(savedGroup(null, FIRST, List.of(FIRST), 1), REGISTRIES);
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		ITrackedContentsItemHandler originalInventory = mock(ITrackedContentsItemHandler.class);
+		ITrackedContentsItemHandler resizedInventory = mock(ITrackedContentsItemHandler.class);
+		AtomicReference<ITrackedContentsItemHandler> inventory = new AtomicReference<>(originalInventory);
+		IControllableStorage storage = refreshingStorage(level, wrapper);
+		when(wrapper.getInventoryForInputOutput()).thenAnswer(invocation -> inventory.get());
+		when(originalInventory.getSlots()).thenReturn(1);
+		when(resizedInventory.getSlots()).thenReturn(10);
+		ItemStack cobblestone = new ItemStack(Items.COBBLESTONE, 10);
+		when(resizedInventory.getTrackedStacks()).thenReturn(Set.of(ItemStackKey.of(cobblestone)));
+		when(resizedInventory.extractItem(eq(cobblestone), eq(false))).thenReturn(cobblestone);
+		AtomicReference<Runnable> refreshListener = new AtomicReference<>();
+		doAnswer(invocation -> {
+			refreshListener.set(invocation.getArgument(0));
+			return null;
+		}).when(wrapper).registerOnInventoryInputOutputHandlerRefreshListener(any());
+		int originalSlots;
+		ItemStack extractedBeforeRefresh;
+		ItemStack extractedAfterRefresh;
+
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, BlockPos.ZERO, ControllerBlockEntityBase.class)).thenReturn(Optional.of(controller));
+
+			controller.onLoad();
+			originalSlots = controller.getSlots();
+			extractedBeforeRefresh = controller.extractItem(cobblestone, false);
+			inventory.set(resizedInventory);
+			assertNotNull(refreshListener.get());
+			refreshListener.get().run();
+			extractedAfterRefresh = controller.extractItem(cobblestone, false);
+		}
+
+		assertEquals(1, originalSlots);
+		assertTrue(extractedBeforeRefresh.isEmpty());
+		assertEquals(10, extractedAfterRefresh.getCount());
+		assertEquals(10, controller.getSlots());
+		verify(wrapper, times(2)).registerOnInventoryInputOutputHandlerRefreshListener(any());
+		verify(resizedInventory).registerTrackingListeners(any(), any(), any(), any());
 	}
 
 	@Test
@@ -334,7 +382,21 @@ class ControllerLinkedStorageLifecycleTest {
 		return storage;
 	}
 
-	private static CompoundTag savedGroup(UUID group, BlockPos anchor, List<BlockPos> members, int slots) {
+	private static IControllableStorage refreshingStorage(ServerLevel level, IStorageWrapper wrapper) {
+		IControllableStorage storage = mock(IControllableStorage.class, CALLS_REAL_METHODS);
+		when(storage.getStorageWrapper()).thenReturn(wrapper);
+		when(storage.getStorageBlockPos()).thenReturn(FIRST);
+		when(storage.getStorageBlockLevel()).thenReturn(level);
+		when(storage.getControllerPos()).thenReturn(Optional.of(BlockPos.ZERO));
+		when(wrapper.getInventoryHandler()).thenReturn(mock(InventoryHandler.class));
+		when(wrapper.getUpgradeHandler()).thenReturn(mock(UpgradeHandler.class));
+		SettingsHandler settings = mock(SettingsHandler.class);
+		when(wrapper.getSettingsHandler()).thenReturn(settings);
+		when(settings.getTypeCategory(MemorySettingsCategory.class)).thenReturn(mock(MemorySettingsCategory.class));
+		return storage;
+	}
+
+	private static CompoundTag savedGroup(@Nullable UUID group, BlockPos anchor, List<BlockPos> members, int slots) {
 		CompoundTag tag = new CompoundTag();
 		ListTag keys = new ListTag();
 		keys.add(new ControllerStorageKey(anchor, group).save());
