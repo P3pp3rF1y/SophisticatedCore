@@ -103,10 +103,7 @@ public interface IControllableStorage extends IControllerBoundable {
 	}
 
 	default void onInventoryInputOutputHandlerRefresh() {
-		runOnController(getStorageBlockLevel(), controllerBlockEntityBase -> {
-			controllerBlockEntityBase.clearCachedHandler(getStorageBlockPos());
-			controllerBlockEntityBase.updateStorageInputFilter(getStorageBlockPos());
-		});
+		runOnController(getStorageBlockLevel(), controller -> controller.rebindStorage(getStorageBlockPos()));
 	}
 
 	default void registerInventoryStackListeners() {
