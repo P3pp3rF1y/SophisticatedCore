@@ -28,6 +28,7 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 	private final ContainerContents.UpgradeData upgradeData;
 	@Nullable
 	private Runnable refreshCallBack = null;
+	private final Set<Runnable> refreshCallbacks = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Map<Integer, IUpgradeWrapper> slotWrappers = new LinkedHashMap<>();
 	private final Map<UpgradeType<? extends IUpgradeWrapper>, List<? extends IUpgradeWrapper>> typeWrappers = new HashMap<>();
 	private boolean justSavingNbtChange = false;
@@ -134,6 +135,14 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 
 	public void removeRefreshCallback() {
 		refreshCallBack = null;
+	}
+
+	public void addRefreshCallback(Runnable refreshCallback) {
+		refreshCallbacks.add(refreshCallback);
+	}
+
+	public void removeRefreshCallback(Runnable refreshCallback) {
+		refreshCallbacks.remove(refreshCallback);
 	}
 
 	private void initializeWrappers() {
@@ -281,12 +290,9 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 
 	public void refreshWrappersThatImplementAndTypeWrappers() {
 		typeWrappersInitialized = false;
-		if (wrapperAccessor != null) {
-			wrapperAccessor.clearCache();
-		}
-		if (refreshCallBack != null) {
-			refreshCallBack.run();
-		}
+		onBeforeDeconstruct();
+		onInvalidateUpgradeCaches.run();
+		notifyRefreshCallbacks();
 	}
 
 	public void refreshUpgradeWrappers() {
@@ -296,16 +302,25 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 
 		wrappersInitialized = false;
 		typeWrappersInitialized = false;
+		onBeforeDeconstruct();
+		notifyRefreshCallbacks();
+		onInvalidateUpgradeCaches.run();
+
+		initRenderDataCallbacks(true);
+	}
+
+	public void onBeforeDeconstruct() {
 		if (wrapperAccessor != null) {
 			wrapperAccessor.onBeforeDeconstruct();
 			wrapperAccessor = null;
 		}
+	}
+
+	public void notifyRefreshCallbacks() {
 		if (refreshCallBack != null) {
 			refreshCallBack.run();
 		}
-		onInvalidateUpgradeCaches.run();
-
-		initRenderDataCallbacks(true);
+		List.copyOf(refreshCallbacks).forEach(Runnable::run);
 	}
 
 	private void initRenderDataCallbacks(boolean forceUpdateRenderData) {

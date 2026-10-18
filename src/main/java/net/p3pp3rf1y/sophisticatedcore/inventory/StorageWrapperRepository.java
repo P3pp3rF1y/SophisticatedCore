@@ -49,9 +49,46 @@ public class StorageWrapperRepository {
 		return wrapperClass.cast(storageWrapper);
 	}
 
+	public static <T extends IStorageWrapper> T getStorageWrapper(UUID storageUuid, ItemStack stack, Class<T> wrapperClass, Function<ItemStack, T> factory) {
+		Cache<UUID, IStorageWrapper> wrappers = getUuidStorageWrappers();
+		IStorageWrapper storageWrapper = wrappers.getIfPresent(storageUuid);
+		if (storageWrapper == null) {
+			storageWrapper = getExistingStorageWrapper(stack, wrapperClass).orElseGet(() -> instantiateWrapper(stack, factory));
+			wrappers.put(storageUuid, storageWrapper);
+			registerStorageWrapper(storageUuid, storageWrapper);
+			wrapperCacheChangeCounter.incrementAndGet();
+		} else if (!wrapperClass.isInstance(storageWrapper)) {
+			SophisticatedCore.LOGGER.error("StorageWrapperRepository: Wrapper with UUID {} is not an instance of {}. Replacing with new instance...",
+					storageUuid, wrapperClass);
+			storageWrapper = instantiateWrapper(stack, factory);
+			wrappers.put(storageUuid, storageWrapper);
+			registerStorageWrapper(storageUuid, storageWrapper);
+			wrapperCacheChangeCounter.incrementAndGet();
+		}
+		return wrapperClass.cast(storageWrapper);
+	}
+
 	public static void setStorageWrapper(ItemStack stack, IStorageWrapper storageWrapper) {
 		getStackStorageWrappers().put(stack, storageWrapper);
 		wrapperCacheChangeCounter.incrementAndGet();
+	}
+
+	public static void setStorageWrapper(UUID storageUuid, IStorageWrapper storageWrapper) {
+		getUuidStorageWrappers().put(storageUuid, storageWrapper);
+		registerStorageWrapper(storageUuid, storageWrapper);
+		wrapperCacheChangeCounter.incrementAndGet();
+	}
+
+	public static void removeStorageWrapper(UUID storageUuid, IStorageWrapper storageWrapper) {
+		Cache<UUID, IStorageWrapper> wrappers = getUuidStorageWrappers();
+		if (wrappers.getIfPresent(storageUuid) == storageWrapper) {
+			wrappers.invalidate(storageUuid);
+			wrapperCacheChangeCounter.incrementAndGet();
+		}
+		Set<IStorageWrapper> storageWrappers = getStorageWrappersByUuid().getIfPresent(storageUuid);
+		if (storageWrappers != null) {
+			storageWrappers.remove(storageWrapper);
+		}
 	}
 
 	public static long getWrapperCacheChangeCounter() {
@@ -112,8 +149,7 @@ public class StorageWrapperRepository {
 	}
 
 	private static Cache<UUID, IStorageWrapper> getUuidStorageWrappers() {
-		return uuidStorageWrappers.computeIfAbsent(Thread.currentThread().getThreadGroup(),
-				threadGroup -> CacheBuilder.newBuilder().expireAfterAccess(10L, TimeUnit.MINUTES).build());
+		return uuidStorageWrappers.computeIfAbsent(Thread.currentThread().getThreadGroup(), threadGroup -> CacheBuilder.newBuilder().weakValues().build());
 	}
 
 	private static Cache<UUID, Set<IStorageWrapper>> getStorageWrappersByUuid() {
