@@ -572,6 +572,10 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		onContentsChangedListeners.add(onContentsChanged);
 	}
 
+	public void removeListener(IntConsumer onContentsChanged) {
+		onContentsChangedListeners.remove(onContentsChanged);
+	}
+
 	public void clearListeners() {
 		onContentsChangedListeners.clear();
 	}
