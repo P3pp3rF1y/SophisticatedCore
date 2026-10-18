@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -69,6 +70,42 @@ class StorageWrapperRepositoryTest {
 
 		assertSame(firstServerLookup.get(), secondServerLookup.get());
 		assertNotSame(firstServerLookup.get(), clientLookup.get());
+	}
+
+	@Test
+	void getStorageWrapperPromotesStackWrapperAndReusesItForOtherStacks() {
+		UUID storageUuid = UUID.randomUUID();
+		ItemStack originalStack = mock(ItemStack.class);
+		ItemStack copiedStack = mock(ItemStack.class);
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		@SuppressWarnings("unchecked")
+		Function<ItemStack, IStorageWrapper> factory = mock(Function.class);
+
+		StorageWrapperRepository.setStorageWrapper(originalStack, wrapper);
+		IStorageWrapper promotedWrapper = StorageWrapperRepository.getStorageWrapper(storageUuid, originalStack, IStorageWrapper.class, factory);
+		IStorageWrapper copiedStackWrapper = StorageWrapperRepository.getStorageWrapper(storageUuid, copiedStack, IStorageWrapper.class, factory);
+		IStorageWrapper existingOriginalStackWrapper = StorageWrapperRepository.getExistingStorageWrapper(originalStack, IStorageWrapper.class).orElseThrow();
+
+		assertSame(wrapper, promotedWrapper);
+		assertSame(wrapper, copiedStackWrapper);
+		assertSame(wrapper, existingOriginalStackWrapper);
+		verify(factory, never()).apply(originalStack);
+		verify(factory, never()).apply(copiedStack);
+	}
+
+	@Test
+	void removeStorageWrapperKeepsDifferentRegisteredWrapper() {
+		UUID storageUuid = UUID.randomUUID();
+		ItemStack stack = mock(ItemStack.class);
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		IStorageWrapper staleWrapper = mock(IStorageWrapper.class);
+
+		StorageWrapperRepository.setStorageWrapper(storageUuid, wrapper);
+		StorageWrapperRepository.removeStorageWrapper(storageUuid, staleWrapper);
+		IStorageWrapper remainingWrapper = StorageWrapperRepository.getStorageWrapper(storageUuid, stack, IStorageWrapper.class,
+				ignored -> mock(IStorageWrapper.class));
+
+		assertSame(wrapper, remainingWrapper);
 	}
 
 	private void runInThreadGroup(String threadGroupName, ThrowingRunnable runnable) throws Throwable {
