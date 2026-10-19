@@ -276,7 +276,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	}
 
 	private static int addStack(StorageContainerMenuBase<?> container, Collection<Integer> slotIndexes, ItemStack stack) {
-		int added = 0;
+		ItemStack remainingStack = stack.copy();
 		// Add to existing stacks first
 		for (final Integer slotIndex : slotIndexes) {
 			if (slotIndex >= 0 && slotIndex < getTotalSlotsSize(container)) {
@@ -284,28 +284,12 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				final ItemStack inventoryStack = slot.getItem();
 				// Check that the slot's contents are stackable with this stack
 				if (!inventoryStack.isEmpty() && inventoryStack.isStackable() && ItemStack.isSameItemSameComponents(inventoryStack, stack)) {
-					final int remain = stack.getCount() - added;
-					final int maxStackSize = slot.getMaxStackSize(inventoryStack);
-					final int space = maxStackSize - inventoryStack.getCount();
-					if (space > 0) {
-
-						// Enough space
-						if (space >= remain) {
-							inventoryStack.grow(remain);
-							return stack.getCount();
-						}
-
-						// Not enough space
-						inventoryStack.setCount(maxStackSize);
-
-						added += space;
+					remainingStack = slot.safeInsert(remainingStack);
+					if (remainingStack.isEmpty()) {
+						return stack.getCount();
 					}
 				}
 			}
-		}
-
-		if (added >= stack.getCount()) {
-			return added;
 		}
 
 		for (final Integer slotIndex : slotIndexes) {
@@ -313,15 +297,15 @@ public class CraftingContainerRecipeTransferHandlerServer {
 				final Slot slot = container.getSlot(slotIndex);
 				final ItemStack inventoryStack = slot.getItem();
 				if (inventoryStack.isEmpty()) {
-					ItemStack stackToAdd = stack.copy();
-					stackToAdd.setCount(stack.getCount() - added);
-					slot.set(stackToAdd);
-					return stack.getCount();
+					remainingStack = slot.safeInsert(remainingStack);
+					if (remainingStack.isEmpty()) {
+						return stack.getCount();
+					}
 				}
 			}
 		}
 
-		return added;
+		return stack.getCount() - remainingStack.getCount();
 	}
 
 	/**
