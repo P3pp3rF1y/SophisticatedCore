@@ -246,7 +246,8 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			return getFluidHandler(stackToDrain, itemAccess).map(fluidHandler -> {
 				if (drainHandler(fluidHandler, tx) > 0) {
 					if (hasNoMatchingFluid(fluidHandler)) {
-						if (inventory.insert(INPUT_RESULT_SLOT, itemAccess.getResource(), itemAccess.getAmount(), tx) == itemAccess.getAmount()) {
+						if (itemAccess.getResource().isEmpty()
+								|| inventory.insert(INPUT_RESULT_SLOT, itemAccess.getResource(), itemAccess.getAmount(), tx) == itemAccess.getAmount()) {
 							tx.commit();
 							inventory.setStackInSlot(INPUT_SLOT,
 									stackToDrain.getCount() == 1 ? ItemStack.EMPTY : stackToDrain.copyWithCount(stackToDrain.getCount() - 1));
@@ -281,7 +282,8 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			return getFluidHandler(stackToFill, itemAccess).map(fluidHandler -> {
 				if (fillHandler(fluidHandler, tx) > 0) {
 					if (matchingTankIsFull(fluidHandler)) {
-						if (inventory.insert(OUTPUT_RESULT_SLOT, itemAccess.getResource(), itemAccess.getAmount(), tx) == itemAccess.getAmount()) {
+						if (itemAccess.getResource().isEmpty()
+								|| inventory.insert(OUTPUT_RESULT_SLOT, itemAccess.getResource(), itemAccess.getAmount(), tx) == itemAccess.getAmount()) {
 							tx.commit();
 							inventory.setStackInSlot(OUTPUT_SLOT,
 									stackToFill.getCount() == 1 ? ItemStack.EMPTY : stackToFill.copyWithCount(stackToFill.getCount() - 1));
