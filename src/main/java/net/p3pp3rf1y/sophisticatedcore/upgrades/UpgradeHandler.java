@@ -27,6 +27,7 @@ public class UpgradeHandler extends ItemStackHandler {
 	private final CompoundTag contentsNbt;
 	@Nullable
 	private Runnable refreshCallBack = null;
+	private final Set<Runnable> refreshCallbacks = Collections.newSetFromMap(new IdentityHashMap<>());
 	private final Map<Integer, IUpgradeWrapper> slotWrappers = new LinkedHashMap<>();
 	private final Map<UpgradeType<? extends IUpgradeWrapper>, List<? extends IUpgradeWrapper>> typeWrappers = new HashMap<>();
 	private boolean justSavingNbtChange = false;
@@ -96,6 +97,14 @@ public class UpgradeHandler extends ItemStackHandler {
 
 	public void removeRefreshCallback() {
 		refreshCallBack = null;
+	}
+
+	public void addRefreshCallback(Runnable callback) {
+		refreshCallbacks.add(callback);
+	}
+
+	public void removeRefreshCallback(Runnable callback) {
+		refreshCallbacks.remove(callback);
 	}
 
 	private void initializeWrappers() {
@@ -262,12 +271,9 @@ public class UpgradeHandler extends ItemStackHandler {
 
 	public void refreshWrappersThatImplementAndTypeWrappers() {
 		typeWrappersInitialized = false;
-		if (wrapperAccessor != null) {
-			wrapperAccessor.clearCache();
-		}
-		if (refreshCallBack != null) {
-			refreshCallBack.run();
-		}
+		onBeforeDeconstruct();
+		onInvalidateUpgradeCaches.run();
+		notifyRefreshCallbacks();
 	}
 
 	public void refreshUpgradeWrappers() {
@@ -277,16 +283,25 @@ public class UpgradeHandler extends ItemStackHandler {
 
 		wrappersInitialized = false;
 		typeWrappersInitialized = false;
+		onBeforeDeconstruct();
+		notifyRefreshCallbacks();
+		onInvalidateUpgradeCaches.run();
+
+		initRenderInfoCallbacks(true);
+	}
+
+	public void onBeforeDeconstruct() {
 		if (wrapperAccessor != null) {
 			wrapperAccessor.onBeforeDeconstruct();
 			wrapperAccessor = null;
 		}
+	}
+
+	public void notifyRefreshCallbacks() {
 		if (refreshCallBack != null) {
 			refreshCallBack.run();
 		}
-		onInvalidateUpgradeCaches.run();
-
-		initRenderInfoCallbacks(true);
+		List.copyOf(refreshCallbacks).forEach(Runnable::run);
 	}
 
 	private void initRenderInfoCallbacks(boolean forceUpdateRenderInfo) {
