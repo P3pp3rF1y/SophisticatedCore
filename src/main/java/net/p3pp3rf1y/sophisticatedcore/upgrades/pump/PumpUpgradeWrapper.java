@@ -92,14 +92,20 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 			}
 		}
 		if (shouldInteractWithFluidHandlers()) {
-			return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler);
+			return interactWithAttachedFluidHandlers(level, pos, storageFluidHandler, entity instanceof Player player ? player : null);
 		}
 		return Optional.empty();
 	}
 
-	private Optional<Integer> interactWithAttachedFluidHandlers(Level level, BlockPos pos, ResourceHandler<FluidResource> storageFluidHandler) {
+	private Optional<Integer> interactWithAttachedFluidHandlers(Level level, BlockPos pos, ResourceHandler<FluidResource> storageFluidHandler,
+			@Nullable Player player) {
 		for (Direction dir : Direction.values()) {
-			boolean successful = WorldHelper.getBlockEntity(level, pos.offset(dir.getUnitVec3i()))
+			BlockPos offsetPos = pos.offset(dir.getUnitVec3i());
+			if (player != null && !WorldHelper.playerMayInteract(player, level, offsetPos)) {
+				continue;
+			}
+
+			boolean successful = WorldHelper.getBlockEntity(level, offsetPos)
 					.map(be -> CapabilityHelper.<Boolean>getFromFluidHandler(be, dir.getOpposite(), fluidHandler -> {
 						if (isInput()) {
 							return tryFluidTransfer(fluidHandler, storageFluidHandler, getMaxInOut());
