@@ -23,6 +23,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
@@ -263,6 +264,10 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	private boolean handleFluidContainerInHand(ResourceHandler<FluidResource> storageFluidHandler, Player player, InteractionHand hand) {
 		ItemStack itemInHand = player.getItemInHand(hand);
 		if (itemInHand.getCount() != 1 || itemInHand == storageWrapper.getWrappedStorageStack()) {
+			return false;
+		}
+		LinkedStorageEndpointData endpoint = itemInHand.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT);
+		if (endpoint != null && storageWrapper.getContentsUuid().filter(endpoint.groupId()::equals).isPresent()) {
 			return false;
 		}
 		MutableStackItemAccess itemAccess = new MutableStackItemAccess(itemInHand);
