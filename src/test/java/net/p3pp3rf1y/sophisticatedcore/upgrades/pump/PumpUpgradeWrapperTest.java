@@ -1,34 +1,130 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointData;
+import net.p3pp3rf1y.sophisticatedcore.util.CapabilityHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.MutableStackItemAccess;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PumpUpgradeWrapperTest {
+	@BeforeAll
+	static void setup() {
+		SharedConstants.tryDetectVersion();
+		Bootstrap.bootStrap();
+		Bootstrap.validate();
+		Fluids.WATER.builtInRegistryHolder().bindComponents(DataComponentMap.EMPTY);
+	}
+
+	@ParameterizedTest
+	@CsvSource({"true, true", "true, false", "false, true", "false, false"})
+	void tickSkipsOwnLinkedGroupInBothHands(boolean input, boolean placed) throws ReflectiveOperationException {
+		UUID groupId = UUID.randomUUID();
+		IStorageWrapper storage = mock(IStorageWrapper.class);
+		when(storage.getContentsUuid()).thenReturn(Optional.of(groupId));
+		when(storage.getFluidHandler()).thenReturn(Optional.of(mock(IStorageFluidHandler.class)));
+		PumpUpgradeWrapper wrapper = createWrapper(storage, true, input);
+		Player player = mock(Player.class);
+		ItemStack mainHand = mock(ItemStack.class);
+		ItemStack offHand = mock(ItemStack.class);
+		when(mainHand.getCount()).thenReturn(1);
+		when(offHand.getCount()).thenReturn(1);
+		when(mainHand.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT)).thenReturn(new LinkedStorageEndpointData(groupId, UUID.randomUUID()));
+		when(offHand.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT)).thenReturn(new LinkedStorageEndpointData(groupId, UUID.randomUUID()));
+		when(player.getItemInHand(InteractionHand.MAIN_HAND)).thenReturn(mainHand);
+		when(player.getItemInHand(InteractionHand.OFF_HAND)).thenReturn(offHand);
+		Level level = mock(Level.class);
+		org.mockito.Mockito.doReturn(List.of(player)).when(level).players();
+
+		wrapper.tick(placed ? null : player, level, BlockPos.ZERO);
+
+		verify(player).getItemInHand(InteractionHand.MAIN_HAND);
+		verify(player).getItemInHand(InteractionHand.OFF_HAND);
+		verify(mainHand, never()).getItem();
+		verify(offHand, never()).getItem();
+		verify(player, never()).setItemInHand(any(), any());
+	}
+
+	@ParameterizedTest
+	@CsvSource({"true, true", "true, false", "false, true", "false, false"})
+	void tickTransfersOtherLinkedGroupsAndOrdinaryContainers(boolean input, boolean linked) throws ReflectiveOperationException {
+		FluidStacksResourceHandler storageTank = new FluidStacksResourceHandler(1, 4000);
+		FluidStacksResourceHandler heldTank = new FluidStacksResourceHandler(1, 4000);
+		try (Transaction tx = Transaction.openRoot()) {
+			(input ? heldTank : storageTank).insert(0, FluidResource.of(Fluids.WATER), 1000, tx);
+			tx.commit();
+		}
+		IStorageWrapper storage = mock(IStorageWrapper.class);
+		when(storage.getContentsUuid()).thenReturn(Optional.of(UUID.randomUUID()));
+		when(storage.getFluidHandler()).thenReturn(Optional.of(mock(IStorageFluidHandler.class, delegatesTo(storageTank))));
+		PumpUpgradeWrapper wrapper = createWrapper(storage, true, input);
+		ItemStack held = mock(ItemStack.class);
+		when(held.getCount()).thenReturn(1);
+		if (linked) {
+			when(held.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT)).thenReturn(new LinkedStorageEndpointData(UUID.randomUUID(), UUID.randomUUID()));
+		}
+		Player player = mock(Player.class);
+		when(player.getItemInHand(InteractionHand.MAIN_HAND)).thenReturn(held);
+		when(player.getItemInHand(InteractionHand.OFF_HAND)).thenReturn(ItemStack.EMPTY);
+		Level level = mock(Level.class);
+
+		try (MockedStatic<CapabilityHelper> capabilities = mockStatic(CapabilityHelper.class)) {
+			capabilities.when(() -> CapabilityHelper.getFromFluidHandler(any(MutableStackItemAccess.class),
+					org.mockito.ArgumentMatchers.<Function<net.neoforged.neoforge.transfer.ResourceHandler<net.neoforged.neoforge.transfer.fluid.FluidResource>, Boolean>>any(),
+					eq(false))).thenAnswer(invocation -> {
+						Function<ResourceHandler<FluidResource>, Boolean> transfer = invocation.getArgument(1);
+						return transfer.apply(heldTank);
+					});
+			wrapper.tick(player, level, BlockPos.ZERO);
+		}
+		assertEquals(input ? 1000 : 0, storageTank.getAmountAsInt(0));
+		assertEquals(input ? 0 : 1000, heldTank.getAmountAsInt(0));
+		verify(player).setItemInHand(InteractionHand.MAIN_HAND, held);
+	}
+
 	@Test
 	void tickSkipsDeniedNeighborAndChecksLaterNeighbor() throws ReflectiveOperationException {
 		PumpUpgradeWrapper wrapper = createWrapper();
@@ -66,21 +162,27 @@ class PumpUpgradeWrapperTest {
 	}
 
 	private static PumpUpgradeWrapper createWrapper() throws ReflectiveOperationException {
+		IStorageWrapper storageWrapper = mock(IStorageWrapper.class);
+		when(storageWrapper.getFluidHandler()).thenReturn(Optional.of(mock(IStorageFluidHandler.class)));
+		return createWrapper(storageWrapper, false, true);
+	}
+
+	private static PumpUpgradeWrapper createWrapper(IStorageWrapper storageWrapper, boolean interactWithHand, boolean input)
+			throws ReflectiveOperationException {
 		ModConfigSpec.Builder configBuilder = new ModConfigSpec.Builder();
 		PumpUpgradeConfig config = new PumpUpgradeConfig(configBuilder);
 		loadDefaultConfig(configBuilder.build());
 		PumpUpgradeItem upgradeItem = mock(PumpUpgradeItem.class);
 		when(upgradeItem.getPumpUpgradeConfig()).thenReturn(config);
-		when(upgradeItem.getInteractWithHandDefault()).thenReturn(false);
+		when(upgradeItem.getInteractWithHandDefault()).thenReturn(interactWithHand);
 		when(upgradeItem.getInteractWithWorldDefault()).thenReturn(false);
-		when(upgradeItem.getInteractWithFluidHandlersDefault()).thenReturn(true);
+		when(upgradeItem.getInteractWithFluidHandlersDefault()).thenReturn(!interactWithHand);
 
 		ItemStack upgrade = mock(ItemStack.class);
 		when(upgrade.getItem()).thenReturn(upgradeItem);
 		when(upgrade.getOrDefault(anyDataComponentSupplier(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+		when(upgrade.getOrDefault(ModCoreDataComponents.IS_INPUT, true)).thenReturn(input);
 
-		IStorageWrapper storageWrapper = mock(IStorageWrapper.class);
-		when(storageWrapper.getFluidHandler()).thenReturn(Optional.of(mock(IStorageFluidHandler.class)));
 		return new PumpUpgradeWrapper(storageWrapper, upgrade, stack -> {
 		});
 	}
