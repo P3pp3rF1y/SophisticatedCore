@@ -24,6 +24,8 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.wrappers.BucketPickupHandlerWrapper;
 import net.minecraftforge.fluids.capability.wrappers.FluidBlockWrapper;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointData;
+import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageStackData;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import net.p3pp3rf1y.sophisticatedcore.util.CoreFakePlayer;
@@ -246,6 +248,10 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	private boolean handleFluidContainerInHand(IFluidHandler storageFluidHandler, Player player, InteractionHand hand) {
 		ItemStack itemInHand = player.getItemInHand(hand);
 		if (itemInHand.getCount() != 1 || itemInHand == storageWrapper.getWrappedStorageStack()) {
+			return false;
+		}
+		LinkedStorageEndpointData endpoint = LinkedStorageStackData.getEndpoint(itemInHand);
+		if (endpoint != null && storageWrapper.getContentsUuid().filter(endpoint.groupId()::equals).isPresent()) {
 			return false;
 		}
 		return itemInHand.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).map(itemFluidHandler -> {
