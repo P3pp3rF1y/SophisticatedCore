@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageSavedData;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.UUID;
@@ -27,4 +28,8 @@ public interface ILinkedStorageContents extends IStorageSavedData {
 	int getColumnsTaken();
 
 	void setColumnsTaken(int columnsTaken);
+
+	SortBy getSortBy();
+
+	void setSortBy(SortBy sortBy);
 }

@@ -1,6 +1,7 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.minecraft.resources.Identifier;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.HashMap;
@@ -93,6 +94,12 @@ public class LinkedStorageGroupManager {
 
 	private void markRenderDirty(UUID groupId) {
 		markDirty(groupId, false, true);
+	}
+
+	public void setSortBy(UUID groupId, SortBy sortBy) {
+		if (getGroup(groupId).setSortBy(sortBy)) {
+			markDirty(groupId);
+		}
 	}
 
 	private void setColumnsTaken(UUID groupId, int columnsTaken) {
@@ -282,6 +289,16 @@ public class LinkedStorageGroupManager {
 		@Override
 		public void setColumnsTaken(int columnsTaken) {
 			LinkedStorageGroupManager.this.setColumnsTaken(groupId, columnsTaken);
+		}
+
+		@Override
+		public SortBy getSortBy() {
+			return getGroup(groupId).sortBy();
+		}
+
+		@Override
+		public void setSortBy(SortBy sortBy) {
+			LinkedStorageGroupManager.this.setSortBy(groupId, sortBy);
 		}
 	}
 }

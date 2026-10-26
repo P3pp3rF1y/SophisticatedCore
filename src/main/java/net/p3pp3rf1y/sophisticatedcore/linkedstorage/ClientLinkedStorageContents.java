@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.HashMap;
@@ -40,7 +41,12 @@ public final class ClientLinkedStorageContents {
 
 	public static void updateContents(UUID groupId, long revision, ContainerContents contents, Component groupName, int inventorySlots, int upgradeSlots,
 			int columnsTaken) {
-		Snapshot snapshot = new Snapshot(contents.copy(), revision, groupName, inventorySlots, upgradeSlots, columnsTaken);
+		updateContents(groupId, revision, contents, groupName, inventorySlots, upgradeSlots, columnsTaken, SortBy.NAME);
+	}
+
+	public static void updateContents(UUID groupId, long revision, ContainerContents contents, Component groupName, int inventorySlots, int upgradeSlots,
+			int columnsTaken, SortBy sortBy) {
+		Snapshot snapshot = new Snapshot(contents.copy(), revision, groupName, inventorySlots, upgradeSlots, columnsTaken, sortBy);
 		SNAPSHOTS.put(groupId, snapshot);
 		ClientContents clientContents = CONTENTS.get(groupId);
 		if (clientContents != null) {
@@ -56,7 +62,7 @@ public final class ClientLinkedStorageContents {
 		}
 		ContainerContents contents = snapshot.contents().copy();
 		Snapshot updated = new Snapshot(new ContainerContents(contents.inventory(), contents.partitioner(), contents.upgrades(), settings.copy()),
-				snapshot.revision(), snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), snapshot.columnsTaken());
+				snapshot.revision(), snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), snapshot.columnsTaken(), snapshot.sortBy());
 		SNAPSHOTS.put(groupId, updated);
 		ClientContents clientContents = CONTENTS.get(groupId);
 		if (clientContents != null) {
@@ -140,7 +146,7 @@ public final class ClientLinkedStorageContents {
 		@Override
 		public void setContents(UUID storageId, ContainerContents contents) {
 			updateContents(groupId, snapshot.revision(), contents, snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(),
-					snapshot.columnsTaken());
+					snapshot.columnsTaken(), snapshot.sortBy());
 		}
 
 		@Override
@@ -154,10 +160,23 @@ public final class ClientLinkedStorageContents {
 
 		@Override
 		public void setColumnsTaken(int columnsTaken) {
-			updateContents(groupId, snapshot.revision(), contents, snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), columnsTaken);
+			updateContents(groupId, snapshot.revision(), contents, snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), columnsTaken,
+					snapshot.sortBy());
+		}
+
+		@Override
+		public SortBy getSortBy() {
+			return snapshot.sortBy();
+		}
+
+		@Override
+		public void setSortBy(SortBy sortBy) {
+			updateContents(groupId, snapshot.revision(), contents, snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(),
+					snapshot.columnsTaken(), sortBy);
 		}
 	}
 
-	private record Snapshot(ContainerContents contents, long revision, Component groupName, int inventorySlots, int upgradeSlots, int columnsTaken) {
+	private record Snapshot(ContainerContents contents, long revision, Component groupName, int inventorySlots, int upgradeSlots, int columnsTaken,
+			SortBy sortBy) {
 	}
 }

@@ -18,6 +18,7 @@ import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.SavedDataStorage;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import org.junit.jupiter.api.BeforeAll;
@@ -315,6 +316,30 @@ class LinkedStorageGroupManagerTest {
 	}
 
 	@Test
+	void sortModePersistsAndNotifiesOnlyWhenChanged() {
+		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "sort_test_host_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupsSavedData savedData = new LinkedStorageGroupsSavedData();
+		LinkedStorageGroupManager manager = savedData.manager();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new ContainerContents());
+		ILinkedStorageContents contents = manager.resolveContents(groupId).orElseThrow();
+		AtomicInteger notifications = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertEquals(SortBy.COUNT, contents.getSortBy());
+			notifications.incrementAndGet();
+		});
+
+		assertEquals(SortBy.NAME, contents.getSortBy());
+		contents.setSortBy(SortBy.COUNT);
+		contents.setSortBy(SortBy.COUNT);
+
+		assertEquals(1, manager.getRevision(groupId));
+		assertEquals(1, notifications.get());
+		assertEquals(SortBy.COUNT, LinkedStorageGroupsSavedData.load(savedData.save()).manager().resolveContents(groupId).orElseThrow().getSortBy());
+	}
+
+	@Test
 	void updatePrimaryHostDescriptorUpdatesOnlyPrimaryVirtualCarrier() {
 		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "primary_carrier_test_host_" + UUID.randomUUID());
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);
@@ -381,7 +406,7 @@ class LinkedStorageGroupManagerTest {
 		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "codec_field_names_test_host_" + UUID.randomUUID());
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);
 		LinkedStorageGroupsSavedData savedData = new LinkedStorageGroupsSavedData();
-		savedData.manager().createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+		UUID groupId = savedData.manager().createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
 				new ContainerContents());
 
 		CompoundTag tag = (CompoundTag) LinkedStorageGroupsSavedData.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, savedData).getOrThrow();
@@ -391,6 +416,9 @@ class LinkedStorageGroupManagerTest {
 		assertTrue(group.contains("factory_id"));
 		assertTrue(group.contains("virtual_carrier"));
 		assertTrue(group.contains("contents"));
+		assertFalse(group.contains("sort_by"));
+		assertEquals(SortBy.NAME, LinkedStorageGroupsSavedData.CODEC.parse(net.minecraft.nbt.NbtOps.INSTANCE, tag).getOrThrow().manager()
+				.resolveContents(groupId).orElseThrow().getSortBy());
 	}
 
 	@Test
