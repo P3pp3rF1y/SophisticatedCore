@@ -130,6 +130,7 @@ public final class LinkedStorageService {
 		UUID endpointId = UUID.randomUUID();
 		UUID groupId = manager.createGroup(playerId == null ? UUID.randomUUID() : playerId, endpointId, adapter.createHostDescriptor(level, endpoint),
 				adapter.copyCanonicalContents(level, endpoint));
+		manager.setSortBy(groupId, adapter.getSortBy(level, endpoint));
 		adapter.bindEndpoint(level, endpoint, new LinkedStorageEndpointData(groupId, endpointId));
 		adapter.onEndpointLinked(level, endpoint);
 		linker.set(ModCoreDataComponents.ENDER_LINKER_TARGET, createTarget(manager, groupId));
