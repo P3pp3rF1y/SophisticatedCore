@@ -765,7 +765,15 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	@Override
 	public ItemStack quickMoveStack(Player player, int index) {
 		ItemStack itemstack = ItemStack.EMPTY;
+		if (index < 0 || index >= getTotalSlotsNumber()) {
+			return itemstack;
+		}
 		Slot slot = getSlot(index);
+		// Filter samples and upgrade settings slots are not valid transfer sources - a ghost sample must never
+		// be mergeable into real storage, no matter which caller reaches this method.
+		if (slot instanceof IFilterSlot || getSlotUpgradeContainer(slot).isPresent()) {
+			return itemstack;
+		}
 		if (slot.hasItem()) {
 			Optional<UpgradeContainerBase<?, ?>> upgradeContainer = getSlotUpgradeContainer(slot);
 			ItemStack slotStack = upgradeContainer.map(c -> c.getSlotStackToTransfer(slot)).orElse(slot.getItem());

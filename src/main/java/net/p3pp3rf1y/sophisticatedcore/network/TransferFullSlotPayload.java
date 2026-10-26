@@ -9,6 +9,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.IFilterSlot;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 
 public record TransferFullSlotPayload(int slotId) implements CustomPacketPayload {
@@ -26,10 +27,20 @@ public record TransferFullSlotPayload(int slotId) implements CustomPacketPayload
 		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> storageContainer)) {
 			return;
 		}
-		Slot slot = storageContainer.getSlot(payload.slotId);
+		int slotId = payload.slotId();
+		if (slotId < 0 || slotId >= storageContainer.getTotalSlotsNumber()) {
+			return;
+		}
+		Slot slot = storageContainer.getSlot(slotId);
+		// The slot id comes from the client, so the source has to be validated here instead of relying on the
+		// GUI only ever sending real storage slots. Ghost filter samples must not be extractable.
+		if (slot instanceof IFilterSlot || storageContainer.getSlotUpgradeContainer(slot).isPresent() || !slot.isActive()
+				|| !slot.mayPickup(player)) {
+			return;
+		}
 		ItemStack transferResult;
 		do {
-			transferResult = storageContainer.quickMoveStack(player, payload.slotId);
+			transferResult = storageContainer.quickMoveStack(player, slotId);
 		} while (!transferResult.isEmpty() && ItemStack.isSameItem(slot.getItem(), transferResult));
 	}
 }
