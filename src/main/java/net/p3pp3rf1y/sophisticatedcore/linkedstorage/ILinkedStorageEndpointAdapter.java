@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 public interface ILinkedStorageEndpointAdapter<E> {
@@ -22,6 +23,10 @@ public interface ILinkedStorageEndpointAdapter<E> {
 	LinkedStorageHostDescriptor createHostDescriptor(ServerLevel level, E endpoint);
 
 	ContainerContents copyCanonicalContents(ServerLevel level, E endpoint);
+
+	default SortBy getSortBy(ServerLevel level, E endpoint) {
+		return SortBy.NAME;
+	}
 
 	void bindEndpoint(ServerLevel level, E endpoint, LinkedStorageEndpointData endpointData);
 

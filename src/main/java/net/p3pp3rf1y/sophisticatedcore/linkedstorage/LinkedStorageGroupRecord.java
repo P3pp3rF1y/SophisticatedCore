@@ -1,5 +1,6 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
+import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 
 import java.util.LinkedHashMap;
@@ -17,13 +18,14 @@ final class LinkedStorageGroupRecord {
 	private long revision;
 	private long renderRevision;
 	private int columnsTaken;
+	private SortBy sortBy;
 
 	LinkedStorageGroupRecord(UUID id, UUID ownerId, UUID primaryEndpointId, LinkedStorageHostDescriptor hostDescriptor, ContainerContents contents) {
-		this(id, ownerId, primaryEndpointId, List.of(LinkedStorageEndpointRecord.create(primaryEndpointId)), hostDescriptor, contents, 0, 0, 0);
+		this(id, ownerId, primaryEndpointId, List.of(LinkedStorageEndpointRecord.create(primaryEndpointId)), hostDescriptor, contents, 0, 0, 0, SortBy.NAME);
 	}
 
 	LinkedStorageGroupRecord(UUID id, UUID ownerId, UUID primaryEndpointId, List<LinkedStorageEndpointRecord> endpoints,
-			LinkedStorageHostDescriptor hostDescriptor, ContainerContents contents, long revision, long renderRevision, int columnsTaken) {
+			LinkedStorageHostDescriptor hostDescriptor, ContainerContents contents, long revision, long renderRevision, int columnsTaken, SortBy sortBy) {
 		this.id = id;
 		this.ownerId = ownerId;
 		this.primaryEndpointId = primaryEndpointId;
@@ -34,6 +36,7 @@ final class LinkedStorageGroupRecord {
 		this.revision = revision;
 		this.renderRevision = renderRevision;
 		this.columnsTaken = columnsTaken;
+		this.sortBy = sortBy;
 	}
 
 	UUID id() {
@@ -103,6 +106,18 @@ final class LinkedStorageGroupRecord {
 
 	void incrementRenderRevision() {
 		renderRevision++;
+	}
+
+	SortBy sortBy() {
+		return sortBy;
+	}
+
+	boolean setSortBy(SortBy sortBy) {
+		if (this.sortBy == sortBy) {
+			return false;
+		}
+		this.sortBy = sortBy;
+		return true;
 	}
 
 	int columnsTaken() {
