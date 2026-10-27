@@ -129,6 +129,40 @@ class LinkedStorageGroupManagerTest {
 	}
 
 	@Test
+	void markVirtualCarrierDirtyPersistsCarrierBeforeFanOutWithoutChangingRenderRevision() {
+		ResourceLocation factoryId = factoryId("carrier_metadata_test");
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupsSavedData savedData = new LinkedStorageGroupsSavedData();
+		LinkedStorageGroupManager manager = savedData.manager();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new CompoundTag());
+		TestHost host = (TestHost) manager.resolveVirtualHost(groupId).orElseThrow();
+		AtomicInteger notifications = new AtomicInteger();
+		AtomicInteger replacements = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertEquals("count", manager.getHostDescriptor(groupId).orElseThrow().virtualCarrier().getString("sortBy"));
+			assertEquals(1, manager.getRevision(groupId));
+			assertEquals(0, manager.getRenderRevision(groupId));
+			notifications.incrementAndGet();
+		});
+		manager.subscribeToRootContentsReplacements(groupId, replacements::incrementAndGet);
+
+		host.virtualCarrier.putString("sortBy", "count");
+		manager.resolveContents(groupId).orElseThrow().markVirtualCarrierDirty();
+
+		assertEquals(1, notifications.get());
+		assertEquals(0, replacements.get());
+		assertEquals(0, host.refreshes());
+		assertEquals(0, host.layoutRefreshes());
+		assertEquals(1, host.snapshots());
+		LinkedStorageGroupManager loaded = LinkedStorageGroupsSavedData.load(savedData.save(new CompoundTag())).manager();
+		assertEquals("count", loaded.getHostDescriptor(groupId).orElseThrow().virtualCarrier().getString("sortBy"));
+		assertEquals(1, loaded.getRevision(groupId));
+		assertEquals(0, loaded.getRenderRevision(groupId));
+		assertEquals("count", ((TestHost) loaded.resolveVirtualHost(groupId).orElseThrow()).virtualCarrier.getString("sortBy"));
+	}
+
+	@Test
 	void setColumnsTakenPersistsCanonicalColumnsAndRefreshesVirtualHostBeforeFanOut() {
 		ResourceLocation factoryId = factoryId("layout_test_host");
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);
