@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomModelData;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -162,6 +163,40 @@ class LinkedStorageGroupManagerTest {
 		assertEquals(1, manager.getRenderRevision(groupId));
 		LinkedStorageGroupsSavedData loaded = LinkedStorageGroupsSavedData.load(savedData.save(new CompoundTag(), Mockito.mock()), Mockito.mock());
 		assertEquals(1, loaded.manager().getRenderRevision(groupId));
+	}
+
+	@Test
+	void markVirtualCarrierDirtyPersistsCarrierBeforeFanOutWithoutChangingRenderRevision() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "carrier_metadata_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupsSavedData savedData = new LinkedStorageGroupsSavedData();
+		LinkedStorageGroupManager manager = savedData.manager();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new CompoundTag());
+		TestHost host = (TestHost) manager.resolveVirtualHost(groupId).orElseThrow();
+		AtomicInteger notifications = new AtomicInteger();
+		AtomicInteger replacements = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertEquals("count", manager.getHostDescriptor(groupId).orElseThrow().virtualCarrier().getString("sortBy"));
+			assertEquals(1, manager.getRevision(groupId));
+			assertEquals(0, manager.getRenderRevision(groupId));
+			notifications.incrementAndGet();
+		});
+		manager.subscribeToRootContentsReplacements(groupId, replacements::incrementAndGet);
+
+		host.virtualCarrier.putString("sortBy", "count");
+		manager.resolveContents(groupId).orElseThrow().markVirtualCarrierDirty();
+
+		assertEquals(1, notifications.get());
+		assertEquals(0, replacements.get());
+		assertEquals(0, host.refreshes());
+		assertEquals(0, host.layoutRefreshes());
+		assertEquals(1, host.snapshots());
+		LinkedStorageGroupManager loaded = LinkedStorageGroupsSavedData.load(savedData.save(new CompoundTag(), Mockito.mock()), Mockito.mock()).manager();
+		assertEquals("count", loaded.getHostDescriptor(groupId).orElseThrow().virtualCarrier().getString("sortBy"));
+		assertEquals(1, loaded.getRevision(groupId));
+		assertEquals(0, loaded.getRenderRevision(groupId));
+		assertEquals("count", ((TestHost) loaded.resolveVirtualHost(groupId).orElseThrow()).virtualCarrier.getString("sortBy"));
 	}
 
 	@Test

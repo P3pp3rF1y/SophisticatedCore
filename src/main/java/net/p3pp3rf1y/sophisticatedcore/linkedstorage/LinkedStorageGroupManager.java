@@ -91,6 +91,20 @@ public class LinkedStorageGroupManager {
 		markDirty(groupId, false, false);
 	}
 
+	private void markVirtualCarrierDirty(UUID groupId) {
+		updateVirtualCarrier(groupId);
+		markDirty(groupId);
+	}
+
+	private void updateVirtualCarrier(UUID groupId) {
+		ILinkedStorageVirtualHost virtualHost = virtualHosts.get(groupId);
+		if (virtualHost != null) {
+			LinkedStorageGroupRecord group = getGroup(groupId);
+			virtualHost.getVirtualCarrierSnapshot()
+					.ifPresent(virtualCarrier -> group.setHostDescriptor(new LinkedStorageHostDescriptor(group.hostDescriptor().factoryId(), virtualCarrier)));
+		}
+	}
+
 	private void markRenderDirty(UUID groupId) {
 		markDirty(groupId, false, true);
 	}
@@ -210,9 +224,8 @@ public class LinkedStorageGroupManager {
 	private void commit(UUID groupId, boolean contentsReplaced, boolean renderChanged, boolean layoutChanged) {
 		LinkedStorageGroupRecord group = getGroup(groupId);
 		ILinkedStorageVirtualHost virtualHost = virtualHosts.get(groupId);
-		if (renderChanged && virtualHost != null) {
-			virtualHost.getVirtualCarrierSnapshot()
-					.ifPresent(virtualCarrier -> group.setHostDescriptor(new LinkedStorageHostDescriptor(group.hostDescriptor().factoryId(), virtualCarrier)));
+		if (renderChanged) {
+			updateVirtualCarrier(groupId);
 		}
 		group.incrementRevision();
 		if (renderChanged) {
@@ -262,6 +275,11 @@ public class LinkedStorageGroupManager {
 		@Override
 		public void markChanged() {
 			LinkedStorageGroupManager.this.markDirty(groupId);
+		}
+
+		@Override
+		public void markVirtualCarrierDirty() {
+			LinkedStorageGroupManager.this.markVirtualCarrierDirty(groupId);
 		}
 
 		@Override

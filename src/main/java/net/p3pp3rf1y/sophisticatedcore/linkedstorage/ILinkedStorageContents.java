@@ -16,6 +16,10 @@ public interface ILinkedStorageContents extends IStorageSavedData {
 		markChanged();
 	}
 
+	default void markVirtualCarrierDirty() {
+		markDirty();
+	}
+
 	default void markRenderDirty() {
 		markDirty();
 	}
