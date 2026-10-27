@@ -769,9 +769,10 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 			return itemstack;
 		}
 		Slot slot = getSlot(index);
-		// Filter samples and upgrade settings slots are not valid transfer sources - a ghost sample must never
-		// be mergeable into real storage, no matter which caller reaches this method.
-		if (slot instanceof IFilterSlot || getSlotUpgradeContainer(slot).isPresent()) {
+		// A filter sample must never be treated as a transfer source, no matter which caller reaches this method.
+		// Only filter slots are rejected here: other upgrade settings slots (crafting ingredients and results,
+		// memory slots, ...) keep their existing quick-move behaviour.
+		if (slot instanceof IFilterSlot) {
 			return itemstack;
 		}
 		if (slot.hasItem()) {

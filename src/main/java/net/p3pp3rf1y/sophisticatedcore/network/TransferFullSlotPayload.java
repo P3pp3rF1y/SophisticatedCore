@@ -33,9 +33,9 @@ public record TransferFullSlotPayload(int slotId) implements CustomPacketPayload
 		}
 		Slot slot = storageContainer.getSlot(slotId);
 		// The slot id comes from the client, so the source has to be validated here instead of relying on the
-		// GUI only ever sending real storage slots. Ghost filter samples must not be extractable.
-		if (slot instanceof IFilterSlot || storageContainer.getSlotUpgradeContainer(slot).isPresent() || !slot.isActive()
-				|| !slot.mayPickup(player)) {
+		// GUI only ever sending real storage slots. Ghost filter samples must not be extractable; other upgrade
+		// settings slots (crafting ingredients/results, memory slots, ...) are not restricted.
+		if (slot instanceof IFilterSlot || !slot.isActive() || !slot.mayPickup(player)) {
 			return;
 		}
 		ItemStack transferResult;
