@@ -58,6 +58,7 @@ public class InventoryHandlerSlotTrackerTest {
 			int slot = invocation.getArgument(0);
 			return !inaccessibleSlots.contains(slot);
 		});
+		when(inventoryHandler.isItemValid(anyInt(), any(ItemStack.class))).thenAnswer(invocation -> !inaccessibleSlots.contains(invocation.getArgument(0)));
 		return inventoryHandler;
 	}
 
