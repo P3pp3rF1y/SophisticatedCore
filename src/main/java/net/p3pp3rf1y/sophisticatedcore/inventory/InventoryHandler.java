@@ -295,15 +295,13 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 			return moved;
 		}
 
-		if (!tracker.getPartialSlots(key).isEmpty()) {
-			int sizeBefore = tracker.getPartialSlots(key).size();
-			int i = 0;
-			while (moved < amount && i++ < sizeBefore && !tracker.getPartialSlots(key).isEmpty()) {
-				int slot = tracker.getPartialSlots(key).iterator().next();
-				if (slot == -1) {
-					break;
-				}
-				moved += insert(slot, resource, amount - moved, tx);
+		// Upgrades can reenter insertion and change the tracker; visit each slot at most once per call.
+		for (int slot : new ArrayList<>(tracker.getPartialSlots(key))) {
+			if (moved >= amount) {
+				break;
+			}
+			if (tracker.getPartialSlots(key).contains(slot)) {
+				moved += insertIntoSlot(slot, resource, amount - moved, tx);
 			}
 		}
 
@@ -311,12 +309,12 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 			return moved;
 		}
 
-		for (int slot : mem.getFilterItemSlots().getOrDefault(item, Collections.emptySet())) {
+		for (int slot : new ArrayList<>(mem.getFilterItemSlots().getOrDefault(item, Collections.emptySet()))) {
 			if (moved >= amount) {
 				break;
 			}
 			if (tracker.getEmptySlots().contains(slot)) {
-				moved += insert(slot, resource, amount - moved, tx);
+				moved += insertIntoSlot(slot, resource, amount - moved, tx);
 			}
 		}
 
@@ -324,12 +322,12 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 			return moved;
 		}
 
-		for (int slot : mem.getFilterStackSlots().getOrDefault(key.hashCode(), Collections.emptySet())) {
+		for (int slot : new ArrayList<>(mem.getFilterStackSlots().getOrDefault(key.hashCode(), Collections.emptySet()))) {
 			if (moved >= amount) {
 				break;
 			}
 			if (tracker.getEmptySlots().contains(slot)) {
-				moved += insert(slot, resource, amount - moved, tx);
+				moved += insertIntoSlot(slot, resource, amount - moved, tx);
 			}
 		}
 
@@ -337,12 +335,12 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 			return moved;
 		}
 
-		for (int slot : filterItemSlots.getSlots(item)) {
+		for (int slot : new ArrayList<>(filterItemSlots.getSlots(item))) {
 			if (moved >= amount) {
 				break;
 			}
 			if (tracker.getEmptySlots().contains(slot)) {
-				moved += insert(slot, resource, amount - moved, tx);
+				moved += insertIntoSlot(slot, resource, amount - moved, tx);
 			}
 		}
 
@@ -351,31 +349,19 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		}
 
 		if (shouldInsertIntoEmpty.getAsBoolean()) {
-			int sizeBefore = tracker.getEmptySlots().size();
-			int i = 0;
-			while (moved < amount && i++ < sizeBefore) {
-				int slot = pickNextPlaceableEmptySlot(tracker.getEmptySlots(), mem, resource);
-				if (slot == -1) {
+			for (int slot : new ArrayList<>(tracker.getEmptySlots())) {
+				if (moved >= amount) {
 					break;
 				}
-				moved += insert(slot, resource, amount - moved, tx);
+				if (tracker.getEmptySlots().contains(slot) && !mem.isSlotSelected(slot) && !filterItemSlots.containsSlot(slot)) {
+					moved += insertIntoSlot(slot, resource, amount - moved, tx);
+				}
 			}
 		}
 
 		moved += handleOverflow(resource, amount - moved);
 
 		return moved;
-	}
-
-	private int pickNextPlaceableEmptySlot(Set<Integer> slots, MemorySettingsCategory mem, ItemResource resource) {
-		for (int slot : slots) {
-			if ((mem.isSlotSelected(slot) && !mem.matchesFilter(slot, resource)
-					|| filterItemSlots.containsSlot(slot) && !filterItemSlots.getSlots(resource.getItem()).contains(slot))) {
-				continue;
-			}
-			return slot;
-		}
-		return -1;
 	}
 
 	@Override
@@ -386,20 +372,33 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		}
 
 		inserted += handleOverflow(resource, amount - inserted);
-
-		getSlotTrackerJournal(index).updateSnapshots(tx);
-		int result = inventoryPartitioner.getPartBySlot(index).insert(index, resource, amount - inserted, tx, super::insert);
-		if (result > 0) {
-			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
+		if (inserted >= amount) {
+			return inserted;
 		}
 
-		inserted += result;
+		int countBeforeInsert = amount - inserted;
+		if (getSlotTracker().getEmptySlots().contains(index) && canInsertIntoEmptySlot(index, resource)
+				|| getSlotTracker().getPartialSlots(ItemStackKey.of(resource)).contains(index)) {
+			inserted += insertIntoSlot(index, resource, countBeforeInsert, tx);
+		}
 
 		inserted += handleOverflow(resource, amount - inserted);
 
-		runOnAfterInsert(index, tx);
-
 		return inserted;
+	}
+
+	private int insertIntoSlot(int index, ItemResource resource, int amount, TransactionContext tx) {
+		int consumed = runOnBeforeInsert(index, resource, amount, storageWrapper);
+		if (consumed >= amount) {
+			return amount;
+		}
+		getSlotTrackerJournal(index).updateSnapshots(tx);
+		int result = inventoryPartitioner.getPartBySlot(index).insert(index, resource, amount - consumed, tx, super::insert);
+		if (result > 0) {
+			getSlotTracker().removeAndSetSlotIndexes(this, index, getStackInSlot(index));
+			runOnAfterInsert(index, tx);
+		}
+		return consumed + result;
 	}
 
 	public ItemStack insertItemOnlyToSlot(int slot, ItemStack stack) {
@@ -444,14 +443,14 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 	}
 
 	private int handleOverflow(ItemResource resource, int amount) {
-		if (!hasVoidUpgrade()) {
+		if (amount <= 0 || !hasVoidUpgrade()) {
 			return 0;
 		}
 
 		ItemStackKey stackKey = ItemStackKey.of(resource);
 		if (hasOneFullStackOfItem(stackKey)) {
 			int inserted = 0;
-			if (getSlotTracker().getEmptySlots().isEmpty() && !getSlotTracker().getPartialStacks().contains(stackKey)) {
+			if (!hasInsertionSpace(resource, stackKey)) {
 				inserted = triggerStorageOverflowUpgrades(resource, amount);
 				if (inserted >= amount) {
 					return amount;
@@ -460,6 +459,27 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 			return triggerSlotOverflowUpgrades(resource, amount - inserted);
 		}
 		return 0;
+	}
+
+	private boolean hasInsertionSpace(ItemResource resource, ItemStackKey stackKey) {
+		for (int slot : getSlotTracker().getPartialSlots(stackKey)) {
+			if (isValid(slot, resource) && getAmountAsLong(slot) < getCapacityAsLong(slot, resource)) {
+				return true;
+			}
+		}
+		for (int slot : getSlotTracker().getEmptySlots()) {
+			if (canInsertIntoEmptySlot(slot, resource)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean canInsertIntoEmptySlot(int slot, ItemResource resource) {
+		MemorySettingsCategory mem = storageWrapper.getSettingsHandler().getTypeCategory(MemorySettingsCategory.class);
+		return slot >= 0 && slot < size() && (shouldInsertIntoEmpty.getAsBoolean() || mem.isSlotSelected(slot) || filterItemSlots.containsSlot(slot))
+				&& mem.matchesFilter(slot, resource) && (!filterItemSlots.containsSlot(slot) || filterItemSlots.getSlots(resource.getItem()).contains(slot))
+				&& isValid(slot, resource) && getCapacityAsLong(slot, resource) > 0;
 	}
 
 	private boolean hasOneFullStackOfItem(ItemStackKey stackKey) {
