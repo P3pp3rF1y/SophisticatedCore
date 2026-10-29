@@ -53,6 +53,9 @@ public record ReiTransferRecipePayload(ResourceLocation recipeId, ResourceLocati
 		}
 
 		Player player = context.player();
+		if (!CraftingContainerRecipeTransferHandlerServer.validateSlots(player, recipeType, payload.inputSlots, payload.inventorySlots)) {
+			return;
+		}
 		AbstractContainerMenu container = player.containerMenu;
 		List<InputIngredient<ItemStack>> inputs = readInputs(payload.tag.getList("Inputs", Tag.TAG_COMPOUND));
 

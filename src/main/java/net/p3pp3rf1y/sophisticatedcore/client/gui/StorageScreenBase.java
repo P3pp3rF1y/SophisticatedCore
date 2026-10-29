@@ -1108,7 +1108,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (slot2.mayPickup(minecraft.player) && slot2.hasItem() && slot2.isSameInventory(slot)) {
 			ItemStack slotItem = slot2.getItem();
 			if (ItemStack.isSameItemSameComponents(lastQuickMoved, slotItem)) {
-				if (slotItem.getCount() > slotItem.getMaxStackSize()) {
+				if (menu.isStorageInventorySlot(slot2.index) && slotItem.getCount() > slotItem.getMaxStackSize()) {
 					PacketDistributor.sendToServer(new TransferFullSlotPayload(slot2.index));
 				} else {
 					slotClicked(slot2, slot2.index, button, ClickType.QUICK_MOVE);
@@ -1189,7 +1189,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 				return true;
 			}
 		}
-		if (hasShiftDown() && hasControlDown() && slot instanceof StorageInventorySlot && button == 0) {
+		if (hasShiftDown() && hasControlDown() && slot != null && menu.isStorageInventorySlot(slot.index) && button == 0) {
 			PacketDistributor.sendToServer(new TransferFullSlotPayload(slot.index));
 			return true;
 		}
