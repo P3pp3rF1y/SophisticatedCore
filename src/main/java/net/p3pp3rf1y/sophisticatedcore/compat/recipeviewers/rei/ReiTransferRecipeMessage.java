@@ -56,8 +56,14 @@ public record ReiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static void handleMessage(ReiTransferRecipeMessage payload, @Nullable ServerPlayer player) {
+		if (player == null || payload.tag == null) {
+			return;
+		}
 		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
 		if (recipeType == null) {
+			return;
+		}
+		if (!CraftingContainerRecipeTransferHandlerServer.validateSlots(player, recipeType, payload.inputSlots, payload.inventorySlots)) {
 			return;
 		}
 

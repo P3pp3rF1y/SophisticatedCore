@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraftforge.network.NetworkEvent;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketBufferHelper;
 
@@ -47,21 +48,28 @@ public record EmiTransferRecipeMessage(ResourceLocation recipeId, ResourceLocati
 	}
 
 	public static void handleMessage(EmiTransferRecipeMessage payload, @Nullable ServerPlayer player) {
+		if (player == null) {
+			return;
+		}
 		RecipeType<?> recipeType = BuiltInRegistries.RECIPE_TYPE.get(payload.recipeTypeId);
 		if (recipeType == null) {
 			return;
 		}
 
-		CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(player, payload.recipeId, recipeType, payload.stacks, payload.crafting, payload.slots,
-				payload.maxTransfer);
-
-		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container) || payload.action < 0 || payload.action > 2
+				|| !CraftingContainerRecipeTransferHandlerServer.validateSlots(player, recipeType, payload.crafting, payload.slots)) {
 			return;
 		}
 
-		Slot output = null;
-		if (payload.output >= 0 && payload.output < container.getTotalSlotsNumber()) {
-			output = container.getSlot(payload.output);
+		UpgradeContainerBase<?, ?> craftingContainer = container.getOpenOrFirstCraftingContainer(recipeType).orElseThrow();
+		List<Slot> outputSlots = craftingContainer.getSlots();
+		Slot output = outputSlots.get(outputSlots.size() - 1);
+		if (payload.action != 0 && payload.output != output.index) {
+			return;
+		}
+		if (!CraftingContainerRecipeTransferHandlerServer.setItemsWithStacks(player, payload.recipeId, recipeType, payload.stacks, payload.crafting,
+				payload.slots, payload.maxTransfer)) {
+			return;
 		}
 
 		if (output != null) {

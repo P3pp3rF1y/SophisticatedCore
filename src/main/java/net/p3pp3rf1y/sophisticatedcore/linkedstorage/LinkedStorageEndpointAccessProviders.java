@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.network.ItemStackReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,21 +18,15 @@ public final class LinkedStorageEndpointAccessProviders {
 		PROVIDERS.add(provider);
 	}
 
-	public static boolean hasGroupEndpoint(ServerPlayer player, LinkedStorageGroupManager manager, UUID groupId) {
-		if (hasGroupEndpointInInventory(player, manager, groupId)) {
+	public static boolean hasGroupEndpoint(ServerPlayer player, LinkedStorageGroupManager manager, UUID groupId, ItemStackReference reference) {
+		if (isGroupEndpoint(reference.resolve(player), manager, groupId)) {
 			return true;
 		}
-		return PROVIDERS.stream().anyMatch(provider -> provider.hasGroupEndpoint(player, manager, groupId));
+		return PROVIDERS.stream().anyMatch(provider -> isGroupEndpoint(provider.resolveEndpointStack(player, reference), manager, groupId));
 	}
 
-	private static boolean hasGroupEndpointInInventory(ServerPlayer player, LinkedStorageGroupManager manager, UUID groupId) {
-		for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
-			ItemStack stack = player.getInventory().getItem(slot);
-			LinkedStorageEndpointData endpoint = LinkedStorageStackData.getEndpoint(stack);
-			if (endpoint != null && endpoint.groupId().equals(groupId) && manager.isEndpointMember(groupId, endpoint.endpointId())) {
-				return true;
-			}
-		}
-		return false;
+	private static boolean isGroupEndpoint(ItemStack stack, LinkedStorageGroupManager manager, UUID groupId) {
+		LinkedStorageEndpointData endpoint = LinkedStorageStackData.getEndpoint(stack);
+		return !stack.isEmpty() && endpoint != null && endpoint.groupId().equals(groupId) && manager.isEndpointMember(groupId, endpoint.endpointId());
 	}
 }

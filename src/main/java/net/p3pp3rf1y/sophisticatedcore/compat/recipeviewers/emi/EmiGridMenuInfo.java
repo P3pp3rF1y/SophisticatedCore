@@ -21,6 +21,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 
 import javax.annotation.Nullable;
@@ -131,7 +132,9 @@ public class EmiGridMenuInfo<C extends StorageContainerMenuBase<?>> implements S
 				if (recipeTypeId != null) {
 					Slot output = getOutputSlot(container);
 					PacketHandler.INSTANCE.sendToServer(new EmiTransferRecipeMessage(recipe.getId(), recipeTypeId, action,
-							getInputSources(container).stream().map(s -> s == null ? -1 : s.index).toList(),
+							container.slots.stream()
+									.filter(s -> CraftingContainerRecipeTransferHandlerServer.isInventorySlot(container, Minecraft.getInstance().player, s))
+									.map(s -> s.index).toList(),
 							getCraftingSlots(recipe, container).stream().map(s -> s == null ? -1 : s.index).toList(), output == null ? -1 : output.index,
 							stacks, context.getAmount() > 1));
 				}

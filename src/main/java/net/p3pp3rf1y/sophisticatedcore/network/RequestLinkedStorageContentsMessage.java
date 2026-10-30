@@ -10,14 +10,15 @@ import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageGroupsSavedDat
 import java.util.UUID;
 import java.util.function.Supplier;
 
-public record RequestLinkedStorageContentsMessage(UUID groupId, long knownRevision) {
+public record RequestLinkedStorageContentsMessage(UUID groupId, long knownRevision, ItemStackReference itemReference) {
 	public static void encode(RequestLinkedStorageContentsMessage message, FriendlyByteBuf buffer) {
 		buffer.writeUUID(message.groupId);
 		buffer.writeVarLong(message.knownRevision);
+		ItemStackReference.encode(message.itemReference, buffer);
 	}
 
 	public static RequestLinkedStorageContentsMessage decode(FriendlyByteBuf buffer) {
-		return new RequestLinkedStorageContentsMessage(buffer.readUUID(), buffer.readVarLong());
+		return new RequestLinkedStorageContentsMessage(buffer.readUUID(), buffer.readVarLong(), ItemStackReference.decode(buffer));
 	}
 
 	public static void onMessage(RequestLinkedStorageContentsMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -29,7 +30,7 @@ public record RequestLinkedStorageContentsMessage(UUID groupId, long knownRevisi
 			}
 
 			LinkedStorageGroupManager manager = LinkedStorageGroupsSavedData.get(player.serverLevel()).manager();
-			if (LinkedStorageEndpointAccessProviders.hasGroupEndpoint(player, manager, message.groupId)
+			if (LinkedStorageEndpointAccessProviders.hasGroupEndpoint(player, manager, message.groupId, message.itemReference)
 					&& manager.getRevision(message.groupId) != message.knownRevision) {
 				PacketHandler.INSTANCE.sendToClient(player, LinkedStorageContentsMessage.createSnapshot(player.serverLevel(), message.groupId));
 			}

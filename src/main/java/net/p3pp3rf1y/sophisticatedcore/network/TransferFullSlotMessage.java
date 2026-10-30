@@ -33,10 +33,14 @@ public class TransferFullSlotMessage {
 	}
 
 	private static void handleMessage(@Nullable ServerPlayer player, TransferFullSlotMessage msg) {
-		if (player == null || !(player.containerMenu instanceof StorageContainerMenuBase<?> storageContainer)) {
+		if (player == null || !(player.containerMenu instanceof StorageContainerMenuBase<?> storageContainer)
+				|| !storageContainer.isStorageInventorySlot(msg.slotId)) {
 			return;
 		}
 		Slot slot = storageContainer.getSlot(msg.slotId);
+		if (!slot.isActive() || !slot.mayPickup(player)) {
+			return;
+		}
 		ItemStack transferResult;
 		do {
 			transferResult = storageContainer.quickMoveStack(player, msg.slotId);

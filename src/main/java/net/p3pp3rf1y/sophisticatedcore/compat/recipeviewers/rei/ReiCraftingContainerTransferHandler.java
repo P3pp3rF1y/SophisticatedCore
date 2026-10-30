@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 import net.p3pp3rf1y.sophisticatedcore.network.PacketHandler;
 
 import java.util.List;
@@ -73,7 +74,9 @@ public class ReiCraftingContainerTransferHandler<C extends StorageContainerMenuB
 			return List.of();
 		}
 
-		return storageContainerMenuBase.slots.stream().map(ReiSlotAccessor::fromSlot).toList();
+		return storageContainerMenuBase.slots.stream()
+				.filter(slot -> CraftingContainerRecipeTransferHandlerServer.isInventorySlot(storageContainerMenuBase, context.getMinecraft().player, slot))
+				.map(ReiSlotAccessor::fromSlot).toList();
 	}
 
 	@Override
