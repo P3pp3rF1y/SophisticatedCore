@@ -25,6 +25,7 @@ import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
+import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.CraftingContainerRecipeTransferHandlerServer;
 import net.p3pp3rf1y.sophisticatedcore.compat.recipeviewers.common.SlotTransfer;
 import org.jspecify.annotations.Nullable;
 
@@ -60,7 +61,8 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 
 		List<Slot> craftingSlots = Collections
 				.unmodifiableList(openOrFirstCraftingContainer instanceof ICraftingContainer cc ? cc.getRecipeSlots() : Collections.emptyList());
-		List<Slot> inventorySlots = container.slots.stream().filter(s -> s.mayPickup(player) && !craftingSlots.contains(s)).toList();
+		List<Slot> inventorySlots = container.slots.stream().filter(s -> CraftingContainerRecipeTransferHandlerServer.isInventorySlot(container, player, s))
+				.toList();
 		if (!validateTransferInfo(container, craftingSlots, inventorySlots)) {
 			return handlerHelper.createInternalError();
 		}

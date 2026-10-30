@@ -1,10 +1,10 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
 import net.minecraft.server.level.ServerPlayer;
-
-import java.util.UUID;
+import net.minecraft.world.item.ItemStack;
+import net.p3pp3rf1y.sophisticatedcore.network.ItemStackReference;
 
 @FunctionalInterface
 public interface ILinkedStorageEndpointAccessProvider {
-	boolean hasGroupEndpoint(ServerPlayer player, LinkedStorageGroupManager manager, UUID groupId);
+	ItemStack resolveEndpointStack(ServerPlayer player, ItemStackReference reference);
 }

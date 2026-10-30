@@ -23,10 +23,13 @@ public record TransferFullSlotPayload(int slotId) implements CustomPacketPayload
 
 	public static void handlePayload(TransferFullSlotPayload payload, IPayloadContext context) {
 		Player player = context.player();
-		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> storageContainer)) {
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> storageContainer) || !storageContainer.isStorageInventorySlot(payload.slotId)) {
 			return;
 		}
 		Slot slot = storageContainer.getSlot(payload.slotId);
+		if (!slot.isActive() || !slot.mayPickup(player)) {
+			return;
+		}
 		ItemStack transferResult;
 		do {
 			transferResult = storageContainer.quickMoveStack(player, payload.slotId);
