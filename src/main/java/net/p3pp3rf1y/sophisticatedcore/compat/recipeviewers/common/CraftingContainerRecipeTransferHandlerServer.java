@@ -7,6 +7,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.p3pp3rf1y.sophisticatedcore.common.gui.ICraftingContainer;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.StorageContainerMenuBase;
 import org.jspecify.annotations.Nullable;
 
@@ -21,14 +22,14 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	 */
 	public static void setItemsWithSlotIDMap(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, Map<Integer, Integer> slotIdMap,
 			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
-		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container) || !validateSlots(player, recipeType, craftingSlots, inventorySlots)) {
 			return;
 		}
 
 		// grab items from slots
 		List<RequiredTransfer> requiredTransfers = new ArrayList<>(slotIdMap.size());
 		for (Map.Entry<Integer, Integer> entry : slotIdMap.entrySet()) {
-			if (!isValidSlot(container, entry.getKey()) || !isValidSlot(container, entry.getValue())) {
+			if (!craftingSlots.contains(entry.getKey()) || (!inventorySlots.contains(entry.getValue()) && !craftingSlots.contains(entry.getValue()))) {
 				return;
 			}
 			Slot slot = container.getSlot(entry.getValue());
@@ -49,23 +50,34 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	 */
 	public static void setItemsWithSlotTransfers(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<SlotTransfer> slotTransfers,
 			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
-		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container) || !validateSlots(player, recipeType, craftingSlots, inventorySlots)) {
 			return;
 		}
 
 		List<RequiredTransfer> requiredTransfers = new ArrayList<>(slotTransfers.size());
+		Map<Integer, ItemStack> requestedByCraftingSlot = new HashMap<>();
 		for (SlotTransfer slotTransfer : slotTransfers) {
-			if (!isValidSlot(container, slotTransfer.craftingSlotId()) || !isValidSlot(container, slotTransfer.inventorySlotId())) {
+			if (slotTransfer.count() < 1 || !craftingSlots.contains(slotTransfer.craftingSlotId())
+					|| (!inventorySlots.contains(slotTransfer.inventorySlotId()) && !craftingSlots.contains(slotTransfer.inventorySlotId()))) {
 				return;
 			}
 
 			Slot slot = container.getSlot(slotTransfer.inventorySlotId());
 			final ItemStack slotStack = slot.getItem();
-			if (slotStack.isEmpty()) {
+			if (slotStack.isEmpty() || slotTransfer.count() > slotStack.getMaxStackSize()) {
 				return;
 			}
 			ItemStack stack = slotStack.copy();
 			stack.setCount(slotTransfer.count());
+			ItemStack existingStack = requestedByCraftingSlot.get(slotTransfer.craftingSlotId());
+			if (existingStack == null) {
+				requestedByCraftingSlot.put(slotTransfer.craftingSlotId(), stack.copy());
+			} else if (ItemStack.isSameItemSameComponents(existingStack, stack)
+					&& stack.getCount() <= existingStack.getMaxStackSize() - existingStack.getCount()) {
+				existingStack.grow(stack.getCount());
+			} else {
+				return;
+			}
 			requiredTransfers.add(new RequiredTransfer(slotTransfer.craftingSlotId(), slotTransfer.inventorySlotId(), stack));
 		}
 
@@ -75,10 +87,11 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	/**
 	 * Called server-side to actually put the items in place.
 	 */
-	public static void setItemsWithStacks(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<ItemStack> stacks,
+	public static boolean setItemsWithStacks(Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType, List<ItemStack> stacks,
 			List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
-		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
-			return;
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container) || !validateSlots(player, recipeType, craftingSlots, inventorySlots)
+				|| stacks.size() > craftingSlots.size()) {
+			return false;
 		}
 
 		List<RequiredTransfer> requiredTransfers = new ArrayList<>(stacks.size());
@@ -87,19 +100,46 @@ public class CraftingContainerRecipeTransferHandlerServer {
 			if (stack.isEmpty()) {
 				continue;
 			}
-			stack.setCount(1);
-			requiredTransfers.add(new RequiredTransfer(craftingSlots.get(i), null, stack));
+			requiredTransfers.add(new RequiredTransfer(craftingSlots.get(i), null, stack.copyWithCount(1)));
 		}
 
-		setItems(container, player, recipeId, recipeType, requiredTransfers, craftingSlots, inventorySlots, maxTransfer);
+		return setItems(container, player, recipeId, recipeType, requiredTransfers, craftingSlots, inventorySlots, maxTransfer);
 	}
 
-	private static void setItems(StorageContainerMenuBase<?> container, Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType,
+	public static boolean validateSlots(Player player, RecipeType<?> recipeType, List<Integer> craftingSlots, List<Integer> inventorySlots) {
+		if (!(player.containerMenu instanceof StorageContainerMenuBase<?> container)) {
+			return false;
+		}
+		Optional<? extends ICraftingContainer> craftingContainer = container.getOpenOrFirstCraftingContainer(recipeType);
+		if (craftingContainer.isEmpty() || !craftingSlots.equals(craftingContainer.get().getRecipeSlots().stream().map(slot -> slot.index).toList())
+				|| new HashSet<>(inventorySlots).size() != inventorySlots.size()) {
+			return false;
+		}
+		for (int index : inventorySlots) {
+			if (index < 0 || index >= container.getTotalSlotsNumber()) {
+				return false;
+			}
+			Slot slot = container.getSlot(index);
+			if (!isInventorySlot(container, player, slot) || craftingSlots.contains(index)) {
+				return false;
+			}
+		}
+		return !craftingSlots.isEmpty() && craftingSlots.stream().allMatch(index -> index >= 0 && index < container.getTotalSlotsNumber()
+				&& container.getSlot(index).isActive() && container.getSlot(index).mayPickup(player));
+	}
+
+	public static boolean isInventorySlot(StorageContainerMenuBase<?> container, Player player, Slot slot) {
+		boolean playerSlot = slot.container == player.getInventory() && slot.getContainerSlot() >= 0
+				&& slot.getContainerSlot() < StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS;
+		return (container.isStorageInventorySlot(slot.index) || playerSlot) && slot.isActive() && slot.mayPickup(player);
+	}
+
+	private static boolean setItems(StorageContainerMenuBase<?> container, Player player, ResourceKey<Recipe<?>> recipeId, RecipeType<?> recipeType,
 			List<RequiredTransfer> requiredTransfers, List<Integer> craftingSlots, List<Integer> inventorySlots, boolean maxTransfer) {
 		Map<Integer, ItemStack> toTransfer = removeItemsFromInventory(player, container, requiredTransfers, craftingSlots, inventorySlots, maxTransfer);
 
 		if (toTransfer.isEmpty()) {
-			return;
+			return false;
 		}
 
 		// clear the crafting grid
@@ -108,6 +148,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 		putIntoInventory(player, inventorySlots, container, clearedCraftingItems);
 
 		container.broadcastChanges();
+		return true;
 	}
 
 	private static void putIntoInventory(Player player, List<Integer> inventorySlots, StorageContainerMenuBase<?> container,
@@ -334,10 +375,6 @@ public class CraftingContainerRecipeTransferHandlerServer {
 	private static boolean hasRequiredStack(Slot slot, ItemStack itemStack) {
 		ItemStack slotStack = slot.getItem();
 		return ItemStack.isSameItemSameComponents(itemStack, slotStack) && slotStack.getCount() >= itemStack.getCount();
-	}
-
-	private static boolean isValidSlot(StorageContainerMenuBase<?> container, int slotId) {
-		return slotId >= 0 && slotId < getTotalSlotsSize(container);
 	}
 
 	private static int getTotalSlotsSize(StorageContainerMenuBase<?> container) {
