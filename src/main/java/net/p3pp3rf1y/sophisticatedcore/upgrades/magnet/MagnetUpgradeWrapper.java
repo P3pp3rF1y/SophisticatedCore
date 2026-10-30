@@ -228,6 +228,9 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 			if (player != null) {
 				player.awardStat(Stats.ITEM_PICKED_UP.get(item), originalCount - remaining.getCount());
 			}
+			if (itemEntity.getItem().isEmpty()) {
+				itemEntity.discard();
+			}
 		}
 		return insertedSomething;
 	}
