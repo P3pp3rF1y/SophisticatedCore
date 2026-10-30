@@ -222,6 +222,9 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 			insertedSomething = true;
 			remaining = inventory.insertItem(stack, false);
 			itemEntity.setItem(remaining);
+			if (itemEntity.getItem().isEmpty()) {
+				itemEntity.discard();
+			}
 		}
 		return insertedSomething;
 	}
