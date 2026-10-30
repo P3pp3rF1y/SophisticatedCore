@@ -194,7 +194,7 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 
 		@Override
 		public boolean isValid(int slot, ItemResource resource) {
-			return isEnergyHandler(ItemAccess.forHandlerIndex(this, slot));
+			return isEnergyHandler(ItemAccess.forStack(resource.toStack()));
 		}
 
 		private boolean isEnergyHandler(ItemAccess itemAccess) {
