@@ -9,14 +9,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
+import net.p3pp3rf1y.sophisticatedcore.network.ItemStackReference;
 
 import java.util.UUID;
 
-public record RequestLinkedStorageContentsPayload(UUID groupId, long knownRevision) implements CustomPacketPayload {
+public record RequestLinkedStorageContentsPayload(UUID groupId, long knownRevision, ItemStackReference itemReference) implements CustomPacketPayload {
 	public static final Type<RequestLinkedStorageContentsPayload> TYPE = new Type<>(SophisticatedCore.getIdentifier("request_linked_storage_contents"));
 	public static final StreamCodec<ByteBuf, RequestLinkedStorageContentsPayload> STREAM_CODEC = StreamCodec.composite(UUIDUtil.STREAM_CODEC,
 			RequestLinkedStorageContentsPayload::groupId, ByteBufCodecs.VAR_LONG, RequestLinkedStorageContentsPayload::knownRevision,
-			RequestLinkedStorageContentsPayload::new);
+			ItemStackReference.STREAM_CODEC, RequestLinkedStorageContentsPayload::itemReference, RequestLinkedStorageContentsPayload::new);
 
 	@Override
 	public Type<? extends CustomPacketPayload> type() {
@@ -30,7 +31,7 @@ public record RequestLinkedStorageContentsPayload(UUID groupId, long knownRevisi
 			}
 
 			LinkedStorageGroupManager manager = LinkedStorageGroupsSavedData.get(player.level()).manager();
-			if (!LinkedStorageEndpointAccessProviders.hasGroupEndpoint(player, manager, payload.groupId)) {
+			if (!LinkedStorageEndpointAccessProviders.hasGroupEndpoint(player, manager, payload.groupId, payload.itemReference)) {
 				return;
 			}
 			if (manager.getRevision(payload.groupId) != payload.knownRevision) {

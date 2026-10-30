@@ -773,8 +773,14 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 
 	@Override
 	public ItemStack quickMoveStack(Player player, int index) {
+		if (index < 0 || index >= getTotalSlotsNumber()) {
+			return ItemStack.EMPTY;
+		}
 		ItemStack itemstack = ItemStack.EMPTY;
 		Slot slot = getSlot(index);
+		if (slot instanceof IFilterSlot || !slot.isActive() || !slot.mayPickup(player)) {
+			return ItemStack.EMPTY;
+		}
 		if (slot.hasItem()) {
 			Optional<UpgradeContainerBase<?, ?>> upgradeContainer = getSlotUpgradeContainer(slot);
 			ItemStack slotStack = upgradeContainer.map(c -> c.getSlotStackToTransfer(slot)).orElse(slot.getItem());
