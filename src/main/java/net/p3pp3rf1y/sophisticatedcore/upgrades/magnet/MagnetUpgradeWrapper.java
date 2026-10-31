@@ -9,10 +9,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.transfer.item.ItemResource;
@@ -228,19 +230,22 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 
 	private boolean tryToInsertItem(@Nullable Player player, ItemEntity itemEntity) {
 		ItemStack stack = itemEntity.getItem();
+		ItemStack originalStack = stack.copy();
+		Item item = stack.getItem();
 		ItemResource resource = ItemResource.of(stack);
 
-		int inserted;
+		int pickedUpCount;
 		try (Transaction tx = Transaction.openRoot()) {
-			inserted = storageWrapper.getInventoryForUpgradeProcessing().insert(resource, stack.getCount(), tx);
-			if (inserted == 0) {
+			pickedUpCount = storageWrapper.getInventoryForUpgradeProcessing().insert(resource, stack.getCount(), tx);
+			if (pickedUpCount == 0) {
 				return false;
 			}
 			tx.commit();
 		}
-		itemEntity.setItem(resource.toStack(stack.getCount() - inserted));
+		itemEntity.setItem(resource.toStack(originalStack.getCount() - pickedUpCount));
 		if (player != null) {
-			player.awardStat(Stats.ITEM_PICKED_UP.get(stack.getItem()), stack.getCount() - inserted);
+			EventHooks.fireItemPickupPost(itemEntity, player, originalStack);
+			player.awardStat(Stats.ITEM_PICKED_UP.get(item), pickedUpCount);
 		}
 		if (itemEntity.getItem().isEmpty()) {
 			itemEntity.discard();
