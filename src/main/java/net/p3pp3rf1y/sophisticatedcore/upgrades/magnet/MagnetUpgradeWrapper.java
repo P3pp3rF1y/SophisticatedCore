@@ -4,14 +4,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -171,7 +174,7 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 					|| canNotPickup(itemEntity, entity)) {
 				continue;
 			}
-			if (tryToInsertItem(itemEntity)) {
+			if (tryToInsertItem(player, itemEntity)) {
 				if (player != null) {
 					playItemPickupSound(world, player);
 				}
@@ -213,15 +216,23 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 				: data.contains(PREVENT_REMOTE_MOVEMENT) && !data.contains(ALLOW_MACHINE_MOVEMENT);
 	}
 
-	private boolean tryToInsertItem(ItemEntity itemEntity) {
+	private boolean tryToInsertItem(@Nullable Player player, ItemEntity itemEntity) {
 		ItemStack stack = itemEntity.getItem();
 		IItemHandlerSimpleInserter inventory = storageWrapper.getInventoryForUpgradeProcessing();
 		ItemStack remaining = inventory.insertItem(stack, true);
 		boolean insertedSomething = false;
 		if (remaining.getCount() != stack.getCount()) {
 			insertedSomething = true;
+			ItemStack originalStack = stack.copy();
+			Item item = stack.getItem();
 			remaining = inventory.insertItem(stack, false);
+			int pickedUpCount = originalStack.getCount() - remaining.getCount();
 			itemEntity.setItem(remaining);
+			if (player != null && pickedUpCount > 0) {
+				originalStack.setCount(pickedUpCount);
+				ForgeEventFactory.firePlayerItemPickupEvent(player, itemEntity, originalStack);
+				player.awardStat(Stats.ITEM_PICKED_UP.get(item), pickedUpCount);
+			}
 			if (itemEntity.getItem().isEmpty()) {
 				itemEntity.discard();
 			}
