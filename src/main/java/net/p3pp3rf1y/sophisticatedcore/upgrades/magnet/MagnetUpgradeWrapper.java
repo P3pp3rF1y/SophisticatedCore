@@ -14,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -221,12 +222,14 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 		boolean insertedSomething = false;
 		if (remaining.getCount() != stack.getCount()) {
 			insertedSomething = true;
-			int originalCount = stack.getCount();
+			ItemStack originalStack = stack.copy();
 			Item item = stack.getItem();
 			remaining = inventory.insertItem(stack, false);
+			int pickedUpCount = originalStack.getCount() - remaining.getCount();
 			itemEntity.setItem(remaining);
-			if (player != null) {
-				player.awardStat(Stats.ITEM_PICKED_UP.get(item), originalCount - remaining.getCount());
+			if (player != null && pickedUpCount > 0) {
+				EventHooks.fireItemPickupPost(itemEntity, player, originalStack);
+				player.awardStat(Stats.ITEM_PICKED_UP.get(item), pickedUpCount);
 			}
 			if (itemEntity.getItem().isEmpty()) {
 				itemEntity.discard();
