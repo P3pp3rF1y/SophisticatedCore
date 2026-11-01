@@ -285,6 +285,22 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 		onContentsChanged(slot);
 	}
 
+	public void setSlotStacks(Map<Integer, ItemStack> updatedStacks, Set<Integer> affectedSlots) {
+		updatedStacks.forEach(stacks::set);
+		boolean changed = false;
+		if (persistent) {
+			for (int slot : updatedStacks.keySet()) {
+				boolean slotChanged = updateSlotNbt(slot);
+				changed = changed || slotChanged;
+			}
+			if (changed) {
+				saveInventory();
+			}
+		}
+		getSlotTracker().removeAndSetSlotIndexes(this, affectedSlots);
+		affectedSlots.forEach(this::triggerOnChangeListeners);
+	}
+
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		return getSlotTracker().insertItemIntoHandler(this, this::runOnBeforeInsert, this::insertItemInternal, this::triggerSlotOverflowUpgrades,
@@ -395,7 +411,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 	@Override
 	public void setStackInSlot(int slot, ItemStack stack) {
 		inventoryPartitioner.getPartBySlot(slot).setStackInSlot(slot, stack, super::setStackInSlot);
-		getSlotTracker().removeAndSetSlotIndexes(this, slot, stack);
+		getSlotTracker().removeAndSetSlotIndexes(this, slot, getStackInSlot(slot));
 	}
 
 	public void setPersistent(boolean persistent) {
@@ -472,7 +488,7 @@ public abstract class InventoryHandler extends ItemStackHandler implements ITrac
 
 	@Override
 	public ItemStack extractItem(ItemStack stack, boolean simulate) {
-		return getSlotTracker().extractItemFromHandler(this, this::extractItemInternal, stack, simulate);
+		return getSlotTracker().extractItemFromHandler(this, this::extractItem, stack, simulate);
 	}
 
 	public void changeSlots(int diff) {
