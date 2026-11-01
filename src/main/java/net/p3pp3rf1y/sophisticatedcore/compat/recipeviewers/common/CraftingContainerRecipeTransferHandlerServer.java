@@ -88,7 +88,7 @@ public class CraftingContainerRecipeTransferHandlerServer {
 			}
 		}
 		return !craftingSlots.isEmpty() && craftingSlots.stream().allMatch(index -> index >= 0 && index < container.getTotalSlotsNumber()
-				&& container.getSlot(index).isActive() && container.getSlot(index).mayPickup(player));
+				&& container.getSlot(index).isActive() && (!container.getSlot(index).hasItem() || container.getSlot(index).mayPickup(player)));
 	}
 
 	public static boolean isInventorySlot(StorageContainerMenuBase<?> container, Player player, Slot slot) {

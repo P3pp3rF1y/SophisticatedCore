@@ -18,12 +18,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -144,6 +146,130 @@ class CraftingContainerRecipeTransferHandlerServerTest {
 			boolean valid = CraftingContainerRecipeTransferHandlerServer.validateSlots(player, RecipeType.CRAFTING, List.of(0), List.of(1, 1));
 
 			assertFalse(valid);
+		}
+	}
+
+	@Test
+	void validateSlotsAcceptsEmptyCraftingGridSlots() {
+		List<Slot> slots = craftingSlots(ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY);
+
+		boolean valid = validateSlots(slots, List.of(0, 1, 2), List.of(0, 1, 2), List.of());
+
+		assertTrue(valid);
+	}
+
+	@Test
+	void validateSlotsAcceptsPartiallyFilledCraftingGridSlots() {
+		List<Slot> slots = craftingSlots(new ItemStack(Items.STONE), ItemStack.EMPTY, new ItemStack(Items.DIAMOND));
+
+		boolean valid = validateSlots(slots, List.of(0, 1, 2), List.of(0, 1, 2), List.of());
+
+		assertTrue(valid);
+	}
+
+	@Test
+	void validateSlotsAcceptsFilledCraftingGridSlots() {
+		List<Slot> slots = craftingSlots(new ItemStack(Items.STONE), new ItemStack(Items.DIAMOND), new ItemStack(Items.DIRT));
+
+		boolean valid = validateSlots(slots, List.of(0, 1, 2), List.of(0, 1, 2), List.of());
+
+		assertTrue(valid);
+	}
+
+	@Test
+	void validateSlotsRejectsProtectedFilledCraftingGridSlot() {
+		ItemStackHandler protectedInventory = new ItemStackHandler(1) {
+			@Override
+			public ItemStack extractItem(int slot, int amount, boolean simulate) {
+				return ItemStack.EMPTY;
+			}
+		};
+		protectedInventory.setStackInSlot(0, new ItemStack(Items.STONE));
+		List<Slot> slots = List.of(new SlotSuppliedHandler(() -> protectedInventory, 0, 0, 0));
+		slots.get(0).index = 0;
+
+		boolean valid = validateSlots(slots, List.of(0), List.of(0), List.of());
+
+		assertFalse(valid);
+	}
+
+	@Test
+	void validateSlotsRejectsInactiveCraftingGridSlot() {
+		ItemStackHandler craftingInventory = new ItemStackHandler(1);
+		List<Slot> slots = List.of(new SlotSuppliedHandler(() -> craftingInventory, 0, 0, 0) {
+			@Override
+			public boolean isActive() {
+				return false;
+			}
+		});
+		slots.get(0).index = 0;
+
+		boolean valid = validateSlots(slots, List.of(0), List.of(0), List.of());
+
+		assertFalse(valid);
+	}
+
+	@Test
+	void validateSlotsRejectsCraftingSlotsInWrongOrder() {
+		List<Slot> slots = craftingSlots(ItemStack.EMPTY, ItemStack.EMPTY);
+
+		boolean valid = validateSlots(slots, List.of(0, 1), List.of(1, 0), List.of());
+
+		assertFalse(valid);
+	}
+
+	@Test
+	void validateSlotsRejectsCraftingSlotOutsideContainerBounds() {
+		List<Slot> slots = craftingSlots(ItemStack.EMPTY);
+		slots.get(0).index = 1;
+
+		boolean valid = validateSlots(slots, List.of(0), List.of(1), List.of());
+
+		assertFalse(valid);
+	}
+
+	@Test
+	void validateSlotsRejectsInaccessibleStorageInventorySource() {
+		ItemStackHandler craftingInventory = new ItemStackHandler(1);
+		ItemStackHandler inaccessibleInventory = new ItemStackHandler(1);
+		List<Slot> slots = List.of(new SlotSuppliedHandler(() -> craftingInventory, 0, 0, 0), new SlotSuppliedHandler(() -> inaccessibleInventory, 0, 0, 0));
+		slots.get(0).index = 0;
+		slots.get(1).index = 1;
+
+		boolean valid = validateSlots(slots, List.of(0), List.of(0), List.of(1));
+
+		assertFalse(valid);
+	}
+
+	private List<Slot> craftingSlots(ItemStack... stacks) {
+		ItemStackHandler craftingInventory = new ItemStackHandler(stacks.length);
+		for (int index = 0; index < stacks.length; index++) {
+			craftingInventory.setStackInSlot(index, stacks[index]);
+		}
+		List<Slot> slots = new ArrayList<>();
+		for (int index = 0; index < stacks.length; index++) {
+			int slotIndex = index;
+			slots.add(new SlotSuppliedHandler(() -> craftingInventory, slotIndex, 0, 0));
+			slots.get(index).index = index;
+		}
+		return slots;
+	}
+
+	private boolean validateSlots(List<Slot> slots, List<Integer> expectedCraftingSlots, List<Integer> craftingSlots, List<Integer> inventorySlots) {
+		try (MockedStatic<ObfuscationReflectionHelper> ignored = mockStatic(ObfuscationReflectionHelper.class)) {
+			StorageContainerMenuBase<?> container = mock(StorageContainerMenuBase.class);
+			when(container.getTotalSlotsNumber()).thenReturn(slots.size());
+			when(container.getSlot(anyInt())).thenAnswer(invocation -> slots.get(invocation.getArgument(0)));
+			CraftingUpgradeContainer craftingContainer = mock(CraftingUpgradeContainer.class);
+			when(craftingContainer.getRecipeSlots()).thenReturn(expectedCraftingSlots.stream().map(slots::get).toList());
+			when(container.getOpenOrFirstCraftingContainer(RecipeType.CRAFTING)).thenReturn(Optional.of(craftingContainer));
+			for (int inventorySlot : inventorySlots) {
+				when(container.isStorageInventorySlot(inventorySlot)).thenReturn(true);
+			}
+
+			Player player = mock(Player.class);
+			player.containerMenu = container;
+			return CraftingContainerRecipeTransferHandlerServer.validateSlots(player, RecipeType.CRAFTING, craftingSlots, inventorySlots);
 		}
 	}
 }
