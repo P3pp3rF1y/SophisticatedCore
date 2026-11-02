@@ -25,6 +25,12 @@ public interface ISlotTracker {
 
 	void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, int slot, ItemStack stack);
 
+	default void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, Set<Integer> slots) {
+		for (int slot : slots) {
+			removeAndSetSlotIndexes(inventoryHandler, slot, inventoryHandler.getStackInSlot(slot));
+		}
+	}
+
 	void clear();
 
 	void refreshSlotIndexesFrom(InventoryHandler itemHandler);

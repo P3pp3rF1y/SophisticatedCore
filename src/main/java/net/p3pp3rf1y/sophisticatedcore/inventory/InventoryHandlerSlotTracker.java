@@ -24,6 +24,12 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private final Map<Integer, ItemStackKey> partiallyFilledSlotStacks = new HashMap<>();
 	private final Map<Item, Set<ItemStackKey>> itemStackKeys = new HashMap<>();
 	private final Set<Integer> emptySlots = new TreeSet<>();
+	private boolean deferNotifications;
+	@Nullable
+	private List<Runnable> deferredNotifications;
+	private boolean transactionNotifications;
+	private boolean suppressNotifications;
+	private final List<Runnable> pendingTransactionNotifications = new ArrayList<>();
 	private final MemorySettingsCategory memorySettings;
 	private final SlotValueMap<Item> filterItemSlots;
 	private Consumer<ItemStackKey> onAddStackKey = sk -> {
@@ -52,7 +58,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		ItemStackKey stackKey = ItemStackKey.of(stack);
 		partiallyFilledStackSlots.computeIfAbsent(stackKey, k -> {
 			if (!fullStackSlots.containsKey(k)) {
-				onAddStackKey.accept(k);
+				notifyStackKey(onAddStackKey, k);
 			}
 			return new TreeSet<>();
 		}).add(slot);
@@ -110,7 +116,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		ItemStackKey stackKey = ItemStackKey.of(stack);
 		fullStackSlots.computeIfAbsent(stackKey, k -> {
 			if (!partiallyFilledStackSlots.containsKey(k)) {
-				onAddStackKey.accept(k);
+				notifyStackKey(onAddStackKey, k);
 			}
 			return new TreeSet<>();
 		}).add(slot);
@@ -169,7 +175,77 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			}
 		}
 
-		onRemoveStackKey.accept(stackKey);
+		notifyStackKey(onRemoveStackKey, stackKey);
+	}
+
+	private void notifyStackKey(Consumer<ItemStackKey> listener, ItemStackKey key) {
+		if (suppressNotifications) {
+			return;
+		}
+		if (deferNotifications || transactionNotifications) {
+			notifyListener(() -> listener.accept(key));
+		} else {
+			listener.accept(key);
+		}
+	}
+
+	private void notifyListener(Runnable listener) {
+		if (suppressNotifications) {
+			return;
+		}
+		if (transactionNotifications) {
+			pendingTransactionNotifications.add(listener);
+		} else if (deferNotifications) {
+			if (deferredNotifications == null) {
+				deferredNotifications = new ArrayList<>();
+			}
+			deferredNotifications.add(listener);
+		} else {
+			listener.run();
+		}
+	}
+
+	int beginTransactionNotifications() {
+		transactionNotifications = true;
+		return pendingTransactionNotifications.size();
+	}
+
+	void restoreSlotIndexes(InventoryHandler inventory, Set<Integer> slots) {
+		boolean previouslySuppressed = suppressNotifications;
+		suppressNotifications = true;
+		try {
+			removeAndSetSlotIndexes(inventory, slots);
+		} finally {
+			suppressNotifications = previouslySuppressed;
+		}
+	}
+
+	void rollbackTransactionNotifications(int checkpoint, boolean stillDeferred) {
+		pendingTransactionNotifications.subList(checkpoint, pendingTransactionNotifications.size()).clear();
+		transactionNotifications = stillDeferred;
+	}
+
+	void commitTransactionNotifications() {
+		transactionNotifications = false;
+		List<Runnable> notifications = new ArrayList<>(pendingTransactionNotifications);
+		pendingTransactionNotifications.clear();
+		notifications.forEach(Runnable::run);
+	}
+
+	@Override
+	public void removeAndSetSlotIndexes(InventoryHandler inventoryHandler, Set<Integer> slots) {
+		List<Runnable> notifications;
+		deferNotifications = true;
+		try {
+			ISlotTracker.super.removeAndSetSlotIndexes(inventoryHandler, slots);
+		} finally {
+			deferNotifications = false;
+			notifications = deferredNotifications;
+			deferredNotifications = null;
+		}
+		if (notifications != null) {
+			notifications.forEach(Runnable::run);
+		}
 	}
 
 	@Override
@@ -179,6 +255,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 			removeFull(slot);
 			if (inventoryHandler.isSlotAccessible(slot)) {
 				addEmptySlot(slot);
+			} else if (emptySlots.contains(slot)) {
+				removeEmpty(slot);
 			}
 			return;
 		}
@@ -223,7 +301,7 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	private void removeEmpty(int slot) {
 		emptySlots.remove(slot);
 		if (emptySlots.isEmpty()) {
-			onRemoveLastEmptySlot.run();
+			notifyListener(onRemoveLastEmptySlot);
 		}
 	}
 
@@ -242,9 +320,8 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 	}
 
 	private void addEmptySlot(int slot) {
-		emptySlots.add(slot);
-		if (emptySlots.size() == 1) {
-			onAddFirstEmptySlot.run();
+		if (emptySlots.add(slot) && emptySlots.size() == 1) {
+			notifyListener(onAddFirstEmptySlot);
 		}
 	}
 
@@ -306,6 +383,18 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 				onAddFirstEmptySlot.run();
 			} else {
 				onRemoveLastEmptySlot.run();
+			}
+		}
+	}
+
+	void restoreTransactionalSlotSnapshot(Snapshot snapshot) {
+		if (snapshot instanceof SlotTrackerSlotSnapshot slotSnapshot) {
+			boolean previouslySuppressed = suppressNotifications;
+			suppressNotifications = true;
+			try {
+				restoreSlotStateWithoutListeners(slotSnapshot);
+			} finally {
+				suppressNotifications = previouslySuppressed;
 			}
 		}
 	}
