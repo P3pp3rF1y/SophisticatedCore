@@ -46,13 +46,13 @@ public class SophisticatedCore {
 		modBus.addListener(DataGenerators::gatherData);
 
 		IEventBus eventBus = MinecraftForge.EVENT_BUS;
-		eventBus.addListener(SophisticatedCore::overworldLoaded);
+		eventBus.addListener(SophisticatedCore::levelLoaded);
 		eventBus.addListener(SophisticatedCore::serverStopped);
 		eventBus.addListener(SophisticatedCore::onResourceReload);
 	}
 
-	private static void overworldLoaded(LevelEvent.Load event) {
-		if (event.getLevel() instanceof Level level && level.dimension().equals(Level.OVERWORLD)) {
+	private static void levelLoaded(LevelEvent.Load event) {
+		if (event.getLevel() instanceof Level level && (level.isClientSide || level.dimension().equals(Level.OVERWORLD))) {
 			RecipeHelper.setLevel(level);
 		}
 	}
