@@ -55,6 +55,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 	private boolean voidUpgradeInfoInitialized = false;
 	private boolean hasVoidUpgrade = false;
 	private final List<SlotTrackerJournal> slotTrackerJournals = new ArrayList<>();
+	private final SlotStacksJournal slotStacksJournal = new SlotStacksJournal();
 
 	protected InventoryHandler(int numberOfInventorySlots, IStorageWrapper storageWrapper, ContainerContents containerContents, Runnable saveHandler,
 			int baseSlotLimit, StackUpgradeConfig stackUpgradeConfig) {
@@ -110,6 +111,10 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 	}
 
 	public void triggerOnChangeListeners(int slot) {
+		if (slotStacksJournal.active) {
+			slotStacksJournal.affectedSlots.add(slot);
+			return;
+		}
 		for (IntConsumer onContentsChangedListener : onContentsChangedListeners) {
 			onContentsChangedListener.accept(slot);
 		}
@@ -273,6 +278,41 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		ItemStack previousContents = stacks.get(slot);
 		stacks.set(slot, stack);
 		onContentsChanged(slot, previousContents);
+	}
+
+	public void setSlotStacks(Map<Integer, ItemStack> updatedStacks, Set<Integer> affectedSlots) {
+		updatedStacks.forEach(stacks::set);
+		if (slotStacksJournal.active) {
+			slotStacksJournal.rawSlots.addAll(updatedStacks.keySet());
+			slotStacksJournal.affectedSlots.addAll(affectedSlots);
+			getSlotTracker().removeAndSetSlotIndexes(this, affectedSlots);
+			return;
+		}
+		publishSlotStacks(updatedStacks.keySet(), affectedSlots);
+	}
+
+	public void beginSlotStacks(TransactionContext tx) {
+		slotStacksJournal.updateSnapshots(tx);
+	}
+
+	public void restoreSlotStacks(Map<Integer, ItemStack> restoredStacks) {
+		restoredStacks.forEach(stacks::set);
+		((InventoryHandlerSlotTracker) getSlotTracker()).restoreSlotIndexes(this, restoredStacks.keySet());
+	}
+
+	private void publishSlotStacks(Set<Integer> rawSlots, Set<Integer> affectedSlots) {
+		boolean changed = false;
+		if (persistent) {
+			for (int slot : rawSlots) {
+				boolean slotChanged = updateSlotStack(slot);
+				changed = changed || slotChanged;
+			}
+			if (changed) {
+				saveInventory();
+			}
+		}
+		getSlotTracker().removeAndSetSlotIndexes(this, affectedSlots);
+		affectedSlots.forEach(this::triggerOnChangeListeners);
 	}
 
 	@Override
@@ -679,7 +719,11 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		filterItemSlots.clear();
 		inventoryPartitioner.getFilterItems().forEach((item, slots) -> slots.forEach(slot -> filterItemSlots.add(slot, item)));
 
-		filterItemsChangeListener.accept(filterItemSlots.keySet());
+		if (slotStacksJournal.active) {
+			slotStacksJournal.filterItemsChanged = true;
+		} else {
+			filterItemsChangeListener.accept(filterItemSlots.keySet());
+		}
 	}
 
 	public Set<Item> getFilterItems() {
@@ -746,6 +790,53 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 		}
 	}
 
+	private record SlotStacksSnapshot(Set<Integer> rawSlots, Set<Integer> affectedSlots, boolean active, boolean filterItemsChanged,
+			int notificationCheckpoint) {
+	}
+
+	private class SlotStacksJournal extends SnapshotJournal<SlotStacksSnapshot> {
+		private Set<Integer> rawSlots = new LinkedHashSet<>();
+		private Set<Integer> affectedSlots = new LinkedHashSet<>();
+		private boolean active;
+		private boolean filterItemsChanged;
+
+		@Override
+		protected SlotStacksSnapshot createSnapshot() {
+			int checkpoint = ((InventoryHandlerSlotTracker) getSlotTracker()).beginTransactionNotifications();
+			SlotStacksSnapshot snapshot = new SlotStacksSnapshot(new LinkedHashSet<>(rawSlots), new LinkedHashSet<>(affectedSlots), active, filterItemsChanged,
+					checkpoint);
+			active = true;
+			return snapshot;
+		}
+
+		@Override
+		protected void revertToSnapshot(SlotStacksSnapshot snapshot) {
+			rawSlots = snapshot.rawSlots();
+			affectedSlots = snapshot.affectedSlots();
+			active = snapshot.active();
+			filterItemsChanged = snapshot.filterItemsChanged();
+			((InventoryHandlerSlotTracker) getSlotTracker()).rollbackTransactionNotifications(snapshot.notificationCheckpoint(), active);
+		}
+
+		@Override
+		protected void onRootCommit(SlotStacksSnapshot originalState) {
+			Set<Integer> committedRawSlots = rawSlots;
+			Set<Integer> committedAffectedSlots = affectedSlots;
+			boolean notifyFilters = filterItemsChanged;
+			rawSlots = new LinkedHashSet<>();
+			affectedSlots = new LinkedHashSet<>();
+			active = false;
+			filterItemsChanged = false;
+			// Persist before either tracker observers or contents observers can reenter the inventory.
+			publishSlotStacks(committedRawSlots, Collections.emptySet());
+			((InventoryHandlerSlotTracker) getSlotTracker()).commitTransactionNotifications();
+			if (notifyFilters) {
+				filterItemsChangeListener.accept(filterItemSlots.keySet());
+			}
+			committedAffectedSlots.forEach(InventoryHandler.this::triggerOnChangeListeners);
+		}
+	}
+
 	private class SlotTrackerJournal extends SnapshotJournal<ISlotTracker.Snapshot> {
 		private final int slot;
 
@@ -760,7 +851,7 @@ public abstract class InventoryHandler extends ItemStacksResourceHandler
 
 		@Override
 		protected void revertToSnapshot(ISlotTracker.Snapshot snapshot) {
-			getSlotTracker().restoreSlotFromSnapshot(snapshot);
+			((InventoryHandlerSlotTracker) getSlotTracker()).restoreTransactionalSlotSnapshot(snapshot);
 		}
 	}
 }
