@@ -206,13 +206,13 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 		}
 
 		try (Transaction tx = Transaction.openRoot()) {
-			for (int slot : slotsToCompact) {
+			Set<Integer> slotsToCompactNow = new HashSet<>(slotsToCompact);
+			slotsToCompact.clear();
+			for (int slot : slotsToCompactNow) {
 				compactSlotAndQueued(storageWrapper.getInventoryForUpgradeProcessing(), slot, tx);
 			}
 			tx.commit();
 		}
-
-		slotsToCompact.clear();
 	}
 
 	private void calculateFullSlots() {
