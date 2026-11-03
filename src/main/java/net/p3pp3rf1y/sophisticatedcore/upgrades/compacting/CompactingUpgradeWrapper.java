@@ -195,11 +195,11 @@ public class CompactingUpgradeWrapper extends UpgradeWrapperBase<CompactingUpgra
 			return;
 		}
 
-		for (int slot : slotsToCompact) {
+		Set<Integer> slotsToCompactNow = new HashSet<>(slotsToCompact);
+		slotsToCompact.clear();
+		for (int slot : slotsToCompactNow) {
 			compactSlotAndQueued(storageWrapper.getInventoryHandler(), slot);
 		}
-
-		slotsToCompact.clear();
 	}
 
 	private void calculateFullSlots() {
