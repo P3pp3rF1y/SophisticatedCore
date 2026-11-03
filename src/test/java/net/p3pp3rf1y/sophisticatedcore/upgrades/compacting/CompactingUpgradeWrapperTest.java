@@ -12,25 +12,36 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.InventoryHandler;
+import net.p3pp3rf1y.sophisticatedcore.settings.SettingsHandler;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
+import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategoryData;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IExtractResponseUpgrade;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.IInsertResponseUpgrade;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
+import net.p3pp3rf1y.sophisticatedcore.upgrades.stack.StackUpgradeConfig;
 import net.p3pp3rf1y.sophisticatedcore.util.RecipeHelper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static net.p3pp3rf1y.sophisticatedcore.HelperAssertions.assertStackEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -116,7 +127,58 @@ class CompactingUpgradeWrapperTest {
 		assertEquals(1, inventory.maxInsertDepth().get(), "Compaction recursively inserted results from insert callbacks");
 	}
 
+	@Test
+	void tickDefersSlotsQueuedBySynchronousExtractionCallbacks() {
+		Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions = Map.of(Items.DIAMOND,
+				getConfiguredCompactingDefinition(new ItemStack(Items.DIAMOND_BLOCK), 9), Items.DIAMOND_BLOCK,
+				getConfiguredCompactingDefinition(new ItemStack(Items.NETHERITE_BLOCK), 9));
+		IStorageWrapper storageWrapper = mock(IStorageWrapper.class);
+		SettingsHandler settingsHandler = mock(SettingsHandler.class);
+		UpgradeHandler upgradeHandler = mock(UpgradeHandler.class);
+		MemorySettingsCategory memorySettings = new MemorySettingsCategory(storageWrapper::getInventoryHandler, new MemorySettingsCategoryData(), () -> {
+		});
+		StackUpgradeConfig stackUpgradeConfig = mock(StackUpgradeConfig.class);
+		when(storageWrapper.getSettingsHandler()).thenReturn(settingsHandler);
+		when(storageWrapper.getUpgradeHandler()).thenReturn(upgradeHandler);
+		when(settingsHandler.getTypeCategory(MemorySettingsCategory.class)).thenReturn(memorySettings);
+		when(stackUpgradeConfig.canStackItem(any(Item.class))).thenReturn(true);
+		InventoryHandler inventory = new InventoryHandler(3, storageWrapper, new ContainerContents(), () -> {
+		}, 64, stackUpgradeConfig) {
+			@Override
+			protected boolean isAllowed(ItemResource resource) {
+				return true;
+			}
+		};
+		inventory.setPersistent(false);
+		when(storageWrapper.getInventoryHandler()).thenReturn(inventory);
+		when(storageWrapper.getInventoryForUpgradeProcessing()).thenReturn(inventory);
+		CompactingUpgradeWrapper wrapper = getCompactingWrapperWithConfiguredCompacting(storageWrapper, compactingDefinitions);
+		when(upgradeHandler.getWrappersThatImplementFromMainStorage(IExtractResponseUpgrade.class)).thenReturn(List.of(wrapper));
+		when(upgradeHandler.getWrappersThatImplementFromMainStorage(IInsertResponseUpgrade.class)).thenReturn(List.of());
+
+		inventory.setStackInSlot(0, new ItemStack(Items.DIAMOND, 64));
+		inventory.setStackInSlot(1, new ItemStack(Items.DIAMOND_BLOCK, 64));
+		inventory.setStackInSlot(2, new ItemStack(Items.NETHERITE_BLOCK, 64));
+		wrapper.onSlotChange(inventory, 0);
+		inventory.setStackInSlot(1, new ItemStack(Items.DIAMOND_BLOCK, 9));
+		inventory.setStackInSlot(2, ItemStack.EMPTY);
+		wrapper.setShouldWorkdInGUI(true);
+		wrapper.onSlotChange(inventory, 1);
+
+		assertDoesNotThrow(() -> wrapper.tick(null, null, null));
+		assertEquals(64, inventory.getStackInSlot(0).getCount(), "Slots queued during a tick must wait for the next tick");
+
+		wrapper.tick(null, null, null);
+
+		assertEquals(1, inventory.getStackInSlot(0).getCount(), "The slot queued by extraction should be compacted on the next tick");
+	}
+
 	private static CompactingUpgradeWrapper getCompactingWrapperWithConfiguredCompacting(
+			Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions) {
+		return getCompactingWrapperWithConfiguredCompacting(mock(IStorageWrapper.class), compactingDefinitions);
+	}
+
+	private static CompactingUpgradeWrapper getCompactingWrapperWithConfiguredCompacting(IStorageWrapper storageWrapper,
 			Map<Item, CompactingUpgradeConfig.CompactingDefinition> compactingDefinitions) {
 		CompactingUpgradeItem upgradeItem = mock(CompactingUpgradeItem.class);
 		when(upgradeItem.getFilterSlotCount()).thenReturn(0);
@@ -124,10 +186,13 @@ class CompactingUpgradeWrapperTest {
 		when(upgradeItem.getConfiguredCompactingResult(any(ItemStack.class), eq(3), eq(3)))
 				.thenAnswer(invocation -> Optional.ofNullable(compactingDefinitions.get(invocation.<ItemStack>getArgument(0).getItem())));
 		ItemStack upgrade = mock(ItemStack.class);
+		Map<Object, Object> components = new HashMap<>();
 		when(upgrade.getItem()).thenReturn(upgradeItem);
-		when(upgrade.getOrDefault(anyDataComponentSupplier(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+		when(upgrade.getOrDefault(anyDataComponentSupplier(), any()))
+				.thenAnswer(invocation -> components.getOrDefault(invocation.getArgument(0), invocation.getArgument(1)));
+		doAnswer(invocation -> components.put(invocation.getArgument(0), invocation.getArgument(1))).when(upgrade).set(anySetDataComponentSupplier(), any());
 
-		return new CompactingUpgradeWrapper(mock(IStorageWrapper.class), upgrade, stack -> {
+		return new CompactingUpgradeWrapper(storageWrapper, upgrade, stack -> {
 		});
 	}
 
@@ -229,5 +294,10 @@ class CompactingUpgradeWrapperTest {
 	@SuppressWarnings("unchecked")
 	private static <T> Supplier<? extends DataComponentType<? extends T>> anyDataComponentSupplier() {
 		return (Supplier<? extends DataComponentType<? extends T>>) any(Supplier.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T> Supplier<? extends DataComponentType<T>> anySetDataComponentSupplier() {
+		return (Supplier<? extends DataComponentType<T>>) any(Supplier.class);
 	}
 }
