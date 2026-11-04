@@ -1,6 +1,5 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.voiding;
 
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -8,20 +7,20 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ItemStackKey;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 class VoidUpgradeWrapperTest {
@@ -77,28 +76,79 @@ class VoidUpgradeWrapperTest {
 		assertFalse(wrapper.getFilterLogic().matchesFilter(new ItemStack(Items.DIAMOND)));
 	}
 
+	@Test
+	void setFromLegacyComponentMapsTrueToAlways() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapper(true, true);
+
+		assertEquals(VoidType.ALWAYS, wrapper.getVoidType());
+	}
+
+	@Test
+	void setFromLegacyComponentMapsFalseToSlotOverflow() {
+		VoidUpgradeWrapper wrapper = getVoidUpgradeWrapper(true, false);
+
+		assertEquals(VoidType.SLOT_OVERFLOW, wrapper.getVoidType());
+	}
+
+	@Test
+	void setFromLegacyComponentOnlyMigratesOnce() {
+		VoidUpgradeFixture fixture = createVoidUpgradeFixture(true, true);
+
+		assertEquals(VoidType.ALWAYS, fixture.wrapper().getVoidType());
+		assertEquals(VoidType.ALWAYS, fixture.upgrade().get(ModCoreDataComponents.VOID_TYPE));
+		assertFalse(fixture.upgrade().has(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW));
+		assertEquals(1, fixture.saveCount().get());
+
+		VoidUpgradeWrapper secondWrapper = new VoidUpgradeWrapper(mock(IStorageWrapper.class), fixture.upgrade(),
+				stack -> fixture.saveCount().incrementAndGet());
+
+		assertEquals(VoidType.ALWAYS, secondWrapper.getVoidType());
+		assertEquals(1, fixture.saveCount().get());
+	}
+
+	@Test
+	void setFromLegacyComponentPreservesExistingVoidTypeAndDropsLegacyComponent() {
+		VoidUpgradeFixture fixture = createVoidUpgradeFixture(true, true, VoidType.STORAGE_OVERFLOW);
+
+		assertEquals(VoidType.STORAGE_OVERFLOW, fixture.wrapper().getVoidType());
+		assertEquals(VoidType.STORAGE_OVERFLOW, fixture.upgrade().get(ModCoreDataComponents.VOID_TYPE));
+		assertFalse(fixture.upgrade().has(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW));
+		assertEquals(1, fixture.saveCount().get());
+
+		new VoidUpgradeWrapper(mock(IStorageWrapper.class), fixture.upgrade(), stack -> fixture.saveCount().incrementAndGet());
+		assertEquals(1, fixture.saveCount().get());
+	}
+
 	private static VoidUpgradeWrapper getVoidUpgradeWrapper() {
+		return getVoidUpgradeWrapper(false, false);
+	}
+
+	private static VoidUpgradeWrapper getVoidUpgradeWrapper(boolean hasLegacyShouldVoidOverflow, boolean legacyShouldVoidOverflow) {
+		return createVoidUpgradeFixture(hasLegacyShouldVoidOverflow, legacyShouldVoidOverflow).wrapper();
+	}
+
+	private static VoidUpgradeFixture createVoidUpgradeFixture(boolean hasLegacyShouldVoidOverflow, boolean legacyShouldVoidOverflow) {
+		return createVoidUpgradeFixture(hasLegacyShouldVoidOverflow, legacyShouldVoidOverflow, null);
+	}
+
+	private static VoidUpgradeFixture createVoidUpgradeFixture(boolean hasLegacyShouldVoidOverflow, boolean legacyShouldVoidOverflow, VoidType voidType) {
 		VoidUpgradeItem upgradeItem = mock(VoidUpgradeItem.class);
 		when(upgradeItem.getFilterSlotCount()).thenReturn(1);
 		when(upgradeItem.isVoidAlwaysEnabled()).thenReturn(true);
-		ItemStack upgrade = mock(ItemStack.class);
-		Map<Object, Object> components = new HashMap<>();
-		when(upgrade.getItem()).thenReturn(upgradeItem);
-		when(upgrade.getOrDefault(anyDataComponentSupplier(), any()))
-				.thenAnswer(invocation -> components.getOrDefault(invocation.getArgument(0), invocation.getArgument(1)));
-		doAnswer(invocation -> components.put(invocation.getArgument(0), invocation.getArgument(1))).when(upgrade).set(anySetDataComponentSupplier(), any());
-		return new VoidUpgradeWrapper(mock(IStorageWrapper.class), upgrade, stack -> {
-		});
+		ItemStack upgrade = spy(new ItemStack(Items.STICK));
+		doReturn(upgradeItem).when(upgrade).getItem();
+		if (voidType != null) {
+			upgrade.set(ModCoreDataComponents.VOID_TYPE, voidType);
+		}
+		if (hasLegacyShouldVoidOverflow) {
+			upgrade.set(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW, legacyShouldVoidOverflow);
+		}
+		AtomicInteger saveCount = new AtomicInteger();
+		VoidUpgradeWrapper wrapper = new VoidUpgradeWrapper(mock(IStorageWrapper.class), upgrade, stack -> saveCount.incrementAndGet());
+		return new VoidUpgradeFixture(wrapper, upgrade, saveCount);
 	}
 
-	@SuppressWarnings("unchecked")
-	private static <T> Supplier<? extends DataComponentType<? extends T>> anyDataComponentSupplier() {
-		return (Supplier<? extends DataComponentType<? extends T>>) any(Supplier.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	private static Supplier<? extends DataComponentType<Object>> anySetDataComponentSupplier() {
-		return (Supplier<? extends DataComponentType<Object>>) any(Supplier.class);
+	private record VoidUpgradeFixture(VoidUpgradeWrapper wrapper, ItemStack upgrade, AtomicInteger saveCount) {
 	}
 
 	private static ItemStack customizeName(ItemStack stack, String customName) {

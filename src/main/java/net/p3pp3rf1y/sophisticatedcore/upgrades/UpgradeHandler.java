@@ -1,14 +1,18 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades;
 
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.RenderInfo;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.TankPosition;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
+import net.p3pp3rf1y.sophisticatedcore.util.LegacyUpgradeDataMigration;
 import net.p3pp3rf1y.sophisticatedcore.util.RegistryHelper;
 
 import javax.annotation.Nonnull;
@@ -108,9 +112,13 @@ public class UpgradeHandler extends ItemStackHandler {
 		refreshCallbacks.remove(refreshCallback);
 	}
 
-	private void initializeWrappers() {
+	private boolean initializeWrappers() {
 		if (wrappersInitialized) {
-			return;
+			return true;
+		}
+		Optional<RegistryAccess> registryAccess = RegistryHelper.getRegistryAccess();
+		if (registryAccess.isEmpty() && InventoryHelper.hasItem(this, UpgradeHandler::requiresRegistryAccessForMigration)) {
+			return false;
 		}
 		wrappersInitialized = true;
 		slotWrappers.clear();
@@ -119,9 +127,14 @@ public class UpgradeHandler extends ItemStackHandler {
 			wrapperAccessor.clearCache();
 		}
 
+		AtomicBoolean migrated = new AtomicBoolean(false);
 		InventoryHelper.iterate(this, (slot, upgrade) -> {
 			if (upgrade.isEmpty() || !(upgrade.getItem() instanceof IUpgradeItem<?>)) {
 				return;
+			}
+			if (registryAccess.isPresent() && requiresRegistryAccessForMigration(upgrade)
+					&& LegacyUpgradeDataMigration.migrate(upgrade, registryAccess.get())) {
+				migrated.set(true);
 			}
 			UpgradeType<?> type = ((IUpgradeItem<?>) upgrade.getItem()).getType();
 			IUpgradeWrapper wrapper = type.create(storageWrapper, upgrade, upgradeStack -> {
@@ -132,8 +145,19 @@ public class UpgradeHandler extends ItemStackHandler {
 			setUpgradeDefaults(wrapper);
 			slotWrappers.put(slot, wrapper);
 		});
+		if (migrated.get()) {
+			saveInventory();
+			contentsSaveHandler.run();
+			setRenderUpgradeItems();
+		}
 
-		initRenderInfoCallbacks(false);
+		initRenderInfoCallbacks(migrated.get());
+		return true;
+	}
+
+	static boolean requiresRegistryAccessForMigration(ItemStack upgradeStack) {
+		return upgradeStack.getItem() instanceof IUpgradeItem<?>
+				&& !upgradeStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().isEmpty();
 	}
 
 	@Nonnull
@@ -198,7 +222,9 @@ public class UpgradeHandler extends ItemStackHandler {
 		if (typeWrappersInitialized) {
 			return;
 		}
-		initializeWrappers();
+		if (!initializeWrappers()) {
+			return;
+		}
 		typeWrappersInitialized = true;
 
 		typeWrappers.clear();
@@ -230,7 +256,9 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	public <T> List<T> getWrappersThatImplement(Class<T> upgradeClass) {
-		initializeWrappers();
+		if (!initializeWrappers()) {
+			return Collections.emptyList();
+		}
 		return getWrapperAccessor().getWrappersThatImplement(upgradeClass);
 	}
 
@@ -246,7 +274,9 @@ public class UpgradeHandler extends ItemStackHandler {
 	}
 
 	public <T> List<T> getWrappersThatImplementFromMainStorage(Class<T> upgradeClass) {
-		initializeWrappers();
+		if (!initializeWrappers()) {
+			return Collections.emptyList();
+		}
 		return getWrapperAccessor().getWrappersThatImplementFromMainStorage(upgradeClass);
 	}
 

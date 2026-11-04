@@ -53,9 +53,15 @@ public class VoidUpgradeWrapper extends UpgradeWrapperBase<VoidUpgradeWrapper, V
 	// TODO remove in or after 26.1
 	private void setFromLegacyComponent() {
 		if (upgrade.has(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW)) {
-			VoidType migratedVoidType = upgrade.get(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW) ? VoidType.SLOT_OVERFLOW : VoidType.ALWAYS;
+			if (!upgrade.has(ModCoreDataComponents.VOID_TYPE)) {
+				VoidType migratedVoidType = upgrade.get(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW) ? VoidType.ALWAYS : VoidType.SLOT_OVERFLOW;
+				if (migratedVoidType == VoidType.ALWAYS && !upgradeItem.isVoidAlwaysEnabled()) {
+					migratedVoidType = VoidType.SLOT_OVERFLOW;
+				}
+				upgrade.set(ModCoreDataComponents.VOID_TYPE, migratedVoidType);
+			}
 			upgrade.remove(ModCoreDataComponents.LEGACY_SHOULD_VOID_OVERFLOW);
-			setVoidType(migratedVoidType);
+			save();
 		}
 	}
 	@Override
