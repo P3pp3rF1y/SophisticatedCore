@@ -53,6 +53,10 @@ public abstract class JeiCraftingContainerRecipeTransferHandlerBase<C extends St
 	@Nullable
 	@Override
 	public IRecipeTransferError transferRecipe(C container, R recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer) {
+		if (!handlerHelper.recipeTransferHasServerSupport()) {
+			return handlerHelper.createUserErrorWithTooltip(Component.translatable("jei.tooltip.error.recipe.transfer.no.server"));
+		}
+
 		Optional<? extends UpgradeContainerBase<?, ?>> potentialCraftingContainer = container.getOpenOrFirstCraftingContainer(recipe.value().getType());
 		if (potentialCraftingContainer.isEmpty()) {
 			return handlerHelper.createInternalError();
