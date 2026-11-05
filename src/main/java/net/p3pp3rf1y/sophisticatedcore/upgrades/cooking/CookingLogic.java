@@ -22,6 +22,7 @@ import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -194,16 +195,16 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	}
 
 	private void smelt(T recipe) {
-		if (!canSmelt(recipe)) {
+		ItemStack input = getCookInput();
+		ItemStack recipeOutput = assemble(recipe, input);
+		if (!canSmelt(recipeOutput)) {
 			return;
 		}
 
-		ItemStack input = getCookInput();
-		ItemStack recipeOutput = recipe.result.create();
 		ItemStack output = getCookOutput();
 		if (output.isEmpty()) {
 			setCookOutput(recipeOutput.copy());
-		} else if (output.getItem() == recipeOutput.getItem()) {
+		} else if (ItemStack.isSameItemSameComponents(output, recipeOutput)) {
 			output.grow(recipeOutput.getCount());
 			setCookOutput(output);
 		}
@@ -304,17 +305,27 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 	}
 
 	protected boolean canSmelt(T cookingRecipe) {
+		return canSmelt(assemble(cookingRecipe, getCookInput()));
+	}
+
+	private ItemStack assemble(T recipe, ItemStack input) {
+		if (input.isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+		return recipe.assemble(new SingleRecipeInput(input));
+	}
+
+	private boolean canSmelt(ItemStack recipeOutput) {
 		if (getCookInput().isEmpty()) {
 			return false;
 		}
-		ItemStack recipeOutput = cookingRecipe.result.create();
 		if (recipeOutput.isEmpty()) {
 			return false;
 		} else {
 			ItemStack output = getCookOutput();
 			if (output.isEmpty()) {
 				return true;
-			} else if (output.getItem() != recipeOutput.getItem()) {
+			} else if (!ItemStack.isSameItemSameComponents(output, recipeOutput)) {
 				return false;
 			} else if (output.getCount() + recipeOutput.getCount() <= 99 && output.getCount() + recipeOutput.getCount() <= output.getMaxStackSize()) {
 				return true;
