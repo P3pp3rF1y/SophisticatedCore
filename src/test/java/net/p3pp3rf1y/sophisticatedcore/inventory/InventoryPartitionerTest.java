@@ -85,6 +85,55 @@ class InventoryPartitionerTest {
 	}
 
 	@Test
+	void addInventoryPartAtLateBasePreservesTrailingDefaultPart() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		IInventoryPartHandler dummyPartHandler = () -> "dummy";
+
+		partitioner.addInventoryPart(0, 72, dummyPartHandler);
+		partitioner.addInventoryPart(72, 3, () -> "dummy2");
+
+		Assertions.assertInstanceOf(IInventoryPartHandler.Default.class, partitioner.getPartBySlot(75));
+	}
+
+	@Test
+	void addInventoryPartAtLateBaseReportsTrailingDefaultAsFirstSpace() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+
+		partitioner.addInventoryPart(0, 72, () -> "dummy");
+		partitioner.addInventoryPart(72, 3, () -> "dummy2");
+
+		Optional<SlotRange> firstSpace = partitioner.getFirstSpace(9);
+		Assertions.assertTrue(firstSpace.isPresent());
+		Assertions.assertEquals(75, firstSpace.get().firstSlot());
+		Assertions.assertEquals(6, firstSpace.get().numberOfSlots());
+	}
+
+	@Test
+	void addInventoryPartReplacingInteriorDefaultRemainderDoesNotAddTrailingBoundary() {
+		InventoryHandler invHandler = getInventoryHandler(81);
+		InventoryPartitioner partitioner = new InventoryPartitioner(new CompoundTag(), invHandler, () -> null);
+		IInventoryPartHandler remainderPartHandler = () -> "remainder";
+
+		partitioner.addInventoryPart(0, 9, () -> "dummy0");
+		partitioner.addInventoryPart(9, 9, () -> "dummy1");
+		partitioner.addInventoryPart(18, 9, () -> "dummy2");
+		partitioner.removeInventoryPart(9);
+		partitioner.addInventoryPart(9, 3, () -> "dummy3");
+
+		Assertions.assertInstanceOf(IInventoryPartHandler.Default.class, partitioner.getPartBySlot(12));
+
+		partitioner.addInventoryPart(12, 6, remainderPartHandler);
+
+		Assertions.assertEquals(remainderPartHandler, partitioner.getPartBySlot(12));
+		Optional<SlotRange> firstSpace = partitioner.getFirstSpace(9);
+		Assertions.assertTrue(firstSpace.isPresent());
+		Assertions.assertEquals(27, firstSpace.get().firstSlot());
+		Assertions.assertEquals(9, firstSpace.get().numberOfSlots());
+	}
+
+	@Test
 	void addTwoAndRemoveInventoryPartProperlyUpdatesParts() {
 		InventoryHandler invHandler = getInventoryHandler(81);
 

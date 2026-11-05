@@ -135,8 +135,9 @@ public class InventoryPartitioner {
 		newBaseIndexes.add(inventorySlot);
 
 		int newNextSlot = inventorySlot + numberOfSlots;
-		if (inventoryPartHandlers[index].getSlots() > newNextSlot) {
-			newParts.add(new IInventoryPartHandler.Default(parent, parent.getSlots() - newNextSlot));
+		int remainingSlots = inventoryPartHandlers[index].getSlots() - numberOfSlots;
+		if (remainingSlots > 0) {
+			newParts.add(new IInventoryPartHandler.Default(parent, remainingSlots));
 			newBaseIndexes.add(newNextSlot);
 		}
 
