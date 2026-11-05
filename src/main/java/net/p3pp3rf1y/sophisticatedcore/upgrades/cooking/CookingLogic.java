@@ -2,11 +2,14 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.cooking;
 
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -180,17 +183,17 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		return !getFuel().isEmpty() && !getCookInput().isEmpty();
 	}
 
-	private void smelt(Recipe<?> recipe, Level level) {
-		if (!canSmelt(recipe, level)) {
+	private void smelt(Recipe<Container> recipe, Level level) {
+		ItemStack input = getCookInput();
+		ItemStack recipeOutput = assemble(recipe, input, level.registryAccess());
+		if (!canSmelt(recipeOutput)) {
 			return;
 		}
 
-		ItemStack input = getCookInput();
-		ItemStack recipeOutput = recipe.getResultItem(level.registryAccess());
 		ItemStack output = getCookOutput();
 		if (output.isEmpty()) {
 			setCookOutput(recipeOutput.copy());
-		} else if (output.getItem() == recipeOutput.getItem()) {
+		} else if (ItemStack.isSameItemSameTags(output, recipeOutput)) {
 			output.grow(recipeOutput.getCount());
 			setCookOutput(output);
 		}
@@ -294,18 +297,28 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		setBurnTimeTotal(burnTime);
 	}
 
-	protected boolean canSmelt(Recipe<?> cookingRecipe, Level level) {
+	protected boolean canSmelt(Recipe<Container> cookingRecipe, Level level) {
+		return canSmelt(assemble(cookingRecipe, getCookInput(), level.registryAccess()));
+	}
+
+	private ItemStack assemble(Recipe<Container> recipe, ItemStack input, RegistryAccess registryAccess) {
+		if (input.isEmpty()) {
+			return ItemStack.EMPTY;
+		}
+		return recipe.assemble(new SimpleContainer(input), registryAccess);
+	}
+
+	private boolean canSmelt(ItemStack recipeOutput) {
 		if (getCookInput().isEmpty()) {
 			return false;
 		}
-		ItemStack recipeOutput = cookingRecipe.getResultItem(level.registryAccess());
 		if (recipeOutput.isEmpty()) {
 			return false;
 		} else {
 			ItemStack output = getCookOutput();
 			if (output.isEmpty()) {
 				return true;
-			} else if (output.getItem() != recipeOutput.getItem()) {
+			} else if (!ItemStack.isSameItemSameTags(output, recipeOutput)) {
 				return false;
 			} else if (output.getCount() + recipeOutput.getCount() <= 64 && output.getCount() + recipeOutput.getCount() <= output.getMaxStackSize()) {
 				return true;
