@@ -93,6 +93,82 @@ public class InventoryHandlerTest {
 	}
 
 	@Test
+	void extractRollbackRestoresTrackedStackListenerState() {
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, stack(Items.DIAMOND, 64)), 64);
+		Set<ItemStackKey> externallyTrackedStacks = new HashSet<>(inventoryHandler.getTrackedStacks());
+		List<String> listenerEvents = new ArrayList<>();
+		inventoryHandler.registerTrackingListeners(stackKey -> {
+			externallyTrackedStacks.add(stackKey);
+			listenerEvents.add("add");
+		}, stackKey -> {
+			externallyTrackedStacks.remove(stackKey);
+			listenerEvents.add("remove");
+		}, () -> {
+		}, () -> {
+		});
+
+		try (Transaction tx = Transaction.openRoot()) {
+			Assertions.assertEquals(64, inventoryHandler.extract(ItemResource.of(stack(Items.DIAMOND, 64)), 64, tx));
+		}
+
+		Assertions.assertEquals(inventoryHandler.getTrackedStacks(), externallyTrackedStacks);
+		Assertions.assertEquals(List.of("remove", "add"), listenerEvents);
+	}
+
+	@Test
+	void extractCommitDoesNotRestoreTrackedStackListenerState() {
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, stack(Items.DIAMOND, 64)), 64);
+		Set<ItemStackKey> externallyTrackedStacks = new HashSet<>(inventoryHandler.getTrackedStacks());
+		List<String> listenerEvents = new ArrayList<>();
+		inventoryHandler.registerTrackingListeners(stackKey -> {
+			externallyTrackedStacks.add(stackKey);
+			listenerEvents.add("add");
+		}, stackKey -> {
+			externallyTrackedStacks.remove(stackKey);
+			listenerEvents.add("remove");
+		}, () -> {
+		}, () -> {
+		});
+
+		try (Transaction tx = Transaction.openRoot()) {
+			Assertions.assertEquals(64, inventoryHandler.extract(ItemResource.of(stack(Items.DIAMOND, 64)), 64, tx));
+			tx.commit();
+		}
+
+		Assertions.assertEquals(inventoryHandler.getTrackedStacks(), externallyTrackedStacks);
+		Assertions.assertEquals(List.of("remove"), listenerEvents);
+	}
+
+	@Test
+	void extractNestedRollbackQueuesListenerStateRestoration() {
+		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, stack(Items.DIAMOND, 64)), 64);
+		Set<ItemStackKey> externallyTrackedStacks = new HashSet<>(inventoryHandler.getTrackedStacks());
+		List<String> listenerEvents = new ArrayList<>();
+		inventoryHandler.registerTrackingListeners(stackKey -> {
+			externallyTrackedStacks.add(stackKey);
+			listenerEvents.add("add");
+		}, stackKey -> {
+			externallyTrackedStacks.remove(stackKey);
+			listenerEvents.add("remove");
+		}, () -> listenerEvents.add("first-empty"), () -> listenerEvents.add("last-empty"));
+
+		try (Transaction outer = Transaction.openRoot()) {
+			inventoryHandler.beginSlotStacks(outer);
+			try (Transaction child = Transaction.open(outer)) {
+				Assertions.assertEquals(64, inventoryHandler.extract(ItemResource.of(stack(Items.DIAMOND, 64)), 64, child));
+			}
+
+			Assertions.assertEquals(64, inventoryHandler.getStackInSlot(0).getCount());
+			Assertions.assertEquals(inventoryHandler.getTrackedStacks(), externallyTrackedStacks);
+			Assertions.assertTrue(listenerEvents.isEmpty());
+			outer.commit();
+		}
+
+		Assertions.assertEquals(inventoryHandler.getTrackedStacks(), externallyTrackedStacks);
+		Assertions.assertEquals(List.of("remove", "first-empty", "add", "last-empty"), listenerEvents);
+	}
+
+	@Test
 	void extractPrefersPartialStacks() {
 		InventoryHandler inventoryHandler = initInventoryHandler(Map.of(0, stack(Items.DIAMOND, 32), 1, stack(Items.DIAMOND, 64)), 64);
 
