@@ -371,32 +371,24 @@ public class InventoryHandlerSlotTracker implements ISlotTracker {
 		restoreSlotStateWithoutListeners(slotTrackerSlotSnapshot);
 
 		if (currentStackKey != null && currentStackKeyWasTracked && !isTracked(currentStackKey)) {
-			onRemoveStackKey.accept(currentStackKey);
+			notifyStackKey(onRemoveStackKey, currentStackKey);
 		}
 		if (snapshotStackKey != null && !snapshotStackKeyWasTracked && isTracked(snapshotStackKey)) {
-			onAddStackKey.accept(snapshotStackKey);
+			notifyStackKey(onAddStackKey, snapshotStackKey);
 		}
 
 		boolean hasEmptySlots = !emptySlots.isEmpty();
 		if (hadEmptySlots != hasEmptySlots) {
 			if (hasEmptySlots) {
-				onAddFirstEmptySlot.run();
+				notifyListener(onAddFirstEmptySlot);
 			} else {
-				onRemoveLastEmptySlot.run();
+				notifyListener(onRemoveLastEmptySlot);
 			}
 		}
 	}
 
 	void restoreTransactionalSlotSnapshot(Snapshot snapshot) {
-		if (snapshot instanceof SlotTrackerSlotSnapshot slotSnapshot) {
-			boolean previouslySuppressed = suppressNotifications;
-			suppressNotifications = true;
-			try {
-				restoreSlotStateWithoutListeners(slotSnapshot);
-			} finally {
-				suppressNotifications = previouslySuppressed;
-			}
-		}
+		restoreSlotFromSnapshot(snapshot);
 	}
 
 	private @Nullable ItemStackKey getSlotStackKey(int slot) {
