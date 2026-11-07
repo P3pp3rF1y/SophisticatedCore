@@ -208,6 +208,9 @@ public class JukeboxUpgradeWrapper extends UpgradeWrapperBase<JukeboxUpgradeWrap
 				: levelPlaying instanceof ServerLevel playbackLevel ? playbackLevel : serverLevel;
 		Vec3 soundPosition = entityPlaying != null ? entityPlaying.position() : posPlaying != null ? Vec3.atCenterOf(posPlaying) : entity.position();
 		storageWrapper.getContentsUuid().ifPresent(storageUuid -> ServerStorageSoundHandler.stopPlayingDisc(soundLevel, soundPosition, storageUuid));
+		entityPlaying = null;
+		levelPlaying = null;
+		posPlaying = null;
 		setIsPlaying(false);
 		NBTHelper.removeTag(upgrade, "discFinishTime");
 		NBTHelper.removeTag(upgrade, "discLength");
