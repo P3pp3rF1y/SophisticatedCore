@@ -87,6 +87,8 @@ public class InventorySorter {
 			Set<Integer> memorizedSlots, BiPredicate<Integer, ItemStack> matchesMemorizedSlot) {
 		Set<Integer> skippedSlots = new HashSet<>(noSortSlots);
 		Set<Integer> accessibleMemorizedSlots = new HashSet<>(memorizedSlots);
+		int slots = handler.getSlots();
+		accessibleMemorizedSlots.removeIf(slot -> slot < 0 || slot >= slots);
 		accessibleMemorizedSlots.removeAll(skippedSlots);
 		if (handler instanceof InventoryHandler inventoryHandler) {
 			for (int slot = 0; slot < inventoryHandler.getSlots(); slot++) {
@@ -99,8 +101,6 @@ public class InventorySorter {
 		Map<ItemStackKey, Integer> compactedStacks = InventoryHelper.getCompactedStacks(handler, skippedSlots, false);
 		List<Map.Entry<ItemStackKey, Integer>> sortedList = new ArrayList<>(compactedStacks.entrySet());
 		sortedList.sort(comparator);
-
-		int slots = handler.getSlots();
 
 		sortIntoMemorizedSlots(handler, accessibleMemorizedSlots, matchesMemorizedSlot, sortedList);
 		skippedSlots.addAll(accessibleMemorizedSlots);
