@@ -6,6 +6,9 @@ import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 
+import java.lang.ref.WeakReference;
+import java.util.function.Consumer;
+
 public interface IControllableStorage extends IControllerBoundable {
 
 	IStorageWrapper getStorageWrapper();
@@ -63,7 +66,7 @@ public interface IControllableStorage extends IControllerBoundable {
 	default void registerController(ControllerBlockEntityBase controllerBlockEntity) {
 		registerControllerMembership(controllerBlockEntity);
 		if (hasStorageData() && controllerBlockEntity.getLevel() != null && !controllerBlockEntity.getLevel().isClientSide()) {
-			registerListeners();
+			registerListeners(new WeakReference<>(controllerBlockEntity));
 		}
 	}
 
@@ -90,8 +93,8 @@ public interface IControllableStorage extends IControllerBoundable {
 		getStorageWrapper().getInventoryHandler().unregisterFilterItemsChangeListener();
 	}
 
-	private void registerListeners() {
-		registerInventoryStackListeners();
+	private void registerListeners(WeakReference<ControllerBlockEntityBase> controllerReference) {
+		registerInventoryStackListeners(controllerReference);
 		getStorageWrapper().getSettingsHandler().getTypeCategory(MemorySettingsCategory.class).registerListeners(
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageMemorizedItem(getStorageBlockPos(), i)),
 				i -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageMemorizedItem(getStorageBlockPos(), i)),
@@ -102,16 +105,35 @@ public interface IControllableStorage extends IControllerBoundable {
 		getStorageWrapper().registerOnInventoryInputOutputHandlerRefreshListener(this::onInventoryInputOutputHandlerRefresh);
 	}
 
+	private void runOnRegisteredController(WeakReference<ControllerBlockEntityBase> controllerReference, Consumer<ControllerBlockEntityBase> update) {
+		// A FULL-chunk lookup can temporarily fail without unloading the registered controller.
+		ControllerBlockEntityBase controller = controllerReference.get();
+		if (controller != null && controller.canReceiveStorageUpdates(getStorageBlockPos())
+				&& getControllerPos().filter(controller.getBlockPos()::equals).isPresent()) {
+			update.accept(controller);
+		}
+	}
+
 	default void onInventoryInputOutputHandlerRefresh() {
 		runOnController(getStorageBlockLevel(), controller -> controller.rebindStorage(getStorageBlockPos()));
 	}
 
 	default void registerInventoryStackListeners() {
+		getControllerPos().flatMap(pos -> WorldHelper.getLoadedBlockEntity(getStorageBlockLevel(), pos, ControllerBlockEntityBase.class)).ifPresentOrElse(
+				controller -> registerInventoryStackListeners(new WeakReference<>(controller)),
+				() -> getStorageWrapper().getInventoryForInputOutput().registerTrackingListeners(
+						isk -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageStack(getStorageBlockPos(), isk)),
+						isk -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageStack(getStorageBlockPos(), isk)),
+						() -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageWithEmptySlots(getStorageBlockPos())),
+						() -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageWithEmptySlots(getStorageBlockPos()))));
+	}
+
+	private void registerInventoryStackListeners(WeakReference<ControllerBlockEntityBase> controllerReference) {
 		getStorageWrapper().getInventoryForInputOutput().registerTrackingListeners(
-				isk -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageStack(getStorageBlockPos(), isk)),
-				isk -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageStack(getStorageBlockPos(), isk)),
-				() -> runOnController(getStorageBlockLevel(), controller -> controller.addStorageWithEmptySlots(getStorageBlockPos())),
-				() -> runOnController(getStorageBlockLevel(), controller -> controller.removeStorageWithEmptySlots(getStorageBlockPos())));
+				isk -> runOnRegisteredController(controllerReference, controller -> controller.addStorageStack(getStorageBlockPos(), isk)),
+				isk -> runOnRegisteredController(controllerReference, controller -> controller.removeStorageStack(getStorageBlockPos(), isk)),
+				() -> runOnRegisteredController(controllerReference, controller -> controller.addStorageWithEmptySlots(getStorageBlockPos())),
+				() -> runOnRegisteredController(controllerReference, controller -> controller.removeStorageWithEmptySlots(getStorageBlockPos())));
 	}
 
 	default void registerWithControllerOnLoad() {
