@@ -27,6 +27,7 @@ import net.p3pp3rf1y.sophisticatedcore.settings.memory.MemorySettingsCategory;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import net.p3pp3rf1y.sophisticatedcore.util.ValueIOHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -36,9 +37,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class ControllerLinkedStorageLifecycleTest {
@@ -52,6 +56,7 @@ class ControllerLinkedStorageLifecycleTest {
 		Bootstrap.bootStrap();
 		Bootstrap.validate();
 		Items.DIAMOND.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+		Items.GOLD_INGOT.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
 		Items.COBBLESTONE.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
 	}
 
@@ -103,6 +108,160 @@ class ControllerLinkedStorageLifecycleTest {
 		assertEquals(10, extractedAfterRefresh);
 		verify(wrapper, times(2)).registerOnInventoryInputOutputHandlerRefreshListener(any());
 		verify(resizedInventory).registerTrackingListeners(any(), any(), any(), any());
+	}
+
+	@Test
+	void registerControllerKeepsStackAndEmptySlotRoutingCurrentWhileControllerChunkIsUnavailable() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 1));
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		IControllableStorage storage = refreshingStorage(level, wrapper);
+		ITrackedContentsItemResourceHandler inventory = mock(ITrackedContentsItemResourceHandler.class);
+		when(wrapper.getInventoryForInputOutput()).thenReturn(inventory);
+		when(inventory.size()).thenReturn(1);
+		when(inventory.hasEmptySlots()).thenReturn(true);
+		ItemResource gold = ItemResource.of(Items.GOLD_INGOT);
+		ItemStackKey diamondKey = ItemStackKey.of(ItemResource.of(Items.DIAMOND));
+		ItemStackKey goldKey = ItemStackKey.of(gold);
+		when(inventory.getTrackedStacks()).thenReturn(Set.of(diamondKey));
+		when(inventory.extract(eq(gold), eq(1), any())).thenReturn(1);
+		AtomicReference<TrackingListeners> listeners = captureTrackingListeners(inventory);
+
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, BlockPos.ZERO, ControllerBlockEntityBase.class)).thenReturn(Optional.of(controller));
+			controller.onLoad();
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, BlockPos.ZERO, ControllerBlockEntityBase.class)).thenReturn(Optional.empty());
+
+			listeners.get().removeStack().accept(diamondKey);
+			listeners.get().addStack().accept(goldKey);
+			listeners.get().removeEmpty().run();
+
+			assertFalse(controller.stackStorages.containsKey(diamondKey));
+			assertEquals(Set.of(FIRST), controller.stackStorages.get(goldKey));
+			assertFalse(controller.emptySlotsStorages.contains(FIRST));
+			listeners.get().addEmpty().run();
+			assertTrue(controller.emptySlotsStorages.contains(FIRST));
+			try (Transaction tx = Transaction.openRoot()) {
+				assertEquals(1, controller.extract(gold, 1, tx));
+			}
+			verify(level, never()).getChunkSource();
+		}
+	}
+
+	@Test
+	void registerControllerIgnoresStaleCallbacksAfterControllerUnloads() {
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			RegisteredStorage fixture = registerStorageWithCapturedListeners(world);
+			ItemStackKey goldKey = ItemStackKey.of(ItemResource.of(Items.GOLD_INGOT));
+
+			fixture.controller().onChunkUnloaded();
+			fixture.listeners().addStack().accept(goldKey);
+			fixture.listeners().addEmpty().run();
+
+			assertFalse(fixture.controller().stackStorages.containsKey(goldKey));
+			assertFalse(fixture.controller().emptySlotsStorages.contains(FIRST));
+		}
+	}
+
+	@Test
+	void registerControllerIgnoresStaleCallbacksAfterControllerIsRemoved() {
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			RegisteredStorage fixture = registerStorageWithCapturedListeners(world);
+			ItemStackKey goldKey = ItemStackKey.of(ItemResource.of(Items.GOLD_INGOT));
+
+			fixture.controller().setRemoved();
+			fixture.listeners().addStack().accept(goldKey);
+			fixture.listeners().addEmpty().run();
+
+			assertFalse(fixture.controller().stackStorages.containsKey(goldKey));
+			assertFalse(fixture.controller().emptySlotsStorages.contains(FIRST));
+		}
+	}
+
+	@Test
+	void registerControllerIgnoresStaleCallbacksAfterStorageIsDetached() {
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			RegisteredStorage fixture = registerStorageWithCapturedListeners(world);
+			ItemStackKey goldKey = ItemStackKey.of(ItemResource.of(Items.GOLD_INGOT));
+
+			fixture.controller().removeStorage(FIRST);
+			fixture.listeners().addStack().accept(goldKey);
+			fixture.listeners().addEmpty().run();
+
+			assertFalse(fixture.controller().stackStorages.containsKey(goldKey));
+			assertFalse(fixture.controller().emptySlotsStorages.contains(FIRST));
+		}
+	}
+
+	@Test
+	void registerControllerIgnoresStaleCallbacksAfterStorageIsRebound() {
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			RegisteredStorage fixture = registerStorageWithCapturedListeners(world);
+			ItemStackKey goldKey = ItemStackKey.of(ItemResource.of(Items.GOLD_INGOT));
+
+			when(fixture.storage().getControllerPos()).thenReturn(Optional.of(SECOND));
+			fixture.listeners().addStack().accept(goldKey);
+			fixture.listeners().addEmpty().run();
+
+			assertFalse(fixture.controller().stackStorages.containsKey(goldKey));
+			assertFalse(fixture.controller().emptySlotsStorages.contains(FIRST));
+		}
+	}
+
+	private static RegisteredStorage registerStorageWithCapturedListeners(MockedStatic<WorldHelper> world) {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 1));
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		IControllableStorage storage = refreshingStorage(level, wrapper);
+		ITrackedContentsItemResourceHandler inventory = mock(ITrackedContentsItemResourceHandler.class);
+		when(wrapper.getInventoryForInputOutput()).thenReturn(inventory);
+		when(inventory.size()).thenReturn(1);
+		AtomicReference<TrackingListeners> listeners = captureTrackingListeners(inventory);
+		world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+		controller.onLoad();
+		return new RegisteredStorage(controller, storage, listeners.get());
+	}
+
+	private record RegisteredStorage(TestController controller, IControllableStorage storage, TrackingListeners listeners) {
+	}
+
+	@Test
+	void registerInventoryStackListenersStillRegistersReplacementHandlerWhileControllerIsUnavailable() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 1));
+		IStorageWrapper wrapper = mock(IStorageWrapper.class);
+		IControllableStorage storage = refreshingStorage(level, wrapper);
+		ITrackedContentsItemResourceHandler inventory = mock(ITrackedContentsItemResourceHandler.class);
+		when(wrapper.getInventoryForInputOutput()).thenReturn(inventory);
+		AtomicReference<TrackingListeners> listeners = captureTrackingListeners(inventory);
+		ItemStackKey goldKey = ItemStackKey.of(ItemResource.of(Items.GOLD_INGOT));
+
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			storage.registerInventoryStackListeners();
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, BlockPos.ZERO, ControllerBlockEntityBase.class)).thenReturn(Optional.of(controller));
+			listeners.get().addStack().accept(goldKey);
+
+			assertEquals(Set.of(FIRST), controller.stackStorages.get(goldKey));
+		}
+	}
+
+	private static AtomicReference<TrackingListeners> captureTrackingListeners(ITrackedContentsItemResourceHandler inventory) {
+		AtomicReference<TrackingListeners> listeners = new AtomicReference<>();
+		doAnswer(invocation -> {
+			listeners.set(new TrackingListeners(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2), invocation.getArgument(3)));
+			return null;
+		}).when(inventory).registerTrackingListeners(any(), any(), any(), any());
+		return listeners;
+	}
+
+	private record TrackingListeners(Consumer<ItemStackKey> addStack, Consumer<ItemStackKey> removeStack, Runnable addEmpty, Runnable removeEmpty) {
 	}
 
 	@Test
@@ -237,7 +396,7 @@ class ControllerLinkedStorageLifecycleTest {
 		return storage;
 	}
 
-	private static CompoundTag savedGroup(UUID group, BlockPos anchor, List<BlockPos> members, int slots) {
+	private static CompoundTag savedGroup(@Nullable UUID group, BlockPos anchor, List<BlockPos> members, int slots) {
 		CompoundTag tag = new CompoundTag();
 		ListTag keys = new ListTag();
 		keys.add(encode(new ControllerStorageKey(anchor, group)));
