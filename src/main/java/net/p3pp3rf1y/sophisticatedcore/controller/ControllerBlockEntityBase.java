@@ -857,6 +857,10 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		return totalSlots;
 	}
 
+	boolean canReceiveStorageUpdates(BlockPos storagePos) {
+		return !runtimeUnloaded && !isRemoved() && isStorageConnected(storagePos);
+	}
+
 	private int getIndexForSlot(int slot) {
 		if (slot < 0) {
 			return -1;
