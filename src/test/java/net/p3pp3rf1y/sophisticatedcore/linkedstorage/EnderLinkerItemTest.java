@@ -21,11 +21,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -74,9 +76,9 @@ class EnderLinkerItemTest {
 		UUID ownerId = UUID.randomUUID();
 		Slot slot = Mockito.mock(Slot.class);
 		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter();
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(player.level()).thenReturn(level);
 		Mockito.when(player.getUUID()).thenReturn(ownerId);
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		Mockito.when(slot.getItem()).thenReturn(new ItemStack(Items.BONE));
 		Mockito.when(manager.createGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(groupId);
 		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
@@ -84,7 +86,8 @@ class EnderLinkerItemTest {
 		mockLinkedStorageHost(manager, groupId);
 		Mockito.when(savedData.manager()).thenReturn(manager);
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 			EnderLinkerItem linkerItem = Mockito.mock(EnderLinkerItem.class, Mockito.CALLS_REAL_METHODS);
 			ItemStack linker = new ItemStack(Items.BLAZE_ROD);
@@ -106,8 +109,8 @@ class EnderLinkerItemTest {
 		Player player = Mockito.mock(Player.class);
 		Inventory inventory = Mockito.mock(Inventory.class);
 		Slot slot = Mockito.mock(Slot.class);
-		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter();
-		LinkedStorageEndpointAdapters.register(adapter);
+		ILinkedStorageItemEndpointAdapter adapter = Mockito.spy(new TestEndpointAdapter());
+		Identifier factoryId = adapter.factoryId();
 		ItemStack linker = new ItemStack(Items.BLAZE_ROD, 2);
 		linker.set(ModCoreDataComponents.ENDER_LINKER_TARGET, new EnderLinkerTargetData(groupId, Component.empty()));
 		ItemStack endpoint = new ItemStack(Items.BONE);
@@ -115,12 +118,14 @@ class EnderLinkerItemTest {
 		Mockito.when(player.getUUID()).thenReturn(UUID.randomUUID());
 		Mockito.when(player.getInventory()).thenReturn(inventory);
 		Mockito.when(inventory.add(Mockito.any(ItemStack.class))).thenReturn(true);
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		Mockito.when(slot.getItem()).thenReturn(endpoint);
-		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
-		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(new LinkedStorageHostDescriptor(adapter.factoryId(), new CompoundTag())));
+		Mockito.when(manager.usesHostFactory(groupId, factoryId)).thenReturn(true);
+		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(new LinkedStorageHostDescriptor(factoryId, new CompoundTag())));
 		Mockito.when(savedData.manager()).thenReturn(manager);
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 			EnderLinkerItem linkerItem = Mockito.mock(EnderLinkerItem.class, Mockito.CALLS_REAL_METHODS);
 
@@ -129,6 +134,9 @@ class EnderLinkerItemTest {
 
 		assertEquals(1, linker.getCount());
 		assertEquals(groupId, endpoint.get(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT).groupId());
+		InOrder inOrder = Mockito.inOrder(manager, adapter);
+		inOrder.verify(manager).registerEndpoint(Mockito.eq(groupId), Mockito.any());
+		inOrder.verify(adapter).bindEndpoint(Mockito.eq(level), Mockito.same(endpoint), Mockito.any());
 	}
 
 	@Test
@@ -208,7 +216,6 @@ class EnderLinkerItemTest {
 		LinkedStorageHostDescriptor descriptor = new LinkedStorageHostDescriptor(TestEndpointAdapter.FACTORY_ID, new CompoundTag());
 		Mockito.when(endpoint.getLinkedStorageBlockEndpointAdapter()).thenReturn(adapter);
 		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(descriptor));
-		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
 		Mockito.when(adapter.acceptsHostFactory(TestEndpointAdapter.FACTORY_ID)).thenReturn(true);
 		Mockito.when(adapter.getCompatibility(level, endpoint, descriptor)).thenReturn(ILinkedStorageEndpointAdapter.Compatibility.COMPATIBLE);
 		Mockito.when(savedData.manager()).thenReturn(manager);
@@ -234,7 +241,6 @@ class EnderLinkerItemTest {
 		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
 		ServerLevel level = Mockito.mock(ServerLevel.class);
 		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter();
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(manager.createGroup(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(groupId);
 		Mockito.when(manager.resolveVirtualHost(groupId)).thenReturn(Optional.of(new ILinkedStorageVirtualHost() {
 			@Override
@@ -244,7 +250,8 @@ class EnderLinkerItemTest {
 		}));
 		Mockito.when(savedData.manager()).thenReturn(manager);
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 			ItemStack linker = new ItemStack(Items.BLAZE_ROD);
 
@@ -270,7 +277,6 @@ class EnderLinkerItemTest {
 				return false;
 			}
 		};
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
 		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(new LinkedStorageHostDescriptor(adapter.factoryId(), new CompoundTag())));
 		Mockito.when(savedData.manager()).thenReturn(manager);
@@ -278,7 +284,8 @@ class EnderLinkerItemTest {
 		linker.set(ModCoreDataComponents.ENDER_LINKER_TARGET, new EnderLinkerTargetData(groupId, Component.empty()));
 		ItemStack endpoint = new ItemStack(Items.STRING);
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 
 			assertFalse(LinkedStorageService.link(level, linker, endpoint));
@@ -300,9 +307,9 @@ class EnderLinkerItemTest {
 		Player player = Mockito.mock(Player.class);
 		Slot slot = Mockito.mock(Slot.class);
 		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter();
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(player.level()).thenReturn(level);
 		Mockito.when(slot.getItem()).thenReturn(new ItemStack(Items.BONE));
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		Mockito.when(manager.getActivePendingCraftClaim(claimId))
 				.thenReturn(Optional.of(new ActivePendingCraftClaim(claimId, groupId, primaryEndpointId, EnderLinkPendingCraftPlan.CREATE_PRIMARY)));
 		Mockito.when(manager.isEndpointMember(groupId, primaryEndpointId)).thenReturn(true);
@@ -314,7 +321,8 @@ class EnderLinkerItemTest {
 		ItemStack linker = new ItemStack(Items.BLAZE_ROD);
 		linker.set(ModCoreDataComponents.ENDER_LINK_PENDING_CRAFT, new EnderLinkPendingCraftData(EnderLinkPendingCraftPlan.CREATE_PRIMARY, claimId));
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 			EnderLinkerItem linkerItem = Mockito.mock(EnderLinkerItem.class, Mockito.CALLS_REAL_METHODS);
 
@@ -381,6 +389,7 @@ class EnderLinkerItemTest {
 		Slot slot = Mockito.mock(Slot.class);
 		Mockito.when(player.level()).thenReturn(level);
 		Mockito.when(slot.getItem()).thenReturn(ItemStack.EMPTY);
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		EnderLinkerItem linkerItem = Mockito.mock(EnderLinkerItem.class, Mockito.CALLS_REAL_METHODS);
 
 		assertFalse(linkerItem.overrideStackedOnOther(new ItemStack(Items.BLAZE_ROD), slot, ClickAction.SECONDARY, player));
@@ -415,6 +424,7 @@ class EnderLinkerItemTest {
 		endpoint.set(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT, endpointData);
 		Mockito.when(player.level()).thenReturn(level);
 		Mockito.when(slot.getItem()).thenReturn(endpoint);
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		Mockito.when(manager.isEndpointMember(groupId, endpointId)).thenReturn(true);
 		mockLinkedStorageHost(manager, groupId);
 		Mockito.when(savedData.manager()).thenReturn(manager);
@@ -448,6 +458,7 @@ class EnderLinkerItemTest {
 		Slot slot = Mockito.mock(Slot.class);
 		Mockito.when(player.level()).thenReturn(level);
 		Mockito.when(slot.getItem()).thenReturn(endpoint);
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		EnderLinkerItem linkerItem = Mockito.mock(EnderLinkerItem.class, Mockito.CALLS_REAL_METHODS);
 
 		assertTrue(linkerItem.overrideStackedOnOther(linker, slot, ClickAction.SECONDARY, player));
@@ -478,9 +489,9 @@ class EnderLinkerItemTest {
 				return false;
 			}
 		};
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(player.level()).thenReturn(level);
 		Mockito.when(slot.getItem()).thenReturn(new ItemStack(Items.STRING));
+		Mockito.when(slot.mayPickup(player)).thenReturn(true);
 		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
 		Mockito.when(manager.getHostDescriptor(groupId)).thenReturn(Optional.of(new LinkedStorageHostDescriptor(adapter.factoryId(), new CompoundTag())));
 		Mockito.when(savedData.manager()).thenReturn(manager);
@@ -488,7 +499,8 @@ class EnderLinkerItemTest {
 		EnderLinkerTargetData target = new EnderLinkerTargetData(groupId, Component.empty());
 		linker.set(ModCoreDataComponents.ENDER_LINKER_TARGET, target);
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 			EnderLinkerItem linkerItem = Mockito.mock(EnderLinkerItem.class, Mockito.CALLS_REAL_METHODS);
 
@@ -509,7 +521,6 @@ class EnderLinkerItemTest {
 		LinkedStorageGroupsSavedData savedData = Mockito.mock(LinkedStorageGroupsSavedData.class);
 		ServerLevel level = Mockito.mock(ServerLevel.class);
 		ILinkedStorageItemEndpointAdapter adapter = new TestEndpointAdapter();
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(manager.isEndpointMember(groupId, sourceEndpointId)).thenReturn(true);
 		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
 		Mockito.when(savedData.manager()).thenReturn(manager);
@@ -517,7 +528,8 @@ class EnderLinkerItemTest {
 		LinkedStorageEndpointData sourceEndpoint = new LinkedStorageEndpointData(groupId, sourceEndpointId);
 		source.set(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT, sourceEndpoint);
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 
 			ItemStack copy = LinkedStorageService.createSecondaryEndpointCopy(level, source).orElseThrow();
@@ -546,14 +558,14 @@ class EnderLinkerItemTest {
 				throw new IllegalStateException("binding failed");
 			}
 		};
-		LinkedStorageEndpointAdapters.register(adapter);
 		Mockito.when(manager.isEndpointMember(groupId, sourceEndpointId)).thenReturn(true);
 		Mockito.when(manager.usesHostFactory(groupId, adapter.factoryId())).thenReturn(true);
 		Mockito.when(savedData.manager()).thenReturn(manager);
 		ItemStack source = new ItemStack(Items.BLAZE_POWDER);
 		source.set(ModCoreDataComponents.LINKED_STORAGE_ENDPOINT, new LinkedStorageEndpointData(groupId, sourceEndpointId));
 
-		try (MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
+		try (MockedStatic<LinkedStorageEndpointAdapters> adapters = mockEndpointAdapter(adapter);
+				MockedStatic<LinkedStorageGroupsSavedData> groups = Mockito.mockStatic(LinkedStorageGroupsSavedData.class)) {
 			groups.when(() -> LinkedStorageGroupsSavedData.get(level)).thenReturn(savedData);
 
 			assertThrows(IllegalStateException.class, () -> LinkedStorageService.createSecondaryEndpointCopy(level, source));
@@ -563,6 +575,15 @@ class EnderLinkerItemTest {
 		Mockito.verify(manager, Mockito.never()).unregisterEndpoint(Mockito.eq(groupId), Mockito.any());
 	}
 
+	private static MockedStatic<LinkedStorageEndpointAdapters> mockEndpointAdapter(ILinkedStorageItemEndpointAdapter adapter) {
+		MockedStatic<LinkedStorageEndpointAdapters> adapters = Mockito.mockStatic(LinkedStorageEndpointAdapters.class);
+		adapters.when(() -> LinkedStorageEndpointAdapters.find(Mockito.any())).thenAnswer(invocation -> {
+			ItemStack stack = invocation.getArgument(0);
+			return adapter.supports(stack) ? Optional.of(adapter) : Optional.empty();
+		});
+		return adapters;
+	}
+
 	private static void mockLinkedStorageHost(LinkedStorageGroupManager manager, UUID groupId) {
 		ILinkedStorageVirtualHost host = Mockito.mock(ILinkedStorageVirtualHost.class);
 		Mockito.when(host.getLinkedStorageDisplayName()).thenReturn(Optional.empty());
@@ -570,7 +591,7 @@ class EnderLinkerItemTest {
 	}
 
 	private static class TestEndpointAdapter implements ILinkedStorageItemEndpointAdapter {
-		private static final Identifier FACTORY_ID = Identifier.fromNamespaceAndPath("sophisticatedcore", "test_endpoint_adapter");
+		private static final Identifier FACTORY_ID = Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "test_endpoint_adapter");
 
 		@Override
 		public boolean supports(ItemStack stack) {
