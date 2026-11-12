@@ -5,10 +5,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.fml.config.IConfigSpec;
@@ -38,6 +41,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -89,7 +93,11 @@ class PumpUpgradeWrapperTest {
 	void tickTransfersOtherLinkedGroupsAndOrdinaryContainers(boolean input, boolean linked) throws ReflectiveOperationException {
 		FluidTank storageTank = new FluidTank(4000);
 		FluidTank heldTank = new FluidTank(4000);
-		(input ? heldTank : storageTank).fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+		FluidStack fluid = new FluidStack(Fluids.WATER, 1000);
+		CompoundTag identity = new CompoundTag();
+		identity.putString("identity", "component-bearing-water");
+		fluid.set(DataComponents.CUSTOM_DATA, CustomData.of(identity));
+		(input ? heldTank : storageTank).fill(fluid, IFluidHandler.FluidAction.EXECUTE);
 		IStorageWrapper storage = mock(IStorageWrapper.class);
 		when(storage.getContentsUuid()).thenReturn(Optional.of(UUID.randomUUID()));
 		when(storage.getFluidHandler()).thenReturn(Optional.of(mock(IStorageFluidHandler.class, delegatesTo(storageTank))));
@@ -110,6 +118,7 @@ class PumpUpgradeWrapperTest {
 
 		assertEquals(input ? 1000 : 0, storageTank.getFluidAmount());
 		assertEquals(input ? 0 : 1000, heldTank.getFluidAmount());
+		assertTrue(FluidStack.isSameFluidSameComponents(fluid, (input ? storageTank : heldTank).getFluid()));
 		verify(player).setItemInHand(InteractionHand.MAIN_HAND, held);
 	}
 

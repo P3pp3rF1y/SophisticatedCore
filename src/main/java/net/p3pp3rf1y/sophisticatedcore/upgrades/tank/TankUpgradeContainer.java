@@ -5,8 +5,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.INameableEmptySlot;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
@@ -14,6 +16,7 @@ import net.p3pp3rf1y.sophisticatedcore.common.gui.SlotSuppliedHandler;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerBase;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeContainerType;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrapper, TankUpgradeContainer> {
@@ -23,13 +26,17 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	public TankUpgradeContainer(Player player, int upgradeContainerId, TankUpgradeWrapper upgradeWrapper,
 			UpgradeContainerType<TankUpgradeWrapper, TankUpgradeContainer> type) {
 		super(player, upgradeContainerId, upgradeWrapper, type);
-		slots.add(new TankIOSlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.INPUT_SLOT, -100, -100,
-				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input")).setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_INPUT_SLOT_BACKGROUND));
-		slots.add(new TankIOSlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.OUTPUT_SLOT, -100, -100,
-				TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output"))
-				.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_OUTPUT_SLOT_BACKGROUND));
-		slots.add(new TakeOnlySlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100));
-		slots.add(new TakeOnlySlot(supplyFromWrapper(TankUpgradeWrapper::getInventory), TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
+		slots.addAll(createContainerSlots(supplyFromWrapper(TankUpgradeWrapper::getInventory)));
+	}
+
+	public static List<Slot> createContainerSlots(Supplier<? extends IItemHandlerModifiable> inventory) {
+		return List.of(
+				new TankIOSlot(inventory, TankUpgradeWrapper.INPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_input"))
+						.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_INPUT_SLOT_BACKGROUND),
+				new TankIOSlot(inventory, TankUpgradeWrapper.OUTPUT_SLOT, -100, -100, TranslationHelper.INSTANCE.translUpgradeSlotTooltip("tank_output"))
+						.setBackground(InventoryMenu.BLOCK_ATLAS, EMPTY_TANK_OUTPUT_SLOT_BACKGROUND),
+				new TakeOnlySlot(inventory, TankUpgradeWrapper.INPUT_RESULT_SLOT, -100, -100),
+				new TakeOnlySlot(inventory, TankUpgradeWrapper.OUTPUT_RESULT_SLOT, -100, -100));
 	}
 
 	@Override
@@ -46,11 +53,10 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	}
 
 	private static class TankIOSlot extends SlotSuppliedHandler implements INameableEmptySlot {
-		private final Supplier<TankUpgradeWrapper.TankComponentItemHandler> itemHandlerSupplier;
+		private final Supplier<? extends IItemHandlerModifiable> itemHandlerSupplier;
 		private final Component emptyTooltip;
 
-		public TankIOSlot(Supplier<TankUpgradeWrapper.TankComponentItemHandler> itemHandlerSupplier, int slot, int xPosition, int yPosition,
-				Component emptyTooltip) {
+		public TankIOSlot(Supplier<? extends IItemHandlerModifiable> itemHandlerSupplier, int slot, int xPosition, int yPosition, Component emptyTooltip) {
 			super(itemHandlerSupplier::get, slot, xPosition, yPosition);
 			this.itemHandlerSupplier = itemHandlerSupplier;
 			this.emptyTooltip = emptyTooltip;
@@ -78,7 +84,7 @@ public class TankUpgradeContainer extends UpgradeContainerBase<TankUpgradeWrappe
 	}
 
 	private static class TakeOnlySlot extends SlotSuppliedHandler {
-		public TakeOnlySlot(Supplier<TankUpgradeWrapper.TankComponentItemHandler> itemHandlerSupplier, int slot, int xPosition, int yPosition) {
+		public TakeOnlySlot(Supplier<? extends IItemHandlerModifiable> itemHandlerSupplier, int slot, int xPosition, int yPosition) {
 			super(itemHandlerSupplier::get, slot, xPosition, yPosition);
 		}
 

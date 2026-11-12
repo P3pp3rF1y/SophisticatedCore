@@ -5,6 +5,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.api.StorageContentsType;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
@@ -19,9 +20,28 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public interface IUpgradeItem<T extends IUpgradeWrapper> {
+	String UPGRADE_NOT_ALLOWED_TRANSLATION_KEY = "add.upgrade_not_allowed";
+
 	UpgradeType<T> getType();
 
+	default Set<StorageContentsType> getSupportedContents() {
+		return Set.of(StorageContentsType.ITEM);
+	}
+
+	default boolean isCompatibleWith(IStorageWrapper storageWrapper) {
+		return getSupportedContents().stream().anyMatch(storageWrapper.getSupportedContents()::contains);
+	}
+
+	private UpgradeSlotChangeResult incompatibleStorage(IStorageWrapper storageWrapper) {
+		return UpgradeSlotChangeResult.fail(
+				TranslationHelper.INSTANCE.translError(UPGRADE_NOT_ALLOWED_TRANSLATION_KEY, getName(), storageWrapper.getDisplayName()), Set.of(), Set.of(),
+				Set.of());
+	}
+
 	default UpgradeSlotChangeResult canAddUpgradeTo(IStorageWrapper storageWrapper, ItemStack upgradeStack, boolean firstLevelStorage, boolean isClientSide) {
+		if (!isCompatibleWith(storageWrapper)) {
+			return incompatibleStorage(storageWrapper);
+		}
 		UpgradeSlotChangeResult result = checkUpgradePerStorageTypeLimit(storageWrapper);
 
 		if (!result.successful()) {
@@ -89,10 +109,11 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 		}
 
 		if (upgradesPerStorage == 0) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.upgrade_not_allowed", getName(), storageWrapper.getDisplayName()),
-					Set.of(), Set.of(), Set.of());
+			return UpgradeSlotChangeResult.fail(
+					TranslationHelper.INSTANCE.translError(UPGRADE_NOT_ALLOWED_TRANSLATION_KEY, getName(), storageWrapper.getDisplayName()), Set.of(), Set.of(),
+					Set.of());
 		} else if (upgradesInGroupPerStorage == 0) {
-			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError("add.upgrade_not_allowed",
+			return UpgradeSlotChangeResult.fail(TranslationHelper.INSTANCE.translError(UPGRADE_NOT_ALLOWED_TRANSLATION_KEY,
 					Component.translatable(getUpgradeGroup().translName()), storageWrapper.getDisplayName()), Set.of(), Set.of(), Set.of());
 		}
 
@@ -132,6 +153,9 @@ public interface IUpgradeItem<T extends IUpgradeWrapper> {
 	}
 
 	default UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
+		if (upgradeStackToPut.getItem() instanceof IUpgradeItem<?> upgradeToPut && !upgradeToPut.isCompatibleWith(storageWrapper)) {
+			return upgradeToPut.incompatibleStorage(storageWrapper);
+		}
 		if (upgradeStackToPut.getItem() == this) {
 			return UpgradeSlotChangeResult.success();
 		}

@@ -67,6 +67,59 @@ class LinkedStorageGroupManagerTest {
 	}
 
 	@Test
+	void discardEndpointRetainsTheHostWhileAnotherEndpointRemains() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "last_endpoint_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		ILinkedStorageVirtualHost host = manager.resolveVirtualHost(secondary, false).orElseThrow();
+
+		boolean discarded = manager.discardEndpoint(groupId, primaryId);
+
+		assertTrue(discarded);
+		assertSame(host, manager.resolveVirtualHost(secondary, false).orElseThrow());
+	}
+
+	@Test
+	void discardEndpointRevokesTheLastEndpointBeforeNotifying() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "last_endpoint_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		manager.resolveVirtualHost(secondary, false).orElseThrow();
+		manager.discardEndpoint(groupId, primaryId);
+		AtomicInteger notifications = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertTrue(manager.resolveVirtualHost(groupId).isEmpty());
+			assertTrue(manager.resolveContents(groupId).isEmpty());
+			notifications.incrementAndGet();
+		});
+		boolean discarded = manager.discardEndpoint(groupId, secondary.endpointId());
+
+		assertTrue(discarded);
+		assertEquals(1, notifications.get());
+		assertFalse(manager.isEndpointMember(groupId, secondary.endpointId()));
+	}
+
+	@Test
+	void discardEndpointRejectsAnAlreadyDiscardedEndpoint() {
+		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "discarded_endpoint_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		manager.discardEndpoint(groupId, primaryId);
+
+		boolean discarded = manager.discardEndpoint(groupId, primaryId);
+
+		assertFalse(discarded);
+	}
+
+	@Test
 	void discardUnboundGroupRevokesCachedHostBeforeNotifyingEachEndpointOnce() {
 		ResourceLocation factoryId = ResourceLocation.fromNamespaceAndPath("sophisticatedcore", "discard_capability_test_" + UUID.randomUUID());
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);

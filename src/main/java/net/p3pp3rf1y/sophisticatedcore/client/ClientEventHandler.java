@@ -299,6 +299,11 @@ public class ClientEventHandler {
 			private static final ResourceLocation XP_FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
 			@Override
+			public int getTintColor() {
+				return 0xD9FFFFFF;
+			}
+
+			@Override
 			public ResourceLocation getStillTexture() {
 				return XP_STILL_TEXTURE;
 			}

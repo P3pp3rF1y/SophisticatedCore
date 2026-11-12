@@ -120,8 +120,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int getMaxInOut() {
-		return Math.max(FluidType.BUCKET_VOLUME,
-				pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * getAdjustedStackMultiplier(storageWrapper));
+		return Math.max(FluidType.BUCKET_VOLUME, (int) Math.min(Integer.MAX_VALUE,
+				(long) pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getFluidTransferScale() * getAdjustedStackMultiplier(storageWrapper)));
 	}
 
 	public int getAdjustedStackMultiplier(IStorageWrapper storageWrapper) {
@@ -279,7 +279,7 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 		for (int tank = 0; tank < storageFluidHandler.getTanks(); tank++) {
 			FluidStack tankFluid = storageFluidHandler.getFluidInTank(tank);
 			if (!tankFluid.isEmpty() && fluidFilterLogic.fluidMatches(tankFluid)
-					&& !FluidUtil.tryFluidTransfer(fluidHandler, storageFluidHandler, new FluidStack(tankFluid.getFluid(), maxFill), true).isEmpty()) {
+					&& !FluidUtil.tryFluidTransfer(fluidHandler, storageFluidHandler, tankFluid.copyWithAmount(maxFill), true).isEmpty()) {
 				ret = true;
 				break;
 			}

@@ -196,6 +196,22 @@ public interface IStorageWrapper extends ITintable {
 		return 1;
 	}
 
+	default double getMinimumStackMultiplierRequired() {
+		return 0;
+	}
+
+	default int getFluidTransferScale() {
+		return getNumberOfSlotRows();
+	}
+
+	default boolean supportsItemContents() {
+		return getSupportedContents().contains(StorageContentsType.ITEM);
+	}
+
+	default Set<StorageContentsType> getSupportedContents() {
+		return Set.of(StorageContentsType.ITEM, StorageContentsType.FLUID);
+	}
+
 	default void onInit(Level level) {
 		getInventoryHandler().onInit();
 	}

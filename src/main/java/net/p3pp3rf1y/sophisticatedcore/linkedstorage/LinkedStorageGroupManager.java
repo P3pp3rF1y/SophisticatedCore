@@ -174,10 +174,28 @@ public class LinkedStorageGroupManager {
 		}).orElse(false);
 	}
 
+	public boolean discardEndpoint(UUID groupId, UUID endpointId) {
+		return savedData.findGroup(groupId).map(group -> {
+			if (!group.detachLostEndpoint(endpointId)) {
+				return false;
+			}
+			if (group.endpoints().isEmpty()) {
+				discardGroup(groupId);
+			} else {
+				commit(groupId, false, false, false);
+			}
+			return true;
+		}).orElse(false);
+	}
+
 	public void discardUnboundGroup(UUID groupId, UUID primaryEndpointId) {
 		if (!isPrimaryEndpoint(groupId, primaryEndpointId)) {
 			return;
 		}
+		discardGroup(groupId);
+	}
+
+	private void discardGroup(UUID groupId) {
 		virtualHosts.remove(groupId);
 		savedData.removeGroup(groupId);
 		notifyListeners(groupChangeListeners.getOrDefault(groupId, Set.of()));

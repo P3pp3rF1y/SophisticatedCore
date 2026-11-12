@@ -1,10 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.upgrades.pump;
 
+import net.p3pp3rf1y.sophisticatedcore.api.StorageContentsType;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeCountLimitConfig;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeItemBase;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeType;
 
 import java.util.List;
+import java.util.Set;
 
 public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	private static final UpgradeType<PumpUpgradeWrapper> TYPE = new UpgradeType<>(PumpUpgradeWrapper::new);
@@ -25,6 +27,11 @@ public class PumpUpgradeItem extends UpgradeItemBase<PumpUpgradeWrapper> {
 	@Override
 	public UpgradeType<PumpUpgradeWrapper> getType() {
 		return TYPE;
+	}
+
+	@Override
+	public Set<StorageContentsType> getSupportedContents() {
+		return Set.of(StorageContentsType.FLUID);
 	}
 
 	@Override
