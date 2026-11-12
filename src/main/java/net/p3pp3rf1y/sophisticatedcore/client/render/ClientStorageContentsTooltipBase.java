@@ -9,12 +9,12 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.*;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.IUpgradeWrapper;
 import net.p3pp3rf1y.sophisticatedcore.util.CountAbbreviator;
+import net.p3pp3rf1y.sophisticatedcore.util.FluidTooltipHelper;
 import net.p3pp3rf1y.sophisticatedcore.util.InventoryHelper;
 import org.jspecify.annotations.Nullable;
 
@@ -183,10 +183,7 @@ public abstract class ClientStorageContentsTooltipBase implements ClientTooltipC
 				if (fluid.isEmpty()) {
 					tooltipLines.add(Component.translatable(getEmptyFluidTooltipTranslation()).withStyle(ChatFormatting.BLUE));
 				} else {
-					tooltipLines.add(Component.translatable(getFluidTooltipTranslation(),
-							Component.literal(CountAbbreviator.abbreviate(fluidHandler.getAmountAsInt(tank))).withStyle(ChatFormatting.WHITE),
-							Component.translatable(fluid.getFluidType().getDescriptionId(fluid.toStack(FluidType.BUCKET_VOLUME)))
-									.withStyle(ChatFormatting.BLUE)));
+					tooltipLines.add(FluidTooltipHelper.getFluidTooltip(fluid.toStack(fluidHandler.getAmountAsInt(tank)), getFluidTooltipTranslation()));
 				}
 			}
 		});

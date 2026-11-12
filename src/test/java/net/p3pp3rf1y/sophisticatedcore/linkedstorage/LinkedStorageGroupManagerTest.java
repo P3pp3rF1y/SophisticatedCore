@@ -15,9 +15,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.SavedDataStorage;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.SortBy;
 import net.p3pp3rf1y.sophisticatedcore.init.ModCoreDataComponents;
 import net.p3pp3rf1y.sophisticatedcore.inventory.ContainerContents;
@@ -40,6 +43,33 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LinkedStorageGroupManagerTest {
+	@Test
+	void tankContentsHaveOneCanonicalOwnerAcrossCopySaveReloadAndClientSettingsSnapshot() {
+		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "tank_data_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupsSavedData data = new LinkedStorageGroupsSavedData();
+		ContainerContents initial = new ContainerContents();
+		initial.tank().setFluid(new FluidStack(Fluids.WATER, 4000));
+		initial.tank().setContainers(ItemContainerContents.fromItems(List.of(ItemStack.EMPTY, new ItemStack(Items.STICK, 3))));
+		UUID group = data.manager().createGroup(UUID.randomUUID(), UUID.randomUUID(), new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), initial);
+		initial.tank().setFluid(FluidStack.EMPTY);
+		assertEquals(4000, data.manager().resolveContents(group).orElseThrow().contents().tank().fluid().getAmount());
+
+		ILinkedStorageContents owner = data.manager().resolveContents(group).orElseThrow();
+		owner.contents().tank().setFluid(new FluidStack(Fluids.WATER, 7000));
+		owner.markChanged();
+		assertTrue(data.isDirty());
+		assertEquals(1, data.manager().getRevision(group));
+		ContainerContents reloaded = LinkedStorageGroupsSavedData.load(data.save()).manager().resolveContents(group).orElseThrow().contents();
+		assertEquals(7000, reloaded.tank().fluid().getAmount());
+		assertTrue(reloaded.tank().containers().getStackInSlot(1).is(Items.STICK));
+		assertEquals(3, reloaded.tank().containers().getStackInSlot(1).getCount());
+
+		ClientLinkedStorageContents.updateContents(group, 1, reloaded, net.minecraft.network.chat.Component.literal("Tank"), 0, 2, 0);
+		ClientLinkedStorageContents.updateSettings(group, new ContainerContents.SettingsData());
+		assertEquals(7000, ClientLinkedStorageContents.getContents(group).orElseThrow().contents().tank().fluid().getAmount());
+		ClientLinkedStorageContents.clear();
+	}
 	@Test
 	void onHandlersInvalidatedNotifiesEndpointsWithoutChangingPersistedRevisions() {
 		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "capability_listener_test_" + UUID.randomUUID());
@@ -87,6 +117,62 @@ class LinkedStorageGroupManagerTest {
 	}
 
 	@Test
+	void discardEndpointRetainsTheHostWhileAnotherEndpointRemains() {
+		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "last_endpoint_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new ContainerContents());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		ILinkedStorageVirtualHost host = manager.resolveVirtualHost(secondary, false).orElseThrow();
+
+		boolean discarded = manager.discardEndpoint(groupId, primaryId);
+
+		assertTrue(discarded);
+		assertSame(host, manager.resolveVirtualHost(secondary, false).orElseThrow());
+	}
+
+	@Test
+	void discardEndpointRevokesTheLastEndpointBeforeNotifying() {
+		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "last_endpoint_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new ContainerContents());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		manager.resolveVirtualHost(secondary, false).orElseThrow();
+		manager.discardEndpoint(groupId, primaryId);
+		AtomicInteger notifications = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertTrue(manager.resolveVirtualHost(groupId).isEmpty());
+			assertTrue(manager.resolveContents(groupId).isEmpty());
+			notifications.incrementAndGet();
+		});
+		boolean discarded = manager.discardEndpoint(groupId, secondary.endpointId());
+
+		assertTrue(discarded);
+		assertEquals(1, notifications.get());
+		assertFalse(manager.isEndpointMember(groupId, secondary.endpointId()));
+	}
+
+	@Test
+	void discardEndpointRejectsAnAlreadyDiscardedEndpoint() {
+		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "discarded_endpoint_test_" + UUID.randomUUID());
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()),
+				new ContainerContents());
+		manager.discardEndpoint(groupId, primaryId);
+
+		boolean discarded = manager.discardEndpoint(groupId, primaryId);
+
+		assertFalse(discarded);
+	}
+
+	@Test
 	void discardUnboundGroupRevokesCachedHostBeforeNotifyingEachEndpointOnce() {
 		Identifier factoryId = Identifier.fromNamespaceAndPath("sophisticatedcore", "discard_capability_test_" + UUID.randomUUID());
 		LinkedStorageHostFactories.register(factoryId, TestHost::new);
@@ -117,6 +203,7 @@ class LinkedStorageGroupManagerTest {
 		Bootstrap.bootStrap();
 		Items.STICK.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
 		Items.DIAMOND.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+		Fluids.WATER.builtInRegistryHolder().bindComponents(DataComponentMap.EMPTY);
 	}
 
 	@Test

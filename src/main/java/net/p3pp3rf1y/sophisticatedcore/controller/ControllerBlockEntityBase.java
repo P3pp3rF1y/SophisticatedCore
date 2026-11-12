@@ -492,16 +492,22 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 	}
 
 	private <T> Optional<T> getWrapperValueFromHolder(ControllerStorageKey storageKey, Function<IStorageWrapper, T> valueGetter) {
+		return getLoadedStorageRepresentative(storageKey).map(holder -> valueGetter.apply(holder.getStorageWrapper()));
+	}
+
+	protected List<IControllableStorage> getLoadedStorageRepresentatives() {
+		return storageKeys.stream().map(this::getLoadedStorageRepresentative).flatMap(Optional::stream).toList();
+	}
+
+	private Optional<IControllableStorage> getLoadedStorageRepresentative(ControllerStorageKey storageKey) {
 		if (storageKey.groupId() == null) {
-			return WorldHelper.getLoadedBlockEntity(level, storageKey.position(), IControllableStorage.class)
-					.map(holder -> valueGetter.apply(holder.getStorageWrapper()));
+			return WorldHelper.getLoadedBlockEntity(level, storageKey.position(), IControllableStorage.class);
 		}
 
 		List<IControllableStorage> holders = storageKeysByPosition.entrySet().stream().filter(entry -> entry.getValue().equals(storageKey))
 				.map(Map.Entry::getKey).map(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class)).flatMap(Optional::stream).toList();
 		// An unlocked endpoint permits general I/O; a locked one retains matching-item filtering.
-		return holders.stream().filter(IControllableStorage::isControllerStorageAccessible).findFirst().or(() -> holders.stream().findFirst())
-				.map(holder -> valueGetter.apply(holder.getStorageWrapper()));
+		return holders.stream().filter(IControllableStorage::isControllerStorageAccessible).findFirst().or(() -> holders.stream().findFirst());
 	}
 
 	public void addStorageStack(BlockPos storagePos, ItemStackKey itemStackKey) {
@@ -1326,7 +1332,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		ValueIOHelper.saveList(out, "connectingBlocks", connectingBlocks, BlockPos.CODEC);
 		ValueIOHelper.saveList(out, "nonConnectingBlocks", nonConnectingBlocks, BlockPos.CODEC);
 		ValueIOHelper.saveList(out, "linkedBlocks", linkedBlocks, BlockPos.CODEC);
-		ValueIOHelper.saveList(out, "baseIndexes", baseIndexes, ExtraCodecs.POSITIVE_INT);
+		ValueIOHelper.saveList(out, "baseIndexes", baseIndexes, ExtraCodecs.NON_NEGATIVE_INT);
 		out.putInt("totalSlots", totalSlots);
 	}
 
@@ -1356,8 +1362,12 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements R
 		});
 		connectingBlocks = in.listOrEmpty("connectingBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
 		nonConnectingBlocks = in.listOrEmpty("nonConnectingBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
-		baseIndexes = in.listOrEmpty("baseIndexes", ExtraCodecs.POSITIVE_INT).stream().collect(Collectors.toCollection(ArrayList::new));
+		baseIndexes = in.listOrEmpty("baseIndexes", ExtraCodecs.NON_NEGATIVE_INT).stream().collect(Collectors.toCollection(ArrayList::new));
 		totalSlots = in.getIntOr("totalSlots", 0);
+		if (baseIndexes.size() != storageKeys.size()) {
+			baseIndexes = new ArrayList<>(Collections.nCopies(storageKeys.size(), 0));
+			totalSlots = 0;
+		}
 		linkedBlocks = in.listOrEmpty("linkedBlocks", BlockPos.CODEC).stream().collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
