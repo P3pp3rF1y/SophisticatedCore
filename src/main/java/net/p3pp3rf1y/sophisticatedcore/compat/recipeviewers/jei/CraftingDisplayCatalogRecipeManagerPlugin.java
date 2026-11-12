@@ -20,6 +20,10 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeManagerPlugin<CraftingRecipe> {
+	private static final String MAIN_COLOR_TAG = "mainColor";
+	private static final String ACCENT_COLOR_TAG = "accentColor";
+	private static final String CLOTH_COLOR_TAG = "clothColor";
+	private static final String BORDER_COLOR_TAG = "borderColor";
 	private final Supplier<IRecipeViewerDisplayCatalog> catalogSupplier;
 	private final Predicate<ItemStack> focusedStackPredicate;
 
@@ -48,10 +52,10 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 		}
 		IRecipeViewerDisplayCatalog catalog = catalogSupplier.get();
 		List<CraftingRecipe> globalRecipes = getGlobalRecipes(catalog);
-		return distinctRecipes(catalog.getCraftingUsagesFor(stack).stream().filter(view -> !isReplaceableVanillaDisplay(view, stack))
-				.filter(view -> !isReplaceableSourceDisplay(view, view.variants().get(0), stack))
-				.filter(view -> !isDuplicateFocusedSourceRecipe(view, view.variants().get(0), stack, globalRecipes))
-				.map(view -> view.spec().recipe(view.variants())).toList());
+		return distinctRecipes(
+				catalog.getCraftingUsagesFor(stack).stream().filter(view -> view.spec().replacedRecipeIds().isEmpty() || hasSyntheticColors(stack))
+						.filter(view -> !isDuplicateFocusedSourceRecipe(view, view.variants().get(0), stack, globalRecipes))
+						.map(view -> view.spec().recipe(view.variants())).toList());
 	}
 
 	@Override
@@ -94,21 +98,17 @@ public class CraftingDisplayCatalogRecipeManagerPlugin implements ISimpleRecipeM
 
 	private static boolean isDuplicateFocusedSourceRecipe(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedInput,
 			List<CraftingRecipe> globalRecipes) {
-		return !focusedInput.hasTag() && hasSameDisplayRecipe(globalRecipes, view.spec().recipe(variant)) && isSourceFocus(view, variant, focusedInput);
-	}
-
-	private static boolean isReplaceableVanillaDisplay(CraftingDisplayView view, ItemStack focusedStack) {
-		return !focusedStack.hasTag() && !(view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior) && !view.spec().replacedRecipeIds().isEmpty()
-				&& view.variants().stream().allMatch(variant -> !isSourceFocus(view, variant, focusedStack));
+		return hasSameDisplayRecipe(globalRecipes, view.spec().recipe(variant)) && isSourceFocus(view, variant, focusedInput);
 	}
 
 	private static boolean isReplaceableVanillaOutputDisplay(CraftingDisplayView view, ItemStack focusedStack) {
-		return !focusedStack.hasTag() && !(view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior) && !view.spec().replacedRecipeIds().isEmpty()
-				&& view.variants().stream().allMatch(variant -> !isSourceFocus(view, variant, focusedStack));
+		return !hasSyntheticColors(focusedStack) && !(view.spec().focusBehavior() instanceof IGroupedOutputFocusBehavior)
+				&& !view.spec().replacedRecipeIds().isEmpty();
 	}
 
-	private static boolean isReplaceableSourceDisplay(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedStack) {
-		return !view.spec().replacedRecipeIds().isEmpty() && isSourceFocus(view, variant, focusedStack) && !focusedStack.hasTag();
+	private static boolean hasSyntheticColors(ItemStack stack) {
+		return stack.getTag() != null && (stack.getTag().contains(MAIN_COLOR_TAG) || stack.getTag().contains(ACCENT_COLOR_TAG)
+				|| stack.getTag().contains(CLOTH_COLOR_TAG) || stack.getTag().contains(BORDER_COLOR_TAG));
 	}
 
 	private static boolean isSourceFocus(CraftingDisplayView view, CraftingDisplayVariant variant, ItemStack focusedInput) {

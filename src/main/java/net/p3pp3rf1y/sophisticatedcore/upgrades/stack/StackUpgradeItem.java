@@ -2,6 +2,7 @@ package net.p3pp3rf1y.sophisticatedcore.upgrades.stack;
 
 import net.minecraft.world.item.ItemStack;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.api.StorageContentsType;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
 import net.p3pp3rf1y.sophisticatedcore.common.gui.UpgradeSlotChangeResult;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.*;
@@ -57,6 +58,11 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 	}
 
 	@Override
+	public Set<StorageContentsType> getSupportedContents() {
+		return stackSizeMultiplier > 1 ? Set.of(StorageContentsType.ITEM, StorageContentsType.FLUID) : Set.of(StorageContentsType.ITEM);
+	}
+
+	@Override
 	public List<UpgradeConflictDefinition> getUpgradeConflicts() {
 		return List.of();
 	}
@@ -93,10 +99,6 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 
 	@Override
 	public UpgradeSlotChangeResult canSwapUpgradeFor(ItemStack upgradeStackToPut, int upgradeSlot, IStorageWrapper storageWrapper, boolean isClientSide) {
-		if (isClientSide) {
-			return new UpgradeSlotChangeResult.Success();
-		}
-
 		UpgradeSlotChangeResult result = super.canSwapUpgradeFor(upgradeStackToPut, upgradeSlot, storageWrapper, isClientSide);
 		if (!result.isSuccessful()) {
 			return result;
@@ -150,7 +152,7 @@ public class StackUpgradeItem extends UpgradeItemBase<StackUpgradeItem.Wrapper> 
 			}
 		}
 
-		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty()) {
+		if (!slotsOverMultiplier.isEmpty() || !errorInventoryParts.isEmpty() || storageWrapper.getMinimumStackMultiplierRequired() > effectiveMultiplier) {
 			return new UpgradeSlotChangeResult.Fail(TranslationHelper.INSTANCE.translError("remove.stack_low_multiplier", inventorySlotLimit),
 					errorUpgradeSlots, slotsOverMultiplier, errorInventoryParts);
 		}

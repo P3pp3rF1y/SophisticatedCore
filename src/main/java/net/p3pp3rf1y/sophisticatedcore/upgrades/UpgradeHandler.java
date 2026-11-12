@@ -56,7 +56,7 @@ public class UpgradeHandler extends ItemStackHandler {
 
 	@Override
 	public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
-		return stack.isEmpty() || stack.getItem() instanceof IUpgradeItem;
+		return stack.isEmpty() || stack.getItem() instanceof IUpgradeItem<?> upgrade && upgrade.isCompatibleWith(storageWrapper);
 	}
 
 	@Override

@@ -14,6 +14,8 @@ import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.UV;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ContentsFilterControl;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.ContentsFilterType;
 
+import javax.annotation.Nullable;
+
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions.createToggleButtonDefinition;
 import static net.p3pp3rf1y.sophisticatedcore.client.gui.controls.ButtonDefinitions.getBooleanStateData;
 
@@ -32,21 +34,26 @@ public class MagnetUpgradeTab extends UpgradeSettingsTab<MagnetUpgradeContainer>
 			GuiHelper.getButtonStateData(new UV(112, 48), TranslationHelper.INSTANCE.translUpgradeButton("do_not_pickup_xp"), Dimension.SQUARE_16,
 					new Position(1, 1))));
 
+	@Nullable
 	protected ContentsFilterControl filterLogicControl;
 
 	protected MagnetUpgradeTab(MagnetUpgradeContainer upgradeContainer, Position position, StorageScreenBase<?> screen, Component tabLabel,
 			Component closedTooltip) {
 		super(upgradeContainer, position, screen, tabLabel, closedTooltip);
 
-		addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), PICKUP_ITEMS,
-				button -> getContainer().setPickupItems(!getContainer().shouldPickupItems()), () -> getContainer().shouldPickupItems()));
+		if (upgradeContainer.supportsItemPickup()) {
+			addHideableChild(new ToggleButton<>(new Position(x + 3, y + 24), PICKUP_ITEMS,
+					button -> getContainer().setPickupItems(!getContainer().shouldPickupItems()), () -> getContainer().shouldPickupItems()));
+		}
 		addHideableChild(new ToggleButton<>(new Position(x + 21, y + 24), PICKUP_XP, button -> getContainer().setPickupXp(!getContainer().shouldPickupXp()),
 				() -> getContainer().shouldPickupXp()));
 	}
 
 	@Override
 	protected void moveSlotsToTab() {
-		filterLogicControl.moveSlotsToView();
+		if (filterLogicControl != null) {
+			filterLogicControl.moveSlotsToView();
+		}
 	}
 
 	public static class Basic extends MagnetUpgradeTab {
@@ -54,8 +61,10 @@ public class MagnetUpgradeTab extends UpgradeSettingsTab<MagnetUpgradeContainer>
 				ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton) {
 			super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("magnet"),
 					TranslationHelper.INSTANCE.translUpgradeTooltip("magnet"));
-			filterLogicControl = addHideableChild(new ContentsFilterControl.Basic(screen, new Position(x + 3, y + 44), getContainer().getFilterLogicContainer(),
-					slotsPerRow, contentsFilterButton));
+			if (upgradeContainer.supportsItemPickup()) {
+				filterLogicControl = addHideableChild(new ContentsFilterControl.Basic(screen, new Position(x + 3, y + 44),
+						getContainer().getFilterLogicContainer(), slotsPerRow, contentsFilterButton));
+			}
 
 		}
 	}
@@ -65,8 +74,10 @@ public class MagnetUpgradeTab extends UpgradeSettingsTab<MagnetUpgradeContainer>
 				ButtonDefinition.Toggle<ContentsFilterType> contentsFilterButton) {
 			super(upgradeContainer, position, screen, TranslationHelper.INSTANCE.translUpgrade("advanced_magnet"),
 					TranslationHelper.INSTANCE.translUpgradeTooltip("advanced_magnet"));
-			filterLogicControl = addHideableChild(new ContentsFilterControl.Advanced(screen, new Position(x + 3, y + 44),
-					getContainer().getFilterLogicContainer(), slotsPerRow, contentsFilterButton));
+			if (upgradeContainer.supportsItemPickup()) {
+				filterLogicControl = addHideableChild(new ContentsFilterControl.Advanced(screen, new Position(x + 3, y + 44),
+						getContainer().getFilterLogicContainer(), slotsPerRow, contentsFilterButton));
+			}
 		}
 	}
 }

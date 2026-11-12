@@ -12,6 +12,8 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.List;
 import java.util.Map;
@@ -61,5 +63,21 @@ class StackUpgradeItemTest {
 		StackUpgradeItem.Wrapper wrapper = mock(StackUpgradeItem.Wrapper.class);
 		when(wrapper.getStackSizeMultiplier()).thenReturn(stackSizeMultiplier);
 		return wrapper;
+	}
+
+	@ParameterizedTest
+	@CsvSource({"2, false", "2.5, true"})
+	void isMultiplierHighEnoughIncludesNativeContentsWithoutInventorySlots(double multiplier, boolean expected) {
+		IStorageWrapper storageWrapper = mock(IStorageWrapper.class);
+		UpgradeHandler upgradeHandler = mock(UpgradeHandler.class);
+		InventoryHandler inventoryHandler = mock(InventoryHandler.class);
+		when(storageWrapper.getUpgradeHandler()).thenReturn(upgradeHandler);
+		when(storageWrapper.getInventoryHandler()).thenReturn(inventoryHandler);
+		when(upgradeHandler.getSlotWrappers()).thenReturn(Map.of());
+		when(storageWrapper.getMinimumStackMultiplierRequired()).thenReturn(2.5);
+
+		UpgradeSlotChangeResult result = StackUpgradeItem.isMultiplierHighEnough(storageWrapper, multiplier, -1);
+
+		Assertions.assertEquals(expected, result.isSuccessful());
 	}
 }

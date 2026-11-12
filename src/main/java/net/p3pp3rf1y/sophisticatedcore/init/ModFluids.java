@@ -48,6 +48,11 @@ public class ModFluids {
 						private static final ResourceLocation XP_FLOWING_TEXTURE = new ResourceLocation(SophisticatedCore.MOD_ID, "block/xp_flowing");
 
 						@Override
+						public int getTintColor() {
+							return 0xD9FFFFFF;
+						}
+
+						@Override
 						public ResourceLocation getStillTexture() {
 							return XP_STILL_TEXTURE;
 						}

@@ -498,16 +498,22 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private <T> Optional<T> getWrapperValueFromHolder(ControllerStorageKey storageKey, Function<IStorageWrapper, T> valueGetter) {
+		return getLoadedStorageRepresentative(storageKey).map(holder -> valueGetter.apply(holder.getStorageWrapper()));
+	}
+
+	protected List<IControllableStorage> getLoadedStorageRepresentatives() {
+		return storageKeys.stream().map(this::getLoadedStorageRepresentative).flatMap(Optional::stream).toList();
+	}
+
+	private Optional<IControllableStorage> getLoadedStorageRepresentative(ControllerStorageKey storageKey) {
 		if (storageKey.groupId() == null) {
-			return WorldHelper.getLoadedBlockEntity(level, storageKey.position(), IControllableStorage.class)
-					.map(holder -> valueGetter.apply(holder.getStorageWrapper()));
+			return WorldHelper.getLoadedBlockEntity(level, storageKey.position(), IControllableStorage.class);
 		}
 
 		List<IControllableStorage> holders = storageKeysByPosition.entrySet().stream().filter(entry -> entry.getValue().equals(storageKey))
 				.map(Map.Entry::getKey).map(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class)).flatMap(Optional::stream).toList();
 		// An unlocked endpoint permits general I/O; a locked one retains matching-item filtering.
-		return holders.stream().filter(IControllableStorage::isControllerStorageAccessible).findFirst().or(() -> holders.stream().findFirst())
-				.map(holder -> valueGetter.apply(holder.getStorageWrapper()));
+		return holders.stream().filter(IControllableStorage::isControllerStorageAccessible).findFirst().or(() -> holders.stream().findFirst());
 	}
 
 	public void addStorageStack(BlockPos storagePos, ItemStackKey itemStackKey) {

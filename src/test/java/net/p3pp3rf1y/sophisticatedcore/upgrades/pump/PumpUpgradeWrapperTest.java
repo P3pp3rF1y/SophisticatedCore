@@ -10,7 +10,17 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageFluidHandler;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
 import net.p3pp3rf1y.sophisticatedcore.linkedstorage.LinkedStorageEndpointData;
@@ -25,6 +35,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -74,6 +87,47 @@ class PumpUpgradeWrapperTest {
 		linked.put("endpoint", new LinkedStorageEndpointData(groupId, UUID.randomUUID()).save());
 		when(hand.getTagElement("linked_storage")).thenReturn(linked);
 		return hand;
+	}
+
+	@ParameterizedTest
+	@CsvSource({"true, true", "true, false", "false, true", "false, false"})
+	void tickTransfersOtherLinkedGroupsAndOrdinaryContainers(boolean input, boolean linked) throws ReflectiveOperationException {
+		FluidTank storageTank = new FluidTank(4000);
+		FluidTank heldTank = new FluidTank(4000);
+		FluidStack fluid = new FluidStack(Fluids.WATER, 1000);
+		CompoundTag identity = new CompoundTag();
+		identity.putString("identity", "component-bearing-water");
+		fluid.setTag(identity);
+		(input ? heldTank : storageTank).fill(fluid, IFluidHandler.FluidAction.EXECUTE);
+		IStorageWrapper storage = mock(IStorageWrapper.class);
+		when(storage.getContentsUuid()).thenReturn(Optional.of(UUID.randomUUID()));
+		when(storage.getFluidHandler()).thenReturn(Optional.of(mock(IStorageFluidHandler.class, delegatesTo(storageTank))));
+		PumpUpgradeWrapper wrapper = createWrapper(storage, true, input);
+		ItemStack held = mock(ItemStack.class);
+		when(held.getCount()).thenReturn(1);
+		if (linked) {
+			CompoundTag endpoint = new CompoundTag();
+			endpoint.put("endpoint", new LinkedStorageEndpointData(UUID.randomUUID(), UUID.randomUUID()).save());
+			when(held.getTagElement("linked_storage")).thenReturn(endpoint);
+		}
+		IFluidHandlerItem itemHandler = mock(IFluidHandlerItem.class, delegatesTo(heldTank));
+		doReturn(held).when(itemHandler).getContainer();
+		// Forge's CapabilityToken.getType is transformed only in a running game; provide
+		// the capability identities while testing the real pump against mocked handlers.
+		try (MockedStatic<CapabilityManager> capabilities = mockStatic(CapabilityManager.class)) {
+			capabilities.when(() -> CapabilityManager.get(any(CapabilityToken.class))).thenAnswer(invocation -> mock(Capability.class));
+			when(held.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)).thenReturn(LazyOptional.of(() -> itemHandler));
+			Player player = mock(Player.class);
+			when(player.getItemInHand(InteractionHand.MAIN_HAND)).thenReturn(held);
+			Level level = mock(Level.class);
+
+			wrapper.tick(player, level, BlockPos.ZERO);
+
+			assertEquals(input ? 1000 : 0, storageTank.getFluidAmount());
+			assertEquals(input ? 0 : 1000, heldTank.getFluidAmount());
+			assertTrue(fluid.isFluidEqual((input ? storageTank : heldTank).getFluid()));
+			verify(player).setItemInHand(InteractionHand.MAIN_HAND, held);
+		}
 	}
 
 	@Test

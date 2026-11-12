@@ -1,9 +1,12 @@
 package net.p3pp3rf1y.sophisticatedcore.linkedstorage;
 
+import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -16,6 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LinkedStorageGroupManagerTest {
+	@BeforeAll
+	static void setup() {
+		SharedConstants.tryDetectVersion();
+		Bootstrap.bootStrap();
+	}
+
 	@Test
 	void onHandlersInvalidatedNotifiesEndpointsWithoutChangingPersistedRevisions() {
 		ResourceLocation factoryId = factoryId("capability_listener_test");
@@ -37,6 +46,59 @@ class LinkedStorageGroupManagerTest {
 		assertEquals(2, second.get());
 		assertEquals(0, manager.getRevision(groupId));
 		assertEquals(0, manager.getRenderRevision(groupId));
+	}
+
+	@Test
+	void discardEndpointRetainsTheHostWhileAnotherEndpointRemains() {
+		ResourceLocation factoryId = factoryId("last_endpoint_test");
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		ILinkedStorageVirtualHost host = manager.resolveVirtualHost(secondary, false).orElseThrow();
+
+		boolean discarded = manager.discardEndpoint(groupId, primaryId);
+
+		assertTrue(discarded);
+		assertSame(host, manager.resolveVirtualHost(secondary, false).orElseThrow());
+	}
+
+	@Test
+	void discardEndpointRevokesTheLastEndpointBeforeNotifying() {
+		ResourceLocation factoryId = factoryId("last_endpoint_test");
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		LinkedStorageEndpointData secondary = manager.createSecondaryEndpoint(new LinkedStorageEndpointData(groupId, primaryId)).orElseThrow();
+		manager.resolveVirtualHost(secondary, false).orElseThrow();
+		manager.discardEndpoint(groupId, primaryId);
+		AtomicInteger notifications = new AtomicInteger();
+		manager.subscribeToGroupChanges(groupId, () -> {
+			assertTrue(manager.resolveVirtualHost(groupId).isEmpty());
+			assertTrue(manager.resolveContents(groupId).isEmpty());
+			notifications.incrementAndGet();
+		});
+		boolean discarded = manager.discardEndpoint(groupId, secondary.endpointId());
+
+		assertTrue(discarded);
+		assertEquals(1, notifications.get());
+		assertFalse(manager.isEndpointMember(groupId, secondary.endpointId()));
+	}
+
+	@Test
+	void discardEndpointRejectsAnAlreadyDiscardedEndpoint() {
+		ResourceLocation factoryId = factoryId("discarded_endpoint_test");
+		LinkedStorageHostFactories.register(factoryId, TestHost::new);
+		LinkedStorageGroupManager manager = new LinkedStorageGroupsSavedData().manager();
+		UUID primaryId = UUID.randomUUID();
+		UUID groupId = manager.createGroup(UUID.randomUUID(), primaryId, new LinkedStorageHostDescriptor(factoryId, new CompoundTag()), new CompoundTag());
+		manager.discardEndpoint(groupId, primaryId);
+
+		boolean discarded = manager.discardEndpoint(groupId, primaryId);
+
+		assertFalse(discarded);
 	}
 
 	@Test

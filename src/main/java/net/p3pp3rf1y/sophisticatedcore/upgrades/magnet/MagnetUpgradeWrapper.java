@@ -246,7 +246,11 @@ public class MagnetUpgradeWrapper extends UpgradeWrapperBase<MagnetUpgradeWrappe
 	}
 
 	public boolean shouldPickupItems() {
-		return NBTHelper.getBoolean(upgrade, "pickupItems").orElse(true);
+		return supportsItemPickup() && NBTHelper.getBoolean(upgrade, "pickupItems").orElse(true);
+	}
+
+	public boolean supportsItemPickup() {
+		return storageWrapper.supportsItemContents();
 	}
 
 	public void setPickupXp(boolean pickupXp) {
