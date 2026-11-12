@@ -71,8 +71,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private static final int TITLE_CONTROL_PADDING = 2;
 	public static final int UPGRADE_INVENTORY_OFFSET = 21;
 	public static final int DISABLED_SLOT_X_POS = -2000;
-	static final int SLOTS_Y_OFFSET = 17;
-	static final int SLOTS_X_OFFSET = 7;
+	protected static final int SLOTS_Y_OFFSET = 17;
+	protected static final int SLOTS_X_OFFSET = 7;
 	public static final int ERROR_SLOT_COLOR = (DyeColor.RED.getTextureDiffuseColor() & 0x00_FFFFFF) | 0xAA000000;
 	private static final int DISABLED_FILTER_SLOT_COLOR = 0x80_000000;
 	private static final int ERROR_TEXT_COLOR = DyeColor.RED.getTextureDiffuseColor();
@@ -254,8 +254,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			for (int j = 0; j < 9; ++j) {
 				int slotIndex = j + i * 9;
 				int xPosition = playerInventoryXOffset + 8 + j * 18;
-				Slot slot = getMenu().getSlot(
-						getMenu().getInventorySlotsSize() - getMenu().getExtraSlots().size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + slotIndex);
+				Slot slot = getMenu().getSlot(getMenu().getNumberOfStorageInventorySlots() + slotIndex);
 				slot.x = xPosition;
 				slot.y = yPosition;
 			}
@@ -266,8 +265,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 		for (int slotIndex = 0; slotIndex < 9; ++slotIndex) {
 			int xPosition = playerInventoryXOffset + 8 + slotIndex * 18;
-			Slot slot = getMenu().getSlot(
-					getMenu().getInventorySlotsSize() - getMenu().getExtraSlots().size() - StorageContainerMenuBase.NUMBER_OF_PLAYER_SLOTS + 3 * 9 + slotIndex);
+			Slot slot = getMenu().getSlot(getMenu().getNumberOfStorageInventorySlots() + 3 * 9 + slotIndex);
 			slot.x = xPosition;
 			slot.y = yPosition;
 		}
@@ -292,12 +290,14 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 			initUpgradeInventoryControls();
 			addUpgradeSwitches();
 		});
-		if (shouldShowSortButtons()) {
+		if (getMenu().getStorageWrapper().supportsItemContents() && shouldShowSortButtons()) {
 			addSortButtons();
 		}
 
-		addTransferButtons();
-		addSearchBox();
+		if (getMenu().getStorageWrapper().supportsItemContents()) {
+			addTransferButtons();
+			addSearchBox();
+		}
 
 		initializing = false;
 	}
@@ -474,6 +474,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 
 	private void addUpgradeSwitches() {
 		upgradeSwitches.forEach(this::removeWidget);
+		children().removeAll(upgradeSwitches);
 		upgradeSwitches.clear();
 		int switchTop = topPos + 8;
 		for (int slot = 0; slot < numberOfUpgradeSlots; slot++) {

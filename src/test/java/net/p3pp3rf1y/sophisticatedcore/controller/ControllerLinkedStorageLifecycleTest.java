@@ -13,6 +13,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityTypes;
@@ -30,6 +31,8 @@ import net.p3pp3rf1y.sophisticatedcore.util.WorldHelper;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 
 import java.util.List;
@@ -58,6 +61,70 @@ class ControllerLinkedStorageLifecycleTest {
 		Items.DIAMOND.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
 		Items.GOLD_INGOT.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
 		Items.COBBLESTONE.builtInRegistryHolder().bindComponents(DataComponentMap.builder().set(DataComponents.MAX_STACK_SIZE, 64).build());
+	}
+
+	@Test
+	void getUpdateTagPreservesTheZeroSlotIndexOfAFluidOnlyMember() {
+		TestController controller = new TestController();
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 0));
+
+		CompoundTag saved = controller.getUpdateTag(REGISTRIES);
+
+		assertEquals(List.of(0),
+				ValueIOHelper.inputFromCompoundTag(REGISTRIES, saved).listOrEmpty("baseIndexes", ExtraCodecs.NON_NEGATIVE_INT).stream().toList());
+	}
+
+	@ParameterizedTest
+	@ValueSource(ints = {0, 4})
+	void onLoadRebuildsAMissingSlotIndexFromTheLoadedMember(int slots) {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		CompoundTag saved = savedGroup(null, FIRST, List.of(FIRST), slots);
+		saved.remove("baseIndexes");
+		load(controller, saved);
+		IControllableStorage member = storage(FIRST, null, slots);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(member));
+
+			controller.onLoad();
+
+			assertEquals(slots, controller.getSlots(0));
+			assertEquals(slots, controller.size());
+			assertEquals(List.of(FIRST), controller.getStoragePositions());
+			verify(level, never()).getChunkSource();
+		}
+	}
+
+	@Test
+	void onLoadRebuildsMisalignedOffsetsForMixedFluidAndItemMembers() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		BlockPos third = new BlockPos(2, 0, 0);
+		CompoundTag saved = ValueIOHelper.collectOutputToTag(REGISTRIES, out -> {
+			ValueIOHelper.saveList(out, "storageKeys",
+					List.of(new ControllerStorageKey(FIRST), new ControllerStorageKey(SECOND), new ControllerStorageKey(third)), ControllerStorageKey.CODEC);
+			ValueIOHelper.saveList(out, "baseIndexes", List.of(4, 4), ExtraCodecs.NON_NEGATIVE_INT);
+			out.putInt("totalSlots", 4);
+		});
+		load(controller, saved);
+		IControllableStorage first = storage(FIRST, null, 0);
+		IControllableStorage second = storage(SECOND, null, 4);
+		IControllableStorage last = storage(third, null, 0);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(first));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, SECOND, IControllableStorage.class)).thenReturn(Optional.of(second));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, third, IControllableStorage.class)).thenReturn(Optional.of(last));
+
+			controller.onLoad();
+
+			assertEquals(0, controller.getSlots(0));
+			assertEquals(4, controller.getSlots(1));
+			assertEquals(0, controller.getSlots(2));
+			assertEquals(4, controller.size());
+			verify(level, never()).getChunkSource();
+		}
 	}
 
 	@Test

@@ -16,14 +16,20 @@ public class MagnetUpgradeContainer extends UpgradeContainerBase<MagnetUpgradeWr
 			UpgradeContainerType<MagnetUpgradeWrapper, MagnetUpgradeContainer> type) {
 		super(player, containerId, wrapper, type);
 
-		filterLogicContainer = new ContentsFilterLogicContainer(supplyFromWrapper(MagnetUpgradeWrapper::getFilterLogic), this, slots::add);
+		filterLogicContainer = new ContentsFilterLogicContainer(supplyFromWrapper(MagnetUpgradeWrapper::getFilterLogic), this, slot -> {
+			if (supportsItemPickup()) {
+				slots.add(slot);
+			}
+		});
 	}
 
 	@Override
 	public void handlePacket(CompoundTag data) {
 		data.getBoolean(DATA_PICKUP_ITEMS).ifPresent(this::setPickupItems);
 		data.getBoolean(DATA_PICKUP_XP).ifPresent(this::setPickupXp);
-		filterLogicContainer.handlePacket(data);
+		if (supportsItemPickup()) {
+			filterLogicContainer.handlePacket(data);
+		}
 	}
 
 	public ContentsFilterLogicContainer getFilterLogicContainer() {
@@ -37,6 +43,10 @@ public class MagnetUpgradeContainer extends UpgradeContainerBase<MagnetUpgradeWr
 
 	public boolean shouldPickupItems() {
 		return upgradeWrapper.shouldPickupItems();
+	}
+
+	public boolean supportsItemPickup() {
+		return upgradeWrapper.supportsItemPickup();
 	}
 
 	public void setPickupXp(boolean pickupXp) {

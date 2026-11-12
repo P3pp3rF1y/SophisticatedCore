@@ -123,8 +123,8 @@ public class PumpUpgradeWrapper extends UpgradeWrapperBase<PumpUpgradeWrapper, P
 	}
 
 	private int getMaxInOut() {
-		return Math.max(FluidType.BUCKET_VOLUME,
-				pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getNumberOfSlotRows() * getAdjustedStackMultiplier(storageWrapper));
+		return Math.max(FluidType.BUCKET_VOLUME, (int) Math.min(Integer.MAX_VALUE,
+				(long) pumpUpgradeConfig.maxInputOutput.get() * storageWrapper.getFluidTransferScale() * getAdjustedStackMultiplier(storageWrapper)));
 	}
 
 	public int getAdjustedStackMultiplier(IStorageWrapper storageWrapper) {

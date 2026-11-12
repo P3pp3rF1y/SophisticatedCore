@@ -335,10 +335,12 @@ public class ClientEventHandler {
 	}
 
 	private static void registerFluidModels(RegisterFluidModelsEvent event) {
-		event.register(new FluidModel.Unbaked(
-				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still")),
-				new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing")), null,
-				null), ModFluids.XP_STILL.get(), ModFluids.XP_FLOWING.get());
+		event.register(
+				new FluidModel.Unbaked(
+						new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_still")),
+						new net.minecraft.client.resources.model.sprite.Material(Identifier.fromNamespaceAndPath(SophisticatedCore.MOD_ID, "block/xp_flowing")),
+						null, (net.neoforged.neoforge.client.fluid.FluidTintSource) fluidState -> 0xD9FFFFFF),
+				ModFluids.XP_STILL.get(), ModFluids.XP_FLOWING.get());
 	}
 
 	private static class SophisticatedScreenKeyConflictContext implements IKeyConflictContext {

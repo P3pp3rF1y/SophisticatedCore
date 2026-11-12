@@ -6,16 +6,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
@@ -93,10 +97,15 @@ class PumpUpgradeWrapperTest {
 	@ParameterizedTest
 	@CsvSource({"true, true", "true, false", "false, true", "false, false"})
 	void tickTransfersOtherLinkedGroupsAndOrdinaryContainers(boolean input, boolean linked) throws ReflectiveOperationException {
+		FluidStack fluid = new FluidStack(Fluids.WATER, 1000);
+		CompoundTag identity = new CompoundTag();
+		identity.putString("identity", "component-bearing-water");
+		fluid.set(DataComponents.CUSTOM_DATA, CustomData.of(identity));
+		FluidResource water = FluidResource.of(fluid);
 		FluidStacksResourceHandler storageTank = new FluidStacksResourceHandler(1, 4000);
 		FluidStacksResourceHandler heldTank = new FluidStacksResourceHandler(1, 4000);
 		try (Transaction tx = Transaction.openRoot()) {
-			(input ? heldTank : storageTank).insert(FluidResource.of(Fluids.WATER), 1000, tx);
+			(input ? heldTank : storageTank).insert(water, 1000, tx);
 			tx.commit();
 		}
 		IStorageWrapper storage = mock(IStorageWrapper.class);
@@ -120,6 +129,7 @@ class PumpUpgradeWrapperTest {
 
 		assertEquals(input ? 1000 : 0, storageTank.getAmountAsInt(0));
 		assertEquals(input ? 0 : 1000, heldTank.getAmountAsInt(0));
+		assertEquals(water, (input ? storageTank : heldTank).getResource(0));
 		verify(player).setItemInHand(InteractionHand.MAIN_HAND, held);
 	}
 
