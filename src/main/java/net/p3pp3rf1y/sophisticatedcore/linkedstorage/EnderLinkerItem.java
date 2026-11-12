@@ -53,12 +53,15 @@ public class EnderLinkerItem extends ItemBase {
 
 	@Override
 	public boolean overrideStackedOnOther(ItemStack linker, Slot slot, ClickAction action, Player player) {
-		return action == ClickAction.SECONDARY && tryLinkItemEndpoint(player, linker, slot.getItem()).isPresent();
+		return action == ClickAction.SECONDARY && slot.mayPickup(player) && tryLinkItemEndpoint(player, linker, slot.getItem(), slot::set).isPresent();
 	}
 
 	@Override
 	public boolean overrideOtherStackedOnMe(ItemStack linker, ItemStack endpoint, Slot slot, ClickAction action, Player player, SlotAccess carriedAccess) {
-		return action == ClickAction.SECONDARY && tryLinkItemEndpoint(player, linker, endpoint).isPresent();
+		return action == ClickAction.SECONDARY && slot.mayPickup(player) && tryLinkItemEndpoint(player, linker, endpoint, remainder -> {
+			slot.set(linker);
+			carriedAccess.set(remainder);
+		}).isPresent();
 	}
 
 	@Override
@@ -90,8 +93,21 @@ public class EnderLinkerItem extends ItemBase {
 		return tryLinkInteractionTarget(player, linker, target, feedbackPos);
 	}
 
-	private static Optional<LinkedStorageService.LinkResult> tryLinkItemEndpoint(Player player, ItemStack linker, ItemStack endpoint) {
-		return tryLinkItemInteractionTarget(player, linker, () -> endpoint, null);
+	private static Optional<LinkedStorageService.LinkResult> tryLinkItemEndpoint(Player player, ItemStack linker, ItemStack endpoint,
+			Consumer<ItemStack> updateSource) {
+		boolean splitEndpoint = endpoint.getCount() > 1 && LinkedStorageStackLifecycle.classifyEndpoint(endpoint) == LinkedStorageEndpointStackState.UNLINKED;
+		ItemStack endpointToLink = splitEndpoint ? endpoint.copyWithCount(1) : endpoint;
+		Optional<LinkedStorageService.LinkResult> result = tryLinkItemInteractionTarget(player, linker, () -> endpointToLink, null);
+		if (player.level() instanceof ServerLevel && result.orElse(null) == LinkedStorageService.LinkResult.SUCCESS) {
+			if (splitEndpoint) {
+				endpoint.shrink(1);
+			}
+			updateSource.accept(endpoint);
+			if (splitEndpoint && !player.getInventory().add(endpointToLink)) {
+				player.drop(endpointToLink, false);
+			}
+		}
+		return result;
 	}
 
 	public static Optional<LinkedStorageService.LinkResult> tryLinkInteractionTarget(Player player, ItemStack linker, ILinkedStorageInteractionTarget target,
