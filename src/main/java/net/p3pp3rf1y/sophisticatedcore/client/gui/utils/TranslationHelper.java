@@ -121,6 +121,10 @@ public class TranslationHelper {
 		return translItemTooltip(RegistryHelper.getItemKey(item).getPath());
 	}
 
+	public MutableComponent translItem(String itemName, String itemKey, Object... params) {
+		return Component.translatable(itemUpgradePrefix + itemName + "." + itemKey, params);
+	}
+
 	public MutableComponent translItemTooltip(Item item, String tooltipName, Object... params) {
 		return translItemTooltip(RegistryHelper.getItemKey(item).getPath(), tooltipName, params);
 	}

@@ -72,7 +72,7 @@ public class UpgradeHandler extends ItemStacksResourceHandler implements ISlotSt
 
 	@Override
 	public boolean isValid(int index, ItemResource resource) {
-		return resource.isEmpty() || resource.getItem() instanceof IUpgradeItem<?>;
+		return resource.isEmpty() || resource.getItem() instanceof IUpgradeItem<?> upgrade && upgrade.isCompatibleWith(storageWrapper);
 	}
 
 	@Override

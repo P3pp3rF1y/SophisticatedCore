@@ -7,17 +7,20 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.fml.config.IConfigSpec;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageFluidHandler;
@@ -92,7 +95,11 @@ class PumpUpgradeWrapperTest {
 	@ParameterizedTest
 	@CsvSource({"true, true", "true, false", "false, true", "false, false"})
 	void tickTransfersOtherLinkedGroupsAndOrdinaryContainers(boolean input, boolean linked) throws ReflectiveOperationException {
-		FluidResource water = FluidResource.of(Fluids.WATER);
+		FluidStack fluid = new FluidStack(Fluids.WATER, 1000);
+		CompoundTag identity = new CompoundTag();
+		identity.putString("identity", "component-bearing-water");
+		fluid.set(DataComponents.CUSTOM_DATA, CustomData.of(identity));
+		FluidResource water = FluidResource.of(fluid);
 		AtomicInteger storageAmount = new AtomicInteger(input ? 0 : 1000);
 		AtomicInteger heldAmount = new AtomicInteger(input ? 1000 : 0);
 		IStorageFluidHandler storageHandler = mock(IStorageFluidHandler.class);
@@ -119,6 +126,7 @@ class PumpUpgradeWrapperTest {
 
 		assertEquals(input ? 1000 : 0, storageAmount.get());
 		assertEquals(input ? 0 : 1000, heldAmount.get());
+		assertEquals(FluidResource.of(fluid), (input ? storageHandler : heldHandler).getResource(0));
 		verify(player).setItemInHand(InteractionHand.MAIN_HAND, held);
 	}
 

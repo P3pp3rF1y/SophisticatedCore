@@ -377,7 +377,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	protected boolean isUpgradeSettingsSlot(int index) {
-		return index >= getNumberOfStorageInventorySlots() + getNumberOfUpgradeSlots() + NUMBER_OF_PLAYER_SLOTS && index < getTotalSlotsNumber();
+		return index >= getFirstUpgradeSlot() + getNumberOfUpgradeSlots() && index < getTotalSlotsNumber();
 	}
 
 	public boolean isStorageInventorySlot(int slotIndex) {
@@ -1155,6 +1155,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 		remoteUpgradeSlots.clear();
 		upgradeContainers.clear();
 
+		extraSlotsSize = 0;
 		initSlotsAndContainers(player, storageItemSlotIndex, shouldLockStorageItemSlot, extraSlots);
 		slotsChangedSinceStartOfClick = true;
 	}

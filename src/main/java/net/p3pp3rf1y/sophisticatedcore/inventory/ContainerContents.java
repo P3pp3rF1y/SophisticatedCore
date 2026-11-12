@@ -20,7 +20,10 @@ import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.storage.ValueInput;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.renderdata.DisplaySide;
 import net.p3pp3rf1y.sophisticatedcore.settings.itemdisplay.ItemDisplaySettingsCategory;
@@ -41,24 +44,32 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public record ContainerContents(InventoryData inventory, PartitionerData partitioner, UpgradeData upgrades, SettingsData settings) {
-	public static Codec<ContainerContents> CODEC = Codec.withAlternative(
-			RecordCodecBuilder.create(instance -> instance.group(InventoryData.CODEC.fieldOf("inventory").forGetter(ContainerContents::inventory),
-					PartitionerData.CODEC.fieldOf("partitioner").forGetter(ContainerContents::partitioner),
-					UpgradeData.CODEC.fieldOf("upgrades").forGetter(ContainerContents::upgrades),
-					SettingsData.CODEC.fieldOf("settings").forGetter(ContainerContents::settings)).apply(instance, ContainerContents::new)),
-			CompoundTag.CODEC, LegacyDeserialization::legacyDeserialize);
+public record ContainerContents(InventoryData inventory, PartitionerData partitioner, UpgradeData upgrades, SettingsData settings, TankData tank) {
+	public static Codec<ContainerContents> CODEC = Codec
+			.withAlternative(
+					RecordCodecBuilder.create(instance -> instance
+							.group(InventoryData.CODEC.fieldOf("inventory").forGetter(ContainerContents::inventory),
+									PartitionerData.CODEC.fieldOf("partitioner").forGetter(ContainerContents::partitioner),
+									UpgradeData.CODEC.fieldOf("upgrades").forGetter(ContainerContents::upgrades),
+									SettingsData.CODEC.fieldOf("settings").forGetter(ContainerContents::settings),
+									TankData.CODEC.optionalFieldOf("tank", new TankData()).forGetter(ContainerContents::tank))
+							.apply(instance, ContainerContents::new)),
+					CompoundTag.CODEC, LegacyDeserialization::legacyDeserialize);
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ContainerContents> STREAM_CODEC = StreamCodec.composite(InventoryData.STREAM_CODEC,
 			ContainerContents::inventory, PartitionerData.STREAM_CODEC, ContainerContents::partitioner, UpgradeData.STREAM_CODEC, ContainerContents::upgrades,
-			SettingsData.STREAM_CODEC, ContainerContents::settings, ContainerContents::new);
+			SettingsData.STREAM_CODEC, ContainerContents::settings, TankData.STREAM_CODEC, ContainerContents::tank, ContainerContents::new);
+
+	public ContainerContents(InventoryData inventory, PartitionerData partitioner, UpgradeData upgrades, SettingsData settings) {
+		this(inventory, partitioner, upgrades, settings, new TankData());
+	}
 
 	public ContainerContents() {
 		this(new InventoryData(), new PartitionerData(), new UpgradeData(), new SettingsData());
 	}
 
 	public ContainerContents copy() {
-		return new ContainerContents(inventory.copy(), partitioner.copy(), upgrades.copy(), settings.copy());
+		return new ContainerContents(inventory.copy(), partitioner.copy(), upgrades.copy(), settings.copy(), tank.copy());
 	}
 
 	public void reloadFrom(ContainerContents contents) {
@@ -66,6 +77,53 @@ public record ContainerContents(InventoryData inventory, PartitionerData partiti
 		partitioner.reloadFrom(contents.partitioner);
 		upgrades.reloadFrom(contents.upgrades);
 		settings.reloadFrom(contents.settings);
+		tank.reloadFrom(contents.tank);
+	}
+
+	public static final class TankData {
+		public static final Codec<TankData> CODEC = RecordCodecBuilder.create(instance -> instance
+				.group(SimpleFluidContent.CODEC.optionalFieldOf("tankFluid", SimpleFluidContent.EMPTY).forGetter(data -> SimpleFluidContent.copyOf(data.fluid)),
+						ItemContainerContents.CODEC.optionalFieldOf("fluidContainers", ItemContainerContents.EMPTY).forGetter(TankData::containers))
+				.apply(instance, (fluid, containers) -> new TankData(fluid.copy(), containers)));
+		public static final StreamCodec<RegistryFriendlyByteBuf, TankData> STREAM_CODEC = StreamCodec.composite(SimpleFluidContent.STREAM_CODEC,
+				data -> SimpleFluidContent.copyOf(data.fluid), ItemContainerContents.STREAM_CODEC, TankData::containers,
+				(fluid, containers) -> new TankData(fluid.copy(), containers));
+		private FluidStack fluid;
+		private ItemContainerContents containers;
+
+		public TankData() {
+			this(FluidStack.EMPTY, ItemContainerContents.EMPTY);
+		}
+
+		public TankData(FluidStack fluid, ItemContainerContents containers) {
+			this.fluid = fluid.copy();
+			this.containers = containers;
+		}
+
+		public FluidStack fluid() {
+			return fluid.copy();
+		}
+
+		public void setFluid(FluidStack fluid) {
+			this.fluid = fluid.copy();
+		}
+
+		public ItemContainerContents containers() {
+			return containers;
+		}
+
+		public void setContainers(ItemContainerContents containers) {
+			this.containers = containers;
+		}
+
+		public TankData copy() {
+			return new TankData(fluid, containers);
+		}
+
+		public void reloadFrom(TankData data) {
+			setFluid(data.fluid);
+			containers = data.containers;
+		}
 	}
 
 	public static class InventoryData {

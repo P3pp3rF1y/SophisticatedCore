@@ -61,8 +61,9 @@ public final class ClientLinkedStorageContents {
 			return;
 		}
 		ContainerContents contents = snapshot.contents().copy();
-		Snapshot updated = new Snapshot(new ContainerContents(contents.inventory(), contents.partitioner(), contents.upgrades(), settings.copy()),
-				snapshot.revision(), snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), snapshot.columnsTaken(), snapshot.sortBy());
+		Snapshot updated = new Snapshot(
+				new ContainerContents(contents.inventory(), contents.partitioner(), contents.upgrades(), settings.copy(), contents.tank()), snapshot.revision(),
+				snapshot.groupName(), snapshot.inventorySlots(), snapshot.upgradeSlots(), snapshot.columnsTaken(), snapshot.sortBy());
 		SNAPSHOTS.put(groupId, updated);
 		ClientContents clientContents = CONTENTS.get(groupId);
 		if (clientContents != null) {
