@@ -88,7 +88,7 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 
 	private int innerReceiveEnergy(int maxReceive, boolean simulate) {
 		int ret = Math.min(getMaxEnergyStored() - energyStored, Math.min(getMaxInOut(), maxReceive));
-		if (!simulate) {
+		if (!simulate && ret != 0) {
 			energyStored += ret;
 			serializeEnergyStored();
 		}
@@ -109,7 +109,7 @@ public class BatteryUpgradeWrapper extends UpgradeWrapperBase<BatteryUpgradeWrap
 	private int innerExtractEnergy(int maxExtract, boolean simulate) {
 		int ret = Math.min(energyStored, Math.min(getMaxInOut(), maxExtract));
 
-		if (!simulate) {
+		if (!simulate && ret != 0) {
 			energyStored -= ret;
 			serializeEnergyStored();
 		}
