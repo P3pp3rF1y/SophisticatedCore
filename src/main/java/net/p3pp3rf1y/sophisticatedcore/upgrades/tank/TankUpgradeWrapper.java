@@ -11,10 +11,10 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemAccessItemHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
@@ -27,6 +27,7 @@ import net.p3pp3rf1y.sophisticatedcore.upgrades.ITickableUpgrade;
 import net.p3pp3rf1y.sophisticatedcore.upgrades.UpgradeWrapperBase;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, TankUpgradeItem>
@@ -158,12 +159,6 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		return toFill;
 	}
 
-	private void serializeContents() {
-		upgrade.set(ModCoreDataComponents.FLUID_CONTENTS, SimpleFluidContent.copyOf(contents));
-		save();
-		forceUpdateTankRenderData();
-	}
-
 	public int extract(FluidResource resource, int maxDrain, TransactionContext tx, boolean ignoreInOutLimit) {
 		if (contents.isEmpty() || !resource.matches(contents)) {
 			return 0;
@@ -225,35 +220,93 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		@Override
 		protected void revertToSnapshot(TankSnapshot snapshot) {
 			contents = snapshot.fluid();
-			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, snapshot.items());
+			inventory.setComponentContents(snapshot.items());
 		}
 
 		@Override
 		protected void onRootCommit(TankSnapshot originalState) {
+			persistChanges(originalState);
+		}
+
+		private void persistChanges(TankSnapshot originalState) {
 			boolean fluidChanged = !FluidStack.matches(originalState.fluid(), contents);
+			ItemContainerContents currentItemContents = inventory.getComponentContents();
+			boolean itemsChanged = !originalState.items().equals(currentItemContents);
+			if (itemsChanged) {
+				upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, currentItemContents);
+			}
 			if (fluidChanged) {
-				serializeContents();
-			} else if (!originalState.items().equals(inventory.getComponentContents())) {
+				upgrade.set(ModCoreDataComponents.FLUID_CONTENTS, SimpleFluidContent.copyOf(contents));
+			}
+			if (itemsChanged || fluidChanged) {
 				save();
+				if (fluidChanged) {
+					forceUpdateTankRenderData();
+				}
 			}
 		}
 	}
 
-	public class TankComponentItemHandler extends ItemAccessItemHandler {
+	public class TankComponentItemHandler extends ItemStacksResourceHandler {
+		private ItemContainerContents componentContents;
+
 		public TankComponentItemHandler(ItemStack upgrade) {
-			super(ItemAccess.forStack(upgrade), ModCoreDataComponents.LENIENT_CONTAINER.get(), 4);
+			super(getInitialStacks(upgrade.getOrDefault(ModCoreDataComponents.LENIENT_CONTAINER, ItemContainerContents.EMPTY)));
+			componentContents = upgrade.getOrDefault(ModCoreDataComponents.LENIENT_CONTAINER, ItemContainerContents.EMPTY);
+		}
+
+		private static NonNullList<ItemStack> getInitialStacks(ItemContainerContents componentContents) {
+			NonNullList<ItemStack> initialStacks = NonNullList.withSize(4, ItemStack.EMPTY);
+			componentContents.copyInto(initialStacks);
+			return initialStacks;
 		}
 
 		@Override
 		public int insert(int index, ItemResource resource, int amount, TransactionContext tx) {
-			journal.updateSnapshots(tx);
-			return super.insert(index, resource, amount, tx);
+			Objects.checkIndex(index, size());
+			TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+
+			ItemStack currentStack = stacks.get(index);
+			int currentAmount = currentStack.getCount();
+			if ((currentAmount == 0 || resource.matches(currentStack)) && isValid(index, resource)) {
+				int inserted = Math.min(amount, getCapacity(index, resource) - currentAmount);
+				if (inserted > 0) {
+					journal.updateSnapshots(tx);
+					stacks.set(index, resource.toStack(currentAmount + inserted));
+					return inserted;
+				}
+			}
+
+			return 0;
 		}
 
 		@Override
 		public int extract(int index, ItemResource resource, int amount, TransactionContext tx) {
-			journal.updateSnapshots(tx);
-			return super.extract(index, resource, amount, tx);
+			Objects.checkIndex(index, size());
+			TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+
+			ItemStack currentStack = stacks.get(index);
+			if (resource.matches(currentStack)) {
+				int currentAmount = currentStack.getCount();
+				int extracted = Math.min(amount, currentAmount);
+				if (extracted > 0) {
+					journal.updateSnapshots(tx);
+					stacks.set(index, resource.toStack(currentAmount - extracted));
+					return extracted;
+				}
+			}
+
+			return 0;
+		}
+
+		@Override
+		public void set(int index, ItemResource resource, int amount) {
+			TransferPreconditions.checkNonNegative(amount);
+			if (resource.isEmpty() && amount > 0) {
+				throw new IllegalArgumentException("Resource is empty but the amount is positive: " + amount);
+			}
+
+			setStackInSlot(index, resource.toStack(amount));
 		}
 
 		@Override
@@ -261,12 +314,26 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 			return containers.isItemValid(index, resource.toStack());
 		}
 
+		protected void onContentsChanged(int index, ItemStack previousContents) {
+			// The wrapper journal persists the detached contents after every root transaction.
+		}
+
 		public ItemStack getStackInSlot(int slot) {
-			return getStackFromContents(getComponentContents(), slot);
+			return stacks.get(slot).copy();
 		}
 
 		private ItemContainerContents getComponentContents() {
-			return getContents(itemAccess.getResource());
+			NonNullList<ItemStack> allStacks = NonNullList.withSize(Math.max(componentContents.getSlots(), stacks.size()), ItemStack.EMPTY);
+			componentContents.copyInto(allStacks);
+			for (int slot = 0; slot < stacks.size(); slot++) {
+				allStacks.set(slot, stacks.get(slot));
+			}
+			return ItemContainerContents.fromItems(allStacks);
+		}
+
+		private void setComponentContents(ItemContainerContents componentContents) {
+			this.componentContents = componentContents;
+			setStacks(getInitialStacks(componentContents));
 		}
 
 		private void migrateLegacyContents() {
@@ -284,7 +351,11 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		}
 
 		public void setStackInSlot(int slot, ItemStack stack) {
+			if (ItemStack.matches(stacks.get(slot), stack)) {
+				return;
+			}
 			setStackInSlotInternal(slot, stack);
+			upgrade.set(ModCoreDataComponents.LENIENT_CONTAINER, getComponentContents());
 			save();
 		}
 
@@ -294,11 +365,7 @@ public class TankUpgradeWrapper extends UpgradeWrapperBase<TankUpgradeWrapper, T
 		}
 
 		private void setStackInSlotInternal(int slot, ItemStack stack) {
-			ItemContainerContents contents = getComponentContents();
-			NonNullList<ItemStack> list = NonNullList.withSize(Math.max(contents.getSlots(), this.size), ItemStack.EMPTY);
-			contents.copyInto(list);
-			list.set(slot, stack);
-			upgrade.set(component, ItemContainerContents.fromItems(list));
+			stacks.set(slot, stack.copy());
 		}
 	}
 
