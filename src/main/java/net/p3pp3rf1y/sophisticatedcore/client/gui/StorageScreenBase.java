@@ -100,6 +100,7 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	@Nullable
 	private Button transferToInventoryButton;
 	private int transferButtonsShiftX = 0;
+	private int transferButtonsShiftY = 0;
 	private SearchBox searchBox;
 	private Label noResultsLabel;
 	@Nullable
@@ -392,8 +393,10 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 		if (transferToStorageButton == null || transferToInventoryButton == null) {
 			return;
 		}
-		transferToStorageButton.setPosition(new Position(leftPos + inventoryLabelX + 137 + transferButtonsShiftX, topPos + inventoryLabelY - 2));
-		transferToInventoryButton.setPosition(new Position(leftPos + inventoryLabelX + 149 + transferButtonsShiftX, topPos + inventoryLabelY - 2));
+		transferToStorageButton
+				.setPosition(new Position(leftPos + inventoryLabelX + 137 + transferButtonsShiftX, topPos + inventoryLabelY - 2 + transferButtonsShiftY));
+		transferToInventoryButton
+				.setPosition(new Position(leftPos + inventoryLabelX + 149 + transferButtonsShiftX, topPos + inventoryLabelY - 2 + transferButtonsShiftY));
 	}
 
 	public Optional<Position> getTransferToInventoryButtonPosition() {
@@ -404,11 +407,16 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	}
 
 	public void setTransferButtonsShift(int shiftX) {
-		if (transferButtonsShiftX == shiftX) {
+		setTransferButtonsOffset(shiftX, 0);
+	}
+
+	public void setTransferButtonsOffset(int shiftX, int shiftY) {
+		if (transferButtonsShiftX == shiftX && transferButtonsShiftY == shiftY) {
 			return;
 		}
 
 		transferButtonsShiftX = shiftX;
+		transferButtonsShiftY = shiftY;
 		updateTransferButtonsPositions();
 	}
 
