@@ -146,8 +146,8 @@ public interface IControllableStorage extends IControllerBoundable {
 						if (hasStorageData()) {
 							controller.addStorageStacksAndRegisterListeners(controlledStorageBlockPos);
 						}
-					} else {
-						removeControllerPos();
+					} else if (controller.isWithinRange(controlledStorageBlockPos) || controller.getLinkedBlocks().contains(controlledStorageBlockPos)) {
+						controller.addStorage(controlledStorageBlockPos);
 					}
 				});
 			}
