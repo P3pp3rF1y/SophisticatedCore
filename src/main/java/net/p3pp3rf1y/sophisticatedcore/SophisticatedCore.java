@@ -57,6 +57,7 @@ public class SophisticatedCore {
 		modBus.addListener((FMLConstructModEvent event) -> construct(event, modBus));
 		modBus.addListener(SophisticatedCore::setup);
 		modBus.addListener(DataGenerators::gatherData);
+		modBus.addListener(DataGenerators::gatherRegistryEntries);
 
 		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(SophisticatedCore::levelLoaded);

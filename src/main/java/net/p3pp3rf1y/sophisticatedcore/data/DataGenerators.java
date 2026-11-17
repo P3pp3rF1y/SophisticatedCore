@@ -4,14 +4,13 @@ import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Holder;
-import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataRegistryEntriesEvent;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.init.ModFluids;
 
@@ -22,9 +21,12 @@ public class DataGenerators {
 	private DataGenerators() {
 	}
 
+	public static void gatherRegistryEntries(GatherDataRegistryEntriesEvent evt) {
+		evt.recipe(CoreRecipeProvider::new);
+	}
+
 	public static void gatherData(GatherDataEvent.Client evt) {
 		evt.createProvider(CoreFluidTagsProvider::new);
-		evt.createReloadableRegistryObjects(new RegistrySetBuilder().add(RecipeProvider.asBootstrap(CoreRecipeProvider::new)));
 		evt.createProvider(CoreModelProvider::new);
 	}
 
