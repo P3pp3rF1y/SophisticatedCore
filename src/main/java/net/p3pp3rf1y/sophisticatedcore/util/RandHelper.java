@@ -1,13 +1,17 @@
 package net.p3pp3rf1y.sophisticatedcore.util;
 
 import net.minecraft.util.RandomSource;
+import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RandHelper {
+	private static final AtomicBoolean ZERO_TOTAL_WEIGHT_WARNING_LOGGED = new AtomicBoolean();
+
 	private RandHelper() {
 	}
 
@@ -40,7 +44,10 @@ public class RandHelper {
 			totalWeight += weight;
 		}
 		if (totalWeight == 0) {
-			throw new IllegalArgumentException("Map passed in is either empty or the only element has 0 weight");
+			if (ZERO_TOTAL_WEIGHT_WARNING_LOGGED.compareAndSet(false, true)) {
+				SophisticatedCore.LOGGER.warn("Attempted to select a weighted element from an empty or zero-total list");
+			}
+			return Optional.empty();
 		}
 
 		int rndValue = random.nextInt(totalWeight + 1);
