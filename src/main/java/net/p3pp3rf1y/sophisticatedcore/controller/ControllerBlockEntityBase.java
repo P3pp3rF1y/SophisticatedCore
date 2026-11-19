@@ -349,7 +349,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		}
 	}
 
-	private boolean isWithinRange(BlockPos pos) {
+	public boolean isWithinRange(BlockPos pos) {
 		return Math.abs(pos.getX() - getBlockPos().getX()) <= getSearchRange() && Math.abs(pos.getY() - getBlockPos().getY()) <= getSearchRange()
 				&& Math.abs(pos.getZ() - getBlockPos().getZ()) <= getSearchRange();
 	}
