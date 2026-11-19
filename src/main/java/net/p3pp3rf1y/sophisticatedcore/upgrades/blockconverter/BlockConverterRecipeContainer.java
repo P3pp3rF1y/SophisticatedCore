@@ -113,11 +113,11 @@ public abstract class BlockConverterRecipeContainer<R extends SingleItemRecipe, 
 	}
 
 	private void updateAvailableRecipes(Container inventory, ItemStack stack) {
-		recipes.clear();
+		recipes = Lists.newArrayList();
 		selectedRecipe.set(-1);
 		outputSlot.set(ItemStack.EMPTY);
 		if (!stack.isEmpty()) {
-			recipes = RecipeHelper.getRecipesOfType(getRecipeType(), new SingleRecipeInput(inventory.getItem(0)));
+			recipes.addAll(RecipeHelper.getRecipesOfType(getRecipeType(), new SingleRecipeInput(inventory.getItem(0))));
 			recipes = filterAndSortRecipes(recipes);
 			getLastSelectedRecipeId.get().ifPresent(id -> {
 				for (int i = 0; i < recipes.size(); i++) {
