@@ -95,11 +95,11 @@ public class StonecutterRecipeContainer {
 	}
 
 	private void updateAvailableRecipes(Container inventory, ItemStack stack) {
-		recipes.clear();
+		recipes = Lists.newArrayList();
 		selectedRecipe.set(-1);
 		outputSlot.set(ItemStack.EMPTY);
 		if (!stack.isEmpty()) {
-			recipes = RecipeHelper.getRecipesOfType(RecipeType.STONECUTTING, inventory);
+			recipes.addAll(RecipeHelper.getRecipesOfType(RecipeType.STONECUTTING, inventory));
 			getLastSelectedRecipeId.get().ifPresent(id -> {
 				for (int i = 0; i < recipes.size(); i++) {
 					if (recipes.get(i).getId().equals(id)) {
