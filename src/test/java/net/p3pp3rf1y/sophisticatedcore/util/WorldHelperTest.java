@@ -3,10 +3,12 @@ package net.p3pp3rf1y.sophisticatedcore.util;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +70,32 @@ class WorldHelperTest {
 
 		assertTrue(allowed);
 		verify(player).mayInteract(targetLevel, pos);
+	}
+
+	@Test
+	void isChunkLoadedReturnsFalseWhenChunkIsAbsent() {
+		ServerLevel level = mock(ServerLevel.class);
+		ServerChunkCache chunkSource = mock(ServerChunkCache.class);
+		BlockPos pos = new BlockPos(23, 70, 41);
+		when(level.isInValidBounds(pos)).thenReturn(true);
+		when(level.getChunkSource()).thenReturn(chunkSource);
+
+		assertFalse(WorldHelper.isChunkLoaded(level, pos));
+	}
+
+	@Test
+	void isChunkLoadedReturnsTrueForLoadedChunkWithoutBlockEntity() {
+		ServerLevel level = mock(ServerLevel.class);
+		ServerChunkCache chunkSource = mock(ServerChunkCache.class);
+		LevelChunk chunk = mock(LevelChunk.class);
+		BlockPos pos = new BlockPos(23, 70, 41);
+		when(level.isInValidBounds(pos)).thenReturn(true);
+		when(level.getChunkSource()).thenReturn(chunkSource);
+		when(chunkSource.getChunkNow(1, 2)).thenReturn(chunk);
+		when(chunk.getBlockEntity(pos, LevelChunk.EntityCreationType.IMMEDIATE)).thenReturn(null);
+
+		assertTrue(WorldHelper.isChunkLoaded(level, pos));
+		assertTrue(WorldHelper.getLoadedBlockEntity(level, pos, Object.class).isEmpty());
 	}
 
 	@Test

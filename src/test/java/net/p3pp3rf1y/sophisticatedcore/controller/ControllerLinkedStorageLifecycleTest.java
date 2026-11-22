@@ -343,6 +343,77 @@ class ControllerLinkedStorageLifecycleTest {
 	}
 
 	@Test
+	void getResourcePrefersFirstAccessibleGroupMemberWithoutLookingUpLaterMembers() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		UUID group = UUID.randomUUID();
+		BlockPos third = new BlockPos(-1, 0, 0);
+		load(controller, savedGroup(group, FIRST, List.of(FIRST, SECOND, third), 4));
+		IControllableStorage locked = storage(FIRST, group, 4);
+		IControllableStorage accessible = storage(SECOND, group, 4);
+		when(accessible.isControllerStorageAccessible()).thenReturn(true);
+		ItemResource marker = ItemResource.of(Items.DIAMOND);
+		when(accessible.getStorageWrapper().getInventoryForInputOutput().getResource(0)).thenReturn(marker);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(locked));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, SECOND, IControllableStorage.class)).thenReturn(Optional.of(accessible));
+
+			ItemResource result = controller.getResource(0);
+
+			assertSame(marker, result);
+			world.verify(() -> WorldHelper.getLoadedBlockEntity(level, third, IControllableStorage.class), never());
+		}
+	}
+
+	@Test
+	void getResourceUsesFirstLoadedGroupMemberWhenAllLoadedMembersAreLocked() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		UUID group = UUID.randomUUID();
+		BlockPos third = new BlockPos(-1, 0, 0);
+		load(controller, savedGroup(group, FIRST, List.of(FIRST, SECOND, third), 4));
+		IControllableStorage firstLoaded = storage(SECOND, group, 4);
+		IControllableStorage lastLoaded = storage(third, group, 4);
+		ItemResource marker = ItemResource.of(Items.DIAMOND);
+		when(firstLoaded.getStorageWrapper().getInventoryForInputOutput().getResource(0)).thenReturn(marker);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, SECOND, IControllableStorage.class)).thenReturn(Optional.of(firstLoaded));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, third, IControllableStorage.class)).thenReturn(Optional.of(lastLoaded));
+
+			ItemResource result = controller.getResource(0);
+
+			assertSame(marker, result);
+		}
+	}
+
+	@Test
+	void addStorageMakesNewGroupMemberAvailableWhileAnchorIsOffline() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		UUID group = UUID.randomUUID();
+		load(controller, savedGroup(group, FIRST, List.of(FIRST), 4));
+		IControllableStorage added = storage(SECOND, group, 4);
+		when(added.canBeConnected()).thenReturn(true);
+		when(added.hasStorageData()).thenReturn(true);
+		ItemResource marker = ItemResource.of(Items.DIAMOND);
+		when(added.getStorageWrapper().getInventoryForInputOutput().getResource(0)).thenReturn(marker);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, SECOND, IControllerBoundable.class)).thenReturn(Optional.of(added));
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, SECOND, IControllableStorage.class)).thenReturn(Optional.of(added));
+
+			controller.addStorage(SECOND);
+			ItemResource result = controller.getResource(0);
+
+			assertSame(marker, result);
+			assertEquals(List.of(FIRST, SECOND), controller.members(FIRST));
+			assertEquals(4, controller.size());
+		}
+	}
+
+	@Test
 	void reloadReconcilesCapacityBeforeTheNextLogicalStorageAndRegistersOneListener() {
 		TestController controller = new TestController();
 		ServerLevel level = mock(ServerLevel.class);
@@ -393,6 +464,27 @@ class ControllerLinkedStorageLifecycleTest {
 	}
 
 	@Test
+	void removeStoragePromotesUnloadedLinkedMemberWithoutRemovingSlots() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		BlockPos unloadedMember = FIRST.east(16);
+		load(controller, savedGroup(UUID.randomUUID(), FIRST, List.of(FIRST, unloadedMember), 5));
+		when(level.hasChunkAt(unloadedMember)).thenReturn(false);
+
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, unloadedMember, IControllableStorage.class)).thenReturn(Optional.empty());
+
+			controller.removeStorage(FIRST);
+
+			assertEquals(List.of(unloadedMember), controller.getStoragePositions());
+			assertEquals(List.of(unloadedMember), controller.members(unloadedMember));
+			assertEquals(5, controller.size());
+			assertEquals(5, controller.getSlots(0));
+		}
+	}
+
+	@Test
 	void removingOnlyLogicalStorageShiftsFollowingPositionAndSlots() {
 		TestController controller = new TestController();
 		load(controller, savedGroup(UUID.randomUUID(), FIRST, List.of(FIRST), 4));
@@ -439,6 +531,115 @@ class ControllerLinkedStorageLifecycleTest {
 			assertEquals(List.of(SECOND), controller.getStoragePositions());
 			assertEquals(4, controller.size());
 			verify(level, never()).getChunkSource();
+		}
+	}
+
+	@Test
+	void getResourcePreservesOfflineStorageAfterRepeatedPolling() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		UUID group = UUID.randomUUID();
+		load(controller, savedGroup(group, FIRST, List.of(FIRST, SECOND), 4));
+		IControllableStorage storage = storage(FIRST, group, 4);
+		when(level.getGameTime()).thenReturn(0L, 20L);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+			controller.onLoad();
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.empty());
+			world.when(() -> WorldHelper.isChunkLoaded(level, FIRST)).thenReturn(false);
+
+			ItemResource first = controller.getResource(0);
+			ItemResource second = controller.getResource(0);
+			int inserted;
+			try (Transaction tx = Transaction.openRoot()) {
+				inserted = controller.insert(0, ItemResource.of(Items.DIAMOND), 1, tx);
+			}
+
+			assertTrue(first.isEmpty());
+			assertTrue(second.isEmpty());
+			assertEquals(0, inserted);
+			assertEquals(List.of(FIRST), controller.getStoragePositions());
+			assertEquals(List.of(FIRST, SECOND), controller.members(FIRST));
+			assertEquals(4, controller.size());
+			verify(level, never()).getGameTime();
+		}
+	}
+
+	@Test
+	void getResourcePreservesOfflineStorageMembersWithoutListenerSource() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		UUID group = UUID.randomUUID();
+		load(controller, savedGroup(group, FIRST, List.of(FIRST, SECOND), 4));
+		when(level.getGameTime()).thenReturn(0L, 20L);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.isChunkLoaded(level, FIRST)).thenReturn(false);
+			world.when(() -> WorldHelper.isChunkLoaded(level, SECOND)).thenReturn(false);
+
+			ItemResource first = controller.getResource(0);
+			ItemResource second = controller.getResource(0);
+			int inserted;
+			try (Transaction tx = Transaction.openRoot()) {
+				inserted = controller.insert(0, ItemResource.of(Items.DIAMOND), 1, tx);
+			}
+
+			assertTrue(first.isEmpty());
+			assertTrue(second.isEmpty());
+			assertEquals(0, inserted);
+			assertEquals(List.of(FIRST), controller.getStoragePositions());
+			assertEquals(List.of(FIRST, SECOND), controller.members(FIRST));
+			assertEquals(4, controller.size());
+			verify(level, never()).getGameTime();
+		}
+	}
+
+	@Test
+	void getResourceRefreshesAfterRepeatedAccessToLoadedMissingStorage() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 4));
+		IControllableStorage storage = storage(FIRST, null, 4);
+		when(level.getGameTime()).thenReturn(0L, 20L);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+			world.when(() -> WorldHelper.isChunkLoaded(level, FIRST)).thenReturn(true);
+			controller.onLoad();
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.empty());
+
+			ItemResource first = controller.getResource(0);
+			ItemResource second = controller.getResource(0);
+
+			assertTrue(first.isEmpty());
+			assertTrue(second.isEmpty());
+			assertTrue(controller.getStoragePositions().isEmpty());
+			assertEquals(0, controller.size());
+		}
+	}
+
+	@Test
+	void getResourceRefreshesAfterRepeatedAccessToLoadedUndersizedStorage() {
+		TestController controller = new TestController();
+		ServerLevel level = mock(ServerLevel.class);
+		controller.setLevel(level);
+		load(controller, savedGroup(null, FIRST, List.of(FIRST), 4));
+		IControllableStorage storage = storage(FIRST, null, 4);
+		ITrackedContentsItemResourceHandler inventory = storage.getStorageWrapper().getInventoryForInputOutput();
+		when(level.getGameTime()).thenReturn(0L, 20L);
+		try (MockedStatic<WorldHelper> world = mockStatic(WorldHelper.class)) {
+			world.when(() -> WorldHelper.getLoadedBlockEntity(level, FIRST, IControllableStorage.class)).thenReturn(Optional.of(storage));
+			world.when(() -> WorldHelper.isChunkLoaded(level, FIRST)).thenReturn(true);
+			controller.onLoad();
+			when(inventory.size()).thenReturn(1);
+
+			ItemResource first = controller.getResource(3);
+			ItemResource second = controller.getResource(3);
+
+			assertTrue(first.isEmpty());
+			assertTrue(second.isEmpty());
+			assertEquals(0, controller.size());
 		}
 	}
 

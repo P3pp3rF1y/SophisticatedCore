@@ -47,18 +47,27 @@ public class WorldHelper {
 	}
 
 	public static <T> Optional<T> getLoadedBlockEntity(@Nullable Level level, BlockPos pos, Class<T> teClass) {
-		if (level == null || !level.isInValidBounds(pos)) {
-			return Optional.empty();
-		}
-
-		ChunkPos chunkPos = ChunkPos.containing(pos);
-		LevelChunk chunk = level.getChunkSource().getChunkNow(chunkPos.x(), chunkPos.z());
+		LevelChunk chunk = getLoadedChunk(level, pos);
 		if (chunk == null) {
 			return Optional.empty();
 		}
 
 		BlockEntity blockEntity = chunk.getBlockEntity(pos, LevelChunk.EntityCreationType.IMMEDIATE);
 		return teClass.isInstance(blockEntity) ? Optional.of(teClass.cast(blockEntity)) : Optional.empty();
+	}
+
+	public static boolean isChunkLoaded(@Nullable Level level, BlockPos pos) {
+		return getLoadedChunk(level, pos) != null;
+	}
+
+	@Nullable
+	private static LevelChunk getLoadedChunk(@Nullable Level level, BlockPos pos) {
+		if (level == null || !level.isInValidBounds(pos)) {
+			return null;
+		}
+
+		ChunkPos chunkPos = ChunkPos.containing(pos);
+		return level.getChunkSource().getChunkNow(chunkPos.x(), chunkPos.z());
 	}
 
 	public static <T> Optional<T> getBlockEntity(@Nullable BlockGetter level, BlockPos pos, Class<T> teClass) {
