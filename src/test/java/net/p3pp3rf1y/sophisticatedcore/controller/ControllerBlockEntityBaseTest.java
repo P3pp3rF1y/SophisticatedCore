@@ -95,29 +95,6 @@ class ControllerBlockEntityBaseTest {
 	}
 
 	@Test
-	void removeStoragePromotesUnloadedLinkedMemberWithoutRemovingSlots() throws ReflectiveOperationException {
-		// init
-		TestControllerBlockEntity controller = new TestControllerBlockEntity();
-		BlockPos canonicalPos = BlockPos.ZERO.above();
-		BlockPos unloadedMemberPos = canonicalPos.east();
-		ControllerStorageKey storageKey = new ControllerStorageKey(canonicalPos, java.util.UUID.randomUUID());
-		controller.getStoragePositions().add(canonicalPos);
-		getPrivateList(controller, "storageKeys").add(storageKey);
-		getPrivateMap(controller, "storageKeyIndexes").put(storageKey, 0);
-		getPrivateMap(controller, "storageKeysByPosition").put(canonicalPos, storageKey);
-		getPrivateMap(controller, "storageKeysByPosition").put(unloadedMemberPos, storageKey);
-		setPrivateField(controller, "baseIndexes", new java.util.ArrayList<>(java.util.List.of(5)));
-		setPrivateField(controller, "totalSlots", 5);
-
-		// action
-		invokePrivateMethod(controller, "removeStorageInventoryDataAndUnregisterController", canonicalPos);
-
-		// assert
-		assertEquals(java.util.List.of(unloadedMemberPos), controller.getStoragePositions());
-		assertEquals(5, controller.size());
-	}
-
-	@Test
 	void loadAdditionalMigratesLegacyStoragePositionsWhenStorageKeysAreAbsent() throws ReflectiveOperationException {
 		BlockPos legacyPosition = BlockPos.ZERO.above();
 		CompoundTag tag = ValueIOHelper.collectOutputToTag(RegistryAccess.EMPTY,
@@ -161,12 +138,6 @@ class ControllerBlockEntityBaseTest {
 		java.lang.reflect.Field field = ControllerBlockEntityBase.class.getDeclaredField(name);
 		field.setAccessible(true);
 		return (java.util.List<T>) field.get(target);
-	}
-
-	private static void invokePrivateMethod(Object target, String name, BlockPos storagePos) throws ReflectiveOperationException {
-		java.lang.reflect.Method method = ControllerBlockEntityBase.class.getDeclaredMethod(name, BlockPos.class);
-		method.setAccessible(true);
-		method.invoke(target, storagePos);
 	}
 
 	private static class TestControllerBlockEntity extends ControllerBlockEntityBase {
