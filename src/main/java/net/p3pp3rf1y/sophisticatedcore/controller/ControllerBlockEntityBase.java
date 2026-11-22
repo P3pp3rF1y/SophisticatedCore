@@ -42,6 +42,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	private final List<ControllerStorageKey> storageKeys = new ArrayList<>();
 	private final Map<ControllerStorageKey, Integer> storageKeyIndexes = new HashMap<>();
 	private final Map<BlockPos, ControllerStorageKey> storageKeysByPosition = new LinkedHashMap<>();
+	private final Map<UUID, Set<BlockPos>> storagePositionsByGroup = new HashMap<>();
 	private final Map<ControllerStorageKey, BlockPos> listenerSourcePositions = new HashMap<>();
 	private List<Integer> baseIndexes = new ArrayList<>();
 	private int totalSlots = 0;
@@ -370,7 +371,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		ControllerStorageKey storageKey = storage.getControllerStorageKey();
 		BlockPos storagePos = storage.getControlledStorageBlockPos();
 		if (storageKeyIndexes.containsKey(storageKey)) {
-			storageKeysByPosition.put(storagePos, storageKey);
+			putStorageMemberPosition(storagePos, storageKey);
 			storage.registerControllerMembership(this);
 			clearCachedHandlers();
 			setChanged();
@@ -389,7 +390,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		storagePositions.add(storageKey.position());
 		int index = storageKeys.size() - 1;
 		storageKeyIndexes.put(storageKey, index);
-		storageKeysByPosition.put(storageKey.position(), storageKey);
+		putStorageMemberPosition(storageKey.position(), storageKey);
 		totalSlots += getHandlerFromIndex(index).getSlots();
 		baseIndexes.add(totalSlots);
 		addStorageStacksAndRegisterListeners(storageKey.position());
@@ -495,14 +496,24 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private Optional<IControllableStorage> getLoadedStorageRepresentative(ControllerStorageKey storageKey) {
-		if (storageKey.groupId() == null) {
+		UUID groupId = storageKey.groupId();
+		if (groupId == null) {
 			return WorldHelper.getLoadedBlockEntity(level, storageKey.position(), IControllableStorage.class);
 		}
 
-		List<IControllableStorage> holders = storageKeysByPosition.entrySet().stream().filter(entry -> entry.getValue().equals(storageKey))
-				.map(Map.Entry::getKey).map(pos -> WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class)).flatMap(Optional::stream).toList();
-		// An unlocked endpoint permits general I/O; a locked one retains matching-item filtering.
-		return holders.stream().filter(IControllableStorage::isControllerStorageAccessible).findFirst().or(() -> holders.stream().findFirst());
+		Optional<IControllableStorage> firstLoaded = Optional.empty();
+		for (BlockPos pos : storagePositionsByGroup.getOrDefault(groupId, Set.of())) {
+			Optional<IControllableStorage> holder = WorldHelper.getLoadedBlockEntity(level, pos, IControllableStorage.class);
+			if (holder.isPresent()) {
+				if (holder.get().isControllerStorageAccessible()) {
+					return holder;
+				}
+				if (firstLoaded.isEmpty()) {
+					firstLoaded = holder;
+				}
+			}
+		}
+		return firstLoaded;
 	}
 
 	public void addStorageStack(BlockPos storagePos, ItemStackKey itemStackKey) {
@@ -622,7 +633,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 				removeStorageRoutingData(storagePos);
 				listenerSourcePositions.remove(storageKey);
 			}
-			storageKeysByPosition.remove(storagePos);
+			removeStorageMemberPosition(storagePos);
 			WorldHelper.getLoadedBlockEntity(level, storagePos, IControllableStorage.class).ifPresent(storage -> {
 				if (isListenerSource) {
 					storage.unregisterController();
@@ -666,7 +677,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		storagePositions.remove((int) idx);
 		storageKeys.remove((int) idx);
 		removeStorageKeyIndex(storageKey);
-		storageKeysByPosition.remove(storagePos);
+		removeStorageMemberPosition(storagePos);
 		removeBaseIndexAt(idx);
 	}
 
@@ -694,12 +705,47 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 	}
 
 	private Set<BlockPos> getStorageMemberPositions(ControllerStorageKey storageKey) {
-		return storageKeysByPosition.entrySet().stream().filter(entry -> entry.getValue().equals(storageKey)).map(Map.Entry::getKey).collect(LinkedHashSet::new,
-				Set::add, Set::addAll);
+		UUID groupId = storageKey.groupId();
+		if (groupId == null) {
+			BlockPos pos = storageKey.position();
+			return storageKey.equals(storageKeysByPosition.get(pos)) ? Set.of(pos) : Set.of();
+		}
+		return storagePositionsByGroup.getOrDefault(groupId, Set.of());
 	}
 
 	protected Set<BlockPos> getStorageMemberPositions(BlockPos storagePos) {
-		return getStorageMemberPositions(getStorageKey(storagePos));
+		return new LinkedHashSet<>(getStorageMemberPositions(getStorageKey(storagePos)));
+	}
+
+	private void putStorageMemberPosition(BlockPos pos, ControllerStorageKey storageKey) {
+		ControllerStorageKey previousKey = storageKeysByPosition.put(pos, storageKey);
+		if (previousKey != null && !previousKey.equals(storageKey)) {
+			rebuildStoragePositionsByGroup();
+		} else if (storageKey.groupId() != null) {
+			storagePositionsByGroup.computeIfAbsent(storageKey.groupId(), groupId -> new LinkedHashSet<>()).add(pos);
+		}
+	}
+
+	private void removeStorageMemberPosition(BlockPos pos) {
+		ControllerStorageKey storageKey = storageKeysByPosition.remove(pos);
+		if (storageKey != null && storageKey.groupId() != null) {
+			UUID groupId = storageKey.groupId();
+			Set<BlockPos> members = storagePositionsByGroup.get(groupId);
+			members.remove(pos);
+			if (members.isEmpty()) {
+				storagePositionsByGroup.remove(groupId);
+			}
+		}
+	}
+
+	private void rebuildStoragePositionsByGroup() {
+		storagePositionsByGroup.clear();
+		for (Map.Entry<BlockPos, ControllerStorageKey> entry : storageKeysByPosition.entrySet()) {
+			UUID groupId = entry.getValue().groupId();
+			if (groupId != null) {
+				storagePositionsByGroup.computeIfAbsent(groupId, id -> new LinkedHashSet<>()).add(entry.getKey());
+			}
+		}
 	}
 
 	private void removeStorageKeyIndex(ControllerStorageKey storageKey) {
@@ -936,9 +982,35 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		if (slot >= 0 && slot < handler.getSlots()) {
 			return true;
 		}
-		handleInvalidSlotAccess(handlerIndex, slot, methodName);
+		if (!isStorageTemporarilyUnavailable(handlerIndex)) {
+			handleInvalidSlotAccess(handlerIndex, slot, methodName);
+		}
 
 		return false;
+	}
+
+	private boolean isStorageTemporarilyUnavailable(int handlerIndex) {
+		if (handlerIndex < 0 || handlerIndex >= storageKeys.size()) {
+			return false;
+		}
+
+		ControllerStorageKey storageKey = storageKeys.get(handlerIndex);
+		BlockPos sourcePos = listenerSourcePositions.get(storageKey);
+		if (sourcePos != null) {
+			return !WorldHelper.isChunkLoaded(level, sourcePos);
+		}
+
+		UUID groupId = storageKey.groupId();
+		if (groupId == null) {
+			BlockPos pos = storageKey.position();
+			return !storageKey.equals(storageKeysByPosition.get(pos)) || !WorldHelper.isChunkLoaded(level, pos);
+		}
+		for (BlockPos pos : storagePositionsByGroup.getOrDefault(groupId, Set.of())) {
+			if (WorldHelper.isChunkLoaded(level, pos)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private void handleInvalidSlotAccess(int handlerIndex, int slot, String methodName) {
@@ -997,6 +1069,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 		storageKeys.clear();
 		storageKeyIndexes.clear();
 		storageKeysByPosition.clear();
+		storagePositionsByGroup.clear();
 		listenerSourcePositions.clear();
 		baseIndexes.clear();
 		totalSlots = 0;
@@ -1353,6 +1426,7 @@ public abstract class ControllerBlockEntityBase extends BlockEntity implements I
 				}
 			});
 		}
+		rebuildStoragePositionsByGroup();
 		connectingBlocks = NBTHelper
 				.getCollection(tag, "connectingBlocks", Tag.TAG_LONG, t -> Optional.of(BlockPos.of(((LongTag) t).getAsLong())), LinkedHashSet::new)
 				.orElseGet(LinkedHashSet::new);
