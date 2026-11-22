@@ -33,6 +33,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.world.inventory.StackCopySlot;
 import net.p3pp3rf1y.sophisticatedcore.SophisticatedCore;
 import net.p3pp3rf1y.sophisticatedcore.api.IStorageWrapper;
+import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayout;
 import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayoutFitResult;
 import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayoutFitter;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.TranslationHelper;
@@ -635,7 +636,7 @@ public abstract class StorageContainerMenuBase<S extends IStorageWrapper> extend
 	}
 
 	private int getBaseColumns() {
-		return getBaseStorageSlots() <= 81 ? 9 : 12;
+		return InventoryLayout.getBaseColumns(getBaseStorageSlots());
 	}
 
 	private int getBaseStorageSlots() {
