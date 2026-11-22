@@ -32,6 +32,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.ContainerScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.p3pp3rf1y.sophisticatedcore.Config;
+import net.p3pp3rf1y.sophisticatedcore.api.InventoryLayout;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.controls.*;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.Dimension;
 import net.p3pp3rf1y.sophisticatedcore.client.gui.utils.GuiHelper;
@@ -146,7 +147,8 @@ public abstract class StorageScreenBase<S extends StorageContainerMenuBase<?>> e
 	private void updateDimensionsAndSlotPositions(int pHeight) {
 		int displayableNumberOfRows = Math.min((pHeight - HEIGHT_WITHOUT_STORAGE_SLOTS) / 18, getMenu().getNumberOfRows());
 		int newImageHeight = HEIGHT_WITHOUT_STORAGE_SLOTS + getStorageInventoryHeight(displayableNumberOfRows);
-		storageBackgroundProperties = (getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows()) <= 81
+		int baseSlots = getMenu().getNumberOfStorageInventorySlots() + getMenu().getColumnsTaken() * getMenu().getNumberOfRows();
+		storageBackgroundProperties = InventoryLayout.getBaseColumns(baseSlots) == StorageBackgroundProperties.REGULAR_9_SLOT.getSlotsOnLine()
 				? StorageBackgroundProperties.REGULAR_9_SLOT
 				: StorageBackgroundProperties.REGULAR_12_SLOT;
 
