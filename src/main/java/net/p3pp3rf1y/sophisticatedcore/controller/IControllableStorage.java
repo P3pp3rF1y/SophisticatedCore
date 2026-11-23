@@ -137,7 +137,7 @@ public interface IControllableStorage extends IControllerBoundable {
 	}
 
 	default void registerWithControllerOnLoad() {
-		getControllerPos().ifPresent(controllerPos -> {
+		getControllerPos().ifPresentOrElse(controllerPos -> {
 			Level level = getStorageBlockLevel();
 			if (!level.isClientSide()) {
 				BlockPos controlledStorageBlockPos = getControlledStorageBlockPos();
@@ -148,10 +148,11 @@ public interface IControllableStorage extends IControllerBoundable {
 						}
 					} else {
 						removeControllerPos();
+						tryToAddToController();
 					}
 				});
 			}
-		});
+		}, this::tryToAddToController);
 	}
 
 	default void changeSlots(int newSlots) {
