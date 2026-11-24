@@ -23,9 +23,14 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -92,14 +97,48 @@ class CookingLogicTest {
 		assertEquals(1, recipe.getAssemblyCalls());
 	}
 
+	@Test
+	void smeltRetainsWaterBucketFromWetSpongeWhenFuelPredicateRejectsWaterBucket() throws ReflectiveOperationException {
+		ItemStack upgrade = new ItemStack(Items.FURNACE);
+		List<ItemStack> savedUpgrades = new ArrayList<>();
+		CookingLogic<SmeltingRecipe> cookingLogic = cookingLogic(upgrade, stack -> savedUpgrades.add(stack.copy()), stack -> stack.is(Items.BUCKET),
+				ItemStack.EMPTY);
+		cookingLogic.setCookInput(new ItemStack(Items.WET_SPONGE));
+		cookingLogic.setFuel(new ItemStack(Items.BUCKET));
+		assertThrows(RuntimeException.class, () -> cookingLogic.setFuel(new ItemStack(Items.WATER_BUCKET)));
+		assertTrue(cookingLogic.getFuel().is(Items.BUCKET));
+
+		smelt(cookingLogic, new WetSpongeSmeltingRecipe(), level());
+
+		assertTrue(cookingLogic.getCookInput().isEmpty());
+		assertTrue(cookingLogic.getCookOutput().is(Items.SPONGE));
+		assertTrue(cookingLogic.getFuel().is(Items.WATER_BUCKET));
+		CookingLogic<SmeltingRecipe> reloadedCookingLogic = cookingLogic(savedUpgrades.get(savedUpgrades.size() - 1), stack -> {
+		}, stack -> stack.is(Items.BUCKET), ItemStack.EMPTY);
+		assertTrue(reloadedCookingLogic.getCookInput().isEmpty());
+		assertTrue(reloadedCookingLogic.getCookOutput().is(Items.SPONGE));
+		assertTrue(reloadedCookingLogic.getFuel().is(Items.WATER_BUCKET));
+
+		smelt(cookingLogic, new WetSpongeSmeltingRecipe(), level());
+
+		assertTrue(cookingLogic.getCookInput().isEmpty());
+		assertEquals(1, cookingLogic.getCookOutput().getCount());
+		assertTrue(cookingLogic.getFuel().is(Items.WATER_BUCKET));
+	}
+
 	private static CookingLogic<SmeltingRecipe> cookingLogic(ItemStack input) throws ReflectiveOperationException {
+		return cookingLogic(new ItemStack(Items.FURNACE), stack -> {
+		}, stack -> true, input);
+	}
+
+	private static CookingLogic<SmeltingRecipe> cookingLogic(ItemStack upgrade, Consumer<ItemStack> saveHandler, Predicate<ItemStack> isFuel, ItemStack input)
+			throws ReflectiveOperationException {
 		ModConfigSpec.Builder configBuilder = new ModConfigSpec.Builder();
 		CookingUpgradeConfig config = new CookingUpgradeConfig(configBuilder, "Test", "test");
 		configBuilder.build();
 		setConfigValue(config, "cookingSpeedMultiplier");
 		setConfigValue(config, "fuelEfficiencyMultiplier");
-		CookingLogic<SmeltingRecipe> cookingLogic = new CookingLogic<>(new ItemStack(Items.FURNACE), stack -> {
-		}, stack -> true, stack -> true, config, RecipeType.SMELTING, 1.0F);
+		CookingLogic<SmeltingRecipe> cookingLogic = new CookingLogic<>(upgrade, saveHandler, isFuel, stack -> true, config, RecipeType.SMELTING, 1.0F);
 		cookingLogic.getCookingInventory();
 		cookingLogic.setCookInput(input);
 		return cookingLogic;
@@ -158,6 +197,12 @@ class CookingLogicTest {
 
 		private int getAssemblyCalls() {
 			return assemblyCalls;
+		}
+	}
+
+	private static class WetSpongeSmeltingRecipe extends SmeltingRecipe {
+		private WetSpongeSmeltingRecipe() {
+			super("", CookingBookCategory.MISC, Ingredient.of(Items.WET_SPONGE), new ItemStack(Items.SPONGE), 0, 200);
 		}
 	}
 }

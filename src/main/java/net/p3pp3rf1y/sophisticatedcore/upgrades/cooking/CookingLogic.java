@@ -206,7 +206,7 @@ public class CookingLogic<T extends AbstractCookingRecipe> {
 		}
 
 		if (input.getItem() == Blocks.WET_SPONGE.asItem() && !getFuel().isEmpty() && getFuel().getItem() == Items.BUCKET) {
-			setFuel(new ItemStack(Items.WATER_BUCKET));
+			setFuelWithoutValidation(new ItemStack(Items.WATER_BUCKET));
 		}
 
 		if (cookingRecipe != null) {
